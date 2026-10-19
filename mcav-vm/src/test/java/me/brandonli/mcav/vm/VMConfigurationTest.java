@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 final class VMConfigurationTest {
 
   @Test
-  void startsEmpty() {
+  void shouldStartEmpty() {
     final VMConfiguration configuration = VMConfiguration.builder();
     final List<String> arguments = configuration.getArguments();
     final String[] array = configuration.buildArgs();
@@ -48,7 +48,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void createsANewConfigurationEveryTime() {
+  void shouldCreateANewConfigurationEveryTime() {
     final VMConfiguration first = VMConfiguration.builder();
     final VMConfiguration second = VMConfiguration.builder();
     first.memory(256);
@@ -58,7 +58,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void rendersEveryTypedOptionAsAQemuArgument() {
+  void shouldRenderEveryTypedOptionAsAQemuArgument() {
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.memory(2048);
     configuration.cores(4);
@@ -106,7 +106,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void setsMemoryWithAUnit() {
+  void shouldSetMemoryWithAUnit() {
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.memory(2, "G");
     final String memory = configuration.get("m");
@@ -114,7 +114,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void replacesOptionsButKeepsTheirFirstPosition() {
+  void shouldReplaceOptionsButKeepTheirFirstPosition() {
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.memory(512);
     configuration.cores(1);
@@ -125,7 +125,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void ordersOptionsBeforeRepeatableOptionsBeforeFlags() {
+  void shouldOrderOptionsBeforeRepeatableOptionsBeforeFlags() {
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.flag("enable-kvm");
     configuration.drive("file=a.qcow2,format=qcow2");
@@ -166,7 +166,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void answersWhichOptionsAndFlagsAreSet() {
+  void shouldAnswerWhichOptionsAndFlagsAreSet() {
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.cdrom("alpine.iso");
     configuration.flag("snapshot");
@@ -188,7 +188,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void listsTheValuesOfRepeatableOptions() {
+  void shouldListTheValuesOfRepeatableOptions() {
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.device("usb-tablet");
     configuration.drive("file=disk.qcow2");
@@ -210,7 +210,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void removesEveryValueOfARepeatableOption() {
+  void shouldRemoveEveryValueOfARepeatableOption() {
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.device("usb-tablet");
     configuration.drive("file=disk.qcow2");
@@ -226,7 +226,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void removesOptionsAndFlags() {
+  void shouldRemoveOptionsAndFlags() {
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.cdrom("alpine.iso");
     configuration.flag("snapshot");
@@ -245,7 +245,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void returnsItselfFromEverySetter() {
+  void shouldReturnItselfFromEverySetter() {
     final VMConfiguration configuration = VMConfiguration.builder();
     final List<UnaryOperator<VMConfiguration>> setters = List.of(
       candidate -> candidate.memory(1),
@@ -273,7 +273,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void returnsArgumentsThatCannotBeModified() {
+  void shouldReturnArgumentsThatCannotBeModified() {
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.memory(64);
     final List<String> arguments = configuration.getArguments();
@@ -286,7 +286,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void rejectsInvalidTypedOptions() {
+  void shouldRejectInvalidTypedOptions() {
     final VMConfiguration configuration = VMConfiguration.builder();
     assertThrows(IllegalArgumentException.class, () -> configuration.memory(0));
     assertThrows(IllegalArgumentException.class, () -> configuration.memory(0, "G"));
@@ -309,7 +309,7 @@ final class VMConfigurationTest {
   }
 
   @Test
-  void rejectsInvalidGenericOptionsAndKeys() {
+  void shouldRejectInvalidGenericOptionsAndKeys() {
     final VMConfiguration configuration = VMConfiguration.builder();
     assertThrows(NullPointerException.class, () -> configuration.option(null, "value"));
     assertThrows(NullPointerException.class, () -> configuration.option("key", null));

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.utils.os.Os;
@@ -42,11 +43,12 @@ import org.mockito.MockedConstruction;
 final class VMProcessPortProbeTest {
 
   @Test
-  void disablesAddressReuseBeforeProbingEvenWhenTheSocketInitiallyEnablesIt() throws IOException {
+  void shouldDisableAddressReuseBeforeProbingEvenWhenTheSocketInitiallyEnablesIt() throws IOException {
     // ServerSocket's API explicitly leaves the initial SO_REUSEADDR setting undefined. Model its allowed true case.
     try (final ServerSocket delegate = new ServerSocket()) {
       delegate.setReuseAddress(true);
-      assertTrue(delegate.getReuseAddress());
+      final boolean reuseEnabled = delegate.getReuseAddress();
+      assertTrue(reuseEnabled);
       final AtomicBoolean reuseAtBind = new AtomicBoolean(true);
       final AtomicBoolean reachedBind = new AtomicBoolean();
       final IOException stopped = new IOException("stop at the port-probe boundary");
@@ -84,10 +86,15 @@ final class VMProcessPortProbeTest {
           }
         );
         final PlayerException failure = assertThrows(PlayerException.class, process::start);
-        assertFalse(sockets.constructed().isEmpty());
-        assertSame(stopped, failure.getCause());
-        assertTrue(reachedBind.get());
-        assertFalse(reuseAtBind.get(), "the preflight must test a non-reusable bind regardless of the OS default");
+        final List<ServerSocket> constructed = sockets.constructed();
+        final boolean noSocketConstructed = constructed.isEmpty();
+        final Throwable cause = failure.getCause();
+        final boolean bound = reachedBind.get();
+        final boolean reusedAtBind = reuseAtBind.get();
+        assertFalse(noSocketConstructed);
+        assertSame(stopped, cause);
+        assertTrue(bound);
+        assertFalse(reusedAtBind, "the preflight must test a non-reusable bind regardless of the OS default");
       }
     }
   }

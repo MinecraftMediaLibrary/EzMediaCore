@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 final class VMSettingsTest {
 
   @Test
-  void keepsTheGivenValues() {
+  void shouldKeepTheGivenValues() {
     final VMSettings settings = VMSettings.of(5905, 640, 480, 25);
     final int port = settings.getPort();
     final int width = settings.getWidth();
@@ -47,7 +47,7 @@ final class VMSettingsTest {
   }
 
   @Test
-  void picksAFreeVncPort() throws IOException {
+  void shouldPickAFreeVncPort() throws IOException {
     final VMSettings settings = VMSettings.of(320, 200, 10);
     final int port = settings.getPort();
     final int width = settings.getWidth();
@@ -62,7 +62,7 @@ final class VMSettingsTest {
   }
 
   @Test
-  void acceptsTheLimitsOfEveryRange() {
+  void shouldAcceptTheLimitsOfEveryRange() {
     final VMSettings lowest = VMSettings.of(5900, 1, 1, 1);
     final VMSettings highest = VMSettings.of(65535, 1, 1, 1);
     final int lowestPort = lowest.getPort();
@@ -72,7 +72,7 @@ final class VMSettingsTest {
   }
 
   @Test
-  void rejectsInvalidValues() {
+  void shouldRejectInvalidValues() {
     assertThrows(IllegalArgumentException.class, () -> VMSettings.of(5899, 640, 480, 30));
     assertThrows(IllegalArgumentException.class, () -> VMSettings.of(65536, 640, 480, 30));
     assertThrows(IllegalArgumentException.class, () -> VMSettings.of(5900, 0, 480, 30));
@@ -84,7 +84,7 @@ final class VMSettingsTest {
   }
 
   @Test
-  void comparesEveryValue() {
+  void shouldCompareEveryValue() {
     final VMSettings settings = VMSettings.of(5901, 640, 480, 30);
     final VMSettings equal = VMSettings.of(5901, 640, 480, 30);
     final VMSettings otherPort = VMSettings.of(5902, 640, 480, 30);
@@ -95,7 +95,7 @@ final class VMSettingsTest {
   }
 
   @Test
-  void buildsTheHashCodeFromEveryValueInOrder() {
+  void shouldBuildTheHashCodeFromEveryValueInOrder() {
     final VMSettings settings = VMSettings.of(5901, 640, 480, 30);
     final int hash = settings.hashCode();
     final int expected = ((5901 * 31 + 640) * 31 + 480) * 31 + 30;
@@ -103,7 +103,7 @@ final class VMSettingsTest {
   }
 
   @Test
-  void givesSettingsThatDifferInOneValueDifferentHashCodes() {
+  void shouldGiveSettingsThatDifferInOneValueDifferentHashCodes() {
     final VMSettings settings = VMSettings.of(5901, 640, 480, 30);
     final VMSettings otherPort = VMSettings.of(5902, 640, 480, 30);
     final VMSettings otherWidth = VMSettings.of(5901, 641, 480, 30);
@@ -121,7 +121,7 @@ final class VMSettingsTest {
   }
 
   @Test
-  void describesItself() {
+  void shouldDescribeItself() {
     final VMSettings settings = VMSettings.of(5901, 640, 480, 30);
     final String text = settings.toString();
     assertEquals("VMSettings[port=5901, 640x480@30]", text);

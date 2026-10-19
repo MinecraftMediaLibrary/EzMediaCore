@@ -106,22 +106,27 @@ class VMAudioClientTest {
     out.write("RFB 003.008\n".getBytes(StandardCharsets.US_ASCII));
     final byte[] version = new byte[12];
     in.readFully(version);
-    assertEquals("RFB 003.008\n", new String(version, StandardCharsets.US_ASCII));
+    final String clientVersion = new String(version, StandardCharsets.US_ASCII);
+    assertEquals("RFB 003.008\n", clientVersion);
     if (password.isEmpty()) {
       out.write(new byte[] { 1, 1 });
-      assertEquals(1, in.readUnsignedByte(), "no authentication");
+      final int securityType = in.readUnsignedByte();
+      assertEquals(1, securityType, "no authentication");
     } else {
       out.write(new byte[] { 1, 2 });
-      assertEquals(2, in.readUnsignedByte(), "VNC authentication");
+      final int securityType = in.readUnsignedByte();
+      assertEquals(2, securityType, "VNC authentication");
       final byte[] challenge = new byte[16];
       RANDOM.nextBytes(challenge);
       out.write(challenge);
       final byte[] response = new byte[16];
       in.readFully(response);
-      assertArrayEquals(VncPasswords.response(challenge, password), response, "the answer of the password");
+      final byte[] expectedResponse = VncPasswords.response(challenge, password);
+      assertArrayEquals(expectedResponse, response, "the answer of the password");
     }
     out.writeInt(0);
-    assertEquals(1, in.readUnsignedByte(), "shared");
+    final int shared = in.readUnsignedByte();
+    assertEquals(1, shared, "shared");
     out.writeShort(720);
     out.writeShort(400);
     out.write(new byte[16]);
@@ -138,7 +143,7 @@ class VMAudioClientTest {
   }
 
   @Test
-  void aDisplayWithoutAPasswordIsJoinedWithoutAuthentication() throws Exception {
+  void shouldJoinADisplayWithoutAPasswordWithoutAuthentication() throws Exception {
     final CompletableFuture<Void> served = CompletableFuture.runAsync(() -> {
       try (final Socket socket = this.server.accept()) {
         handshake(socket, "");
@@ -148,13 +153,14 @@ class VMAudioClientTest {
       }
     });
     final VMAudioClient client = VMAudioClient.connect(this.address(), "", (samples, length) -> {}, (message, failure) -> {});
-    assertTrue(client.isAlive());
+    final boolean alive = client.isAlive();
+    assertTrue(alive);
     client.close();
     served.get(10, TimeUnit.SECONDS);
   }
 
   @Test
-  void aWrongPasswordEndsTheHandshakeWithTheReasonOfTheServer() throws Exception {
+  void shouldEndTheHandshakeOfAWrongPasswordWithTheReasonOfTheServer() throws Exception {
     final CompletableFuture<Void> served = CompletableFuture.runAsync(() -> {
       try (final Socket socket = this.server.accept()) {
         final DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -162,7 +168,8 @@ class VMAudioClientTest {
         out.write("RFB 003.008\n".getBytes(StandardCharsets.US_ASCII));
         in.readFully(new byte[12]);
         out.write(new byte[] { 1, 2 });
-        assertEquals(2, in.readUnsignedByte(), "VNC authentication");
+        final int securityType = in.readUnsignedByte();
+        assertEquals(2, securityType, "VNC authentication");
         out.write(new byte[16]);
         in.readFully(new byte[16]);
         out.writeInt(1);
@@ -175,12 +182,13 @@ class VMAudioClientTest {
       }
     });
     final ProtocolException refused = assertThrows(ProtocolException.class, this::connect);
-    assertEquals("The VNC server refused the connection: Authentication failed", refused.getMessage());
+    final String message = refused.getMessage();
+    assertEquals("The VNC server refused the connection: Authentication failed", message);
     served.get(10, TimeUnit.SECONDS);
   }
 
   @Test
-  void theSoundOfTheGuestReachesTheSinkAndAnEndIsReported() throws Exception {
+  void shouldHandTheSoundOfTheGuestToTheSinkAndReportTheEnd() throws Exception {
     final CompletableFuture<Void> served = CompletableFuture.runAsync(() -> {
       try (final Socket socket = this.server.accept()) {
         final Streams streams = handshake(socket);
@@ -197,15 +205,20 @@ class VMAudioClientTest {
     });
     try (final VMAudioClient client = this.connect()) {
       served.get(10, TimeUnit.SECONDS);
-      assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, this.chunks.getFirst());
-      assertArrayEquals(new byte[] { 9, 9, 9, 9 }, this.chunks.get(1));
+      final byte[] expectedFirstChunk = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+      final byte[] expectedSecondChunk = new byte[] { 9, 9, 9, 9 };
+      final byte[] firstChunk = this.chunks.getFirst();
+      final byte[] secondChunk = this.chunks.get(1);
+      assertArrayEquals(expectedFirstChunk, firstChunk);
+      assertArrayEquals(expectedSecondChunk, secondChunk);
       waitUntil(() -> !client.isAlive());
-      assertEquals(List.of("The audio connection of the virtual machine ended"), this.failures);
+      final List<String> expected = List.of("The audio connection of the virtual machine ended");
+      assertEquals(expected, this.failures);
     }
   }
 
   @Test
-  void theEndOfTheGuestsSoundTellsTheSinkItWentQuiet() throws Exception {
+  void shouldTellTheSinkWhenTheSoundOfTheGuestEnds() throws Exception {
     final List<String> heard = new CopyOnWriteArrayList<>();
     final VMAudioClient.Sink sink = new VMAudioClient.Sink() {
       @Override
@@ -233,15 +246,17 @@ class VMAudioClientTest {
     });
     try (final VMAudioClient client = VMAudioClient.connect(this.address(), PASSWORD, sink, (message, failure) -> {})) {
       served.get(10, TimeUnit.SECONDS);
-      assertEquals(List.of("sound 4", "quiet"), heard, "the end of the guest's sound, after its samples");
-      assertTrue(client.getReader() != null);
+      final List<String> expected = List.of("sound 4", "quiet");
+      final boolean readerStarted = client.getReader() != null;
+      assertEquals(expected, heard, "the end of the guest's sound, after its samples");
+      assertTrue(readerStarted);
     }
     final VMAudioClient.Sink plain = (samples, length) -> {};
     plain.quiet();
   }
 
   @Test
-  void aSinkThatFailsEndsTheConnectionAndIsReported() throws Exception {
+  void shouldEndTheConnectionAndReportASinkThatFails() throws Exception {
     final CompletableFuture<Void> served = CompletableFuture.runAsync(() -> {
       try (final Socket socket = this.server.accept()) {
         final Streams streams = handshake(socket);
@@ -249,7 +264,8 @@ class VMAudioClientTest {
         streams.out().write(new byte[] { (byte) 255, 1, 0, 1 });
         QemuAudioProtocolTest.writeData(streams.out(), new byte[] { 1, 2, 3, 4 });
         streams.out().flush();
-        assertEquals(-1, streams.in().read());
+        final int next = streams.in().read();
+        assertEquals(-1, next);
       } catch (final IOException exception) {
         throw new UncheckedIOException(exception);
       }
@@ -264,7 +280,8 @@ class VMAudioClientTest {
     ) {
       served.get(10, TimeUnit.SECONDS);
       waitUntil(() -> !client.isAlive());
-      assertEquals(List.of("The audio connection of the virtual machine ended"), this.failures);
+      final List<String> expected = List.of("The audio connection of the virtual machine ended");
+      assertEquals(expected, this.failures);
     }
   }
 
@@ -309,12 +326,13 @@ class VMAudioClientTest {
         }
       });
     }
-    assertTrue(busy.await(30, TimeUnit.SECONDS), "every worker of the common pool is busy");
+    final boolean allBusy = busy.await(30, TimeUnit.SECONDS);
+    assertTrue(allBusy, "every worker of the common pool is busy");
     return release;
   }
 
   @Test
-  void theHandshakeDeadlineHoldsWhileTheCommonPoolIsBusy() throws Exception {
+  void shouldHoldTheHandshakeDeadlineWhileTheCommonPoolIsBusy() throws Exception {
     final CountDownLatch release = occupyTheCommonPool();
     try {
       final Thread server = Thread.ofPlatform()
@@ -334,24 +352,26 @@ class VMAudioClientTest {
           }
         });
       assertTimeoutPreemptively(Duration.ofSeconds(60), () -> assertThrows(IOException.class, this::connect));
-      assertTrue(server.isAlive(), "the client gave up, not the server");
+      final boolean serverAlive = server.isAlive();
+      assertTrue(serverAlive, "the client gave up, not the server");
     } finally {
       release.countDown();
     }
   }
 
   @Test
-  void aServerThatTricklesItsHandshakeIsCutOffAtTheDeadline() throws Exception {
+  void shouldCutOffAServerThatTricklesItsHandshakeAtTheDeadline() throws Exception {
     final CompletableFuture<Void> served = CompletableFuture.runAsync(() -> trickleTheBanner(this.server));
     final long start = System.nanoTime();
     assertThrows(IOException.class, this::connect);
     final long seconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
-    assertTrue(seconds < VMAudioClient.HANDSHAKE_TIMEOUT_MILLIS / 1000 + 3, "the handshake took " + seconds + " s");
+    final boolean withinTheDeadline = seconds < VMAudioClient.HANDSHAKE_TIMEOUT_MILLIS / 1000 + 3;
+    assertTrue(withinTheDeadline, "the handshake took " + seconds + " s");
     served.get(20, TimeUnit.SECONDS);
   }
 
   @Test
-  void aFailureCallbackThatClosesTheClientDoesNotWaitForItself() throws Exception {
+  void shouldNotWaitForItselfWhenAFailureCallbackClosesTheClient() throws Exception {
     final CompletableFuture<Void> served = CompletableFuture.runAsync(() -> {
       try (final Socket socket = this.server.accept()) {
         final Streams streams = handshake(socket);
@@ -376,12 +396,13 @@ class VMAudioClientTest {
     self.set(client);
     served.get(10, TimeUnit.SECONDS);
     waitUntil(() -> closeNanos.get() >= 0);
-    assertTrue(closeNanos.get() < TimeUnit.SECONDS.toNanos(1), "closed without waiting for its own reader");
+    final boolean closedQuickly = closeNanos.get() < TimeUnit.SECONDS.toNanos(1);
+    assertTrue(closedQuickly, "closed without waiting for its own reader");
     client.close();
   }
 
   @Test
-  void theReaderRunsAsADaemonAndClosingWaitsForIt() throws Exception {
+  void shouldRunTheReaderAsADaemonAndWaitForItWhenClosing() throws Exception {
     final CompletableFuture<Void> served = CompletableFuture.runAsync(() -> {
       try (final Socket socket = this.server.accept()) {
         handshake(socket);
@@ -391,14 +412,16 @@ class VMAudioClientTest {
       }
     });
     final VMAudioClient client = this.connect();
-    assertTrue(client.getReader().isDaemon(), "the sound never keeps the JVM alive");
+    final boolean daemon = client.getReader().isDaemon();
+    assertTrue(daemon, "the sound never keeps the JVM alive");
     client.close();
-    assertFalse(client.isAlive(), "close returns once the reader ended");
+    final boolean alive = client.isAlive();
+    assertFalse(alive, "close returns once the reader ended");
     served.get(10, TimeUnit.SECONDS);
   }
 
   @Test
-  void closingTheClientEndsItQuietly() throws Exception {
+  void shouldEndQuietlyWhenClosed() throws Exception {
     final CompletableFuture<Void> served = CompletableFuture.runAsync(() -> {
       try (final Socket socket = this.server.accept()) {
         handshake(socket);
@@ -408,23 +431,26 @@ class VMAudioClientTest {
       }
     });
     final VMAudioClient client = this.connect();
-    assertTrue(client.isAlive());
+    final boolean aliveBeforeClose = client.isAlive();
+    assertTrue(aliveBeforeClose);
     Thread.currentThread().interrupt();
     try {
       client.close();
-      assertTrue(Thread.currentThread().isInterrupted(), "an interrupted close keeps the interrupt");
+      final boolean interrupted = Thread.currentThread().isInterrupted();
+      assertTrue(interrupted, "an interrupted close keeps the interrupt");
     } finally {
       Thread.interrupted();
     }
     client.close();
     waitUntil(() -> !client.isAlive());
-    assertFalse(client.isAlive());
+    final boolean aliveAfterClose = client.isAlive();
+    assertFalse(aliveAfterClose);
     served.get(10, TimeUnit.SECONDS);
     assertEquals(List.of(), this.failures);
   }
 
   @Test
-  void aServerThatWantsAPasswordFailsAConnectionWithoutOne() {
+  void shouldFailAConnectionWithoutAPasswordToAServerThatWantsOne() {
     final CompletableFuture<Void> served = CompletableFuture.runAsync(() -> {
       try (final Socket socket = this.server.accept()) {
         final DataOutputStream out = new DataOutputStream(socket.getOutputStream());
@@ -439,18 +465,20 @@ class VMAudioClientTest {
     final ProtocolException failure = assertThrows(ProtocolException.class, () ->
       VMAudioClient.connect(this.address(), "", (samples, length) -> {}, (message, cause) -> {})
     );
-    assertEquals("The VNC server asks for authentication, which the audio connection does not do", failure.getMessage());
+    final String message = failure.getMessage();
+    assertEquals("The VNC server asks for authentication, which the audio connection does not do", message);
     served.join();
   }
 
   @Test
-  void aFailedCloseChangesNothing() {
+  void shouldChangeNothingWhenCloseFails() {
     final AtomicInteger closed = new AtomicInteger();
     VMAudioClient.closeQuietly(() -> {
       closed.incrementAndGet();
       throw new IOException("gone");
     });
-    assertEquals(1, closed.get());
+    final int closeCalls = closed.get();
+    assertEquals(1, closeCalls);
   }
 
   private static void waitUntil(final BooleanSupplier condition) {
@@ -472,7 +500,7 @@ class VMAudioClientTest {
   private record Streams(DataInputStream in, DataOutputStream out) {}
 
   @Test
-  void anInterruptedWaitForAThreadOfTheSoundKeepsTheInterrupt() throws InterruptedException {
+  void shouldKeepTheInterruptOfAnInterruptedWaitForAThreadOfTheSound() throws InterruptedException {
     final CountDownLatch release = new CountDownLatch(1);
     final Thread alive = new Thread(() -> {
       try {
@@ -485,12 +513,14 @@ class VMAudioClientTest {
     Thread.currentThread().interrupt();
     try {
       VMAudioClient.join(alive);
-      assertTrue(Thread.currentThread().isInterrupted(), "the interrupt stays for the caller");
+      final boolean interrupted = Thread.currentThread().isInterrupted();
+      assertTrue(interrupted, "the interrupt stays for the caller");
     } finally {
       Thread.interrupted();
       release.countDown();
     }
     alive.join(10_000L);
-    assertFalse(alive.isAlive());
+    final boolean stillAlive = alive.isAlive();
+    assertFalse(stillAlive);
   }
 }

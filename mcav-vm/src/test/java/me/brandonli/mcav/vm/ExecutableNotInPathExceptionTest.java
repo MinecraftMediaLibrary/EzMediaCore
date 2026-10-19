@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 final class ExecutableNotInPathExceptionTest {
 
   @Test
-  void namesTheMissingProgram() {
+  void shouldNameTheMissingProgram() {
     final ExecutableNotInPathException exception = new ExecutableNotInPathException("qemu-system-arm");
     final String message = exception.getMessage();
     assertEquals("The program qemu-system-arm is not installed or not on the PATH", message);
@@ -37,7 +37,7 @@ final class ExecutableNotInPathExceptionTest {
   }
 
   @Test
-  void rejectsANullProgramName() {
+  void shouldRejectANullProgramName() {
     final NullPointerException exception = assertThrows(NullPointerException.class, () -> {
       throw new ExecutableNotInPathException(null);
     });

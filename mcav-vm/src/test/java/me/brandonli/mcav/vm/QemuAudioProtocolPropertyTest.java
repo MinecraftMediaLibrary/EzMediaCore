@@ -65,7 +65,7 @@ final class QemuAudioProtocolPropertyTest {
   }
 
   @Property(seed = SEED, tries = 300)
-  void everyMessageIsReadAsSentHoweverTheStreamIsCut(
+  void shouldReadEveryMessageAsSentHoweverTheStreamIsCut(
     @ForAll @Size(max = 20) final List<@From("messages") Sent> messages,
     @ForAll final long cuts
   ) throws IOException {
@@ -77,10 +77,15 @@ final class QemuAudioProtocolPropertyTest {
     final DataInputStream in = new DataInputStream(new Trickle(stream, new Random(cuts)));
     for (final Sent expected : messages) {
       final QemuAudioProtocol.Message read = QemuAudioProtocol.readMessage(in, FRAME, byte[]::new);
-      assertEquals(expected.kind(), read.getKind());
-      assertArrayEquals(expected.samples(), Arrays.copyOf(read.getSamples(), read.getLength()));
+      final QemuAudioProtocol.Kind expectedKind = expected.kind();
+      final QemuAudioProtocol.Kind kind = read.getKind();
+      final byte[] expectedSamples = expected.samples();
+      final byte[] samples = Arrays.copyOf(read.getSamples(), read.getLength());
+      assertEquals(expectedKind, kind);
+      assertArrayEquals(expectedSamples, samples);
     }
-    assertEquals(-1, in.read(), "nothing is left over");
+    final int next = in.read();
+    assertEquals(-1, next, "nothing is left over");
   }
 
   private static void write(final DataOutputStream out, final Sent message) throws IOException {

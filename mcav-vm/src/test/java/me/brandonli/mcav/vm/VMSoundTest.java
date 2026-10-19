@@ -89,7 +89,8 @@ final class VMSoundTest {
   private static void waitUntil(final String description, final long timeoutSeconds, final BooleanSupplier condition) {
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
     while (!condition.getAsBoolean()) {
-      assertTrue(System.nanoTime() < deadline, "timed out waiting for " + description);
+      final boolean beforeTheDeadline = System.nanoTime() < deadline;
+      assertTrue(beforeTheDeadline, "timed out waiting for " + description);
       try {
         Thread.sleep(20L);
       } catch (final InterruptedException exception) {
@@ -137,14 +138,15 @@ final class VMSoundTest {
   }
 
   @Test
-  void theToneOfTheGuestsPcSpeakerReachesTheAudioPipeline() throws IOException {
+  void shouldHandTheToneOfTheGuestsPcSpeakerToTheAudioPipeline() throws IOException {
     assumeQemuInstalled();
     final ByteArrayOutputStream pcm = new ByteArrayOutputStream();
     final VMPlayer player = VMPlayer.create();
     final AudioAttachableCallback audio = player.getAudioAttachableCallback();
     audio.attach(
       AudioPipelineStep.of((samples, metadata) -> {
-        assertEquals(AudioFilter.SAMPLE_RATE, metadata.getAudioSampleRate());
+        final int sampleRate = metadata.getAudioSampleRate();
+        assertEquals(AudioFilter.SAMPLE_RATE, sampleRate);
         final byte[] copy = new byte[samples.remaining()];
         samples.get(copy);
         synchronized (pcm) {
@@ -154,7 +156,8 @@ final class VMSoundTest {
       })
     );
     try {
-      assertTrue(player.start(VMSettings.of(320, 200, 10), VMPlayer.Architecture.X86_64, floppy(this.bootSector("beep.img"))));
+      final boolean started = player.start(VMSettings.of(320, 200, 10), VMPlayer.Architecture.X86_64, floppy(this.bootSector("beep.img")));
+      assertTrue(started);
       final int twoSeconds = 2 * AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE;
       waitUntil("two seconds of sound", 60, () -> {
         synchronized (pcm) {
@@ -178,7 +181,8 @@ final class VMSoundTest {
     }
     final double frequency = crossings / 2.0;
     System.out.printf(Locale.ROOT, "captured %d bytes, zero crossings say %.1f Hz%n", captured.length, frequency);
-    assertTrue(Math.abs(frequency - TONE_HERTZ) < 20, "the tone has " + frequency + " Hz");
+    final boolean nearTheTone = Math.abs(frequency - TONE_HERTZ) < 20;
+    assertTrue(nearTheTone, "the tone has " + frequency + " Hz");
     int toneWindows = 0;
     final int windows = AudioFilter.SAMPLE_RATE / WINDOW_FRAMES;
     for (int window = 0; window < windows; window++) {
@@ -186,11 +190,12 @@ final class VMSoundTest {
         toneWindows++;
       }
     }
-    assertTrue(toneWindows > (windows * 9) / 10, toneWindows + " of " + windows + " windows hold the tone");
+    final boolean mostlyTone = toneWindows > (windows * 9) / 10;
+    assertTrue(mostlyTone, toneWindows + " of " + windows + " windows hold the tone");
   }
 
   @Test
-  void theSoundOfTheGuestKeepsUpWithItsPicture() throws IOException {
+  void shouldKeepTheSoundOfTheGuestWithItsPicture() throws IOException {
     assumeTrue(Boolean.getBoolean("mcav.syncMeasurement"), "times real events; run with -Pmcav.syncMeasurement=true on a quiet machine");
     assumeQemuInstalled();
     final List<long[]> sound = new CopyOnWriteArrayList<>();
@@ -224,7 +229,12 @@ final class VMSoundTest {
       })
     );
     try {
-      assertTrue(player.start(VMSettings.of(320, 200, 60), VMPlayer.Architecture.X86_64, floppy(this.bootSector("toggle.img"))));
+      final boolean started = player.start(
+        VMSettings.of(320, 200, 60),
+        VMPlayer.Architecture.X86_64,
+        floppy(this.bootSector("toggle.img"))
+      );
+      assertTrue(started);
       waitUntil("20 seconds of sound", 90, () -> sound.size() >= 20 * 200);
     } finally {
       player.release();
@@ -266,16 +276,21 @@ final class VMSoundTest {
   private static void assertInSync(final SyncJudgement judgement) {
     final List<Double> offsets = judgement.offsets();
     final int changes = judgement.changes();
-    assertTrue(offsets.size() >= MIN_MATCHED, "matched " + offsets.size() + " changes of the picture, fewer than " + MIN_MATCHED);
-    assertTrue(offsets.size() >= Math.ceil(changes * 0.9), "matched " + offsets.size() + " of " + changes + " changes of the picture");
+    final boolean enoughMatched = offsets.size() >= MIN_MATCHED;
+    final boolean nearlyAllMatched = offsets.size() >= Math.ceil(changes * 0.9);
+    assertTrue(enoughMatched, "matched " + offsets.size() + " changes of the picture, fewer than " + MIN_MATCHED);
+    assertTrue(nearlyAllMatched, "matched " + offsets.size() + " of " + changes + " changes of the picture");
     final List<Double> sorted = new ArrayList<>(offsets);
     Collections.sort(sorted);
-    assertTrue(Math.abs(median(sorted)) <= 40, "the sound and the picture arrive together in the middle");
+    final boolean togetherInTheMiddle = Math.abs(median(sorted)) <= 40;
+    assertTrue(togetherInTheMiddle, "the sound and the picture arrive together in the middle");
     final long acceptable = judgement.within(-90, 185);
-    assertTrue(acceptable >= Math.ceil(changes * 0.9), acceptable + " of " + changes + " changes are in sync");
+    final boolean nearlyAllInSync = acceptable >= Math.ceil(changes * 0.9);
+    assertTrue(nearlyAllInSync, acceptable + " of " + changes + " changes are in sync");
     final int half = offsets.size() / 2;
     final double drift = median(offsets.subList(half, offsets.size())) - median(offsets.subList(0, half));
-    assertTrue(Math.abs(drift) < 25, "the sound does not drift from the picture");
+    final boolean steady = Math.abs(drift) < 25;
+    assertTrue(steady, "the sound does not drift from the picture");
   }
 
   /**
@@ -314,7 +329,7 @@ final class VMSoundTest {
   }
 
   @Test
-  void theSyncOracleCountsAChangeWithoutItsSoundAsOutOfSync() {
+  void shouldCountAChangeWithoutItsSoundAsOutOfSync() {
     final List<Long> picture = new ArrayList<>();
     final List<Long> sound = new ArrayList<>();
     for (int change = 0; change < 50; change++) {
@@ -323,14 +338,17 @@ final class VMSoundTest {
       sound.add(shown + TimeUnit.MILLISECONDS.toNanos(change < 10 ? 20 : 300));
     }
     final SyncJudgement late = SyncJudgement.of(picture, sound, TimeUnit.MILLISECONDS.toNanos(165));
-    assertEquals(50, late.changes());
-    assertTrue(late.within(-90, 185) < Math.ceil(late.changes() * 0.9), "40 of 50 changes 300 ms late are not in sync");
+    final int lateChanges = late.changes();
+    final boolean tooFewInSync = late.within(-90, 185) < Math.ceil(late.changes() * 0.9);
+    assertEquals(50, lateChanges);
+    assertTrue(tooFewInSync, "40 of 50 changes 300 ms late are not in sync");
     final List<Long> onTime = picture
       .stream()
       .map(shown -> shown + TimeUnit.MILLISECONDS.toNanos(20))
       .toList();
     final SyncJudgement inSync = SyncJudgement.of(picture, onTime, TimeUnit.MILLISECONDS.toNanos(165));
-    assertEquals(50, inSync.within(-40, 80));
+    final long onTimeWithin = inSync.within(-40, 80);
+    assertEquals(50, onTimeWithin);
     assertInSync(inSync);
     assertThrows(AssertionFailedError.class, () -> assertInSync(late));
     final List<Long> twice = List.of(TimeUnit.SECONDS.toNanos(5), TimeUnit.SECONDS.toNanos(15));
@@ -339,7 +357,8 @@ final class VMSoundTest {
       .map(shown -> shown + TimeUnit.MILLISECONDS.toNanos(20))
       .toList();
     final SyncJudgement undersampled = SyncJudgement.of(twice, twiceHeard, TimeUnit.MILLISECONDS.toNanos(165));
-    assertEquals(2, undersampled.within(-90, 185));
+    final long undersampledWithin = undersampled.within(-90, 185);
+    assertEquals(2, undersampledWithin);
     assertThrows(AssertionFailedError.class, () -> assertInSync(undersampled));
   }
 

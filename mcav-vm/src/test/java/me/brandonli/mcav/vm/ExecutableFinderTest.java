@@ -145,7 +145,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void findsProgramsInThePathDirectories() throws IOException {
+  void shouldFindProgramsInThePathDirectories() throws IOException {
     final Path first = this.directory.resolve("first");
     Files.createDirectories(first);
     final Path program = this.createProgram("second", "qemu-system-x86_64");
@@ -158,7 +158,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void prefersTheFirstPathDirectory() throws IOException {
+  void shouldPreferTheFirstPathDirectory() throws IOException {
     final Path early = this.createProgram("early", "tool");
     final Path late = this.createProgram("late", "tool");
     final Path earlyFolder = early.getParent();
@@ -171,7 +171,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void addsTheExecutableExtensionsOnWindows() throws IOException {
+  void shouldAddTheExecutableExtensionsOnWindows() throws IOException {
     final Path exe = this.createProgram("exe", "qemu.exe");
     final Path batch = this.createProgram("batch", "script.bat");
     final Path command = this.createProgram("command", "legacy.cmd");
@@ -196,7 +196,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void prefersTheExtensionsInTheOrderWindowsRunsThem() throws IOException {
+  void shouldPreferTheExtensionsInTheOrderWindowsRunsThem() throws IOException {
     final Path com = this.createProgram("both", "tool.com");
     this.createProgram("both", "tool.exe");
     final Path folder = com.getParent();
@@ -208,7 +208,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void findsOnlyFilesWithAnExecutableExtensionOnWindows() throws IOException {
+  void shouldFindOnlyFilesWithAnExecutableExtensionOnWindows() throws IOException {
     final Path bare = this.createProgram("planted", "qemu");
     this.createProgram("planted", "qemu.txt");
     final Path named = this.createProgram("planted", "named.EXE");
@@ -224,7 +224,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void readsThePathVariableRegardlessOfItsCase() throws IOException {
+  void shouldReadThePathVariableRegardlessOfItsCase() throws IOException {
     final Path program = this.createProgram("mixed", "tool.exe");
     final Path folder = program.getParent();
     final String path = pathOf(folder);
@@ -237,7 +237,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void findsNothingWithoutAPathVariable() {
+  void shouldFindNothingWithoutAPathVariable() {
     final Map<String, String> environment = Map.of("HOME", "/home/user");
     final Path root = this.emptyRoot();
     final ExecutableFinder finder = new ExecutableFinder(Os.LINUX, environment, root);
@@ -247,7 +247,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void skipsBlankAndBrokenPathEntries() throws IOException {
+  void shouldSkipBlankAndBrokenPathEntries() throws IOException {
     final Path program = this.createProgram("valid", "tool");
     final Path folder = program.getParent();
     final String validFolder = folder.toString();
@@ -259,7 +259,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void ignoresFilesThatMayNotBeExecuted() throws IOException {
+  void shouldIgnoreFilesThatMayNotBeExecuted() throws IOException {
     final Path program = this.createProgram("plain", "notes");
     denyExecution(program);
     final boolean executable = Files.isExecutable(program);
@@ -273,7 +273,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void ignoresDirectoriesWithTheNameOfTheProgram() throws IOException {
+  void shouldIgnoreDirectoriesWithTheNameOfTheProgram() throws IOException {
     final Path folder = this.directory.resolve("bin");
     final Path lookalike = folder.resolve("tool");
     Files.createDirectories(lookalike);
@@ -285,7 +285,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void looksUpNamesWithAFolderInThatFolderAndReturnsAbsolutePaths() throws IOException {
+  void shouldLookUpNamesWithAFolderInThatFolderAndReturnAbsolutePaths() throws IOException {
     final Path program = this.createProgram("direct", "qemu");
     final String absoluteName = program.toString();
     final Path workingDirectory = workingDirectory();
@@ -304,7 +304,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void addsExtensionsToPathsOnWindows() throws IOException {
+  void shouldAddExtensionsToPathsOnWindows() throws IOException {
     final Path program = this.createProgram("direct", "qemu.exe");
     final Path folder = program.getParent();
     final Path withoutExtension = folder.resolve("qemu");
@@ -316,7 +316,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void neverSearchesTheWorkingDirectory() throws IOException {
+  void shouldNeverSearchTheWorkingDirectory() throws IOException {
     final Path workingDirectory = workingDirectory();
     final Path planted = workingDirectory.resolve("mcav-planted-program.exe");
     Files.writeString(planted, "planted");
@@ -336,7 +336,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void searchesTheFoldersMacOsAddsToLoginShells() throws IOException {
+  void shouldSearchTheFoldersMacOsAddsToLoginShells() throws IOException {
     final Path listed = this.createProgram("listed", "qemu-system-aarch64");
     final Path fromPathsD = this.createProgram("from-paths-d", "qemu-img");
     final Path listedFolder = listed.getParent();
@@ -381,7 +381,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void readsThePathsFilesOfMacOsInNameOrder() throws IOException {
+  void shouldReadThePathsFilesOfMacOsInNameOrder() throws IOException {
     final Path first = this.createProgram("first", "tool");
     final Path second = this.createProgram("second", "tool");
     final Path root = this.directory.resolve("mac-root");
@@ -403,7 +403,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void searchesTheInstallFoldersOfHomebrewOnMacOs() throws IOException {
+  void shouldSearchTheInstallFoldersOfHomebrewOnMacOs() throws IOException {
     final Path root = this.directory.resolve("mac-root");
     final Path appleSilicon = root.resolve("opt/homebrew/bin");
     final Path intel = root.resolve("usr/local/bin");
@@ -421,7 +421,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void searchesTheSystemFoldersOnLinuxAndFreeBsd() throws IOException {
+  void shouldSearchTheSystemFoldersOnLinuxAndFreeBsd() throws IOException {
     final Path root = this.directory.resolve("unix-root");
     final Path usrBin = root.resolve("usr/bin");
     final Path usrLocalBin = root.resolve("usr/local/bin");
@@ -444,7 +444,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void searchesOnlyThePathOnAnUnknownOperatingSystem() throws IOException {
+  void shouldSearchOnlyThePathOnAnUnknownOperatingSystem() throws IOException {
     final Path root = this.directory.resolve("unknown-root");
     final Path usrBin = root.resolve("usr/bin");
     writeProgram(usrBin, "qemu-system-x86_64");
@@ -464,7 +464,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void searchesTheQemuFolderOfProgramFilesOnWindows() throws IOException {
+  void shouldSearchTheQemuFolderOfProgramFilesOnWindows() throws IOException {
     final Path program = this.createProgram("Program Files/qemu", "qemu-system-x86_64.exe");
     final Path qemuFolder = program.getParent();
     final Path programFiles = qemuFolder.getParent();
@@ -478,19 +478,20 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void searchesTheDefaultProgramFilesFolderWithoutItsVariable() throws IOException {
+  void shouldSearchTheDefaultProgramFilesFolderWithoutItsVariable() throws IOException {
     final Path program = this.createProgram("default-program-files/qemu", "qemu-system-x86_64.exe");
     final Path qemu = program.getParent();
     final Optional<Path> expected = absolute(program);
     final ExecutableFinder windows = this.finderWithoutPath(Os.WINDOWS);
     try (final MockedStatic<Path> paths = Mockito.mockStatic(Path.class, Mockito.CALLS_REAL_METHODS)) {
       paths.when(() -> assertNotNull(Path.of("C:\\Program Files", "qemu"))).thenReturn(qemu);
-      assertEquals(expected, windows.find("qemu-system-x86_64"), "the default Program Files folder is searched without the variable");
+      final Optional<Path> found = windows.find("qemu-system-x86_64");
+      assertEquals(expected, found, "the default Program Files folder is searched without the variable");
     }
   }
 
   @Test
-  void ignoresAMissingOrUnreadablePathsFile() throws IOException {
+  void shouldIgnoreAMissingOrUnreadablePathsFile() throws IOException {
     final ExecutableFinder missing = this.finder(Os.MAC, "");
     final Path root = this.directory.resolve("broken-root");
     final Path etc = root.resolve("etc");
@@ -508,7 +509,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void findsProgramsWithTheRealEnvironment() {
+  void shouldFindProgramsWithTheRealEnvironment() {
     final ExecutableFinder finder = new ExecutableFinder();
     final Os os = OsUtils.getOs();
     final String shell = os == Os.WINDOWS ? "cmd" : "sh";
@@ -521,7 +522,7 @@ final class ExecutableFinderTest {
   }
 
   @Test
-  void rejectsInvalidNames() {
+  void shouldRejectInvalidNames() {
     final ExecutableFinder finder = this.finderWithoutPath(Os.LINUX);
     assertThrows(NullPointerException.class, () -> finder.find(null));
     final IllegalArgumentException blank = assertThrows(IllegalArgumentException.class, () -> finder.find(" "));

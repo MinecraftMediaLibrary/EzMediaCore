@@ -42,7 +42,7 @@ final class QemuAudioProtocolFuzzTest {
   private static final String PASSWORD = "Pa55word";
 
   @FuzzTest(maxDuration = "30s")
-  void readsTheHandshakeAndTheMessagesOrRefusesThem(final FuzzedDataProvider data) {
+  void shouldReadTheHandshakeAndTheMessagesOrRefuseThem(final FuzzedDataProvider data) {
     final byte[] bytes = data.consumeRemainingAsBytes();
     final DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes));
     final DataOutputStream out = new DataOutputStream(OutputStream.nullOutputStream());
@@ -57,7 +57,8 @@ final class QemuAudioProtocolFuzzTest {
       while (true) {
         final QemuAudioProtocol.Message message = QemuAudioProtocol.readMessage(in, FRAME, byte[]::new);
         final int length = message.getLength();
-        assertTrue(length >= 0 && length <= QemuAudioProtocol.MAX_AUDIO_BYTES && length % FRAME == 0, () -> "length " + length);
+        final boolean wholeFramesWithinTheLimit = length >= 0 && length <= QemuAudioProtocol.MAX_AUDIO_BYTES && length % FRAME == 0;
+        assertTrue(wholeFramesWithinTheLimit, () -> "length " + length);
       }
     } catch (final IOException refused) {
       // malformed, cut short, or not expected: the connection ends

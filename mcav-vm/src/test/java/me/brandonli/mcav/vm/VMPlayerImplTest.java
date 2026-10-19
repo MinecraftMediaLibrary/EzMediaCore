@@ -57,6 +57,7 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import me.brandonli.mcav.media.player.PlayerException;
+import me.brandonli.mcav.media.player.attachable.AudioAttachableCallback;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder;
 import me.brandonli.mcav.media.player.pipeline.builder.VideoPipelineStepBuilder;
@@ -211,16 +212,17 @@ final class VMPlayerImplTest {
     final int width = settings.getWidth();
     final int height = settings.getHeight();
     final int frameRate = settings.getTargetFps();
+    final Optional<String> expectedPassword = Optional.of(PASSWORD);
     assertEquals("127.0.0.1", sourceHost);
     assertEquals(port, sourcePort);
     assertEquals(width, sourceWidth);
     assertEquals(height, sourceHeight);
     assertEquals(frameRate, sourceFrameRate);
-    assertEquals(Optional.of(PASSWORD), sourcePassword, "the display asks for the password of its machine");
+    assertEquals(expectedPassword, sourcePassword, "the display asks for the password of its machine");
   }
 
   @Test
-  void aPauseOfTheGuestsSoundReachesTheAudioPipelineAsSilence() {
+  void shouldHandAPauseOfTheGuestsSoundToTheAudioPipelineAsSilence() {
     when(this.qemu.hasAudio()).thenReturn(true);
     final List<Integer> heard = new CopyOnWriteArrayList<>();
     final VMPlayerImpl player = this.startedPlayer();
@@ -230,12 +232,13 @@ final class VMPlayerImplTest {
     waitUntil(() -> heard.size() == 1);
     sink.quiet();
     waitUntil(() -> heard.size() >= 2);
-    assertEquals(3840, heard.get(1), "20 ms of silence after the sound");
+    final int silenceLength = heard.get(1);
+    assertEquals(3840, silenceLength, "20 ms of silence after the sound");
     player.release();
   }
 
   @Test
-  void theSoundOfAMachineWithSoundReachesTheAudioPipelineAndStopsWhilePaused() {
+  void shouldHandTheSoundOfAMachineToTheAudioPipelineAndStopWhilePaused() {
     when(this.qemu.hasAudio()).thenReturn(true);
     when(this.vnc.pause()).thenReturn(true);
     when(this.vnc.resume()).thenReturn(true);
@@ -243,23 +246,28 @@ final class VMPlayerImplTest {
     final List<Integer> heard = new CopyOnWriteArrayList<>();
     final VMPlayerImpl player = this.startedPlayer();
     player.getAudioAttachableCallback().attach(AudioPipelineStep.of((samples, metadata) -> heard.add(samples.remaining())));
-    assertEquals(List.of(new InetSocketAddress(VMProcess.LOOPBACK, 5905)), this.audioAddresses);
-    assertEquals(List.of(PASSWORD), this.audioPasswords, "the sound connection sends the password of its machine");
+    final List<InetSocketAddress> expectedAddresses = List.of(new InetSocketAddress(VMProcess.LOOPBACK, 5905));
+    final List<String> expectedPasswords = List.of(PASSWORD);
+    assertEquals(expectedAddresses, this.audioAddresses);
+    assertEquals(expectedPasswords, this.audioPasswords, "the sound connection sends the password of its machine");
     final VMAudioClient.Sink sink = this.sinks.getFirst();
     sink.accept(new byte[8], 8);
     waitUntil(() -> heard.size() == 1);
-    assertTrue(player.pause());
+    final boolean paused = player.pause();
+    assertTrue(paused);
     sink.accept(new byte[8], 8);
-    assertTrue(player.resume());
+    final boolean resumed = player.resume();
+    assertTrue(resumed);
     sink.accept(new byte[4], 4);
     waitUntil(() -> heard.size() == 2);
-    assertEquals(List.of(8, 4), heard, "the sound of the paused machine was dropped");
+    final List<Integer> expected = List.of(8, 4);
+    assertEquals(expected, heard, "the sound of the paused machine was dropped");
     player.release();
     verify(this.audioClient).close();
   }
 
   @Test
-  void aResumeDuringAPauseLeavesPictureAndSoundTogether() throws Exception {
+  void shouldKeepPictureAndSoundTogetherWhenResumedDuringAPause() throws Exception {
     when(this.qemu.hasAudio()).thenReturn(true);
     final CountDownLatch insidePause = new CountDownLatch(1);
     final CountDownLatch finishPause = new CountDownLatch(1);
@@ -274,19 +282,22 @@ final class VMPlayerImplTest {
     final VMPlayerImpl player = this.startedPlayer();
     player.getAudioAttachableCallback().attach(AudioPipelineStep.of((samples, metadata) -> heard.add(samples.remaining())));
     final CompletableFuture<Boolean> pausing = CompletableFuture.supplyAsync(player::pause);
-    assertTrue(insidePause.await(10, TimeUnit.SECONDS));
+    final boolean pauseEntered = insidePause.await(10, TimeUnit.SECONDS);
+    assertTrue(pauseEntered);
     final CompletableFuture<Boolean> resuming = CompletableFuture.supplyAsync(player::resume);
     Thread.sleep(200L);
     finishPause.countDown();
-    assertTrue(pausing.get(10, TimeUnit.SECONDS));
-    assertTrue(resuming.get(10, TimeUnit.SECONDS));
+    final boolean paused = pausing.get(10, TimeUnit.SECONDS);
+    final boolean resumed = resuming.get(10, TimeUnit.SECONDS);
+    assertTrue(paused);
+    assertTrue(resumed);
     this.sinks.getFirst().accept(new byte[8], 8);
     waitUntil(() -> heard.size() == 1);
     player.release();
   }
 
   @Test
-  void aMachineWhoseSoundCannotBeConnectedRunsWithoutSound() {
+  void shouldRunWithoutSoundWhenTheSoundCannotBeConnected() {
     when(this.qemu.hasAudio()).thenReturn(true);
     this.stubConnectingStream();
     final List<String> reports = new CopyOnWriteArrayList<>();
@@ -300,21 +311,30 @@ final class VMPlayerImplTest {
       }
     );
     final long outputsBefore = countOutputThreads();
-    assertTrue(startDefaultMachine(player));
-    assertEquals(List.of("The sound of the virtual machine could not be connected, it runs without sound: connection refused"), reports);
-    assertEquals(outputsBefore, countOutputThreads(), "the output of the sound that never came is closed");
+    final boolean started = startDefaultMachine(player);
+    final List<String> expectedReports = List.of(
+      "The sound of the virtual machine could not be connected, it runs without sound: connection refused"
+    );
+    final long outputsAfter = countOutputThreads();
+    assertTrue(started);
+    assertEquals(expectedReports, reports);
+    assertEquals(outputsBefore, outputsAfter, "the output of the sound that never came is closed");
     when(this.vnc.pause()).thenReturn(true);
-    assertTrue(player.pause(), "a machine without sound pauses all the same");
+    final boolean paused = player.pause();
+    assertTrue(paused, "a machine without sound pauses all the same");
     when(this.vnc.resume()).thenReturn(true);
-    assertTrue(player.resume());
+    final boolean resumed = player.resume();
+    assertTrue(resumed);
     player.release();
   }
 
   @Test
-  void aMachineWithoutSoundNeverConnectsToIt() {
+  void shouldNeverConnectToTheSoundOfAMachineWithoutSound() {
     final VMPlayerImpl player = this.startedPlayer();
     assertEquals(List.of(), this.sinks);
-    assertSame(player.getAudioAttachableCallback(), player.getAudioAttachableCallback());
+    final AudioAttachableCallback first = player.getAudioAttachableCallback();
+    final AudioAttachableCallback second = player.getAudioAttachableCallback();
+    assertSame(first, second);
     player.release();
   }
 
@@ -337,7 +357,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void startsQemuAndStreamsItsDisplay() {
+  void shouldStartQemuAndStreamItsDisplay() {
     this.stubConnectingStream();
     final VMPlayerImpl player = this.player();
     final VMSettings settings = VMSettings.of(5905, 320, 240, 15);
@@ -360,7 +380,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void playsOnlyWhileQemuAndTheStreamAreRunning() {
+  void shouldPlayOnlyWhileQemuAndTheStreamAreRunning() {
     final VMPlayerImpl player = this.player();
     when(this.qemu.isAlive()).thenReturn(true);
     when(this.vnc.isPlaying()).thenReturn(true);
@@ -386,7 +406,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void refusesToStartTwiceOrAfterRelease() {
+  void shouldRefuseToStartTwiceOrAfterRelease() {
     final VMPlayerImpl player = this.startedPlayer();
     final VMSettings settings = VMSettings.of(5906, 320, 240, 15);
     final VMConfiguration configuration = VMConfiguration.builder();
@@ -405,7 +425,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void failsWhenQemuIsNotInstalled() {
+  void shouldFailWhenQemuIsNotInstalled() {
     this.useFinderWithoutQemu();
     final VMPlayerImpl player = this.player();
     final VMSettings settings = VMSettings.of(5905, 320, 240, 15);
@@ -424,7 +444,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void reportsAMissingQemuAsAnExceptionThatCatchAllHandlersSee() {
+  void shouldReportAMissingQemuAsAnExceptionThatCatchAllHandlersSee() {
     this.useFinderWithoutQemu();
     final VMPlayerImpl player = this.player();
     Exception caught = null;
@@ -437,7 +457,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void stopsWhenQemuExitsAndCanStartAgain() {
+  void shouldStopWhenQemuExitsAndStartAgain() {
     final VMProcess exited = this.qemu;
     final VMProcess next = mock(VMProcess.class);
     when(next.getPassword()).thenReturn(PASSWORD);
@@ -493,7 +513,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void passesOnQemuStartFailures() {
+  void shouldPassOnQemuStartFailures() {
     final PlayerException failure = new PlayerException("QEMU exited with code 1");
     doThrow(failure).when(this.qemu).start();
     final VMPlayerImpl player = this.player();
@@ -507,7 +527,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void shutsQemuDownWhenTheStreamCannotStart() {
+  void shouldShutQemuDownWhenTheStreamCannotStart() {
     when(this.vnc.start(any(VncSource.class))).thenReturn(false);
     final VMPlayerImpl player = this.player();
 
@@ -521,7 +541,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void shutsQemuDownAndCanStartAgainWhenTheConnectionFails() {
+  void shouldShutQemuDownAndStartAgainWhenTheConnectionFails() {
     final PlayerException failure = new PlayerException("Failed to connect");
     when(this.vnc.start(any(VncSource.class)))
       .thenThrow(failure)
@@ -538,7 +558,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void forwardsInputOnlyWhileRunning() {
+  void shouldForwardInputOnlyWhileRunning() {
     final VMPlayerImpl player = this.player();
     sendInput(player);
     final VerificationMode none = never();
@@ -556,7 +576,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void pausesAndResumesTheStreamWhileRunning() {
+  void shouldPauseAndResumeTheStreamWhileRunning() {
     final VMPlayerImpl player = this.player();
     when(this.vnc.pause()).thenReturn(true);
     when(this.vnc.resume()).thenReturn(true);
@@ -582,7 +602,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void releasesTheStreamEvenIfNeverStarted() {
+  void shouldReleaseTheStreamEvenIfNeverStarted() {
     final VMPlayerImpl player = this.player();
     final boolean released = player.release();
     assertTrue(released);
@@ -591,7 +611,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void shutsQemuDownEvenWhenReleasingTheStreamFails() {
+  void shouldShutQemuDownEvenWhenReleasingTheStreamFails() {
     final VMPlayerImpl player = this.startedPlayer();
     final IllegalStateException failure = new IllegalStateException("VNC cleanup failed");
     doThrow(failure).when(this.vnc).release();
@@ -606,7 +626,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void retriesAStillLiveMachineOnRepeatedReleaseWithoutChangingTheReturnContract() {
+  void shouldRetryAStillLiveMachineOnRepeatedReleaseWithoutChangingTheReturnContract() {
     final VMPlayerImpl player = this.startedPlayer();
     final AtomicBoolean alive = new AtomicBoolean(true);
     final AtomicInteger attempts = new AtomicInteger();
@@ -631,7 +651,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void refusesToReplaceAnUnstoppableFailedStartAndRetriesBeforeLaunchingItsReplacement() {
+  void shouldRefuseToReplaceAnUnstoppableFailedStartAndRetryBeforeLaunchingItsReplacement() {
     final VMProcess previous = this.qemu;
     final VMProcess next = mock(VMProcess.class);
     when(next.getPassword()).thenReturn(PASSWORD);
@@ -658,13 +678,16 @@ final class VMPlayerImplTest {
     assertSame(connectionFailure, original);
     this.assertIgnoresInputAndPlayback(player);
     final PlayerException replacement = assertThrows(PlayerException.class, () -> startDefaultMachine(player));
-    assertEquals("The previous QEMU process is still alive after shutdown", replacement.getMessage());
-    assertEquals(1, created.get(), "replacement cannot allocate a new owner while the old child survives");
+    final String message = replacement.getMessage();
+    final int owners = created.get();
+    assertEquals("The previous QEMU process is still alive after shutdown", message);
+    assertEquals(1, owners, "replacement cannot allocate a new owner while the old child survives");
     verify(next, never()).start();
 
     final boolean restarted = startDefaultMachine(player);
+    final int ownersAfterRestart = created.get();
     assertTrue(restarted);
-    assertEquals(2, created.get());
+    assertEquals(2, ownersAfterRestart);
     final InOrder order = inOrder(previous, next);
     order.verify(previous).start();
     order.verify(previous, times(3)).shutdown();
@@ -672,7 +695,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void retainsAChildThatSurvivesAPartiallyFailedQemuStart() {
+  void shouldRetainAChildThatSurvivesAPartiallyFailedQemuStart() {
     final VMPlayerImpl player = this.player();
     final PlayerException startFailure = new PlayerException("display startup timed out");
     final AtomicBoolean alive = new AtomicBoolean(true);
@@ -699,7 +722,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void preservesTheVncFailureAndRetriesFailedProcessCleanupOnRelease() {
+  void shouldPreserveTheVncFailureAndRetryFailedProcessCleanupOnRelease() {
     final VMPlayerImpl player = this.startedPlayer();
     final IllegalStateException primary = new IllegalStateException("VNC release failed");
     final IllegalArgumentException cleanup = new IllegalArgumentException("process termination failed");
@@ -707,7 +730,9 @@ final class VMPlayerImplTest {
     doThrow(cleanup).when(this.qemu).shutdown();
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, player::release);
     assertSame(primary, thrown);
-    assertArrayEquals(new Throwable[] { cleanup }, thrown.getSuppressed());
+    final Throwable[] expectedSuppressed = new Throwable[] { cleanup };
+    final Throwable[] suppressed = thrown.getSuppressed();
+    assertArrayEquals(expectedSuppressed, suppressed);
     when(this.qemu.isAlive()).thenReturn(false);
     doAnswer(_ -> null)
       .when(this.qemu)
@@ -721,7 +746,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void preservesAStartFailureWhenItsProcessCleanupAlsoFails() {
+  void shouldPreserveAStartFailureWhenItsProcessCleanupAlsoFails() {
     final VMPlayerImpl player = this.player();
     final PlayerException primary = new PlayerException("VNC start failed");
     final IllegalStateException cleanup = new IllegalStateException("process termination failed");
@@ -729,29 +754,33 @@ final class VMPlayerImplTest {
     doThrow(cleanup).when(this.qemu).shutdown();
     final PlayerException thrown = assertThrows(PlayerException.class, () -> startDefaultMachine(player));
     assertSame(primary, thrown);
-    assertArrayEquals(new Throwable[] { cleanup }, thrown.getSuppressed());
+    final Throwable[] expectedSuppressed = new Throwable[] { cleanup };
+    final Throwable[] suppressed = thrown.getSuppressed();
+    assertArrayEquals(expectedSuppressed, suppressed);
     when(this.qemu.isAlive()).thenReturn(false);
     doAnswer(_ -> null)
       .when(this.qemu)
       .shutdown();
-    assertTrue(player.release());
+    final boolean released = player.release();
+    assertTrue(released);
     verify(this.qemu, times(2)).shutdown();
   }
 
   @Test
-  void doesNotTryToSuppressTheSameFailureInstance() {
+  void shouldNotTryToSuppressTheSameFailureInstance() {
     final VMPlayerImpl player = this.startedPlayer();
     final IllegalStateException shared = new IllegalStateException("shared cleanup failure");
     doThrow(shared).when(this.vnc).release();
     doThrow(shared).when(this.qemu).shutdown();
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, player::release);
     assertSame(shared, thrown);
-    assertArrayEquals(new Throwable[0], thrown.getSuppressed());
+    final Throwable[] suppressed = thrown.getSuppressed();
+    assertArrayEquals(new Throwable[0], suppressed);
     verify(this.qemu).shutdown();
   }
 
   @Test
-  void doesNotHideFatalProcessCleanupBehindAnOrdinaryVncFailure() {
+  void shouldNotHideFatalProcessCleanupBehindAnOrdinaryVncFailure() {
     final VMPlayerImpl player = this.startedPlayer();
     final IllegalStateException primary = new IllegalStateException("VNC release failed");
     final InternalError fatal = new InternalError("VM failure during cleanup");
@@ -759,48 +788,55 @@ final class VMPlayerImplTest {
     doThrow(fatal).when(this.qemu).shutdown();
     final InternalError thrown = assertThrows(InternalError.class, player::release);
     assertSame(fatal, thrown);
-    assertFalse(player.isPlaying());
+    final boolean playing = player.isPlaying();
+    assertFalse(playing);
   }
 
   @Test
-  void retainsTheMachineForExplicitReleaseAfterAFatalDisplayStartFailure() {
+  void shouldRetainTheMachineForExplicitReleaseAfterAFatalDisplayStartFailure() {
     final VMPlayerImpl player = this.player();
     final InternalError fatal = new InternalError("VM failure during VNC startup");
     when(this.vnc.start(any(VncSource.class))).thenThrow(fatal);
     final InternalError thrown = assertThrows(InternalError.class, () -> startDefaultMachine(player));
     assertSame(fatal, thrown);
-    assertFalse(player.isPlaying());
+    final boolean playing = player.isPlaying();
+    assertFalse(playing);
     verify(this.qemu, never()).shutdown();
-    assertTrue(this.processAlive.get(), "fatal startup must not run more foreign cleanup code");
+    final boolean childAlive = this.processAlive.get();
+    assertTrue(childAlive, "fatal startup must not run more foreign cleanup code");
     final boolean released = player.release();
     final boolean repeated = player.release();
     assertTrue(released);
     assertFalse(repeated);
     verify(this.qemu).shutdown();
-    assertFalse(this.processAlive.get(), "a later explicit release still owns the child left by fatal startup");
+    final boolean childAliveAfterRelease = this.processAlive.get();
+    assertFalse(childAliveAfterRelease, "a later explicit release still owns the child left by fatal startup");
   }
 
   @Test
-  void retriesOwnedProcessCleanupAfterAFatalVncReleaseWithoutReleasingVncTwice() {
+  void shouldRetryOwnedProcessCleanupAfterAFatalVncReleaseWithoutReleasingVncTwice() {
     final VMPlayerImpl player = this.startedPlayer();
     final InternalError fatal = new InternalError("VM failure during VNC release");
     doThrow(fatal).when(this.vnc).release();
     final InternalError thrown = assertThrows(InternalError.class, player::release);
     assertSame(fatal, thrown);
-    assertFalse(player.isPlaying());
+    final boolean playing = player.isPlaying();
+    assertFalse(playing);
     verify(this.qemu, never()).shutdown();
-    assertTrue(this.processAlive.get());
+    final boolean childAlive = this.processAlive.get();
+    assertTrue(childAlive);
     final boolean repeated = player.release();
     final boolean finished = player.release();
     assertFalse(repeated);
     assertFalse(finished);
     verify(this.qemu).shutdown();
     verify(this.vnc).release();
-    assertFalse(this.processAlive.get());
+    final boolean childAliveAfterRelease = this.processAlive.get();
+    assertFalse(childAliveAfterRelease);
   }
 
   @Test
-  void releasesItsLockWhenTheMachineWasReleased() {
+  void shouldReleaseItsLockWhenTheMachineWasReleased() {
     final VMPlayerImpl player = this.startedPlayer();
     final boolean released = player.release();
     assertTrue(released);
@@ -838,7 +874,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void usesTheVideoCallbackOfTheStream() {
+  void shouldUseTheVideoCallbackOfTheStream() {
     final VideoAttachableCallback callback = VideoAttachableCallback.create();
     when(this.vnc.getVideoAttachableCallback()).thenReturn(callback);
     final VMPlayerImpl player = this.player();
@@ -847,7 +883,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void delegatesTheExceptionHandlerToTheStream() {
+  void shouldDelegateTheExceptionHandlerToTheStream() {
     final BiConsumer<String, Throwable> handler = (_, _) -> {};
     when(this.vnc.getExceptionHandler()).thenReturn(handler);
     final VMPlayerImpl player = this.player();
@@ -858,7 +894,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void rejectsNullArguments() {
+  void shouldRejectNullArguments() {
     final VMPlayerImpl player = this.player();
     final VMSettings settings = VMSettings.of(5905, 320, 240, 15);
     final VMConfiguration configuration = VMConfiguration.builder();
@@ -871,7 +907,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void startsAsynchronously() throws Exception {
+  void shouldStartAsynchronously() throws Exception {
     this.stubConnectingStream();
     final AtomicReference<Thread> startupThread = new AtomicReference<>();
     doAnswer(_ -> {
@@ -888,7 +924,9 @@ final class VMPlayerImplTest {
       final CompletableFuture<Boolean> first = player.startAsync(settings, VMPlayer.Architecture.X86_64, configuration);
       final boolean started = first.get(10, TimeUnit.SECONDS);
       assertTrue(started);
-      assertNotSame(Thread.currentThread(), startupThread.get(), "the default executor must perform startup");
+      final Thread current = Thread.currentThread();
+      final Thread startup = startupThread.get();
+      assertNotSame(current, startup, "the default executor must perform startup");
 
       final ExecutorService executor = mock(ExecutorService.class);
       final List<Runnable> queued = new CopyOnWriteArrayList<>();
@@ -900,8 +938,10 @@ final class VMPlayerImplTest {
         .execute(any());
       try (executor) {
         final CompletableFuture<Boolean> second = player.startAsync(settings, VMPlayer.Architecture.X86_64, configuration, executor);
-        assertFalse(second.isDone(), "the supplied executor owns the second startup");
-        assertEquals(1, queued.size());
+        final boolean done = second.isDone();
+        final int queuedTasks = queued.size();
+        assertFalse(done, "the supplied executor owns the second startup");
+        assertEquals(1, queuedTasks);
         queued.getFirst().run();
         final boolean startedAgain = second.get(10, TimeUnit.SECONDS);
         assertFalse(startedAgain);
@@ -917,7 +957,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void namesTheQemuProgramOfEveryArchitecture() {
+  void shouldNameTheQemuProgramOfEveryArchitecture() {
     final String x86 = VMPlayer.Architecture.X86_64.getCommand();
     final String arm = VMPlayer.Architecture.ARM.getCommand();
     final String aarch64 = VMPlayer.Architecture.AARCH64.getCommand();
@@ -929,7 +969,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void createsPlayersThatAreNotPlaying() {
+  void shouldCreatePlayersThatAreNotPlaying() {
     final VMPlayer player = VMPlayer.create();
     final boolean playing = player.isPlaying();
     final boolean paused = player.pause();
@@ -941,7 +981,7 @@ final class VMPlayerImplTest {
   }
 
   @Test
-  void streamsTheScreenOfARealVirtualMachine() {
+  void shouldStreamTheScreenOfARealVirtualMachine() {
     assumeQemuInstalled();
     final List<String> errors = new CopyOnWriteArrayList<>();
     final List<int[]> sizes = new CopyOnWriteArrayList<>();
@@ -953,9 +993,11 @@ final class VMPlayerImplTest {
       awaitFirstFrame(sizes, errors);
 
       final int[] size = sizes.getFirst();
+      final int width = size[0];
+      final int height = size[1];
       final boolean playing = player.isPlaying();
-      assertEquals(160, size[0]);
-      assertEquals(120, size[1]);
+      assertEquals(160, width);
+      assertEquals(120, height);
       assertTrue(playing);
 
       player.sendKeyEvent("Return");

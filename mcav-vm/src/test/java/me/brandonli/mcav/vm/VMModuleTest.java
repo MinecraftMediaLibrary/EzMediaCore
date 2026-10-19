@@ -56,7 +56,7 @@ final class VMModuleTest {
   }
 
   @Test
-  void findsQemuWhenStarted() throws IOException {
+  void shouldFindQemuWhenStarted() throws IOException {
     final Path folder = this.directory.resolve("bin");
     Files.createDirectories(folder);
     final Path qemu = folder.resolve("qemu-system-x86_64");
@@ -75,7 +75,7 @@ final class VMModuleTest {
   }
 
   @Test
-  void stopsTheQemuOfAKilledServerWhenStarted() throws IOException, InterruptedException {
+  void shouldStopTheQemuOfAKilledServerWhenStarted() throws IOException, InterruptedException {
     final String java = ProcessHandle.current().info().command().orElseThrow();
     final Path sleeper = this.directory.resolve("Sleep.java");
     Files.writeString(sleeper, "class Sleep { public static void main(String[] a) throws Exception { Thread.sleep(300_000L); } }");
@@ -91,15 +91,17 @@ final class VMModuleTest {
 
       module.start();
 
-      assertTrue(qemu.waitFor(10, TimeUnit.SECONDS), "the QEMU of the killed server is stopped");
-      assertFalse(Files.exists(record));
+      final boolean stopped = qemu.waitFor(10, TimeUnit.SECONDS);
+      final boolean recordExists = Files.exists(record);
+      assertTrue(stopped, "the QEMU of the killed server is stopped");
+      assertFalse(recordExists);
     } finally {
       qemu.destroyForcibly();
     }
   }
 
   @Test
-  void reportsAMissingQemu() throws IOException {
+  void shouldReportAMissingQemu() throws IOException {
     final Path empty = this.directory.resolve("empty");
     Files.createDirectories(empty);
     final ExecutableFinder finder = this.finderWithPath(empty);
@@ -110,7 +112,7 @@ final class VMModuleTest {
   }
 
   @Test
-  void looksForQemuOnThisMachineByDefault() {
+  void shouldLookForQemuOnThisMachineByDefault() {
     final VMModule module = new VMModule();
     module.start();
     final boolean installed = module.isQemuInstalled();
@@ -123,14 +125,14 @@ final class VMModuleTest {
   }
 
   @Test
-  void isNamedVm() {
+  void shouldBeNamedVm() {
     final VMModule module = new VMModule();
     final String name = module.getModuleName();
     assertEquals("vm", name);
   }
 
   @Test
-  void canBeCreatedByTheModuleLoader() throws ReflectiveOperationException {
+  void shouldBeCreatableByTheModuleLoader() throws ReflectiveOperationException {
     final Constructor<VMModule> constructor = VMModule.class.getConstructor();
     final VMModule module = constructor.newInstance();
     final boolean installed = module.isQemuInstalled();
