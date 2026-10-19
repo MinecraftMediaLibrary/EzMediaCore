@@ -40,6 +40,8 @@ class CatalogTest {
         const val BUNDLE_ALIAS: String = "testing"
 
         const val JAVA_VERSION: String = "25"
+
+        const val NEVER_RESOLVED_MESSAGE: String = "Never resolved!"
     }
 
     private lateinit var project: Project
@@ -50,8 +52,8 @@ class CatalogTest {
     @BeforeEach
     fun setUp(): Unit {
         this.project = ProjectBuilder.builder().build()
-        this.library = this.project.provider<MinimalExternalModuleDependency> { throw IllegalStateException("Never resolved!") }
-        this.bundle = this.project.provider<ExternalModuleDependencyBundle> { throw IllegalStateException("Never resolved!") }
+        this.library = this.project.provider<MinimalExternalModuleDependency> { throw IllegalStateException(NEVER_RESOLVED_MESSAGE) }
+        this.bundle = this.project.provider<ExternalModuleDependencyBundle> { throw IllegalStateException(NEVER_RESOLVED_MESSAGE) }
         val versions: Map<String, DefaultMutableVersionConstraint> = mapOf(VERSION_ALIAS to DefaultMutableVersionConstraint(JAVA_VERSION))
         this.catalog = FakeVersionCatalog(versions, mapOf(LIBRARY_ALIAS to this.library), mapOf(BUNDLE_ALIAS to this.bundle))
     }

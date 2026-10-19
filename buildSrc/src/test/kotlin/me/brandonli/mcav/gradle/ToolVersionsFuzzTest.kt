@@ -106,7 +106,8 @@ class ToolVersionsFuzzTest {
         }
 
         override fun javaexec(action: Action<in JavaExecSpec>): ExecResult {
-            throw UnsupportedOperationException("Tool versions never start a Java process!")
+            val message: String = "Tool versions never start a Java process!"
+            throw UnsupportedOperationException(message)
         }
 
         private fun record(proxy: Any, method: Method, arguments: Array<Any?>?, streams: MutableList<OutputStream>): Any? {
