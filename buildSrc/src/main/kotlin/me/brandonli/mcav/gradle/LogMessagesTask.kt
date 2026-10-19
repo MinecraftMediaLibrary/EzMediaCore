@@ -36,9 +36,15 @@ abstract class LogMessagesTask : JavaLintTask() {
         }
     }
 
-    override fun diagnosticMessage(): String = CONCATENATED_MESSAGE
+    override fun diagnosticMessage(): String {
+        return CONCATENATED_MESSAGE
+    }
 
-    override fun failureMessage(count: Int): String = "Found $count log calls with a concatenated message!"
+    override fun failureMessage(count: Int): String {
+        return "Found $count log calls with a concatenated message!"
+    }
 
-    override fun successMessage(fileCount: Int): String = "no log call with a concatenated message in $fileCount files\n"
+    override fun successMessage(fileCount: Int): String {
+        return "no log call with a concatenated message in $fileCount files\n"
+    }
 }

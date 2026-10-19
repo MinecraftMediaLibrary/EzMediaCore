@@ -37,13 +37,15 @@ object UvEnvironment {
     private const val MANAGED_PYTHON_ONLY: String = "only-managed"
     private const val COPY_LINKS: String = "copy"
 
-    fun variables(installationDirectory: File, cacheDirectory: File): Map<String, String> = mapOf(
-        NO_CONFIG_VARIABLE to ENABLED,
-        CACHE_VARIABLE to cacheDirectory.absolutePath,
-        PYTHON_CACHE_VARIABLE to cacheDirectory.resolve(PYTHON_DIRECTORY).absolutePath,
-        PYTHON_INSTALL_VARIABLE to installationDirectory.resolve(PYTHON_DIRECTORY).absolutePath,
-        PYTHON_BINARY_VARIABLE to installationDirectory.resolve(BINARY_DIRECTORY).absolutePath,
-        PYTHON_PREFERENCE_VARIABLE to MANAGED_PYTHON_ONLY,
-        LINK_MODE_VARIABLE to COPY_LINKS
-    )
+    fun variables(installationDirectory: File, cacheDirectory: File): Map<String, String> {
+        return mapOf(
+            NO_CONFIG_VARIABLE to ENABLED,
+            CACHE_VARIABLE to cacheDirectory.absolutePath,
+            PYTHON_CACHE_VARIABLE to cacheDirectory.resolve(PYTHON_DIRECTORY).absolutePath,
+            PYTHON_INSTALL_VARIABLE to installationDirectory.resolve(PYTHON_DIRECTORY).absolutePath,
+            PYTHON_BINARY_VARIABLE to installationDirectory.resolve(BINARY_DIRECTORY).absolutePath,
+            PYTHON_PREFERENCE_VARIABLE to MANAGED_PYTHON_ONLY,
+            LINK_MODE_VARIABLE to COPY_LINKS
+        )
+    }
 }

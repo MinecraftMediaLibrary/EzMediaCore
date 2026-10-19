@@ -55,7 +55,10 @@ class PythonEnvironmentTest {
     abstract class RecordingEnvironment : PythonEnvironment() {
 
         lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations get() = this.recordedProcesses
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
     }
 
     @Test

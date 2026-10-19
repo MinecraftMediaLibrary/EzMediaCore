@@ -56,7 +56,10 @@ class PythonTestsTest {
     abstract class RecordingTests : PythonTests() {
 
         lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations get() = this.recordedProcesses
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
     }
 
     @Test
@@ -110,18 +113,20 @@ class PythonTestsTest {
         assertFalse(stale)
     }
 
-    private fun pytest(report: String): List<String> = listOf(
-        this.directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toString(),
-        "-m",
-        "pytest",
-        "-p",
-        "no:cacheprovider",
-        "-ra",
-        "--rootdir",
-        this.directory.resolve(TESTS_DIRECTORY).toString(),
-        "--junitxml",
-        this.directory.resolve(REPORTS_DIRECTORY).resolve(report).toString()
-    )
+    private fun pytest(report: String): List<String> {
+        return listOf(
+            this.directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toString(),
+            "-m",
+            "pytest",
+            "-p",
+            "no:cacheprovider",
+            "-ra",
+            "--rootdir",
+            this.directory.resolve(TESTS_DIRECTORY).toString(),
+            "--junitxml",
+            this.directory.resolve(REPORTS_DIRECTORY).resolve(report).toString()
+        )
+    }
 
     private fun pythonTests(processCount: Int): RecordingTests {
         val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()

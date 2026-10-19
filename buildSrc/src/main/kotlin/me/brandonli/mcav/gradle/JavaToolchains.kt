@@ -30,8 +30,9 @@ object JavaToolchains {
 
     private const val JAVA_VERSION_ALIAS: String = "java"
 
-    fun languageVersion(project: Project): JavaLanguageVersion =
-        JavaLanguageVersion.of(CatalogUtils.versionOf(project.libs, JAVA_VERSION_ALIAS))
+    fun languageVersion(project: Project): JavaLanguageVersion {
+        return JavaLanguageVersion.of(CatalogUtils.versionOf(project.libs, JAVA_VERSION_ALIAS))
+    }
 
     fun launcher(project: Project, requestedVendor: JvmVendorSpec? = null): Provider<JavaLauncher> {
         val version: JavaLanguageVersion = this.languageVersion(project)

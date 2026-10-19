@@ -41,7 +41,9 @@ class CatalogPinsTest {
 
     private val catalog: String = this.repository.resolve(CATALOG_PATH).readText()
 
-    private fun version(name: String): String = Regex("(?m)^$name = \"([^\"]+)\"").find(this.catalog)!!.groupValues[1]
+    private fun version(name: String): String {
+        return Regex("(?m)^$name = \"([^\"]+)\"").find(this.catalog)!!.groupValues[1]
+    }
 
     @Test
     fun shouldBuildReadTheDocsWithThePythonMinorOfTheCatalog(): Unit {

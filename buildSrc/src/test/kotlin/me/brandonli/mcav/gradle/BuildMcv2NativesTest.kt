@@ -86,18 +86,29 @@ class BuildMcv2NativesTest {
 
         lateinit var recordedProcesses: ExecOperations
         lateinit var recordedWorkers: WorkerExecutor
-        override val processes: ExecOperations get() = this.recordedProcesses
-        override val workers: WorkerExecutor get() = this.recordedWorkers
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
+        override val workers: WorkerExecutor
+            get() {
+                return this.recordedWorkers
+            }
     }
 
     class RecordingWork(private val recordedParameters: Parameters, override val processes: ExecOperations) : BuildMcv2Natives.Work() {
 
-        override fun getParameters(): Parameters = this.recordedParameters
+        override fun getParameters(): Parameters {
+            return this.recordedParameters
+        }
     }
 
     private lateinit var processes: RecordedProcesses
 
-    private val commands: List<List<String>> get() = this.processes.commands.map { it.drop(1) }
+    private val commands: List<List<String>>
+        get() {
+            return this.processes.commands.map { it.drop(1) }
+        }
 
     private val submitted: MutableList<BuildMcv2NativesTest.RecordingWork> = mutableListOf<RecordingWork>()
 

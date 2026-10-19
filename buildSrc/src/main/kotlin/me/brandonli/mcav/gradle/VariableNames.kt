@@ -57,7 +57,9 @@ object VariableNames {
 
     fun find(source: String): List<UndescriptiveName> {
         val file: SimpleJavaFileObject = object : SimpleJavaFileObject(URI.create(SOURCE_URI), JavaFileObject.Kind.SOURCE) {
-            override fun getCharContent(ignoreEncodingErrors: Boolean): CharSequence = source
+            override fun getCharContent(ignoreEncodingErrors: Boolean): CharSequence {
+                return source
+            }
         }
         return this.find(listOf(file)).values.single()
     }
@@ -100,8 +102,9 @@ object VariableNames {
             return super.visitVariable(node, unused)
         }
 
-        private fun isUndescriptive(name: String): Boolean =
-            name in ABBREVIATIONS || (name.length == 1 && name[0].isLetter())
+        private fun isUndescriptive(name: String): Boolean {
+            return name in ABBREVIATIONS || (name.length == 1 && name[0].isLetter())
+        }
 
         private fun kind(node: VariableTree): String {
             val parent: Tree = this.currentPath.parentPath.leaf

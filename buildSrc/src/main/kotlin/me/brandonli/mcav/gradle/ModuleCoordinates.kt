@@ -22,6 +22,7 @@ import org.gradle.api.Project
 
 object ModuleCoordinates {
 
-    fun coordinateOf(project: Project, moduleName: String): String =
-        "${project.rootProject.group}:$moduleName:${project.rootProject.version}"
+    fun coordinateOf(project: Project, moduleName: String): String {
+        return "${project.rootProject.group}:$moduleName:${project.rootProject.version}"
+    }
 }

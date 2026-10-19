@@ -61,7 +61,10 @@ class JupyterBookTest {
     abstract class RecordingBook : JupyterBook() {
 
         lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations get() = this.recordedProcesses
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
     }
 
     @Test

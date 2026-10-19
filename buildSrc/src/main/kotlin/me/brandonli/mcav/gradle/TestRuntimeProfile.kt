@@ -22,6 +22,8 @@ import org.gradle.api.tasks.testing.Test
 
 internal object TestRuntimeProfile {
 
-    fun forMutation(test: Test): List<String> = test.jvmArgs +
-        test.systemProperties.toSortedMap().map { (name, value) -> "-D$name=$value" }
+    fun forMutation(test: Test): List<String> {
+        return test.jvmArgs +
+            test.systemProperties.toSortedMap().map { (name, value) -> "-D$name=$value" }
+    }
 }

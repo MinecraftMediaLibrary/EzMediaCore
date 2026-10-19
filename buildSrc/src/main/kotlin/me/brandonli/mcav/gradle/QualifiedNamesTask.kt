@@ -36,9 +36,15 @@ abstract class QualifiedNamesTask : JavaLintTask() {
         }
     }
 
-    override fun diagnosticMessage(): String = WRITTEN_OUT
+    override fun diagnosticMessage(): String {
+        return WRITTEN_OUT
+    }
 
-    override fun failureMessage(count: Int): String = "Found $count fully qualified type names in Java code!"
+    override fun failureMessage(count: Int): String {
+        return "Found $count fully qualified type names in Java code!"
+    }
 
-    override fun successMessage(fileCount: Int): String = "no fully qualified type names in $fileCount files\n"
+    override fun successMessage(fileCount: Int): String {
+        return "no fully qualified type names in $fileCount files\n"
+    }
 }

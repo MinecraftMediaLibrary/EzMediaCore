@@ -34,9 +34,13 @@ object JavaSource {
 
     private const val ESCAPE_SEQUENCE_LENGTH: Int = 2
 
-    fun mask(source: String): String = Masker(source, true).mask()
+    fun mask(source: String): String {
+        return Masker(source, true).mask()
+    }
 
-    fun withoutComments(source: String): String = Masker(source, false).mask()
+    fun withoutComments(source: String): String {
+        return Masker(source, false).mask()
+    }
 
     private enum class State { CODE, LINE_COMMENT, BLOCK_COMMENT, TEXT_BLOCK, STRING, CHARACTER }
 

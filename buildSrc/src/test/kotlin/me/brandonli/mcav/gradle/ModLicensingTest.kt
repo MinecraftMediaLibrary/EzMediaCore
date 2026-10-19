@@ -80,8 +80,8 @@ class ModLicensingTest {
         assertEquals(expected, archives)
     }
 
-    private fun describeArchive(classifier: String): List<Any?> =
-        ZipFile(this.directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()).use { archive ->
+    private fun describeArchive(classifier: String): List<Any?> {
+        return ZipFile(this.directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()).use { archive ->
             listOf(
                 this.readEntry(archive, LICENSE_ENTRY),
                 this.readEntry(archive, NOTICES_ENTRY),
@@ -89,7 +89,9 @@ class ModLicensingTest {
                 archive.getEntry(NEOFORGE_METADATA_ENTRY) != null
             )
         }
+    }
 
-    private fun readEntry(archive: ZipFile, name: String): String? =
-        archive.getEntry(name)?.let { archive.getInputStream(it).reader().readText() }
+    private fun readEntry(archive: ZipFile, name: String): String? {
+        return archive.getEntry(name)?.let { archive.getInputStream(it).reader().readText() }
+    }
 }

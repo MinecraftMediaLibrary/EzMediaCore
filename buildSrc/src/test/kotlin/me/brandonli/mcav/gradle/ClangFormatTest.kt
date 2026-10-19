@@ -49,7 +49,10 @@ class ClangFormatTest {
     abstract class RecordingFormat : ClangFormat() {
 
         lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations get() = this.recordedProcesses
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
     }
 
     @Test
@@ -90,9 +93,13 @@ class ClangFormatTest {
         assertEquals(listOf(listOf(this.clangFormat(), VERSION_OPTION)), commands)
     }
 
-    private fun clangFormat(): String = this.directory.resolve(CLANG_FORMAT_EXECUTABLE).toString()
+    private fun clangFormat(): String {
+        return this.directory.resolve(CLANG_FORMAT_EXECUTABLE).toString()
+    }
 
-    private fun sources(): List<String> = listOf(FIRST_SOURCE, SECOND_SOURCE).map { this.directory.resolve(it).toString() }
+    private fun sources(): List<String> {
+        return listOf(FIRST_SOURCE, SECOND_SOURCE).map { this.directory.resolve(it).toString() }
+    }
 
     private fun format(rewrite: Boolean, processes: RecordedProcesses): Unit {
         val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()

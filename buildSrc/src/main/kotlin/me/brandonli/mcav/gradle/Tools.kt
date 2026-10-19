@@ -41,20 +41,25 @@ object Tools {
         checksums.use { this.load(it) }
     }
 
-    fun pinnedSha256(project: Project, tool: String, version: String, archive: String): Provider<String> = project.provider {
-        val key: String = "$tool/$version/$archive"
-        val message: String =
-            "tool-checksums.properties pins no SHA-256 for $key, so set ${this.overrideVariable(tool)} to a $tool $version binary!"
-        PINNED_CHECKSUMS.getProperty(key) ?: throw GradleException(message)
+    fun pinnedSha256(project: Project, tool: String, version: String, archive: String): Provider<String> {
+        return project.provider {
+            val key: String = "$tool/$version/$archive"
+            val message: String =
+                "tool-checksums.properties pins no SHA-256 for $key, so set ${this.overrideVariable(tool)} to a $tool $version binary!"
+            PINNED_CHECKSUMS.getProperty(key) ?: throw GradleException(message)
+        }
     }
 
-    fun toolOverride(project: Project, tool: String): Provider<RegularFile> =
-        project.layout.file(project.providers.environmentVariable(this.overrideVariable(tool)).map { project.file(it) })
+    fun toolOverride(project: Project, tool: String): Provider<RegularFile> {
+        return project.layout.file(project.providers.environmentVariable(this.overrideVariable(tool)).map { project.file(it) })
+    }
 
     fun selectTool(project: Project, tool: String, installed: Provider<RegularFile>): Provider<RegularFile> {
         val override: Provider<RegularFile> = this.toolOverride(project, tool)
         return if (override.isPresent) override else installed
     }
 
-    private fun overrideVariable(tool: String): String = tool.uppercase(Locale.ROOT).replace(NAME_SEPARATOR, VARIABLE_SEPARATOR)
+    private fun overrideVariable(tool: String): String {
+        return tool.uppercase(Locale.ROOT).replace(NAME_SEPARATOR, VARIABLE_SEPARATOR)
+    }
 }

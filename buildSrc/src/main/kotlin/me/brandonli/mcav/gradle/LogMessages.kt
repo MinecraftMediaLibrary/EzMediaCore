@@ -77,7 +77,9 @@ object LogMessages {
         return if (noArguments) emptyList() else arguments
     }
 
-    private fun lineOf(source: String, offset: Int): Int = source.substring(0, offset).count { it == NEW_LINE } + FIRST_LINE_NUMBER
+    private fun lineOf(source: String, offset: Int): Int {
+        return source.substring(0, offset).count { it == NEW_LINE } + FIRST_LINE_NUMBER
+    }
 
     private class Argument(val text: String, private val code: String) {
 

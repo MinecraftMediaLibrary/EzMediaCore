@@ -45,10 +45,11 @@ abstract class LockPythonRequirements : DefaultTask() {
         private const val MARKER_SEPARATOR: String = " ; "
         private const val VERSION_SEPARATOR: Char = '.'
 
-        fun requirementLines(versions: Map<String, String>, markers: Map<String, String>): List<String> =
-            versions.toSortedMap().map { (name, version) ->
+        fun requirementLines(versions: Map<String, String>, markers: Map<String, String>): List<String> {
+            return versions.toSortedMap().map { (name, version) ->
                 listOfNotNull("$name${RequirementsLock.PIN_SEPARATOR}$version", markers[name]).joinToString(MARKER_SEPARATOR)
             }
+        }
     }
 
     @get:InputFile

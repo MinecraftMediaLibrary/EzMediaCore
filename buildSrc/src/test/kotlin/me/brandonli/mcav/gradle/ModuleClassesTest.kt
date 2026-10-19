@@ -62,9 +62,10 @@ class ModuleClassesTest {
     @TempDir
     lateinit var folder: Path
 
-    private fun classBytes(vararg names: String): ByteArray =
-        names.joinToString("\u0001\u0000\u0010", prefix = "Êþº¾", postfix = "\u0007") { it }
+    private fun classBytes(vararg names: String): ByteArray {
+        return names.joinToString("\u0001\u0000\u0010", prefix = "Êþº¾", postfix = "\u0007") { it }
             .toByteArray(Charsets.ISO_8859_1)
+    }
 
     private fun jar(name: String, vararg classes: String): File {
         val file: File = this.folder.resolve(name).toFile()

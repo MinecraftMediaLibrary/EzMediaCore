@@ -113,9 +113,10 @@ class NativeResourcesTest {
         assertEquals("changed native fixture bytes", repackaged)
     }
 
-    private fun readLibrary(consumer: File): String? =
-        ZipFile(consumer.resolve(CONSUMER_JAR_PATH)).use { archive ->
+    private fun readLibrary(consumer: File): String? {
+        return ZipFile(consumer.resolve(CONSUMER_JAR_PATH)).use { archive ->
             archive.getEntry(NATIVE_LIBRARY_ENTRY)
                 ?.let { archive.getInputStream(it).reader().readText() }
         }
+    }
 }

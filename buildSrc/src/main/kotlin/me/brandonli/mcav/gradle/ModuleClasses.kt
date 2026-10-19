@@ -29,8 +29,9 @@ object ModuleClasses {
 
     private val NAME: Regex = Regex("me/brandonli/mcav/[A-Za-z0-9_$/]+")
 
-    fun referenced(classFile: ByteArray): Set<String> =
-        NAME.findAll(String(classFile, Charsets.ISO_8859_1)).map { it.value }.toSet()
+    fun referenced(classFile: ByteArray): Set<String> {
+        return NAME.findAll(String(classFile, Charsets.ISO_8859_1)).map { it.value }.toSet()
+    }
 
     fun available(roots: Iterable<File>): Set<String> {
         val names: MutableSet<String> = mutableSetOf<String>()

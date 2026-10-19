@@ -31,10 +31,13 @@ object JcstressConsole {
 
     private val SKIPPED_LINE: Regex = Regex("""\[SKIPPED]\s+(\S+)""")
 
-    fun tee(console: OutputStream, file: File): OutputStream = Tee(console, BufferedOutputStream(file.outputStream()))
+    fun tee(console: OutputStream, file: File): OutputStream {
+        return Tee(console, BufferedOutputStream(file.outputStream()))
+    }
 
-    fun skippedTests(lines: List<String>): List<String> =
-        lines.mapNotNull { line -> SKIPPED_LINE.find(line)?.groupValues?.get(TEST_GROUP) }.distinct()
+    fun skippedTests(lines: List<String>): List<String> {
+        return lines.mapNotNull { line -> SKIPPED_LINE.find(line)?.groupValues?.get(TEST_GROUP) }.distinct()
+    }
 
     fun checkNoneSkipped(console: File): Unit {
         val skipped: List<String> = this.skippedTests(console.readLines())

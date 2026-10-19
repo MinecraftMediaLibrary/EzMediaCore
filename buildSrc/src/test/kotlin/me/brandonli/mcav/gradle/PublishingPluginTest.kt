@@ -65,7 +65,9 @@ class PublishingPluginTest {
         val document: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
             .parse(this.directory.resolve(POM_PATH).toFile())
         val project: Element = document.documentElement
-        fun text(tag: String): String = project.getElementsByTagName(tag).item(0)?.textContent ?: ""
+        fun text(tag: String): String {
+            return project.getElementsByTagName(tag).item(0)?.textContent ?: ""
+        }
 
         val license: Node = project.getElementsByTagName("license").item(0)
         val licenseName: String? = license?.childNodes?.let { children ->
@@ -101,12 +103,13 @@ class PublishingPluginTest {
         assertEquals(expected, jars)
     }
 
-    private fun readLegalEntries(classifier: String): List<String?> =
-        ZipFile(this.directory.resolve("build/libs/mcav-fixture-1.2.3$classifier.jar").toFile()).use { jar ->
+    private fun readLegalEntries(classifier: String): List<String?> {
+        return ZipFile(this.directory.resolve("build/libs/mcav-fixture-1.2.3$classifier.jar").toFile()).use { jar ->
             listOf(LICENSE_ENTRY, NOTICES_ENTRY).map { name ->
                 jar.getEntry(name)?.let { jar.getInputStream(it).reader().readText() }
             }
         }
+    }
 
     @Test
     fun shouldLetTheMutationTestJvmReadTheGeneratedPublication(): Unit {

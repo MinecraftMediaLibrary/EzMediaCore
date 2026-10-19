@@ -41,9 +41,15 @@ abstract class VariableNamesTask : JavaLintTask() {
         }
     }
 
-    override fun diagnosticMessage(): String = UNDESCRIPTIVE
+    override fun diagnosticMessage(): String {
+        return UNDESCRIPTIVE
+    }
 
-    override fun failureMessage(count: Int): String = "Found $count undescriptive variable names!"
+    override fun failureMessage(count: Int): String {
+        return "Found $count undescriptive variable names!"
+    }
 
-    override fun successMessage(fileCount: Int): String = "no undescriptive variable name in $fileCount files\n"
+    override fun successMessage(fileCount: Int): String {
+        return "no undescriptive variable name in $fileCount files\n"
+    }
 }
