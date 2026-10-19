@@ -102,9 +102,9 @@ final class VMAudioClient implements Closeable {
       final VMAudioClient client = new VMAudioClient(socket, in, sink, failures);
       client.startReading();
       return client;
-    } catch (final IOException failure) {
+    } catch (final IOException exception) {
       closeQuietly(socket);
-      throw failure;
+      throw exception;
     }
   }
 

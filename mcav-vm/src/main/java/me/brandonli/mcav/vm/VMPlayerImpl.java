@@ -156,10 +156,10 @@ public final class VMPlayerImpl implements VMPlayer {
       this.connectDisplay(settings, qemu);
       this.connectAudio(settings, qemu);
       this.running.set(true);
-    } catch (final RuntimeException | Error failure) {
-      ThrowableUtils.throwIfFatal(failure);
-      this.shutdownAfterFailure(failure);
-      throw failure;
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      this.shutdownAfterFailure(exception);
+      throw exception;
     }
   }
 
@@ -193,12 +193,12 @@ public final class VMPlayerImpl implements VMPlayer {
   private void shutdownAfterFailure(final Throwable failure) {
     try {
       this.shutdownMachine();
-    } catch (final RuntimeException | Error cleanupFailure) {
-      ThrowableUtils.throwIfFatal(cleanupFailure);
+    } catch (final RuntimeException | Error cleanupException) {
+      ThrowableUtils.throwIfFatal(cleanupException);
       final Equivalence<Object> identity = Equivalence.identity();
-      final boolean sameFailure = identity.equivalent(failure, cleanupFailure);
+      final boolean sameFailure = identity.equivalent(failure, cleanupException);
       if (!sameFailure) {
-        failure.addSuppressed(cleanupFailure);
+        failure.addSuppressed(cleanupException);
       }
     }
   }
@@ -392,10 +392,10 @@ public final class VMPlayerImpl implements VMPlayer {
         if (first) {
           this.vncPlayer.release();
         }
-      } catch (final RuntimeException | Error failure) {
-        ThrowableUtils.throwIfFatal(failure);
-        this.shutdownAfterFailure(failure);
-        throw failure;
+      } catch (final RuntimeException | Error exception) {
+        ThrowableUtils.throwIfFatal(exception);
+        this.shutdownAfterFailure(exception);
+        throw exception;
       }
       // A repeated release still owns cleanup if QEMU survived the preceding bounded termination attempt.
       this.shutdownMachine();

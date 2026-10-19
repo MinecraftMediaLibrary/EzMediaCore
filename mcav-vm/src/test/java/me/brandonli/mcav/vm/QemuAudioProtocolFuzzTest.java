@@ -60,7 +60,7 @@ final class QemuAudioProtocolFuzzTest {
         final boolean wholeFramesWithinTheLimit = length >= 0 && length <= QemuAudioProtocol.MAX_AUDIO_BYTES && length % FRAME == 0;
         assertTrue(wholeFramesWithinTheLimit, () -> "length " + length);
       }
-    } catch (final IOException refused) {
+    } catch (final IOException exception) {
       // malformed, cut short, or not expected: the connection ends
     }
   }

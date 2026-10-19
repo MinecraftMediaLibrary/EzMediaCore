@@ -90,7 +90,7 @@ final class QemuProcessRecordsTest {
   private List<String> sleeper(final boolean ignoresStop) throws IOException {
     final String hook = ignoresStop ? "Runtime.getRuntime().addShutdownHook(new Thread(Sleep::sleep));" : "";
     final String source =
-      "class Sleep { static void sleep() { try { Thread.sleep(300_000L); } catch (InterruptedException e) { } } " +
+      "class Sleep { static void sleep() { try { Thread.sleep(300_000L); } catch (InterruptedException exception) { } } " +
       "public static void main(String[] arguments) { " +
       hook +
       " System.out.println(\"ready\"); System.out.flush(); sleep(); } }";

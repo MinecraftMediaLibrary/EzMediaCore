@@ -1308,8 +1308,8 @@ final class VMProcessTest {
         process.shutdown();
         final Thread current = Thread.currentThread();
         restored.set(current.isInterrupted());
-      } catch (final Throwable thrown) {
-        failure.set(thrown);
+      } catch (final Throwable exception) {
+        failure.set(exception);
       } finally {
         returned.countDown();
       }
