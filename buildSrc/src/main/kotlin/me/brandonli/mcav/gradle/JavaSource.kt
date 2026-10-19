@@ -42,7 +42,14 @@ object JavaSource {
         return Masker(source, false).mask()
     }
 
-    private enum class State { CODE, LINE_COMMENT, BLOCK_COMMENT, TEXT_BLOCK, STRING, CHARACTER }
+    private enum class State {
+        CODE,
+        LINE_COMMENT,
+        BLOCK_COMMENT,
+        TEXT_BLOCK,
+        STRING,
+        CHARACTER,
+    }
 
     private class Masker(private val source: String, private val maskLiterals: Boolean) {
 
@@ -61,6 +68,7 @@ object JavaSource {
                     State.CHARACTER -> this.literal(CHARACTER_QUOTE)
                 }
             }
+
             return this.out.toString()
         }
 
@@ -79,6 +87,7 @@ object JavaSource {
             if (this.source[this.index] == NEW_LINE) {
                 this.state = State.CODE
             }
+
             this.blank(1)
         }
 
@@ -110,7 +119,12 @@ object JavaSource {
             val comment: Boolean = this.state == State.BLOCK_COMMENT ||
                 next == State.LINE_COMMENT || next == State.BLOCK_COMMENT
             this.state = next
-            if (comment) this.blank(length) else this.literalCharacters(length)
+
+            if (comment) {
+                this.blank(length)
+            } else {
+                this.literalCharacters(length)
+            }
         }
 
         private fun literalCharacters(length: Int): Unit {

@@ -20,8 +20,14 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 import java.util.SortedSet
-import java.util.TreeSet
 import java.util.zip.ZipFile
+import org.gradle.api.artifacts.ArtifactView
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolvableDependencies
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.file.FileCollection
+import org.gradle.api.specs.Spec
 
 object ModuleClasses {
 
@@ -29,36 +35,59 @@ object ModuleClasses {
 
     private val NAME: Regex = Regex("me/brandonli/mcav/[A-Za-z0-9_$/]+")
 
+    /**
+     * Returns the artifacts on [classpath] that the modules at [modulePaths] build.
+     *
+     * @param classpath   the classpath to resolve
+     * @param modulePaths the project paths of the modules to keep, such as `:mcav-common`
+     * @return the artifacts of those modules
+     */
+    fun moduleArtifacts(classpath: Configuration, modulePaths: List<String>): FileCollection {
+        val modules: Spec<ComponentIdentifier> = Spec { it is ProjectComponentIdentifier && it.projectPath in modulePaths }
+        val incoming: ResolvableDependencies = classpath.incoming
+        val view: ArtifactView = incoming.artifactView { this.componentFilter(modules) }
+        return view.files
+    }
+
     fun referenced(classFile: ByteArray): Set<String> {
         return NAME.findAll(String(classFile, Charsets.ISO_8859_1)).map { it.value }.toSet()
     }
 
     fun available(roots: Iterable<File>): Set<String> {
-        val names: MutableSet<String> = mutableSetOf<String>()
-        roots.filter { it.exists() }.forEach { root ->
-            if (root.isDirectory) {
-                root.walkTopDown().filter { it.isFile && it.name.endsWith(CLASS_SUFFIX) }.forEach { file ->
-                    names.add(file.relativeTo(root).invariantSeparatorsPath.removeSuffix(CLASS_SUFFIX))
-                }
-            } else {
-                ZipFile(root).use { jar ->
-                    jar.entries().asSequence().map { it.name }.filter { it.endsWith(CLASS_SUFFIX) }.forEach { name ->
-                        names.add(name.removeSuffix(CLASS_SUFFIX))
-                    }
-                }
-            }
-        }
-        return names.filter { NAME.matches(it) }.toSet()
+        return roots.filter { it.exists() }
+            .flatMap(this::classNamesIn)
+            .filter { NAME.matches(it) }
+            .toSet()
     }
 
     fun required(pluginClasses: Iterable<File>, modules: Iterable<File>): SortedSet<String> {
         val inModules: Set<String> = this.available(modules)
-        val used: TreeSet<String> = sortedSetOf<String>()
-        pluginClasses.filter { it.isDirectory }.forEach { root ->
-            root.walkTopDown().filter { it.isFile && it.name.endsWith(CLASS_SUFFIX) }.forEach { file ->
-                used.addAll(this.referenced(file.readBytes()).filter { it in inModules })
-            }
+        return pluginClasses.filter { it.isDirectory }
+            .flatMap(this::classFilesIn)
+            .flatMap { file -> this.referenced(file.readBytes()) }
+            .filter { it in inModules }
+            .toSortedSet()
+    }
+
+    private fun classNamesIn(root: File): List<String> {
+        if (root.isDirectory) {
+            return this.classFilesIn(root).map { file -> file.relativeTo(root).invariantSeparatorsPath.removeSuffix(CLASS_SUFFIX) }
         }
-        return used
+
+        return ZipFile(root).use(this::classNamesInJar)
+    }
+
+    private fun classFilesIn(root: File): List<File> {
+        return root.walkTopDown()
+            .filter { it.isFile && it.name.endsWith(CLASS_SUFFIX) }
+            .toList()
+    }
+
+    private fun classNamesInJar(jar: ZipFile): List<String> {
+        return jar.entries().asSequence()
+            .map { it.name }
+            .filter { it.endsWith(CLASS_SUFFIX) }
+            .map { it.removeSuffix(CLASS_SUFFIX) }
+            .toList()
     }
 }

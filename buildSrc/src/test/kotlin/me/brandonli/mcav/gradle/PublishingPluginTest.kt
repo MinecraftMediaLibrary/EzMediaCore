@@ -29,6 +29,7 @@ import org.junit.jupiter.api.io.TempDir
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
+import org.w3c.dom.NodeList
 
 class PublishingPluginTest {
 
@@ -62,24 +63,15 @@ class PublishingPluginTest {
     fun shouldNameTheProjectItsLicenseAndItsSourceRepositoryInThePublishedPom(): Unit {
         this.prepareProject()
         this.run(POM_TASK)
-        val document: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-            .parse(this.directory.resolve(POM_PATH).toFile())
-        val project: Element = document.documentElement
-        fun text(tag: String): String {
-            return project.getElementsByTagName(tag).item(0)?.textContent ?: ""
-        }
 
-        val license: Node = project.getElementsByTagName("license").item(0)
-        val licenseName: String? = license?.childNodes?.let { children ->
-            (0 until children.length).map { children.item(it) }.single { it.nodeName == "name" }.textContent
-        }
+        val project: Element = this.readPom()
         val names: Map<String, String?> = mapOf(
-            GROUP_ID_ELEMENT to text(GROUP_ID_ELEMENT),
-            "artifactId" to text("artifactId"),
-            "version" to text("version"),
-            "license" to licenseName,
-            "connection" to text("connection"),
-            "name" to text("name")
+            GROUP_ID_ELEMENT to this.textOf(project, GROUP_ID_ELEMENT),
+            "artifactId" to this.textOf(project, "artifactId"),
+            "version" to this.textOf(project, "version"),
+            "license" to this.licenseNameOf(project),
+            "connection" to this.textOf(project, "connection"),
+            "name" to this.textOf(project, "name")
         )
         val expected: Map<String, String?> = mapOf(
             GROUP_ID_ELEMENT to "me.brandonli",
@@ -96,19 +88,12 @@ class PublishingPluginTest {
     fun shouldCarryTheProjectLicenseAndThirdPartyNoticesInEveryPublishedJar(): Unit {
         this.prepareProject()
         this.run("jar", "sourcesJar", "javadocJar")
+
         val classifiers: List<String> = listOf("", "-sources", "-javadoc")
         val legalTexts: List<String> = listOf(LICENSE_FILE, NOTICES_FILE).map { this.directory.resolve(it).toFile().readText() }
-        val jars: Map<String, List<String?>> = classifiers.associateWith { this.readLegalEntries(it) }
+        val jars: Map<String, List<String?>> = classifiers.associateWith(this::readLegalEntries)
         val expected: Map<String, List<String?>> = classifiers.associateWith { legalTexts }
         assertEquals(expected, jars)
-    }
-
-    private fun readLegalEntries(classifier: String): List<String?> {
-        return ZipFile(this.directory.resolve("build/libs/mcav-fixture-1.2.3$classifier.jar").toFile()).use { jar ->
-            listOf(LICENSE_ENTRY, NOTICES_ENTRY).map { name ->
-                jar.getEntry(name)?.let { jar.getInputStream(it).reader().readText() }
-            }
-        }
     }
 
     @Test
@@ -149,6 +134,7 @@ class PublishingPluginTest {
             """.trimIndent()
         )
         this.run("readMutationPom")
+
         val generated: String = this.directory.resolve(POM_PATH).toFile().readText()
         val read: String = this.directory.resolve(MUTATION_POM_PATH).toFile().readText()
         assertEquals(generated, read)
@@ -159,9 +145,9 @@ class PublishingPluginTest {
         this.prepareProject()
         this.directory.resolve(BUILD_SCRIPT).toFile().appendText("group = 'fixture.changed'\n")
         this.run(POM_TASK)
-        val document: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-            .parse(this.directory.resolve(POM_PATH).toFile())
-        val groupId: String = document.documentElement.getElementsByTagName(GROUP_ID_ELEMENT).item(0).textContent
+
+        val project: Element = this.readPom()
+        val groupId: String = this.textOf(project, GROUP_ID_ELEMENT)
         assertEquals("fixture.changed", groupId)
     }
 
@@ -182,5 +168,40 @@ class PublishingPluginTest {
             .withPluginClasspath()
             .withArguments(*tasks, "--max-workers=2", "--stacktrace")
             .build()
+    }
+
+    private fun readPom(): Element {
+        val pom: File = this.directory.resolve(POM_PATH).toFile()
+        val document: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(pom)
+        return document.documentElement
+    }
+
+    private fun textOf(project: Element, tag: String): String {
+        return project.getElementsByTagName(tag).item(0)?.textContent ?: ""
+    }
+
+    private fun licenseNameOf(project: Element): String? {
+        val license: Node? = project.getElementsByTagName("license").item(0)
+        return license?.childNodes?.let(this::nameOf)
+    }
+
+    private fun nameOf(children: NodeList): String {
+        val indexes: IntRange = 0 until children.length
+        val nodes: List<Node> = indexes.map(children::item)
+        val name: Node = nodes.single { it.nodeName == "name" }
+        return name.textContent
+    }
+
+    private fun readLegalEntries(classifier: String): List<String?> {
+        val file: File = this.directory.resolve("build/libs/mcav-fixture-1.2.3$classifier.jar").toFile()
+        return ZipFile(file).use(this::readLegalTexts)
+    }
+
+    private fun readLegalTexts(jar: ZipFile): List<String?> {
+        return listOf(LICENSE_ENTRY, NOTICES_ENTRY).map { name -> this.readEntry(jar, name) }
+    }
+
+    private fun readEntry(jar: ZipFile, name: String): String? {
+        return jar.getEntry(name)?.let { jar.getInputStream(it).reader().readText() }
     }
 }

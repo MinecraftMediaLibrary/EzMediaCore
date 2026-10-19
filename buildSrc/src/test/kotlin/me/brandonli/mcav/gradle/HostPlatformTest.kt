@@ -22,6 +22,7 @@ import java.util.Locale
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -77,10 +78,7 @@ class HostPlatformTest {
             listOf(MACOS_NAME, AMD64, "x86_64", "macos", "x86_64-apple-darwin", "natives-macos"),
             listOf(MACOS_NAME, ARM64, "aarch64", "macos", "aarch64-apple-darwin", MACOS_ARM64_CLASSIFIER)
         )
-        val mappings: List<List<String?>> = hosts.map { expected ->
-            val host: HostPlatform = HostPlatform.normalize(expected[0], expected[1])
-            listOf(expected[0], expected[1], host.architecture, host.zigSystem, host.uvTarget, host.lwjglNatives)
-        }
+        val mappings: List<List<String?>> = hosts.map(this::mappingOf)
         assertEquals(hosts, mappings)
     }
 
@@ -112,9 +110,7 @@ class HostPlatformTest {
         assertEquals(LINUX_ARM64_TARGET, darwinUvTarget)
 
         val operatingSystems: List<String> = listOf(LINUX_NAME, "Windows", MACOS_NAME, "FreeBSD", UNKNOWN_NAME)
-        val unknownArchitectures: List<String?> = operatingSystems.map { operatingSystem ->
-            HostPlatform.normalize(operatingSystem, "unknown").lwjglNatives
-        }
+        val unknownArchitectures: List<String?> = operatingSystems.map { HostPlatform.normalize(it, "unknown").lwjglNatives }
         assertEquals(List(5) { null }, unknownArchitectures)
 
         val freeBsdArm: String? = HostPlatform.normalize("FreeBSD", ARM64).lwjglNatives
@@ -206,6 +202,13 @@ class HostPlatformTest {
         assertEquals(expected, classifiers)
     }
 
+    private fun mappingOf(row: List<String>): List<String?> {
+        val operatingSystem: String = row[0]
+        val architecture: String = row[1]
+        val host: HostPlatform = HostPlatform.normalize(operatingSystem, architecture)
+        return listOf(operatingSystem, architecture, host.architecture, host.zigSystem, host.uvTarget, host.lwjglNatives)
+    }
+
     private fun javaProject(): Project {
         val project: Project = ProjectBuilder.builder().build()
         project.pluginManager.apply("java")
@@ -213,9 +216,13 @@ class HostPlatformTest {
     }
 
     private fun lwjgl(project: Project): Provider<MinimalExternalModuleDependency> {
-        return project.provider<MinimalExternalModuleDependency> {
-            DefaultMinimalDependency(DefaultModuleIdentifier.newId(LWJGL_GROUP, LWJGL_NAME), DefaultMutableVersionConstraint(LWJGL_VERSION))
-        }
+        return project.provider(this::lwjglDependency)
+    }
+
+    private fun lwjglDependency(): MinimalExternalModuleDependency {
+        val module: ModuleIdentifier = DefaultModuleIdentifier.newId(LWJGL_GROUP, LWJGL_NAME)
+        val version: DefaultMutableVersionConstraint = DefaultMutableVersionConstraint(LWJGL_VERSION)
+        return DefaultMinimalDependency(module, version)
     }
 
     private fun testRuntimeClassifiers(project: Project): List<String?> {

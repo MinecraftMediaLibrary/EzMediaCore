@@ -22,6 +22,13 @@ data class QualifiedName(val line: Int, val name: String)
 
 object QualifiedNames {
 
+    private const val NEW_LINE: Char = '\n'
+
+    private const val FIRST_LINE_NUMBER: Int = 1
+
+    private const val ROOT_SEPARATOR: String = "|"
+    private const val NAME_GROUP: Int = 1
+
     private val ROOTS: List<String> = listOf(
         "java", "javax", "jakarta", "jdk", "sun", "com", "org", "net", "io", "me", "uk", "de", "xyz", "it", "dev", "info"
     )
@@ -32,21 +39,20 @@ object QualifiedNames {
 
     private val DECLARATION: Regex = Regex("^\\s*(package|import)\\s")
 
-    private const val ROOT_SEPARATOR: String = "|"
-    private const val NEW_LINE: Char = '\n'
-    private const val NAME_GROUP: Int = 1
-    private const val FIRST_LINE_NUMBER: Int = 1
-
     fun find(source: String): List<QualifiedName> {
         val lines: List<String> = source.split(NEW_LINE)
-        val code: List<String> = JavaSource.mask(source).split(NEW_LINE)
+        val masked: String = JavaSource.mask(source)
+        val code: List<String> = masked.split(NEW_LINE)
         val found: MutableList<QualifiedName> = mutableListOf<QualifiedName>()
-        code.forEachIndexed { index, line ->
-            if (DECLARATION.containsMatchIn(line) || MARKER.containsMatchIn(lines[index])) {
-                return@forEachIndexed
+        for ((index, line) in code.withIndex()) {
+            val skipped: Boolean = DECLARATION.containsMatchIn(line) || MARKER.containsMatchIn(lines[index])
+            if (skipped) {
+                continue
             }
-            NAME.findAll(line).forEach { match -> found += QualifiedName(index + FIRST_LINE_NUMBER, match.groupValues[NAME_GROUP]) }
+            val number: Int = index + FIRST_LINE_NUMBER
+            NAME.findAll(line).forEach { match -> found += QualifiedName(number, match.groupValues[NAME_GROUP]) }
         }
+
         return found
     }
 }

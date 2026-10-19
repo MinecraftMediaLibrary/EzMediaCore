@@ -21,6 +21,7 @@ import me.brandonli.mcav.gradle.DownloadToolArchive
 import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.LockPythonRequirements
 import me.brandonli.mcav.gradle.PythonEnvironment
+import me.brandonli.mcav.gradle.RequirementsLock
 import me.brandonli.mcav.gradle.Tools
 import me.brandonli.mcav.gradle.libs
 
@@ -41,9 +42,6 @@ val pythonToolsPath: String = "tools/python"
 val uvCachePath: String = "tools/uv/cache"
 
 val licenseHeaderPath: String = "HEADER"
-val javadocLinePrefix: String = " *"
-val lockCommentPrefix: String = "#"
-val lineSeparator: String = "\n"
 
 val host: HostPlatform = HostPlatform.current()
 val uvTarget: String = host.uvTarget
@@ -68,11 +66,8 @@ val selectedUv: Provider<RegularFile> = Tools.selectTool(project, uvTool, downlo
 val requirementsLock: RegularFile = layout.projectDirectory.file(requirementsLockPath)
 val pythonInstallation: Provider<Directory> = layout.buildDirectory.dir("$pythonToolsPath/$pinnedPythonVersion")
 val uvCache: Provider<Directory> = layout.buildDirectory.dir(uvCachePath)
-val lockHeader: Provider<String> = providers.fileContents(layout.settingsDirectory.file(licenseHeaderPath)).asText.map { header ->
-    header.trimEnd().lines().drop(1).dropLast(1).joinToString(lineSeparator, postfix = lineSeparator + lineSeparator) { line ->
-        lockCommentPrefix + line.removePrefix(javadocLinePrefix).trimEnd()
-    }
-}
+val licenseHeaderFile: RegularFile = layout.settingsDirectory.file(licenseHeaderPath)
+val lockHeader: Provider<String> = providers.fileContents(licenseHeaderFile).asText.map(RequirementsLock::headerOf)
 
 val lockRequirements: TaskProvider<LockPythonRequirements> = tasks.register<LockPythonRequirements>("lockPythonRequirements") {
     this.group = "build setup"

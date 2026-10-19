@@ -29,10 +29,10 @@ abstract class QualifiedNamesTask : JavaLintTask() {
     }
 
     override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit {
-        files.forEach { file ->
-            QualifiedNames.find(file.readText()).forEach { found ->
-                reportViolation(file, found.line, listOf(found.name))
-            }
+        for (file in files) {
+            val source: String = file.readText()
+            val names: List<QualifiedName> = QualifiedNames.find(source)
+            names.forEach { found -> reportViolation(file, found.line, listOf(found.name)) }
         }
     }
 

@@ -46,9 +46,13 @@ abstract class LockPythonRequirements : DefaultTask() {
         private const val VERSION_SEPARATOR: Char = '.'
 
         fun requirementLines(versions: Map<String, String>, markers: Map<String, String>): List<String> {
-            return versions.toSortedMap().map { (name, version) ->
-                listOfNotNull("$name${RequirementsLock.PIN_SEPARATOR}$version", markers[name]).joinToString(MARKER_SEPARATOR)
-            }
+            val sorted: Map<String, String> = versions.toSortedMap()
+            return sorted.map { (name, version) -> this.requirementLine(name, version, markers[name]) }
+        }
+
+        private fun requirementLine(name: String, version: String, marker: String?): String {
+            val pin: String = "$name${RequirementsLock.PIN_SEPARATOR}$version"
+            return listOfNotNull(pin, marker).joinToString(MARKER_SEPARATOR)
         }
     }
 
@@ -86,21 +90,37 @@ abstract class LockPythonRequirements : DefaultTask() {
     @TaskAction
     fun lock(): Unit {
         val uv: File = this.uvExecutable.get().asFile
-        ToolVersions.verify(this.processes, uv, UV_TOOL, this.uvVersion.get())
+        val version: String = this.uvVersion.get()
+        ToolVersions.verify(this.processes, uv, UvEnvironment.TOOL, version)
+
+        val requirementsInput: File = this.writeRequirementsInput()
+        val lock: File = this.lockFile.get().asFile
+        this.compile(uv, requirementsInput, lock)
+
+        val header: String = this.licenseHeader.get()
+        lock.writeText(header + lock.readText())
+    }
+
+    private fun writeRequirementsInput(): File {
         val requirementsInput: File = this.temporaryDir.resolve(REQUIREMENTS_INPUT)
         val requirements: List<String> = requirementLines(this.versions.get(), this.markers.get())
-        requirementsInput.writeText(requirements.joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR))
-        val lock: File = this.lockFile.get().asFile
+        val text: String = requirements.joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR)
+        requirementsInput.writeText(text)
+
+        return requirementsInput
+    }
+
+    private fun compile(uv: File, requirementsInput: File, lock: File): Unit {
         val python: String = this.pythonVersion.get()
+        val targetVersion: String = python.substringBeforeLast(VERSION_SEPARATOR)
         val installation: File = this.installationDirectory.get().asFile
         val cache: File = this.cacheDirectory.get().asFile
         val environment: Map<String, String> = UvEnvironment.variables(installation, cache)
         this.processes.exec {
             this.commandLine(uv, "pip", "compile", requirementsInput, "--universal", "--generate-hashes", "--no-header", "--no-annotate",
-                "--python", python, "--python-version", python.substringBeforeLast(VERSION_SEPARATOR), "--only-binary", ":all:",
-                "--default-index", PACKAGE_INDEX, "--output-file", lock, "--quiet")
+                "--python", python, "--python-version", targetVersion, "--only-binary", ":all:",
+                "--default-index", UvEnvironment.PACKAGE_INDEX, "--output-file", lock, "--quiet")
             this.environment(environment)
         }
-        lock.writeText(this.licenseHeader.get() + lock.readText())
     }
 }

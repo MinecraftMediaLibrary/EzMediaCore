@@ -24,8 +24,34 @@ object RequirementsLock {
 
     private const val PIN_END: Char = ' '
 
+    private const val JAVADOC_LINE_PREFIX: String = " *"
+    private const val COMMENT_PREFIX: String = "#"
+    private const val LINE_SEPARATOR: String = "\n"
+
     fun missingPins(lock: String, versions: Map<String, String>): List<String> {
-        val locked: Set<String> = lock.lines().map { line -> line.substringBefore(PIN_END) }.toSet()
-        return versions.map { (name, version) -> "$name$PIN_SEPARATOR$version" }.filterNot { pin -> pin in locked }
+        val lines: List<String> = lock.lines()
+        val locked: Set<String> = lines.map { line -> line.substringBefore(PIN_END) }
+            .toSet()
+        return versions.map { (name, version) -> "$name$PIN_SEPARATOR$version" }
+            .filterNot { pin -> pin in locked }
+    }
+
+    /**
+     * Returns the comment that opens a requirements lock, made from the license header of the sources.
+     *
+     * The first and last lines of [licenseHeader] open and close the block comment and are dropped; every other line
+     * trades its leading ` *` for `#`, and a blank line follows the comment.
+     *
+     * @param licenseHeader the license header, a Javadoc-style block comment
+     * @return the lock comment
+     */
+    fun headerOf(licenseHeader: String): String {
+        val lines: List<String> = licenseHeader.trimEnd().lines()
+        val text: List<String> = lines.drop(1).dropLast(1)
+        return text.joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR + LINE_SEPARATOR, transform = this::commentOf)
+    }
+
+    private fun commentOf(line: String): String {
+        return COMMENT_PREFIX + line.removePrefix(JAVADOC_LINE_PREFIX).trimEnd()
     }
 }

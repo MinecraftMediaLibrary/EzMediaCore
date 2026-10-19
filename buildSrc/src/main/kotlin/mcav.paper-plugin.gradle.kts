@@ -19,11 +19,12 @@
 import java.net.ServerSocket
 import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.JavaToolchains
+import me.brandonli.mcav.gradle.ModuleClasses
+import me.brandonli.mcav.gradle.ModuleCoordinates
 import me.brandonli.mcav.gradle.PaperVersion
 import me.brandonli.mcav.gradle.RequiredModuleClassesTask
 import me.brandonli.mcav.gradle.libs
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import xyz.jpenilla.gremlin.gradle.WriteDependencySet
 import xyz.jpenilla.resourcefactory.bukkit.Permission
 import xyz.jpenilla.resourcefactory.paper.PaperPluginYaml
@@ -141,23 +142,13 @@ tasks.assemble {
     this.dependsOn(tasks.shadowJar)
 }
 
-val downloadedModules: Provider<List<String>> = configurations.runtimeDownload.map { configuration ->
-    configuration.dependencies
-        .filter { it.group == rootProject.group.toString() && rootProject.findProject("$projectPathPrefix${it.name}") != null }
-        .map { "$projectPathPrefix${it.name}" }
-}
+val downloadedModules: Provider<List<String>> =
+    configurations.runtimeDownload.map { configuration -> ModuleCoordinates.modulePathsOf(configuration, rootProject) }
 val requiredModuleClasses: TaskProvider<RequiredModuleClassesTask> = tasks.register<RequiredModuleClassesTask>("requiredModuleClasses") {
     this.group = "build"
     this.description = "Lists the classes of the downloaded modules that the plugin uses, for its loader to check them"
     this.pluginClasses.from(sourceSets.main.map { it.output.classesDirs })
-    this.modules.from(
-        configurations.compileClasspath.map { classpath ->
-            val downloaded: List<String> = downloadedModules.get()
-            classpath.incoming.artifactView {
-                this.componentFilter { it is ProjectComponentIdentifier && it.projectPath in downloaded }
-            }.files
-        }
-    )
+    this.modules.from(configurations.compileClasspath.zip(downloadedModules, ModuleClasses::moduleArtifacts))
     this.output = layout.buildDirectory.dir(requiredClassesPath)
 }
 
@@ -297,6 +288,7 @@ tasks.register<Test>(endToEndTestName) {
             val message: String = "Run the end-to-end test with -Pmcav.e2e=true, so the server uses the modules of this build!"
             throw GradleException(message)
         }
+
         this@register.systemProperty(pluginJarProperty, pluginJar.get().asFile.absolutePath)
         this@register.systemProperty(javaProperty, launcher.get().executablePath.asFile.absolutePath)
     }

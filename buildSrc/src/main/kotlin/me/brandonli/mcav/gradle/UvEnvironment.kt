@@ -22,6 +22,9 @@ import java.io.File
 
 object UvEnvironment {
 
+    internal const val TOOL: String = "uv"
+    internal const val PACKAGE_INDEX: String = "https://pypi.org/simple"
+
     private const val PYTHON_DIRECTORY: String = "python"
     private const val BINARY_DIRECTORY: String = "bin"
 

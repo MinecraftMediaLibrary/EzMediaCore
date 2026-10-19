@@ -41,11 +41,19 @@ object ToolVersions {
             this.commandLine(executable, argument)
             this.standardOutput = output
         }
+
         val reported: String = output.toString(Charsets.UTF_8).trim()
-        val actual: String? = Regex("(?:^|\\s)${Regex.escape(prefix)}(\\S+)").find(reported)?.groupValues?.get(VERSION_GROUP)
+        val actual: String? = this.findVersion(reported, prefix)
         if (actual != expected) {
             val message: String = "$executable reports $reported, which is not the $tool $expected this build pins!"
             throw GradleException(message)
         }
+    }
+
+    private fun findVersion(reported: String, prefix: String): String? {
+        val escapedPrefix: String = Regex.escape(prefix)
+        val version: Regex = Regex("(?:^|\\s)$escapedPrefix(\\S+)")
+        val match: MatchResult? = version.find(reported)
+        return match?.groupValues?.get(VERSION_GROUP)
     }
 }

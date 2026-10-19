@@ -64,15 +64,17 @@ abstract class CoverageLintTask : DefaultTask() {
             this.logger.warn(FILTERED, this.projectPath.get())
             return
         }
+
         val exceptionFile: File = this.exceptionsFile.singleFile
         val exceptions: List<CoverageException> = CoverageExceptions.read(exceptionFile)
+        val reportFile: File = this.report.singleFile
         val sources: File = this.sourceDirectory.get().asFile
-        val gaps: List<String> = CoverageReport.findGaps(this.report.singleFile, sources, exceptions)
+        val gaps: List<String> = CoverageReport.findGaps(reportFile, sources, exceptions)
         gaps.forEach { gap -> this.logger.error(GAP, gap) }
+
         val staleExceptions: List<CoverageException> = exceptions.filterNot { it.used }
-        staleExceptions.forEach { exception ->
-            this.logger.error(STALE_EXCEPTION, exceptionFile, exception.path, exception.sourceLine)
-        }
+        staleExceptions.forEach { exception -> this.logger.error(STALE_EXCEPTION, exceptionFile, exception.path, exception.sourceLine) }
+
         if (gaps.isNotEmpty() || staleExceptions.isNotEmpty()) {
             val message: String =
                 "${gaps.size} lines are not fully covered by tests and ${staleExceptions.size} coverage exceptions are stale!"

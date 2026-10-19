@@ -50,8 +50,9 @@ abstract class RequiredModuleClassesTask : DefaultTask() {
     @TaskAction
     fun list(): Unit {
         val classes: SortedSet<String> = ModuleClasses.required(this.pluginClasses.files, this.modules.files)
+        val text: String = classes.joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR)
         val file: File = this.output.get().file(RESOURCE).asFile
         file.parentFile.mkdirs()
-        file.writeText(classes.joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR))
+        file.writeText(text)
     }
 }

@@ -19,6 +19,7 @@
 package me.brandonli.mcav.gradle
 
 import java.io.File
+import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -39,7 +40,10 @@ object CoverageExceptions {
         if (!file.isFile) {
             return emptyList()
         }
-        val entries: List<String> = file.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith(COMMENT_PREFIX) }
+
+        val lines: List<String> = file.readLines()
+        val entries: List<String> = lines.map(String::trim)
+            .filter { it.isNotEmpty() && !it.startsWith(COMMENT_PREFIX) }
         return entries.map { entry -> this.parse(file, entry) }
     }
 
@@ -80,24 +84,31 @@ object CoverageReport {
 
     fun findGaps(report: File, sourceDirectory: File, exceptions: List<CoverageException>): List<String> {
         if (!report.isFile) {
-            val hasSources: Boolean = sourceDirectory.isDirectory && sourceDirectory.walk().any { it.extension == JAVA_EXTENSION }
-            return if (hasSources) listOf("$sourceDirectory: warning: no test ran, so none of this code is covered.") else emptyList()
+            return this.describeMissingReport(sourceDirectory)
         }
+
         val factory: DocumentBuilderFactory = DocumentBuilderFactory.newInstance()
         factory.setFeature(LOAD_EXTERNAL_DTD, false)
-        val document: Document = factory.newDocumentBuilder().parse(report)
+
+        val builder: DocumentBuilder = factory.newDocumentBuilder()
+        val document: Document = builder.parse(report)
         val sourceFiles: NodeList = document.getElementsByTagName(SOURCE_FILE_TAG)
         val gaps: MutableList<String> = mutableListOf<String>()
         for (index in 0 until sourceFiles.length) {
             val sourceFile: Element = sourceFiles.item(index) as Element
             gaps += this.findGapsInFile(sourceFile, sourceDirectory, exceptions)
         }
+
         return gaps
     }
 
+    private fun describeMissingReport(sourceDirectory: File): List<String> {
+        val hasSources: Boolean = sourceDirectory.isDirectory && sourceDirectory.walk().any { it.extension == JAVA_EXTENSION }
+        return if (hasSources) listOf("$sourceDirectory: warning: no test ran, so none of this code is covered.") else emptyList()
+    }
+
     private fun findGapsInFile(sourceFile: Element, sourceDirectory: File, exceptions: List<CoverageException>): List<String> {
-        val packageElement: Element = sourceFile.parentNode as Element
-        val relativePath: String = packageElement.getAttribute(NAME_ATTRIBUTE) + PATH_SEPARATOR + sourceFile.getAttribute(NAME_ATTRIBUTE)
+        val relativePath: String = this.relativePathOf(sourceFile)
         val file: File = File(sourceDirectory, relativePath)
         val sourceLines: List<String> by lazy { if (file.isFile) file.readLines() else emptyList() }
         val lines: NodeList = sourceFile.getElementsByTagName(LINE_TAG)
@@ -114,7 +125,15 @@ object CoverageReport {
                 exception.used = true
             }
         }
+
         return gaps
+    }
+
+    private fun relativePathOf(sourceFile: Element): String {
+        val packageElement: Element = sourceFile.parentNode as Element
+        val packageName: String = packageElement.getAttribute(NAME_ATTRIBUTE)
+        val fileName: String = sourceFile.getAttribute(NAME_ATTRIBUTE)
+        return "$packageName$PATH_SEPARATOR$fileName"
     }
 
     private fun describeGap(line: Element): String? {

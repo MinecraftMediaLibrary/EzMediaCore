@@ -61,17 +61,21 @@ object VariableNames {
                 return source
             }
         }
-        return this.find(listOf(file)).values.single()
+        val names: Map<URI, List<UndescriptiveName>> = this.find(listOf(file))
+        return names.values.single()
     }
 
     fun findInFiles(files: List<File>): Map<File, List<UndescriptiveName>> {
         val compiler: JavaCompiler = ToolProvider.getSystemJavaCompiler()
         val fileManager: StandardJavaFileManager = compiler.getStandardFileManager(null, null, Charsets.UTF_8)
-        fileManager.use { manager ->
-            val objects: List<JavaFileObject> = manager.getJavaFileObjectsFromFiles(files).toList()
-            val byUri: Map<URI, File> = files.associateBy { file -> file.toPath().toUri() }
-            return this.find(objects).mapKeys { (uri, _) -> byUri[uri] ?: File(uri) }
-        }
+        return fileManager.use { manager -> this.findInFiles(files, manager) }
+    }
+
+    private fun findInFiles(files: List<File>, manager: StandardJavaFileManager): Map<File, List<UndescriptiveName>> {
+        val objects: List<JavaFileObject> = manager.getJavaFileObjectsFromFiles(files).toList()
+        val byUri: Map<URI, File> = files.associateBy { file -> file.toPath().toUri() }
+        val names: Map<URI, List<UndescriptiveName>> = this.find(objects)
+        return names.mapKeys { (uri, _) -> byUri[uri] ?: File(uri) }
     }
 
     private fun find(files: List<JavaFileObject>): Map<URI, List<UndescriptiveName>> {
@@ -90,15 +94,19 @@ object VariableNames {
 
         fun names(): List<UndescriptiveName> {
             this.scan(this.unit, Unit)
+
             return this.found
         }
 
         override fun visitVariable(node: VariableTree, unused: Unit?): Unit? {
             val name: String = node.name.toString()
             if (this.isUndescriptive(name)) {
-                val line: Long = this.unit.lineMap.getLineNumber(this.positions.getStartPosition(this.unit, node))
-                this.found += UndescriptiveName(line, name, this.kind(node), "${this.owner()}$MEMBER_SEPARATOR$name")
+                val position: Long = this.positions.getStartPosition(this.unit, node)
+                val line: Long = this.unit.lineMap.getLineNumber(position)
+                val member: String = "${this.owner()}$MEMBER_SEPARATOR$name"
+                this.found += UndescriptiveName(line, name, this.kind(node), member)
             }
+
             return super.visitVariable(node, unused)
         }
 

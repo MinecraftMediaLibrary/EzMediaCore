@@ -31,13 +31,24 @@ internal object CheckerStubs {
 
     fun forProject(directory: File, projectName: String): List<File> {
         val folders: MutableList<File> = mutableListOf(directory.resolve(projectName), directory.resolve(SHARED_STUBS))
-        if (projectName in GUAVA_PROJECTS) folders += directory.resolve(GUAVA_STUBS)
-        if (projectName in PAPER_PROJECTS) folders += directory.resolve(PAPER_STUBS)
+        if (projectName in GUAVA_PROJECTS) {
+            folders += directory.resolve(GUAVA_STUBS)
+        }
+
+        if (projectName in PAPER_PROJECTS) {
+            folders += directory.resolve(PAPER_STUBS)
+        }
+
         return folders.filter { it.isDirectory }
     }
 
     fun argumentsFor(directory: File, projectName: String): List<String> {
         val folders: List<File> = this.forProject(directory, projectName)
-        return if (folders.isEmpty()) emptyList() else listOf("-Astubs=" + folders.joinToString(File.pathSeparator))
+        if (folders.isEmpty()) {
+            return emptyList()
+        }
+
+        val path: String = folders.joinToString(File.pathSeparator)
+        return listOf("-Astubs=$path")
     }
 }

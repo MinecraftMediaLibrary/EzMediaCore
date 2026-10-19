@@ -18,7 +18,7 @@
 
 import me.brandonli.mcav.gradle.CatalogVersions
 import me.brandonli.mcav.gradle.CoverageLintTask
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+import me.brandonli.mcav.gradle.TestFilters
 
 plugins {
     java
@@ -65,11 +65,7 @@ val coverageLint: TaskProvider<CoverageLintTask> = tasks.register<CoverageLintTa
     this.report.from(layout.buildDirectory.file(coverageReportPath))
     this.sourceDirectory = layout.projectDirectory.dir(mainSourcePath)
     this.exceptionsFile.from(layout.projectDirectory.file(coverageExceptionsPath))
-    this.testsFiltered = testTask.map { test ->
-        val filter: DefaultTestFilter = test.filter as DefaultTestFilter
-        filter.commandLineIncludePatterns.isNotEmpty() || filter.includePatterns.isNotEmpty() ||
-            filter.excludePatterns.isNotEmpty() || test.includes.isNotEmpty() || test.excludes.isNotEmpty()
-    }
+    this.testsFiltered = testTask.map(TestFilters::isFiltered)
     this.projectPath = project.path
 }
 

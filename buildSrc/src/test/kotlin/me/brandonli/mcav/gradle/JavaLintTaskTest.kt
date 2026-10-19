@@ -54,13 +54,7 @@ class JavaLintTaskTest {
             project.tasks.register(QUALIFIED_TASK, QualifiedNamesTask::class.java).get() to "no fully qualified type names in 1 files\n",
             project.tasks.register(VARIABLES_TASK, VariableNamesTask::class.java).get() to "no undescriptive variable name in 1 files\n"
         )
-        val reports: List<String> = tasks.map { (task, _) ->
-            task.sources.from(source)
-            task.report.set(this.directory.resolve(task.name + REPORT_EXTENSION).toFile())
-            if (task is VariableNamesTask) task.publishedNames.set(emptySet())
-            task.check()
-            task.report.get().asFile.readText()
-        }
+        val reports: List<String> = tasks.map { (task, _) -> this.checkAndReadReport(task, source) }
         assertEquals(tasks.map { it.second }, reports)
     }
 
@@ -84,15 +78,7 @@ class JavaLintTaskTest {
                 "Found 2 undescriptive variable names!"
             )
         )
-        val outcomes: List<Pair<String?, Boolean>> = tasks.map { (task, input, _) ->
-            val source: File = this.directory.resolve(task.name + ".java").toFile()
-            source.writeText(input)
-            task.sources.from(source)
-            task.report.set(this.directory.resolve(task.name + REPORT_EXTENSION).toFile())
-            if (task is VariableNamesTask) task.publishedNames.set(emptySet())
-            val failure: GradleException = assertThrows(GradleException::class.java) { task.check() }
-            failure.message to task.report.get().asFile.exists()
-        }
+        val outcomes: List<Pair<String?, Boolean>> = tasks.map { (task, input, _) -> this.checkFailing(task, input) }
         val expected: List<Pair<String?, Boolean>> = tasks.map { it.third to false }
         assertEquals(expected, outcomes)
     }
@@ -109,5 +95,31 @@ class JavaLintTaskTest {
         val failure: GradleException = assertThrows(GradleException::class.java) { task.check() }
         val message: String? = failure.message
         assertEquals("Found 1 undescriptive variable names!", message)
+    }
+
+    private fun checkAndReadReport(task: JavaLintTask, source: File): String {
+        this.configureLint(task, source)
+        task.check()
+
+        val report: File = task.report.get().asFile
+        return report.readText()
+    }
+
+    private fun configureLint(task: JavaLintTask, source: File): Unit {
+        task.sources.from(source)
+        task.report.set(this.directory.resolve(task.name + REPORT_EXTENSION).toFile())
+        if (task is VariableNamesTask) {
+            task.publishedNames.set(emptySet())
+        }
+    }
+
+    private fun checkFailing(task: JavaLintTask, input: String): Pair<String?, Boolean> {
+        val source: File = this.directory.resolve(task.name + ".java").toFile()
+        source.writeText(input)
+        this.configureLint(task, source)
+
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.check() }
+        val reportWritten: Boolean = task.report.get().asFile.exists()
+        return failure.message to reportWritten
     }
 }

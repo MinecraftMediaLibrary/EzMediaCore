@@ -36,11 +36,13 @@ object JcstressConsole {
     }
 
     fun skippedTests(lines: List<String>): List<String> {
-        return lines.mapNotNull { line -> SKIPPED_LINE.find(line)?.groupValues?.get(TEST_GROUP) }.distinct()
+        return lines.mapNotNull { line -> SKIPPED_LINE.find(line)?.groupValues?.get(TEST_GROUP) }
+            .distinct()
     }
 
     fun checkNoneSkipped(console: File): Unit {
-        val skipped: List<String> = this.skippedTests(console.readLines())
+        val lines: List<String> = console.readLines()
+        val skipped: List<String> = this.skippedTests(lines)
         if (skipped.isNotEmpty()) {
             val names: String = skipped.joinToString(LINE_SEPARATOR)
             val message: String =

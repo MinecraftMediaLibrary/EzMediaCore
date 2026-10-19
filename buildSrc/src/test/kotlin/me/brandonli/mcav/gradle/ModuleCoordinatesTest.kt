@@ -19,6 +19,8 @@
 package me.brandonli.mcav.gradle
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -41,5 +43,22 @@ class ModuleCoordinatesTest {
         root.version = "3.4.5-SNAPSHOT"
         val updatedCoordinate: String = ModuleCoordinates.coordinateOf(plugin, "mcav-voicechat")
         assertEquals("fixture.updated:mcav-voicechat:3.4.5-SNAPSHOT", updatedCoordinate)
+    }
+
+    @Test
+    fun shouldListTheProjectPathsOfTheDependenciesThatAreModulesOfThisBuild(): Unit {
+        val root: Project = ProjectBuilder.builder().withName("mcav").build()
+        root.group = "fixture.group"
+        ProjectBuilder.builder().withName("mcav-common").withParent(root).build()
+        val configuration: Configuration = root.configurations.create("runtimeDownload")
+        val notations: List<String> =
+            listOf("fixture.group:mcav-common:1.0.0", "fixture.group:mcav-absent:1.0.0", "fixture.other:mcav-common:1.0.0")
+        for (notation in notations) {
+            val dependency: Dependency = root.dependencies.create(notation)
+            configuration.dependencies.add(dependency)
+        }
+
+        val paths: List<String> = ModuleCoordinates.modulePathsOf(configuration, root)
+        assertEquals(listOf(":mcav-common"), paths)
     }
 }

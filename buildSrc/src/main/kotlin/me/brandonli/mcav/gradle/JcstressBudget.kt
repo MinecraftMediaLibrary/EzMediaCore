@@ -26,18 +26,17 @@ import org.gradle.api.GradleException
 object JcstressBudget {
 
     private const val CONFIGURATIONS: Int = 14
+    private const val CPUS_PER_RUN: Int = 2
+    private const val ITERATION_SHARE_OF_BUDGET: Int = 2
+
     private const val JVM_START_MILLISECONDS: Long = 2_000L
     private const val MINIMUM_ITERATION_MILLISECONDS: Long = 50L
     private const val MAXIMUM_ITERATION_MILLISECONDS: Long = 10_000L
     private const val MILLISECONDS_PER_MINUTE: Long = 60_000L
+
     private const val TEST_LIST_ENTRY: String = "META-INF/TestList"
     private const val TEST_LINE: String = "JCTEST"
     private const val NAME_LENGTH_TERMINATOR: Char = 'S'
-
-    private const val CPUS_PER_RUN: Int = 2
-    private const val ITERATION_SHARE_OF_BUDGET: Int = 2
-
-    private class Preset(val forks: Int, val stressMultiplier: Int, val iterations: Int)
 
     private val PRESETS: Map<String, Preset> = mapOf(
         "sanity" to Preset(1, 1, 1),
@@ -49,11 +48,21 @@ object JcstressBudget {
 
     fun countTests(jar: File, selection: String?): Int {
         val pattern: Regex? = selection?.let { Regex(it) }
-        ZipFile(jar).use { zip ->
-            val entry: ZipEntry = zip.getEntry(TEST_LIST_ENTRY) ?: return 0
-            val lines: List<String> = zip.getInputStream(entry).reader().readLines()
-            return lines.count { line -> line.startsWith(TEST_LINE) && (pattern == null || pattern.containsMatchIn(this.testName(line))) }
+        val lines: List<String> = ZipFile(jar).use(this::readTestList)
+        return lines.count { line -> this.isSelectedTest(line, pattern) }
+    }
+
+    private fun readTestList(zip: ZipFile): List<String> {
+        val entry: ZipEntry = zip.getEntry(TEST_LIST_ENTRY) ?: return emptyList()
+        return zip.getInputStream(entry).reader().readLines()
+    }
+
+    private fun isSelectedTest(line: String, pattern: Regex?): Boolean {
+        if (!line.startsWith(TEST_LINE)) {
+            return false
         }
+
+        return pattern == null || pattern.containsMatchIn(this.testName(line))
     }
 
     private fun testName(line: String): String {
@@ -73,4 +82,6 @@ object JcstressBudget {
         val perIteration: Long = iterationBudget * parallelRuns / maxOf(1L, runs * preset.iterations)
         return perIteration.coerceIn(MINIMUM_ITERATION_MILLISECONDS, MAXIMUM_ITERATION_MILLISECONDS)
     }
+
+    private class Preset(val forks: Int, val stressMultiplier: Int, val iterations: Int)
 }

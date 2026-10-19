@@ -114,9 +114,11 @@ class NativeResourcesTest {
     }
 
     private fun readLibrary(consumer: File): String? {
-        return ZipFile(consumer.resolve(CONSUMER_JAR_PATH)).use { archive ->
-            archive.getEntry(NATIVE_LIBRARY_ENTRY)
-                ?.let { archive.getInputStream(it).reader().readText() }
-        }
+        val jar: File = consumer.resolve(CONSUMER_JAR_PATH)
+        return ZipFile(jar).use(this::readLibraryEntry)
+    }
+
+    private fun readLibraryEntry(archive: ZipFile): String? {
+        return archive.getEntry(NATIVE_LIBRARY_ENTRY)?.let { archive.getInputStream(it).reader().readText() }
     }
 }

@@ -53,15 +53,6 @@ class LockPythonRequirementsTest {
     @TempDir
     lateinit var directory: Path
 
-    abstract class RecordingLock : LockPythonRequirements() {
-
-        lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations
-            get() {
-                return this.recordedProcesses
-            }
-    }
-
     @Test
     fun shouldSortTheRequirementsByNameAndKeepTheMarkersOfPackagesWithoutWheelsEverywhere(): Unit {
         val marker: String = "sys_platform != 'win32' or platform_machine != 'ARM64'"
@@ -77,16 +68,11 @@ class LockPythonRequirementsTest {
         val task: RecordingLock = this.lockTask()
         val lock: File = this.directory.resolve(LOCK_FILE).toFile()
         val requirementsInput: File = task.temporaryDir.resolve(REQUIREMENTS_INPUT_FILE)
-        val processes: RecordedProcesses = RecordedProcesses("uv 0.12.23\n") { command ->
-            if (command[1] == "pip") {
-                val requirements: String = requirementsInput.readText()
-                assertEquals("clang-format==18.1.8 ; platform_machine != 'ARM64'\nnumpy==2.5.3\n", requirements)
-
-                lock.writeText("numpy==2.5.3 \\\n    --hash=sha256:00\n")
-            }
-        }
+        val processes: RecordedProcesses =
+            RecordedProcesses("uv 0.12.23\n") { command -> this.compileLock(command, requirementsInput, lock) }
         task.recordedProcesses = processes.operations
         task.lock()
+
         val uv: String = this.directory.resolve(UV_EXECUTABLE).toString()
         val commands: List<List<String>> = processes.commands
         assertEquals(
@@ -139,5 +125,26 @@ class LockPythonRequirementsTest {
         task.installationDirectory.set(this.directory.resolve(PYTHON_DIRECTORY).toFile())
         task.cacheDirectory.set(this.directory.resolve(UV_CACHE_DIRECTORY).toFile())
         return task
+    }
+
+    private fun compileLock(command: List<String>, requirementsInput: File, lock: File): Unit {
+        if (command[1] != "pip") {
+            return
+        }
+
+        val requirements: String = requirementsInput.readText()
+        assertEquals("clang-format==18.1.8 ; platform_machine != 'ARM64'\nnumpy==2.5.3\n", requirements)
+
+        lock.writeText("numpy==2.5.3 \\\n    --hash=sha256:00\n")
+    }
+
+    abstract class RecordingLock : LockPythonRequirements() {
+
+        lateinit var recordedProcesses: ExecOperations
+
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
     }
 }

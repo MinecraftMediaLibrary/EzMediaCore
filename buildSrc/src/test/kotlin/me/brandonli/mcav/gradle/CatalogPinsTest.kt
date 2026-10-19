@@ -41,10 +41,6 @@ class CatalogPinsTest {
 
     private val catalog: String = this.repository.resolve(CATALOG_PATH).readText()
 
-    private fun version(name: String): String {
-        return Regex("(?m)^$name = \"([^\"]+)\"").find(this.catalog)!!.groupValues[1]
-    }
-
     @Test
     fun shouldBuildReadTheDocsWithThePythonMinorOfTheCatalog(): Unit {
         val readTheDocs: String = this.repository.resolve(READ_THE_DOCS_CONFIG).readText()
@@ -57,17 +53,25 @@ class CatalogPinsTest {
     fun shouldPinTheSixHostArchivesOfTheCatalogZigAndUvAndNothingElse(): Unit {
         val zig: String = this.version("zig")
         val uv: String = this.version("uv")
-        val archives: List<String> = listOf("Linux", "Windows 11", "Mac OS X").flatMap { system ->
-            listOf("amd64", "arm64").map { HostPlatform.normalize(system, it) }
-        }.flatMap { host ->
-            listOf(
-                "zig/$zig/zig-${host.architecture}-${host.zigSystem}-$zig" + if (host.isWindows) ".zip" else ".tar.xz",
-                "uv/$uv/uv-${host.uvTarget}" + if (host.isWindows) ".zip" else ".tar.gz"
-            )
-        }
+        val hosts: List<HostPlatform> = listOf("Linux", "Windows 11", "Mac OS X").flatMap(this::hostsOf)
+        val archives: List<String> = hosts.flatMap { host -> this.archivesOf(host, zig, uv) }
         val pins: Properties = Properties()
-        this.repository.resolve(TOOL_CHECKSUMS_PATH).inputStream().use { pins.load(it) }
+        this.repository.resolve(TOOL_CHECKSUMS_PATH).inputStream().use(pins::load)
         val pinnedArchives: Set<String> = pins.stringPropertyNames()
         assertEquals(archives.toSet(), pinnedArchives)
+    }
+
+    private fun version(name: String): String {
+        return Regex("(?m)^$name = \"([^\"]+)\"").find(this.catalog)!!.groupValues[1]
+    }
+
+    private fun hostsOf(system: String): List<HostPlatform> {
+        return listOf("amd64", "arm64").map { HostPlatform.normalize(system, it) }
+    }
+
+    private fun archivesOf(host: HostPlatform, zig: String, uv: String): List<String> {
+        val zigExtension: String = if (host.isWindows) ".zip" else ".tar.xz"
+        val uvExtension: String = if (host.isWindows) ".zip" else ".tar.gz"
+        return listOf("zig/$zig/zig-${host.architecture}-${host.zigSystem}-$zig$zigExtension", "uv/$uv/uv-${host.uvTarget}$uvExtension")
     }
 }

@@ -22,11 +22,6 @@ import org.gradle.api.GradleException
 
 internal data class PaperVersion(val minecraft: String, val build: Int) {
 
-    val fileName: String
-        get() {
-            return "$FILE_PREFIX${this.minecraft}$NAME_SEPARATOR${this.build}$JAR_EXTENSION"
-        }
-
     companion object {
 
         private const val FILE_PREFIX: String = "paper-"
@@ -42,7 +37,13 @@ internal data class PaperVersion(val minecraft: String, val build: Int) {
             val message: String = "Paper version $version must name a build!"
             val match: MatchResult = VERSION.matchEntire(version) ?: throw GradleException(message)
             val build: Int = match.groupValues[BUILD_GROUP].toIntOrNull() ?: throw GradleException(message)
-            return PaperVersion(match.groupValues[MINECRAFT_GROUP], build)
+            val minecraft: String = match.groupValues[MINECRAFT_GROUP]
+            return PaperVersion(minecraft, build)
         }
     }
+
+    val fileName: String
+        get() {
+            return "$FILE_PREFIX${this.minecraft}$NAME_SEPARATOR${this.build}$JAR_EXTENSION"
+        }
 }

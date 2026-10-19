@@ -31,7 +31,8 @@ object JavaToolchains {
     private const val JAVA_VERSION_ALIAS: String = "java"
 
     fun languageVersion(project: Project): JavaLanguageVersion {
-        return JavaLanguageVersion.of(CatalogUtils.versionOf(project.libs, JAVA_VERSION_ALIAS))
+        val version: String = CatalogUtils.versionOf(project.libs, JAVA_VERSION_ALIAS)
+        return JavaLanguageVersion.of(version)
     }
 
     fun launcher(project: Project, requestedVendor: JvmVendorSpec? = null): Provider<JavaLauncher> {
@@ -39,7 +40,9 @@ object JavaToolchains {
         val toolchains: JavaToolchainService = project.extensions.getByType<JavaToolchainService>()
         return toolchains.launcherFor {
             this.languageVersion.set(version)
-            if (requestedVendor != null) this.vendor.set(requestedVendor)
+            if (requestedVendor != null) {
+                this.vendor.set(requestedVendor)
+            }
         }
     }
 }

@@ -40,16 +40,24 @@ abstract class JavaLintTask : DefaultTask() {
 
     @TaskAction
     fun check(): Unit {
-        var count: Int = 0
-        this.findViolations(this.sources.files.sorted()) { file, line, arguments ->
-            count++
-            this.logger.error(this.diagnosticMessage(), *(listOf(file, line) + arguments).toTypedArray())
-        }
-        if (count > 0) {
-            val message: String = this.failureMessage(count)
+        val files: List<File> = this.sources.files.sorted()
+        val violations: MutableList<List<Any>> = mutableListOf<List<Any>>()
+        this.findViolations(files) { file, line, arguments -> violations += listOf(file, line) + arguments }
+        violations.forEach(this::logViolation)
+
+        if (violations.isNotEmpty()) {
+            val message: String = this.failureMessage(violations.size)
             throw GradleException(message)
         }
-        this.report.get().asFile.writeText(this.successMessage(this.sources.files.size))
+
+        val success: String = this.successMessage(files.size)
+        val report: File = this.report.get().asFile
+        report.writeText(success)
+    }
+
+    private fun logViolation(logArguments: List<Any>): Unit {
+        val diagnostic: String = this.diagnosticMessage()
+        this.logger.error(diagnostic, *logArguments.toTypedArray())
     }
 
     protected abstract fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit

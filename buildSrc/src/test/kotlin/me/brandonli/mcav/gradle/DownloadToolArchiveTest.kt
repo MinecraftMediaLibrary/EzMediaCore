@@ -148,37 +148,51 @@ class DownloadToolArchiveTest {
                 "KQ3BNzSNn9Lgm5Pjp01y3THUEfiMj5qL+5NnvL7IiCthCBuqOOi+oVXsi4XON87LGOIoT5AAvVZcrNZukgAAAEjvLyQMjRxeAAGPAYBQAADrwzaQscRn+wIA" +
                 "AAAABFla"
         )
-        val installed: Map<String, Pair<String, Boolean>> = archives.mapValues { (extension, encoded) ->
-            val archive: File = this.directory.resolve("tool.$extension").toFile()
-            archive.writeBytes(Base64.getDecoder().decode(encoded))
-            val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.resolve(extension).toFile()).build()
-            val task: DownloadToolArchive = project.tasks.register(TASK_NAME, DownloadToolArchive::class.java).get()
-            task.archiveUrl.set(archive.toURI().toString())
-            task.sha256.set(HexFormat.of().formatHex(MessageDigest.getInstance(DIGEST_ALGORITHM).digest(archive.readBytes())))
-            task.executablePath.set(EXECUTABLE_PATH)
-            task.installationDirectory.set(this.directory.resolve("installed-$extension").toFile())
-            task.install()
-            val tool: File = this.directory.resolve("installed-$extension/tool/bin/tool").toFile()
-            tool.readText() to tool.canExecute()
-        }
+        val installed: Map<String, Pair<String, Boolean>> =
+            archives.mapValues { (extension, encoded) -> this.installArchive(extension, encoded) }
         val expected: Map<String, Pair<String, Boolean>> = archives.mapValues { EXECUTABLE_CONTENT to true }
         assertEquals(expected, installed)
     }
 
     private fun zippedTool(): DownloadToolArchive {
         val archive: File = this.directory.resolve(ARCHIVE_FILE).toFile()
-        ZipOutputStream(archive.outputStream()).use { output ->
-            output.putNextEntry(ZipEntry(EXECUTABLE_PATH))
-            output.write(EXECUTABLE_CONTENT.toByteArray())
-            output.closeEntry()
-        }
+        ZipOutputStream(archive.outputStream()).use(this::writeExecutable)
+
         val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val installation: File = this.directory.resolve(INSTALLATION_DIRECTORY).toFile()
+        return this.registerTask(project, archive, installation)
+    }
+
+    private fun writeExecutable(output: ZipOutputStream): Unit {
+        output.putNextEntry(ZipEntry(EXECUTABLE_PATH))
+        output.write(EXECUTABLE_CONTENT.toByteArray())
+        output.closeEntry()
+    }
+
+    private fun registerTask(project: Project, archive: File, installation: File): DownloadToolArchive {
+        val messageDigest: MessageDigest = MessageDigest.getInstance(DIGEST_ALGORITHM)
+        val digest: ByteArray = messageDigest.digest(archive.readBytes())
+        val checksum: String = HexFormat.of().formatHex(digest)
         return project.tasks.register(TASK_NAME, DownloadToolArchive::class.java).get().apply {
             this.archiveUrl.set(archive.toURI().toString())
-            this.sha256.set(HexFormat.of().formatHex(MessageDigest.getInstance(DIGEST_ALGORITHM).digest(archive.readBytes())))
+            this.sha256.set(checksum)
             this.executablePath.set(EXECUTABLE_PATH)
             this.installationDirectory.set(installation)
         }
+    }
+
+    private fun installArchive(extension: String, encoded: String): Pair<String, Boolean> {
+        val archive: File = this.directory.resolve("tool.$extension").toFile()
+        val bytes: ByteArray = Base64.getDecoder().decode(encoded)
+        archive.writeBytes(bytes)
+
+        val projectDirectory: File = this.directory.resolve(extension).toFile()
+        val project: Project = ProjectBuilder.builder().withProjectDir(projectDirectory).build()
+        val installation: File = this.directory.resolve("installed-$extension").toFile()
+        val task: DownloadToolArchive = this.registerTask(project, archive, installation)
+        task.install()
+
+        val tool: File = this.directory.resolve("installed-$extension/tool/bin/tool").toFile()
+        return tool.readText() to tool.canExecute()
     }
 }

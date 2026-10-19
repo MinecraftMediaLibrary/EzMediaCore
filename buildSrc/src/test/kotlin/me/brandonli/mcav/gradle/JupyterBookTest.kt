@@ -36,6 +36,7 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockingDetails
 import org.mockito.invocation.Invocation
+import org.mockito.invocation.InvocationOnMock
 
 class JupyterBookTest {
 
@@ -53,19 +54,13 @@ class JupyterBookTest {
         const val MANAGED_PYTHON_DIRECTORY: String = "managed-python"
         const val HTML_DIRECTORY: String = "html"
         const val BOOK_DIRECTORY: String = "book"
+
+        const val GENERATED_CONFIGURATION: String = "html_title = 'Fixture book'\n"
+        const val BOOK_HTML: String = "<!doctype html><title>Fixture book</title>\n"
     }
 
     @TempDir
     lateinit var directory: Path
-
-    abstract class RecordingBook : JupyterBook() {
-
-        lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations
-            get() {
-                return this.recordedProcesses
-            }
-    }
 
     @Test
     fun shouldGenerateTheConfigurationBeforeTheHtmlBuildAndLetOnlyHtmlLeaveTheTask(): Unit {
@@ -80,49 +75,77 @@ class JupyterBookTest {
         task.outputDirectory.set(this.directory.resolve(HTML_DIRECTORY).toFile())
         val commands: MutableList<List<String>> = mutableListOf<List<String>>()
         val processes: ExecOperations = mock(ExecOperations::class.java)
-        val expectedConfiguration: String = "html_title = 'Fixture book'\n"
-        val expectedHtml: String = "<!doctype html><title>Fixture book</title>\n"
-        doAnswer { invocation ->
-            val specification: ExecSpec = mock(ExecSpec::class.java, RETURNS_SELF)
-            invocation.getArgument<Action<ExecSpec>>(0).execute(specification)
-            val calls: Collection<Invocation> = mockingDetails(specification).invocations
-            val command: List<String> =
-                (calls.single { it.method.name == "commandLine" }.rawArguments[0] as Iterable<*>).map { it.toString() }
-            val staging: File = calls.single { it.method.name == "workingDir" }.rawArguments[0] as File
-            val arguments: List<String> = command.drop(3)
-            commands += arguments
-            val book: File = staging.resolve(BOOK_DIRECTORY)
-            val stagedConfiguration: String = book.resolve(BOOK_CONFIG_FILE).readText()
-            assertEquals("title: Fixture book\n", stagedConfiguration)
-            if (arguments.first() == "config") {
-                book.resolve(SPHINX_CONFIG_FILE).writeText(expectedConfiguration)
-            } else {
-                val generatedConfiguration: String = book.resolve(SPHINX_CONFIG_FILE).readText()
-                assertEquals(expectedConfiguration, generatedConfiguration)
-                val html: File = staging.resolve(HTML_OUTPUT_PATH)
-                html.mkdirs()
-                html.resolve(INDEX_FILE).writeText(expectedHtml)
-                val epub: File = staging.resolve(EPUB_OUTPUT_PATH)
-                epub.mkdirs()
-                epub.resolve(EPUB_FILE).writeText("not an HTML output")
-            }
-            mock(ExecResult::class.java)
-        }.`when`(processes).exec(any())
+        doAnswer { invocation -> this.runJupyterBook(invocation, commands) }.`when`(processes).exec(any())
         task.recordedProcesses = processes
         task.build()
-        assertEquals(listOf(
+
+        val expectedCommands: List<List<String>> = listOf(
             listOf("config", "sphinx", BOOK_DIRECTORY),
             listOf("build", BOOK_DIRECTORY, "--path-output", "site", "--warningiserror", "--keep-going", "--all")
-        ), commands)
+        )
+        assertEquals(expectedCommands, commands)
 
         val output: File = task.outputDirectory.get().asFile
         val html: String = output.resolve(INDEX_FILE).readText()
-        assertEquals(expectedHtml, html)
+        assertEquals(BOOK_HTML, html)
 
         val configurationLeft: Boolean = output.resolve(SPHINX_CONFIG_FILE).exists()
         assertFalse(configurationLeft)
 
         val epubLeft: Boolean = output.resolve(EPUB_FILE).exists()
         assertFalse(epubLeft)
+    }
+
+    private fun runJupyterBook(invocation: InvocationOnMock, commands: MutableList<List<String>>): ExecResult {
+        val specification: ExecSpec = mock(ExecSpec::class.java, RETURNS_SELF)
+        val action: Action<ExecSpec> = invocation.getArgument<Action<ExecSpec>>(0)
+        action.execute(specification)
+
+        val calls: Collection<Invocation> = mockingDetails(specification).invocations
+        val commandLine: Iterable<*> = this.argumentOf(calls, "commandLine") as Iterable<*>
+        val staging: File = this.argumentOf(calls, "workingDir") as File
+        val command: List<String> = commandLine.map { it.toString() }
+        val arguments: List<String> = command.drop(3)
+        commands += arguments
+
+        val book: File = staging.resolve(BOOK_DIRECTORY)
+        val stagedConfiguration: String = book.resolve(BOOK_CONFIG_FILE).readText()
+        assertEquals("title: Fixture book\n", stagedConfiguration)
+
+        if (arguments.first() == "config") {
+            book.resolve(SPHINX_CONFIG_FILE).writeText(GENERATED_CONFIGURATION)
+        } else {
+            this.buildBook(staging, book)
+        }
+
+        return mock(ExecResult::class.java)
+    }
+
+    private fun argumentOf(calls: Collection<Invocation>, method: String): Any? {
+        val call: Invocation = calls.single { it.method.name == method }
+        return call.rawArguments[0]
+    }
+
+    private fun buildBook(staging: File, book: File): Unit {
+        val generatedConfiguration: String = book.resolve(SPHINX_CONFIG_FILE).readText()
+        assertEquals(GENERATED_CONFIGURATION, generatedConfiguration)
+
+        val html: File = staging.resolve(HTML_OUTPUT_PATH)
+        html.mkdirs()
+        html.resolve(INDEX_FILE).writeText(BOOK_HTML)
+
+        val epub: File = staging.resolve(EPUB_OUTPUT_PATH)
+        epub.mkdirs()
+        epub.resolve(EPUB_FILE).writeText("not an HTML output")
+    }
+
+    abstract class RecordingBook : JupyterBook() {
+
+        lateinit var recordedProcesses: ExecOperations
+
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
     }
 }

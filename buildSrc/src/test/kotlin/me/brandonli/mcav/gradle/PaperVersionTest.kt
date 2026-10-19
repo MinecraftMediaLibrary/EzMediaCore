@@ -52,10 +52,13 @@ class PaperVersionTest {
     @Test
     fun shouldRejectAVersionWithoutAnExplicitBuild(): Unit {
         val versions: List<String> = listOf(MINECRAFT_VERSION, "26.3.build.latest", "26.3.build.2147483648")
-        val messages: Map<String, String?> = versions.associateWith { version ->
-            assertThrows(GradleException::class.java) { PaperVersion.parse(version) }.message
-        }
+        val messages: Map<String, String?> = versions.associateWith(this::rejectionOf)
         val expected: Map<String, String?> = versions.associateWith { "Paper version $it must name a build!" }
         assertEquals(expected, messages)
+    }
+
+    private fun rejectionOf(version: String): String? {
+        val failure: GradleException = assertThrows(GradleException::class.java) { PaperVersion.parse(version) }
+        return failure.message
     }
 }

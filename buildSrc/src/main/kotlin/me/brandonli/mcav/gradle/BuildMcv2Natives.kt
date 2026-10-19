@@ -24,6 +24,7 @@ import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -130,7 +131,9 @@ abstract class BuildMcv2Natives : DefaultTask() {
     @TaskAction
     fun build(): Unit {
         val zig: File = this.zigExecutable.get().asFile
-        ToolVersions.verify(this.processes, zig, ZIG_TOOL, this.zigVersion.get(), prefix = "", argument = ZIG_VERSION_ARGUMENT)
+        val version: String = this.zigVersion.get()
+        ToolVersions.verify(this.processes, zig, ZIG_TOOL, version, prefix = "", argument = ZIG_VERSION_ARGUMENT)
+
         val task: BuildMcv2Natives = this
         this.workers.noIsolation().submit(Work::class.java) {
             this.zigExecutable.set(task.zigExecutable)
@@ -161,95 +164,92 @@ abstract class BuildMcv2Natives : DefaultTask() {
         override fun execute(): Unit {
             val output: File = this.parameters.outputDirectory.get().asFile
             output.deleteRecursively()
+
             val natives: File = output.resolve(NATIVES_PATH)
-            val objectsDirectory: File = this.parameters.objectsDirectory.get().asFile
-            val compilerFlags: List<String> = this.parameters.compilerFlags.get()
-            val libraries: MutableList<File> = mutableListOf<File>()
-            val compiles: MutableList<() -> Unit> = mutableListOf<() -> Unit>()
-            val links: MutableList<() -> Unit> = mutableListOf<() -> Unit>()
-            val boundary: List<String> = listOf("-mbranches-within-32B-boundaries")
-            val avx512: List<String> = listOf("-mavx512f", "-mavx512dq", "-mavx512bw", "-mavx512vl",
-                "-mavx512vbmi", "-mavx512vbmi2", "-mavx512vnni", "-mavx512bitalg")
-            for (system in listOf(LINUX, WINDOWS, MACOS)) {
-                for (architecture in listOf(X86_64, AARCH64)) {
-                    val platform: String = "$system-$architecture"
-                    val target: String = architecture + when (system) {
-                        LINUX -> LINUX_TARGET_SUFFIX
-                        WINDOWS -> WINDOWS_TARGET_SUFFIX
-                        else -> MACOS_TARGET_SUFFIX
-                    }
-                    val units: LinkedHashMap<String, List<String>> = linkedMapOf("scalar" to emptyList<String>())
-                    if (architecture == X86_64) {
-                        units["sse2"] = emptyList()
-                        units["sse41"] = listOf("-msse4.1")
-                        units["avx2"] = listOf("-mavx2")
-                        if (system != MACOS) {
-                            units["avx512"] = avx512
-                            units.replaceAll { _, flags -> flags + boundary }
-                        }
-                    } else {
-                        units["neon"] = emptyList()
-                        if (system == LINUX) {
-                            for (width in SVE_VECTOR_BITS) {
-                                units["sve$width"] = listOf("-mcpu=baseline+sve", "-msve-vector-bits=$width")
-                            }
-                        }
-                    }
-                    val objects: List<String> = units.map { (level, flags) ->
-                        val objectFile: File = objectsDirectory.resolve(platform).resolve("$LEVEL_PREFIX$level$OBJECT_SUFFIX")
-                        objectFile.parentFile.mkdirs()
-                        compiles += {
-                            this.runZig(listOf("c++", TARGET_OPTION, target, "-mcpu=baseline") + compilerFlags + flags +
-                                listOf("-c", "$LEVEL_PREFIX$level$SOURCE_SUFFIX", OUTPUT_OPTION, objectFile.absolutePath))
-                        }
-                        objectFile.absolutePath
-                    }
-                    val name: String = when (system) {
-                        WINDOWS -> WINDOWS_LIBRARY
-                        MACOS -> MACOS_LIBRARY
-                        else -> LINUX_LIBRARY
-                    }
-                    val library: File = natives.resolve(platform).resolve(name)
-                    library.parentFile.mkdirs()
-                    val linkFlags: List<String> = when (system) {
-                        LINUX -> listOf("-Wl,-z,noexecstack")
-                        MACOS -> listOf("-Wl,-install_name,@rpath/$MACOS_LIBRARY")
-                        else -> emptyList()
-                    }
-                    links += {
-                        this.runZig(listOf("cc", TARGET_OPTION, target, "-shared", "-s") + linkFlags +
-                            listOf(OUTPUT_OPTION, library.absolutePath) + objects)
-                        this.listDirectory(library.parentFile).filter { it.extension == IMPORT_LIBRARY_EXTENSION }.forEach { it.delete() }
-                    }
-                    libraries.add(library)
-                }
-            }
+            val targets: List<NativeTarget> = listOf(LINUX, WINDOWS, MACOS).flatMap(this::targetsOf)
+            val compiles: List<() -> Unit> = targets.flatMap(this::planCompiles)
+            val links: List<() -> Unit> = targets.map { target -> this.planLink(natives, target) }
             this.inParallel(compiles)
             this.inParallel(links)
+
+            val libraries: List<File> = targets.map { target -> this.libraryOf(natives, target) }
             this.writeManifest(natives.resolve(CHECKSUMS_MANIFEST), natives, libraries)
+
             val sources: File = this.parameters.sourcesDirectory.get().asFile
             val sourceFiles: List<File> = this.listDirectory(sources).filter { it.name != CLANG_FORMAT_FILE }
             this.writeManifest(natives.resolve(SOURCES_MANIFEST), sources, sourceFiles)
         }
 
-        private fun listDirectory(directory: File): List<File> {
-            return Files.list(directory.toPath()).use { paths -> paths.map { it.toFile() }.toList() }
+        private fun targetsOf(system: String): List<NativeTarget> {
+            return listOf(X86_64, AARCH64).map { architecture -> NativeTarget(system, architecture) }
         }
 
-        private fun inParallel(steps: List<() -> Unit>): Unit {
-            val pool: ExecutorService = Executors.newFixedThreadPool(minOf(this.parameters.processCount.get(), steps.size))
-            try {
-                pool.invokeAll(steps.map { step -> Callable(step) }).forEach { result ->
-                    try {
-                        result.get()
-                    } catch (exception: ExecutionException) {
-                        val message: String = "Zig could not build MCV2's natives!"
-                        throw GradleException(message, exception.cause)
-                    }
-                }
-            } finally {
-                pool.shutdown()
+        private fun planCompiles(target: NativeTarget): List<() -> Unit> {
+            val units: Map<String, List<String>> = this.unitsOf(target)
+            return units.map { (level, flags) -> this.planCompile(target, level, flags) }
+        }
+
+        private fun unitsOf(target: NativeTarget): Map<String, List<String>> {
+            val units: MutableMap<String, List<String>> = linkedMapOf("scalar" to emptyList<String>())
+            if (target.architecture == X86_64) {
+                this.addX86Units(units, target.system)
+            } else {
+                this.addArmUnits(units, target.system)
             }
+
+            return units
+        }
+
+        private fun addX86Units(units: MutableMap<String, List<String>>, system: String): Unit {
+            units["sse2"] = emptyList()
+            units["sse41"] = listOf("-msse4.1")
+            units["avx2"] = listOf("-mavx2")
+            if (system == MACOS) {
+                return
+            }
+
+            units["avx512"] = listOf(
+                "-mavx512f", "-mavx512dq", "-mavx512bw", "-mavx512vl",
+                "-mavx512vbmi", "-mavx512vbmi2", "-mavx512vnni", "-mavx512bitalg"
+            )
+            units.replaceAll { _, flags -> flags + "-mbranches-within-32B-boundaries" }
+        }
+
+        private fun addArmUnits(units: MutableMap<String, List<String>>, system: String): Unit {
+            units["neon"] = emptyList()
+            if (system != LINUX) {
+                return
+            }
+
+            for (width in SVE_VECTOR_BITS) {
+                units["sve$width"] = listOf("-mcpu=baseline+sve", "-msve-vector-bits=$width")
+            }
+        }
+
+        private fun planCompile(target: NativeTarget, level: String, flags: List<String>): () -> Unit {
+            val objectFile: File = this.objectFileOf(target, level)
+            objectFile.parentFile.mkdirs()
+
+            val triple: String = this.tripleOf(target)
+            val compilerFlags: List<String> = this.parameters.compilerFlags.get()
+            val source: String = "$LEVEL_PREFIX$level$SOURCE_SUFFIX"
+            val arguments: List<String> = listOf("c++", TARGET_OPTION, triple, "-mcpu=baseline") + compilerFlags + flags +
+                listOf("-c", source, OUTPUT_OPTION, objectFile.absolutePath)
+            return { this.runZig(arguments) }
+        }
+
+        private fun objectFileOf(target: NativeTarget, level: String): File {
+            val objectsDirectory: File = this.parameters.objectsDirectory.get().asFile
+            return objectsDirectory.resolve(target.platform).resolve("$LEVEL_PREFIX$level$OBJECT_SUFFIX")
+        }
+
+        private fun tripleOf(target: NativeTarget): String {
+            val suffix: String = when (target.system) {
+                LINUX -> LINUX_TARGET_SUFFIX
+                WINDOWS -> WINDOWS_TARGET_SUFFIX
+                else -> MACOS_TARGET_SUFFIX
+            }
+            return target.architecture + suffix
         }
 
         private fun runZig(arguments: List<String>): Unit {
@@ -264,11 +264,85 @@ abstract class BuildMcv2Natives : DefaultTask() {
             }
         }
 
+        private fun planLink(natives: File, target: NativeTarget): () -> Unit {
+            val library: File = this.libraryOf(natives, target)
+            library.parentFile.mkdirs()
+
+            val triple: String = this.tripleOf(target)
+            val linkFlags: List<String> = this.linkFlagsOf(target)
+            val levels: Set<String> = this.unitsOf(target).keys
+            val objects: List<String> = levels.map { level -> this.objectFileOf(target, level).absolutePath }
+            val arguments: List<String> = listOf("cc", TARGET_OPTION, triple, "-shared", "-s") + linkFlags +
+                listOf(OUTPUT_OPTION, library.absolutePath) + objects
+            return { this.link(arguments, library) }
+        }
+
+        private fun libraryOf(natives: File, target: NativeTarget): File {
+            val name: String = when (target.system) {
+                WINDOWS -> WINDOWS_LIBRARY
+                MACOS -> MACOS_LIBRARY
+                else -> LINUX_LIBRARY
+            }
+            return natives.resolve(target.platform).resolve(name)
+        }
+
+        private fun linkFlagsOf(target: NativeTarget): List<String> {
+            return when (target.system) {
+                LINUX -> listOf("-Wl,-z,noexecstack")
+                MACOS -> listOf("-Wl,-install_name,@rpath/$MACOS_LIBRARY")
+                else -> emptyList()
+            }
+        }
+
+        private fun link(arguments: List<String>, library: File): Unit {
+            this.runZig(arguments)
+
+            val siblings: List<File> = this.listDirectory(library.parentFile)
+            siblings.filter { it.extension == IMPORT_LIBRARY_EXTENSION }.forEach { it.delete() }
+        }
+
+        private fun listDirectory(directory: File): List<File> {
+            return Files.list(directory.toPath()).use { paths -> paths.map { it.toFile() }.toList() }
+        }
+
+        private fun inParallel(steps: List<() -> Unit>): Unit {
+            val processCount: Int = this.parameters.processCount.get()
+            val pool: ExecutorService = Executors.newFixedThreadPool(minOf(processCount, steps.size))
+            try {
+                val tasks: List<Callable<Unit>> = steps.map { step -> Callable(step) }
+                pool.invokeAll(tasks).forEach(this::awaitStep)
+            } finally {
+                pool.shutdown()
+            }
+        }
+
+        private fun awaitStep(result: Future<Unit>): Unit {
+            try {
+                result.get()
+            } catch (exception: ExecutionException) {
+                val message: String = "Zig could not build MCV2's natives!"
+                throw GradleException(message, exception.cause)
+            }
+        }
+
         private fun writeManifest(manifest: File, root: File, files: List<File>): Unit {
-            manifest.writeText(files.sortedBy { it.relativeTo(root).invariantSeparatorsPath }.joinToString("", transform = { file ->
-                val digest: String = ToolDigests.sha256(file)
-                "$digest$MANIFEST_SEPARATOR${file.relativeTo(root).invariantSeparatorsPath}$LINE_SEPARATOR"
-            }))
+            val sorted: List<File> = files.sortedBy { it.relativeTo(root).invariantSeparatorsPath }
+            val lines: String = sorted.joinToString("") { file -> this.manifestLine(root, file) }
+            manifest.writeText(lines)
+        }
+
+        private fun manifestLine(root: File, file: File): String {
+            val digest: String = ToolDigests.sha256(file)
+            val path: String = file.relativeTo(root).invariantSeparatorsPath
+            return "$digest$MANIFEST_SEPARATOR$path$LINE_SEPARATOR"
+        }
+
+        private class NativeTarget(val system: String, val architecture: String) {
+
+            val platform: String
+                get() {
+                    return "${this.system}-${this.architecture}"
+                }
         }
     }
 }

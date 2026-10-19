@@ -19,6 +19,7 @@
 package me.brandonli.mcav.gradle
 
 import java.io.File
+import java.util.SortedMap
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 
@@ -34,10 +35,11 @@ abstract class VariableNamesTask : JavaLintTask() {
 
     override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit {
         val published: Set<String> = this.publishedNames.get()
-        VariableNames.findInFiles(files).toSortedMap().forEach { (file, names) ->
-            names.filter { it.member !in published }.forEach { found ->
-                reportViolation(file, found.line, listOf(found.kind, found.name))
-            }
+        val namesByFile: Map<File, List<UndescriptiveName>> = VariableNames.findInFiles(files)
+        val sortedNames: SortedMap<File, List<UndescriptiveName>> = namesByFile.toSortedMap()
+        for ((file, names) in sortedNames) {
+            val unpublished: List<UndescriptiveName> = names.filter { it.member !in published }
+            unpublished.forEach { found -> reportViolation(file, found.line, listOf(found.kind, found.name)) }
         }
     }
 

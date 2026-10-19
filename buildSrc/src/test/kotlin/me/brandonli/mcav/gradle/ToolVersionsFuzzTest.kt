@@ -94,9 +94,8 @@ class ToolVersionsFuzzTest {
             val streams: MutableList<OutputStream> = mutableListOf()
             val loader: ClassLoader = ExecSpec::class.java.classLoader
             val interfaces: Array<Class<*>> = arrayOf(ExecSpec::class.java)
-            val handler: InvocationHandler = InvocationHandler { proxy: Any, method: Method, arguments: Array<Any?>? ->
-                this.record(proxy, method, arguments, streams)
-            }
+            val handler: InvocationHandler =
+                InvocationHandler { proxy, method, arguments -> this.record(proxy, method, arguments, streams) }
             val specification: ExecSpec = Proxy.newProxyInstance(loader, interfaces, handler) as ExecSpec
             action.execute(specification)
 

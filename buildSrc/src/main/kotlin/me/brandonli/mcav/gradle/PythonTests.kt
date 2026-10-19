@@ -79,21 +79,30 @@ abstract class PythonTests : PythonTask() {
     fun test(): Unit {
         val reports: File = this.reportDirectory.get().asFile
         this.files.delete { this.delete(reports) }
-        val parallel: List<File> = this.parallelTests.files.sorted()
+
+        val parallel: List<String> = this.pathsOf(this.parallelTests)
         val forks: String = minOf(this.processCount.get(), parallel.size).toString()
-        this.pytest(reports.resolve(PARALLEL_REPORT), listOf("-n", forks, "--dist", "loadfile") +
-            parallel.map { it.path })
-        this.pytest(reports.resolve(SERIAL_REPORT), this.serialTests.files.sorted().map { it.path })
+        val distribution: List<String> = listOf("-n", forks, "--dist", "loadfile")
+        this.pytest(reports.resolve(PARALLEL_REPORT), distribution + parallel)
+
+        val serial: List<String> = this.pathsOf(this.serialTests)
+        this.pytest(reports.resolve(SERIAL_REPORT), serial)
+    }
+
+    private fun pathsOf(tests: ConfigurableFileCollection): List<String> {
+        val files: List<File> = tests.files.sorted()
+        return files.map { it.path }
     }
 
     private fun pytest(report: File, arguments: List<String>): Unit {
         val directory: File = this.testDirectory.get().asFile
         val python: String = this.pythonExecutable.get().asFile.path
         val matplotlibConfiguration: String = this.temporaryDir.resolve(MATPLOTLIB_CONFIG_DIRECTORY).path
+        val command: List<String> =
+            listOf(python, "-m", "pytest", "-p", "no:cacheprovider", "-ra", "--rootdir", directory.path, "--junitxml", report.path)
         this.processes.exec {
             this.workingDir(directory)
-            this.commandLine(listOf(python, "-m", "pytest", "-p", "no:cacheprovider", "-ra",
-                "--rootdir", directory.path, "--junitxml", report.path) + arguments)
+            this.commandLine(command + arguments)
             this.environment(NO_USER_SITE_VARIABLE, ENABLED)
             this.environment(NO_BYTECODE_VARIABLE, ENABLED)
             this.environment(HASH_SEED_VARIABLE, FIXED_HASH_SEED)

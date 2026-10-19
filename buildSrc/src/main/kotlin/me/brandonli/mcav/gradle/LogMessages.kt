@@ -22,10 +22,6 @@ data class ConcatenatedLogMessage(val line: Int, val call: String)
 
 object LogMessages {
 
-    private val CALL: Regex = Regex("""\b([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*(trace|debug|info|warn|error)\s*\(""")
-
-    private val LOGGER: Regex = Regex("""(?:[A-Z][A-Z0-9_]*_)?LOG(?:GER)?|log(?:ger)?|[a-z][A-Za-z0-9]*Logger""")
-
     private const val RECEIVER_GROUP: Int = 1
 
     private const val CALL_START: Char = '('
@@ -36,6 +32,10 @@ object LogMessages {
 
     private const val FIRST_LINE_NUMBER: Int = 1
 
+    private val CALL: Regex = Regex("""\b([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*(trace|debug|info|warn|error)\s*\(""")
+
+    private val LOGGER: Regex = Regex("""(?:[A-Z][A-Z0-9_]*_)?LOG(?:GER)?|log(?:ger)?|[a-z][A-Za-z0-9]*Logger""")
+
     private val OPENING: Set<Char> = setOf('(', '[', '{')
 
     private val CLOSING: Set<Char> = setOf(')', ']', '}')
@@ -45,40 +45,56 @@ object LogMessages {
         val text: String = JavaSource.withoutComments(source)
         return CALL.findAll(code)
             .filter { LOGGER.matches(it.groupValues[RECEIVER_GROUP]) }
-            .filter { call -> this.isConcatenated(this.arguments(text, code, call.range.last + 1)) }
-            .map { call -> ConcatenatedLogMessage(this.lineOf(source, call.range.first), call.value.substringBefore(CALL_START)) }
+            .filter { call -> this.isConcatenated(text, code, call) }
+            .map { call -> this.messageOf(source, call) }
             .toList()
     }
 
-    private fun isConcatenated(arguments: List<Argument>): Boolean {
-        return arguments.any { it.joinsStrings() }
+    private fun isConcatenated(text: String, code: String, call: MatchResult): Boolean {
+        val argumentsStart: Int = call.range.last + 1
+        val arguments: List<Argument> = this.arguments(text, code, argumentsStart)
+        return arguments.any(Argument::joinsStrings)
     }
 
     private fun arguments(source: String, code: String, start: Int): List<Argument> {
-        val arguments: MutableList<LogMessages.Argument> = mutableListOf<Argument>()
-        var depth: Int = 0
-        var argumentStart: Int = start
-        for (index in start until code.length) {
-            val character: Char = code[index]
-            val ends: Boolean = character in CLOSING && depth == 0
-            when {
-                character in OPENING -> depth++
-                character in CLOSING && depth > 0 -> depth--
-                ends || (character == ARGUMENT_SEPARATOR && depth == 0) -> {
-                    arguments += Argument(source.substring(argumentStart, index), code.substring(argumentStart, index))
-                    argumentStart = index + 1
-                }
-            }
-            if (ends) {
-                break
-            }
-        }
+        val ends: List<Int> = this.findArgumentEnds(code, start)
+        val starts: List<Int> = listOf(start) + ends.map { it + 1 }
+        val arguments: List<Argument> =
+            starts.zip(ends) { first, end -> Argument(source.substring(first, end), code.substring(first, end)) }
         val noArguments: Boolean = arguments.size == 1 && arguments[0].text.isBlank()
         return if (noArguments) emptyList() else arguments
     }
 
+    private fun findArgumentEnds(code: String, start: Int): List<Int> {
+        val ends: MutableList<Int> = mutableListOf<Int>()
+        var depth: Int = 0
+        for (index in start until code.length) {
+            val character: Char = code[index]
+            val closesCall: Boolean = character in CLOSING && depth == 0
+            val separatesArguments: Boolean = character == ARGUMENT_SEPARATOR && depth == 0
+            when {
+                character in OPENING -> depth++
+                character in CLOSING && depth > 0 -> depth--
+                closesCall || separatesArguments -> ends += index
+            }
+            if (closesCall) {
+                break
+            }
+        }
+
+        return ends
+    }
+
+    private fun messageOf(source: String, call: MatchResult): ConcatenatedLogMessage {
+        val line: Int = this.lineOf(source, call.range.first)
+        val method: String = call.value.substringBefore(CALL_START)
+        return ConcatenatedLogMessage(line, method)
+    }
+
     private fun lineOf(source: String, offset: Int): Int {
-        return source.substring(0, offset).count { it == NEW_LINE } + FIRST_LINE_NUMBER
+        val before: String = source.substring(0, offset)
+        val newLines: Int = before.count { it == NEW_LINE }
+        return newLines + FIRST_LINE_NUMBER
     }
 
     private class Argument(val text: String, private val code: String) {
@@ -87,7 +103,7 @@ object LogMessages {
             var depth: Int = 0
             var plus: Boolean = false
             var literal: Boolean = false
-            this.code.forEachIndexed { index, character ->
+            for ((index, character) in this.code.withIndex()) {
                 when {
                     character in OPENING -> depth++
                     character in CLOSING -> depth--
@@ -96,6 +112,7 @@ object LogMessages {
                     this.text[index] == STRING_QUOTE -> literal = true
                 }
             }
+
             return plus && literal
         }
     }

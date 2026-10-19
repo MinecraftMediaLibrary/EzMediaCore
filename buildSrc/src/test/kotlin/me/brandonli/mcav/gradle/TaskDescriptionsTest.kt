@@ -44,11 +44,15 @@ class TaskDescriptionsTest {
         val conventions: List<File> = File(CONVENTIONS_DIRECTORY).listFiles { file -> file.name.endsWith(SCRIPT_EXTENSION) }!!.toList()
         val scripts: List<File> = conventions + File(BUILD_SCRIPT)
         val undescribed: List<String> = scripts.sorted()
-            .filter { script ->
-                val text: String = script.readText()
-                TASK_REGISTRATION.findAll(text).count() != DESCRIBED_REGISTRATION.findAll(text).count()
-            }
+            .filter(this::hasUndescribedTask)
             .map { it.path }
         assertEquals(listOf<String>(), undescribed)
+    }
+
+    private fun hasUndescribedTask(script: File): Boolean {
+        val text: String = script.readText()
+        val registrations: Int = TASK_REGISTRATION.findAll(text).count()
+        val described: Int = DESCRIBED_REGISTRATION.findAll(text).count()
+        return registrations != described
     }
 }

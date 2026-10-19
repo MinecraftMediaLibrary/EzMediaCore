@@ -71,7 +71,8 @@ class ModLicensingTest {
             .withPluginClasspath()
             .withArguments("jar", "fabricJar", "neoforgeJar", "--no-parallel", "--max-workers=1")
             .build()
-        val archives: Map<String, List<Any?>> = listOf("plain", "fabric", "neoforge").associateWith { this.describeArchive(it) }
+
+        val archives: Map<String, List<Any?>> = listOf("plain", "fabric", "neoforge").associateWith(this::describeArchive)
         val expected: Map<String, List<Any?>> = mapOf(
             "plain" to listOf(license, notices, true, true),
             "fabric" to listOf(license, notices, true, false),
@@ -81,14 +82,16 @@ class ModLicensingTest {
     }
 
     private fun describeArchive(classifier: String): List<Any?> {
-        return ZipFile(this.directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()).use { archive ->
-            listOf(
-                this.readEntry(archive, LICENSE_ENTRY),
-                this.readEntry(archive, NOTICES_ENTRY),
-                archive.getEntry(FABRIC_METADATA_ENTRY) != null,
-                archive.getEntry(NEOFORGE_METADATA_ENTRY) != null
-            )
-        }
+        val file: File = this.directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()
+        return ZipFile(file).use(this::describeEntries)
+    }
+
+    private fun describeEntries(archive: ZipFile): List<Any?> {
+        val license: String? = this.readEntry(archive, LICENSE_ENTRY)
+        val notices: String? = this.readEntry(archive, NOTICES_ENTRY)
+        val fabric: Boolean = archive.getEntry(FABRIC_METADATA_ENTRY) != null
+        val neoforge: Boolean = archive.getEntry(NEOFORGE_METADATA_ENTRY) != null
+        return listOf(license, notices, fabric, neoforge)
     }
 
     private fun readEntry(archive: ZipFile, name: String): String? {

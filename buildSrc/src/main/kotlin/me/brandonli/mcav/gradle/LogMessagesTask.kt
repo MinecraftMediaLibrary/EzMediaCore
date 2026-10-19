@@ -29,10 +29,10 @@ abstract class LogMessagesTask : JavaLintTask() {
     }
 
     override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit {
-        files.forEach { file ->
-            LogMessages.find(file.readText()).forEach { found ->
-                reportViolation(file, found.line, listOf(found.call))
-            }
+        for (file in files) {
+            val source: String = file.readText()
+            val messages: List<ConcatenatedLogMessage> = LogMessages.find(source)
+            messages.forEach { found -> reportViolation(file, found.line, listOf(found.call)) }
         }
     }
 

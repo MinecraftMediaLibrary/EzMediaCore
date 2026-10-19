@@ -42,6 +42,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
+import org.mockito.invocation.InvocationOnMock
 
 class BuildMcv2NativesTest {
 
@@ -82,27 +83,6 @@ class BuildMcv2NativesTest {
     @TempDir
     lateinit var directory: Path
 
-    abstract class RecordingBuild : BuildMcv2Natives() {
-
-        lateinit var recordedProcesses: ExecOperations
-        lateinit var recordedWorkers: WorkerExecutor
-        override val processes: ExecOperations
-            get() {
-                return this.recordedProcesses
-            }
-        override val workers: WorkerExecutor
-            get() {
-                return this.recordedWorkers
-            }
-    }
-
-    class RecordingWork(private val recordedParameters: Parameters, override val processes: ExecOperations) : BuildMcv2Natives.Work() {
-
-        override fun getParameters(): Parameters {
-            return this.recordedParameters
-        }
-    }
-
     private lateinit var processes: RecordedProcesses
 
     private val commands: List<List<String>>
@@ -110,7 +90,7 @@ class BuildMcv2NativesTest {
             return this.processes.commands.map { it.drop(1) }
         }
 
-    private val submitted: MutableList<BuildMcv2NativesTest.RecordingWork> = mutableListOf<RecordingWork>()
+    private val submitted: MutableList<RecordingWork> = mutableListOf<RecordingWork>()
 
     @Test
     fun shouldHandTheCompilesAndLinksToAGradleWorker(): Unit {
@@ -190,12 +170,7 @@ class BuildMcv2NativesTest {
         val bothStarted: CountDownLatch = CountDownLatch(2)
         val running: AtomicInteger = AtomicInteger()
         val mostAtOnce: AtomicInteger = AtomicInteger()
-        val task: RecordingBuild = this.compiler(TEST_VERSION, 2) {
-            mostAtOnce.accumulateAndGet(running.incrementAndGet(), ::maxOf)
-            bothStarted.countDown()
-            bothStarted.await(30, TimeUnit.SECONDS)
-            running.decrementAndGet()
-        }
+        val task: RecordingBuild = this.compiler(TEST_VERSION, 2) { this.compileAlongside(running, mostAtOnce, bothStarted) }
         this.buildWithWorkers(task)
         val mostCompilesAtOnce: Int = mostAtOnce.get()
         assertEquals(2, mostCompilesAtOnce)
@@ -207,11 +182,7 @@ class BuildMcv2NativesTest {
     @Test
     fun shouldFailTheBuildOnAFailingCompileBeforeAnyLink(): Unit {
         val failure: IllegalStateException = IllegalStateException("zig: error: unable to compile")
-        val task: RecordingBuild = this.compiler(TEST_VERSION) { arguments ->
-            if (AVX2_SOURCE in arguments) {
-                throw failure
-            }
-        }
+        val task: RecordingBuild = this.compiler(TEST_VERSION) { arguments -> this.failOnAvx2(arguments, failure) }
         val thrown: GradleException = assertThrows(GradleException::class.java) { this.buildWithWorkers(task) }
         val message: String? = thrown.message
         assertEquals("Zig could not build MCV2's natives!", message)
@@ -239,6 +210,19 @@ class BuildMcv2NativesTest {
 
         val nothingSubmitted: Boolean = this.submitted.isEmpty()
         assertTrue(nothingSubmitted)
+    }
+
+    private fun compileAlongside(running: AtomicInteger, mostAtOnce: AtomicInteger, bothStarted: CountDownLatch): Unit {
+        mostAtOnce.accumulateAndGet(running.incrementAndGet(), ::maxOf)
+        bothStarted.countDown()
+        bothStarted.await(30, TimeUnit.SECONDS)
+        running.decrementAndGet()
+    }
+
+    private fun failOnAvx2(arguments: List<String>, failure: IllegalStateException): Unit {
+        if (AVX2_SOURCE in arguments) {
+            throw failure
+        }
     }
 
     private fun assertCompileFlags(command: List<String>): Unit {
@@ -273,7 +257,18 @@ class BuildMcv2NativesTest {
     private fun compiler(version: String, processCount: Int = 4, onCompile: (List<String>) -> Unit = {}): RecordingBuild {
         val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val task: RecordingBuild = project.tasks.register("natives", RecordingBuild::class.java).get()
+        this.configureDirectories(task)
         task.zigVersion.set(TEST_VERSION)
+        task.processCount.set(processCount)
+
+        this.processes = RecordedProcesses("$version\n") { command -> this.runZig(command, onCompile) }
+        task.recordedProcesses = this.processes.operations
+        task.recordedWorkers = this.recordingWorkers(project)
+
+        return task
+    }
+
+    private fun configureDirectories(task: RecordingBuild): Unit {
         task.zigExecutable.set(this.directory.resolve(ZIG_EXECUTABLE).toFile())
         task.sourcesDirectory.set(this.directory.resolve(SOURCES_DIRECTORY).toFile().apply { this.mkdirs() })
         task.sourcesDirectory.file(MAIN_SOURCE).get().asFile.writeText("abc")
@@ -281,30 +276,66 @@ class BuildMcv2NativesTest {
         task.outputDirectory.set(this.directory.resolve(OUTPUT_DIRECTORY).toFile().apply { this.mkdirs() })
         task.outputDirectory.file(STALE_LIBRARY).get().asFile.writeText("stale")
         task.cacheDirectory.set(this.directory.resolve(CACHE_DIRECTORY).toFile())
-        task.processCount.set(processCount)
-        this.processes = RecordedProcesses("$version\n") { command ->
-            val arguments: List<String> = command.drop(1)
-            if (arguments != listOf(VERSION_COMMAND)) {
-                if (arguments.first() == COMPILE_COMMAND) {
-                    onCompile(arguments)
-                }
-                val output: File = File(arguments[arguments.indexOf("-o") + 1])
-                output.writeText("abc")
-                if (output.extension == "dll") output.resolveSibling("mcv2kernels.lib").writeText("unused")
-            }
+    }
+
+    private fun runZig(command: List<String>, onCompile: (List<String>) -> Unit): Unit {
+        val arguments: List<String> = command.drop(1)
+        if (arguments == listOf(VERSION_COMMAND)) {
+            return
         }
-        task.recordedProcesses = this.processes.operations
+
+        if (arguments.first() == COMPILE_COMMAND) {
+            onCompile(arguments)
+        }
+
+        val output: File = File(arguments[arguments.indexOf("-o") + 1])
+        output.writeText("abc")
+        if (output.extension == "dll") {
+            output.resolveSibling("mcv2kernels.lib").writeText("unused")
+        }
+    }
+
+    private fun recordingWorkers(project: Project): WorkerExecutor {
         val queue: WorkQueue = mock(WorkQueue::class.java)
-        doAnswer { invocation ->
-            val workClass: Class<*> = invocation.getArgument<Class<*>>(0)
-            assertEquals(BuildMcv2Natives.Work::class.java, workClass)
-            val parameters: Parameters = project.objects.newInstance(Parameters::class.java)
-            invocation.getArgument<Action<Parameters>>(1).execute(parameters)
-            this.submitted.add(RecordingWork(parameters, this.processes.operations))
-        }.`when`(queue).submit(any<Class<BuildMcv2Natives.Work>>(), any<Action<Parameters>>())
+        doAnswer { invocation -> this.submit(project, invocation) }
+            .`when`(queue)
+            .submit(any<Class<BuildMcv2Natives.Work>>(), any<Action<Parameters>>())
+
         val workers: WorkerExecutor = mock(WorkerExecutor::class.java)
         `when`(workers.noIsolation()).thenReturn(queue)
-        task.recordedWorkers = workers
-        return task
+        return workers
+    }
+
+    private fun submit(project: Project, invocation: InvocationOnMock): Unit {
+        val workClass: Class<*> = invocation.getArgument<Class<*>>(0)
+        assertEquals(BuildMcv2Natives.Work::class.java, workClass)
+
+        val parameters: Parameters = project.objects.newInstance(Parameters::class.java)
+        val action: Action<Parameters> = invocation.getArgument<Action<Parameters>>(1)
+        action.execute(parameters)
+        this.submitted.add(RecordingWork(parameters, this.processes.operations))
+    }
+
+    abstract class RecordingBuild : BuildMcv2Natives() {
+
+        lateinit var recordedProcesses: ExecOperations
+        lateinit var recordedWorkers: WorkerExecutor
+
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
+
+        override val workers: WorkerExecutor
+            get() {
+                return this.recordedWorkers
+            }
+    }
+
+    class RecordingWork(private val recordedParameters: Parameters, override val processes: ExecOperations) : BuildMcv2Natives.Work() {
+
+        override fun getParameters(): Parameters {
+            return this.recordedParameters
+        }
     }
 }

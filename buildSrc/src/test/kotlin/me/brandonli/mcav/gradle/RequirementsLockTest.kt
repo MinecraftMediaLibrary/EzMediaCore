@@ -70,4 +70,12 @@ class RequirementsLockTest {
         val missing: List<String> = RequirementsLock.missingPins(this.lock, versions)
         assertEquals(listOf("jupyter-book==1.0.4", "sphinx-design==0.7"), missing)
     }
+
+    @Test
+    fun shouldTurnTheLicenseHeaderIntoALockCommentFollowedByABlankLine(): Unit {
+        val licenseHeader: String = "/*\n * This file is part of mcav.\n *\n * It is free software.  \n */\n"
+
+        val header: String = RequirementsLock.headerOf(licenseHeader)
+        assertEquals("# This file is part of mcav.\n#\n# It is free software.\n\n", header)
+    }
 }

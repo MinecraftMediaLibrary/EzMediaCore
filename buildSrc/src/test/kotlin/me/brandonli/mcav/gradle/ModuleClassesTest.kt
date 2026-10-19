@@ -23,6 +23,9 @@ import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.file.FileCollection
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -57,28 +60,15 @@ class ModuleClassesTest {
         const val ABSENT_DIRECTORY: String = "absent"
         const val PROJECT_DIRECTORY: String = "project"
         const val OUTPUT_DIRECTORY: String = "output"
+        const val LIBRARIES_DIRECTORY: String = "libraries"
+
+        const val JAVA_LIBRARY_PLUGIN: String = "java-library"
+        const val IMPLEMENTATION_CONFIGURATION: String = "implementation"
+        const val MODULE_NAME: String = "mcav-common"
     }
 
     @TempDir
     lateinit var folder: Path
-
-    private fun classBytes(vararg names: String): ByteArray {
-        return names.joinToString("\u0001\u0000\u0010", prefix = "Êþº¾", postfix = "\u0007") { it }
-            .toByteArray(Charsets.ISO_8859_1)
-    }
-
-    private fun jar(name: String, vararg classes: String): File {
-        val file: File = this.folder.resolve(name).toFile()
-        ZipOutputStream(file.outputStream()).use { zip ->
-            classes.forEach {
-                zip.putNextEntry(ZipEntry("$it.class"))
-                zip.closeEntry()
-            }
-            zip.putNextEntry(ZipEntry(MANIFEST_ENTRY))
-            zip.closeEntry()
-        }
-        return file
-    }
 
     @Test
     fun shouldReadTheModuleClassesThatAClassFileNamesInItsDescriptorsAndSignatures(): Unit {
@@ -152,7 +142,58 @@ class ModuleClassesTest {
         )
         task.output.set(this.folder.resolve(OUTPUT_DIRECTORY).toFile())
         task.list()
+
         val resource: String = this.folder.resolve("output/${RequiredModuleClassesTask.RESOURCE}").toFile().readText()
         assertEquals("me/brandonli/mcav/MCAV\nme/brandonli/mcav/bukkit/media/mcv2/Mcv2PackServer\n", resource)
+    }
+
+    @Test
+    fun shouldKeepOnlyTheArtifactsOfTheModulesOnTheClasspath(): Unit {
+        val root: Project = ProjectBuilder.builder().withProjectDir(this.folder.resolve(PROJECT_DIRECTORY).toFile()).build()
+        val module: Project = ProjectBuilder.builder().withName(MODULE_NAME).withParent(root).build()
+        val other: Project = ProjectBuilder.builder().withName("mcav-other").withParent(root).build()
+        for (project in listOf(root, module, other)) {
+            project.pluginManager.apply(JAVA_LIBRARY_PLUGIN)
+        }
+        val libraries: File = this.folder.resolve(LIBRARIES_DIRECTORY).toFile()
+        libraries.mkdirs()
+        libraries.resolve("external-1.0.jar").writeText("")
+        root.repositories.flatDir { this.dirs(libraries) }
+        for (path in listOf(module.path, other.path)) {
+            val dependency: Dependency = root.dependencies.project(mapOf("path" to path))
+            root.dependencies.add(IMPLEMENTATION_CONFIGURATION, dependency)
+        }
+        root.dependencies.add(IMPLEMENTATION_CONFIGURATION, "fixture:external:1.0")
+        val classpath: Configuration = root.configurations.getByName("compileClasspath")
+
+        val artifacts: FileCollection = ModuleClasses.moduleArtifacts(classpath, listOf(module.path))
+        val files: Set<File> = artifacts.files
+        val owners: Set<String> = files.map { it.toRelativeString(root.projectDir).substringBefore(File.separatorChar) }.toSet()
+        assertEquals(setOf(MODULE_NAME), owners)
+    }
+
+    private fun classBytes(vararg names: String): ByteArray {
+        val text: String = names.joinToString("\u0001\u0000\u0010", prefix = "Êþº¾", postfix = "\u0007")
+        return text.toByteArray(Charsets.ISO_8859_1)
+    }
+
+    private fun jar(name: String, vararg classes: String): File {
+        val file: File = this.folder.resolve(name).toFile()
+        ZipOutputStream(file.outputStream()).use { zip -> this.writeEntries(zip, classes) }
+
+        return file
+    }
+
+    private fun writeEntries(zip: ZipOutputStream, classes: Array<out String>): Unit {
+        for (name in classes) {
+            this.writeEmptyEntry(zip, "$name.class")
+        }
+
+        this.writeEmptyEntry(zip, MANIFEST_ENTRY)
+    }
+
+    private fun writeEmptyEntry(zip: ZipOutputStream, name: String): Unit {
+        zip.putNextEntry(ZipEntry(name))
+        zip.closeEntry()
     }
 }

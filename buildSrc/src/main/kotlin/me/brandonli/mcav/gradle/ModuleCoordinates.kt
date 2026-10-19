@@ -19,10 +19,30 @@
 package me.brandonli.mcav.gradle
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 
 object ModuleCoordinates {
 
+    private const val PROJECT_PATH_PREFIX: String = ":"
+
     fun coordinateOf(project: Project, moduleName: String): String {
-        return "${project.rootProject.group}:$moduleName:${project.rootProject.version}"
+        val root: Project = project.rootProject
+        return "${root.group}:$moduleName:${root.version}"
+    }
+
+    /**
+     * Returns the project paths of the dependencies of [configuration] that are modules of this build.
+     *
+     * A dependency is a module when it has the group of [root] and [root] has a project of its name.
+     *
+     * @param configuration the configuration whose declared dependencies are checked
+     * @param root          the root project of the build
+     * @return the project paths, such as `:mcav-common`, in declaration order
+     */
+    fun modulePathsOf(configuration: Configuration, root: Project): List<String> {
+        val group: String = root.group.toString()
+        return configuration.dependencies
+            .filter { it.group == group && root.findProject("$PROJECT_PATH_PREFIX${it.name}") != null }
+            .map { "$PROJECT_PATH_PREFIX${it.name}" }
     }
 }

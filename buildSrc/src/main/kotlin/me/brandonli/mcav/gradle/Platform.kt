@@ -25,75 +25,6 @@ import org.gradle.api.provider.Provider
 
 class HostPlatform private constructor(val operatingSystem: String, val architecture: String) {
 
-    val isWindows: Boolean
-        get() {
-            return this.operatingSystem.contains(WINDOWS)
-        }
-
-    val zigSystem: String
-        get() {
-            return when {
-                this.isWindows -> WINDOWS
-                this.operatingSystem.contains(MAC) -> ZIG_MACOS
-                this.operatingSystem.contains(LINUX) -> LINUX
-                else -> this.operatingSystem
-            }
-        }
-
-    val uvTarget: String
-        get() {
-            val suffix: String = when {
-                this.isWindows -> WINDOWS_UV_TARGET
-                this.operatingSystem.contains(MAC) -> MACOS_UV_TARGET
-                else -> LINUX_UV_TARGET
-            }
-            return this.architecture + suffix
-        }
-
-    val lwjglNatives: String?
-        get() {
-            return when {
-                this.operatingSystem.contains(MAC) || this.operatingSystem.contains(DARWIN) -> when (this.architecture) {
-                    AARCH64 -> MACOS_ARM64_NATIVES
-                    X86_64 -> MACOS_NATIVES
-                    else -> null
-                }
-                this.operatingSystem.contains(WIN) -> when (this.architecture) {
-                    AARCH64 -> WINDOWS_ARM64_NATIVES
-                    X86_64 -> WINDOWS_NATIVES
-                    X86, I386, I686 -> WINDOWS_X86_NATIVES
-                    else -> null
-                }
-                this.operatingSystem.contains(FREEBSD) -> if (this.architecture == X86_64) FREEBSD_NATIVES else null
-                this.operatingSystem.contains(LINUX) -> when {
-                    this.architecture == X86_64 -> LINUX_NATIVES
-                    this.architecture == AARCH64 -> LINUX_ARM64_NATIVES
-                    this.architecture == ARM || this.architecture == ARM32 || this.architecture.startsWith(ARMV7_PREFIX) ->
-                        LINUX_ARM32_NATIVES
-                    this.architecture == PPC64LE -> LINUX_PPC64LE_NATIVES
-                    this.architecture == RISCV64 -> LINUX_RISCV64_NATIVES
-                    else -> null
-                }
-                else -> null
-            }
-        }
-
-    fun javaExecutable(javaHome: String): String {
-        return javaHome + JAVA_BINARY + if (this.isWindows) EXECUTABLE_EXTENSION else ""
-    }
-
-    fun virtualEnvironmentExecutable(name: String): String {
-        return if (this.isWindows) "$WINDOWS_SCRIPTS_DIRECTORY$name$EXECUTABLE_EXTENSION" else "$UNIX_BINARIES_DIRECTORY$name"
-    }
-
-    fun addLwjglTestNatives(dependencies: DependencyHandler, libraries: Iterable<Provider<MinimalExternalModuleDependency>>): Unit {
-        this.lwjglNatives?.let { natives ->
-            libraries.forEach { library ->
-                dependencies.add(TEST_RUNTIME_CONFIGURATION, dependencies.variantOf(library) { this.classifier(natives) })
-            }
-        }
-    }
-
     companion object {
 
         private const val WINDOWS: String = "windows"
@@ -154,6 +85,93 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
             val name: String = architecture.lowercase(Locale.ROOT)
             val normalizedArchitecture: String = ARCHITECTURE_ALIASES.getOrDefault(name, name)
             return HostPlatform(operatingSystem.lowercase(Locale.ROOT), normalizedArchitecture)
+        }
+    }
+
+    val isWindows: Boolean
+        get() {
+            return this.operatingSystem.contains(WINDOWS)
+        }
+
+    val zigSystem: String
+        get() {
+            return when {
+                this.isWindows -> WINDOWS
+                this.operatingSystem.contains(MAC) -> ZIG_MACOS
+                this.operatingSystem.contains(LINUX) -> LINUX
+                else -> this.operatingSystem
+            }
+        }
+
+    val uvTarget: String
+        get() {
+            val suffix: String = when {
+                this.isWindows -> WINDOWS_UV_TARGET
+                this.operatingSystem.contains(MAC) -> MACOS_UV_TARGET
+                else -> LINUX_UV_TARGET
+            }
+            return this.architecture + suffix
+        }
+
+    val lwjglNatives: String?
+        get() {
+            return when {
+                this.operatingSystem.contains(MAC) || this.operatingSystem.contains(DARWIN) -> this.macosNatives()
+                this.operatingSystem.contains(WIN) -> this.windowsNatives()
+                this.operatingSystem.contains(FREEBSD) -> this.freebsdNatives()
+                this.operatingSystem.contains(LINUX) -> this.linuxNatives()
+                else -> null
+            }
+        }
+
+    fun javaExecutable(javaHome: String): String {
+        val extension: String = if (this.isWindows) EXECUTABLE_EXTENSION else ""
+        return javaHome + JAVA_BINARY + extension
+    }
+
+    fun virtualEnvironmentExecutable(name: String): String {
+        return if (this.isWindows) "$WINDOWS_SCRIPTS_DIRECTORY$name$EXECUTABLE_EXTENSION" else "$UNIX_BINARIES_DIRECTORY$name"
+    }
+
+    fun addLwjglTestNatives(dependencies: DependencyHandler, libraries: Iterable<Provider<MinimalExternalModuleDependency>>): Unit {
+        val natives: String = this.lwjglNatives ?: return
+        libraries.forEach { library -> this.addTestNatives(dependencies, library, natives) }
+    }
+
+    private fun addTestNatives(dependencies: DependencyHandler, library: Provider<MinimalExternalModuleDependency>, natives: String): Unit {
+        val variant: Provider<MinimalExternalModuleDependency> = dependencies.variantOf(library) { this.classifier(natives) }
+        dependencies.add(TEST_RUNTIME_CONFIGURATION, variant)
+    }
+
+    private fun macosNatives(): String? {
+        return when (this.architecture) {
+            AARCH64 -> MACOS_ARM64_NATIVES
+            X86_64 -> MACOS_NATIVES
+            else -> null
+        }
+    }
+
+    private fun windowsNatives(): String? {
+        return when (this.architecture) {
+            AARCH64 -> WINDOWS_ARM64_NATIVES
+            X86_64 -> WINDOWS_NATIVES
+            X86, I386, I686 -> WINDOWS_X86_NATIVES
+            else -> null
+        }
+    }
+
+    private fun freebsdNatives(): String? {
+        return if (this.architecture == X86_64) FREEBSD_NATIVES else null
+    }
+
+    private fun linuxNatives(): String? {
+        return when {
+            this.architecture == X86_64 -> LINUX_NATIVES
+            this.architecture == AARCH64 -> LINUX_ARM64_NATIVES
+            this.architecture == ARM || this.architecture == ARM32 || this.architecture.startsWith(ARMV7_PREFIX) -> LINUX_ARM32_NATIVES
+            this.architecture == PPC64LE -> LINUX_PPC64LE_NATIVES
+            this.architecture == RISCV64 -> LINUX_RISCV64_NATIVES
+            else -> null
         }
     }
 }

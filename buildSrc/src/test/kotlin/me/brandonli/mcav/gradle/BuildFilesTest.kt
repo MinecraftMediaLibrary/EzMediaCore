@@ -90,18 +90,28 @@ class BuildFilesTest {
         assertEquals(sortedModules, this.modules)
 
         val sections: List<String> = this.root.resolve(CATALOG_PATH).readText().split(CATALOG_SECTION_HEADER)
-        val names: List<List<String>> = sections.drop(1).map { section ->
-            CATALOG_ENTRY.findAll(section).map { it.groupValues[1] }.toList()
-        }
+        val names: List<List<String>> = sections.drop(1).map(this::catalogNamesIn)
         val sortedNames: List<List<String>> = names.map { it.sorted() }
         assertEquals(sortedNames, names)
     }
 
     @Test
     fun shouldKeepEveryLineOfTheBuildWithin140Columns(): Unit {
-        val longLines: List<String> = (this.sources + this.buildScripts).flatMap { file ->
-            file.readLines().withIndex().filter { it.value.length > 140 }.map { "${file.path}:${it.index + 1}" }
-        }
+        val files: List<File> = this.sources + this.buildScripts
+        val longLines: List<String> = files.flatMap(this::longLinesIn)
         assertEquals(listOf<String>(), longLines)
+    }
+
+    private fun catalogNamesIn(section: String): List<String> {
+        return CATALOG_ENTRY.findAll(section)
+            .map { it.groupValues[1] }
+            .toList()
+    }
+
+    private fun longLinesIn(file: File): List<String> {
+        val lines: List<String> = file.readLines()
+        return lines.withIndex()
+            .filter { it.value.length > 140 }
+            .map { "${file.path}:${it.index + 1}" }
     }
 }

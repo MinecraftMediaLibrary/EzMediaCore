@@ -44,6 +44,17 @@ abstract class JupyterBook : PythonTask() {
 
         const val JUPYTER_CONFIG_VARIABLE: String = "JUPYTER_CONFIG_DIR"
         const val JUPYTER_CONFIG_DIRECTORY: String = "jupyter"
+
+        val CONFIGURE_COMMAND: List<String> = listOf("config", "sphinx", BOOK_DIRECTORY)
+        val BUILD_COMMAND: List<String> = listOf(
+            "build",
+            BOOK_DIRECTORY,
+            "--path-output",
+            SITE_DIRECTORY,
+            "--warningiserror",
+            "--keep-going",
+            "--all"
+        )
     }
 
     @get:InputFiles
@@ -63,31 +74,42 @@ abstract class JupyterBook : PythonTask() {
     fun build(): Unit {
         val staging: File = this.temporaryDir
         this.files.delete { this.delete(staging) }
+
+        this.stageNotebooks(staging)
+        this.runJupyterBook(staging, CONFIGURE_COMMAND)
+        this.runJupyterBook(staging, BUILD_COMMAND)
+        this.publishSite(staging)
+    }
+
+    private fun stageNotebooks(staging: File): Unit {
         val book: File = staging.resolve(BOOK_DIRECTORY)
         val notebooks: ConfigurableFileCollection = this.sources
         this.files.sync {
             this.from(notebooks)
             this.into(book)
         }
-        val commands: List<List<String>> = listOf(
-            listOf("config", "sphinx", BOOK_DIRECTORY),
-            listOf("build", BOOK_DIRECTORY, "--path-output", SITE_DIRECTORY, "--warningiserror", "--keep-going", "--all")
-        )
+    }
+
+    private fun runJupyterBook(staging: File, arguments: List<String>): Unit {
         val python: File = this.pythonExecutable.get().asFile
-        commands.forEach { arguments ->
-            this.processes.exec {
-                this.workingDir(staging)
-                this.commandLine(listOf(python, "-c", ENTRY_POINT) + arguments)
-                this.environment(NO_USER_SITE_VARIABLE, ENABLED)
-                this.environment(NO_BYTECODE_VARIABLE, ENABLED)
-                this.environment(HASH_SEED_VARIABLE, FIXED_HASH_SEED)
-                this.environment(MATPLOTLIB_CONFIG_VARIABLE, staging.resolve(MATPLOTLIB_CONFIG_DIRECTORY).absolutePath)
-                this.environment(JUPYTER_CONFIG_VARIABLE, staging.resolve(JUPYTER_CONFIG_DIRECTORY).absolutePath)
-            }
+        val matplotlibConfiguration: String = staging.resolve(MATPLOTLIB_CONFIG_DIRECTORY).absolutePath
+        val jupyterConfiguration: String = staging.resolve(JUPYTER_CONFIG_DIRECTORY).absolutePath
+        this.processes.exec {
+            this.workingDir(staging)
+            this.commandLine(listOf(python, "-c", ENTRY_POINT) + arguments)
+            this.environment(NO_USER_SITE_VARIABLE, ENABLED)
+            this.environment(NO_BYTECODE_VARIABLE, ENABLED)
+            this.environment(HASH_SEED_VARIABLE, FIXED_HASH_SEED)
+            this.environment(MATPLOTLIB_CONFIG_VARIABLE, matplotlibConfiguration)
+            this.environment(JUPYTER_CONFIG_VARIABLE, jupyterConfiguration)
         }
+    }
+
+    private fun publishSite(staging: File): Unit {
+        val site: File = staging.resolve(HTML_DIRECTORY)
         val output: DirectoryProperty = this.outputDirectory
         this.files.sync {
-            this.from(staging.resolve(HTML_DIRECTORY))
+            this.from(site)
             this.into(output)
         }
     }

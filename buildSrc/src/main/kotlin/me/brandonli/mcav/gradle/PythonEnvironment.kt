@@ -39,14 +39,14 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 
-internal const val UV_TOOL: String = "uv"
-internal const val PACKAGE_INDEX: String = "https://pypi.org/simple"
-
-private const val VIRTUAL_ENVIRONMENT_DIRECTORY: String = "venv"
-private const val PATH_SEPARATOR: String = "/"
-
 @DisableCachingByDefault(because = "Python virtual environments contain absolute installation paths")
 abstract class PythonEnvironment : DefaultTask() {
+
+    private companion object {
+
+        const val VIRTUAL_ENVIRONMENT_DIRECTORY: String = "venv"
+        const val PATH_SEPARATOR: String = "/"
+    }
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
@@ -79,7 +79,7 @@ abstract class PythonEnvironment : DefaultTask() {
 
     fun executable(name: String): Provider<RegularFile> {
         val executablePath: String = HostPlatform.current().virtualEnvironmentExecutable(name)
-        return this.installationDirectory.file(VIRTUAL_ENVIRONMENT_DIRECTORY + PATH_SEPARATOR + executablePath)
+        return this.installationDirectory.file("$VIRTUAL_ENVIRONMENT_DIRECTORY$PATH_SEPARATOR$executablePath")
     }
 
     @TaskAction
@@ -92,24 +92,35 @@ abstract class PythonEnvironment : DefaultTask() {
                 "$lock does not pin ${missing.joinToString()} of gradle/libs.versions.toml, so run ./gradlew $lockTaskPath to write it!"
             throw GradleException(message)
         }
+
         val uv: File = this.uvExecutable.get().asFile
-        ToolVersions.verify(this.processes, uv, UV_TOOL, this.uvVersion.get())
-        val installation: File = this.installationDirectory.get().asFile
-        val environment: Map<String, String> = UvEnvironment.variables(installation, this.cacheDirectory.get().asFile)
-        val virtualEnvironment: File = installation.resolve(VIRTUAL_ENVIRONMENT_DIRECTORY)
+        val version: String = this.uvVersion.get()
+        ToolVersions.verify(this.processes, uv, UvEnvironment.TOOL, version)
+
         val python: String = this.pythonVersion.get()
+        val virtualEnvironment: File = this.installationDirectory.get().asFile.resolve(VIRTUAL_ENVIRONMENT_DIRECTORY)
+        this.runUv(uv, listOf("python", "install", python, "--no-bin", "--no-registry"))
+        this.runUv(uv, listOf("venv", "--clear", "--no-project", "--no-python-downloads", "--python", python, virtualEnvironment))
+        this.syncPackages(uv, virtualEnvironment, lock)
+    }
+
+    private fun syncPackages(uv: File, virtualEnvironment: File, lock: File): Unit {
         val pythonPath: String = HostPlatform.current().virtualEnvironmentExecutable(PythonTask.PYTHON_EXECUTABLE)
         val virtualEnvironmentPython: File = virtualEnvironment.resolve(pythonPath)
-        listOf(
-            listOf("python", "install", python, "--no-bin", "--no-registry"),
-            listOf("venv", "--clear", "--no-project", "--no-python-downloads", "--python", python, virtualEnvironment),
-            listOf("pip", "sync", "--python", virtualEnvironmentPython, "--require-hashes",
-                "--only-binary", ":all:", "--default-index", PACKAGE_INDEX, lock)
-        ).forEach { arguments ->
-            this.processes.exec {
-                this.commandLine(listOf(uv) + arguments)
-                this.environment(environment)
-            }
+        val arguments: List<Any> = listOf(
+            "pip", "sync", "--python", virtualEnvironmentPython, "--require-hashes",
+            "--only-binary", ":all:", "--default-index", UvEnvironment.PACKAGE_INDEX, lock
+        )
+        this.runUv(uv, arguments)
+    }
+
+    private fun runUv(uv: File, arguments: List<Any>): Unit {
+        val installation: File = this.installationDirectory.get().asFile
+        val cache: File = this.cacheDirectory.get().asFile
+        val environment: Map<String, String> = UvEnvironment.variables(installation, cache)
+        this.processes.exec {
+            this.commandLine(listOf(uv) + arguments)
+            this.environment(environment)
         }
     }
 }
