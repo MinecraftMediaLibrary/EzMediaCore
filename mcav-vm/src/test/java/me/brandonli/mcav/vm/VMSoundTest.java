@@ -43,6 +43,7 @@ import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
+import me.brandonli.mcav.vm.testing.FreePorts;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.opentest4j.AssertionFailedError;
@@ -156,7 +157,9 @@ final class VMSoundTest {
       })
     );
     try {
-      final boolean started = player.start(VMSettings.of(320, 200, 10), VMPlayer.Architecture.X86_64, floppy(this.bootSector("beep.img")));
+      final int port = FreePorts.find();
+      final VMSettings settings = VMSettings.of(port, 320, 200, 10);
+      final boolean started = player.start(settings, VMPlayer.Architecture.X86_64, floppy(this.bootSector("beep.img")));
       assertTrue(started);
       final int twoSeconds = 2 * AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE;
       waitUntil("two seconds of sound", 60, () -> {
@@ -229,11 +232,9 @@ final class VMSoundTest {
       })
     );
     try {
-      final boolean started = player.start(
-        VMSettings.of(320, 200, 60),
-        VMPlayer.Architecture.X86_64,
-        floppy(this.bootSector("toggle.img"))
-      );
+      final int port = FreePorts.find();
+      final VMSettings settings = VMSettings.of(port, 320, 200, 60);
+      final boolean started = player.start(settings, VMPlayer.Architecture.X86_64, floppy(this.bootSector("toggle.img")));
       assertTrue(started);
       waitUntil("20 seconds of sound", 90, () -> sound.size() >= 20 * 200);
     } finally {

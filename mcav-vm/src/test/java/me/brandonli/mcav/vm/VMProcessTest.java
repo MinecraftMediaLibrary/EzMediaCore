@@ -53,6 +53,7 @@ import java.util.function.LongSupplier;
 import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.vm.testing.FakeProcess;
+import me.brandonli.mcav.vm.testing.FreePorts;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,8 +84,8 @@ final class VMProcessTest {
   private Path missingKvm;
 
   @BeforeEach
-  void choosePort() throws IOException {
-    this.port = freePort();
+  void choosePort() {
+    this.port = FreePorts.find();
     this.missingKvm = this.directory.resolve("kvm");
   }
 
@@ -92,13 +93,6 @@ final class VMProcessTest {
   void closeSockets() throws IOException {
     for (final ServerSocket socket : this.sockets) {
       socket.close();
-    }
-  }
-
-  private static int freePort() throws IOException {
-    final InetAddress loopback = InetAddress.ofLiteral("127.0.0.1");
-    try (final ServerSocket socket = new ServerSocket(0, 1, loopback)) {
-      return socket.getLocalPort();
     }
   }
 
@@ -134,8 +128,8 @@ final class VMProcessTest {
     return new VMSettings(this.port, 64, 48, 10);
   }
 
-  private static VMSettings unreachableSettings() throws IOException {
-    final int unusedPort = freePort();
+  private static VMSettings unreachableSettings() {
+    final int unusedPort = FreePorts.find();
     return new VMSettings(unusedPort, 64, 48, 10);
   }
 

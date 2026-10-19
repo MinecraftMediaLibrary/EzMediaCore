@@ -67,6 +67,7 @@ import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.utils.audio.DelayedAudioOutput;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.vm.testing.FreePorts;
 import me.brandonli.mcav.vnc.VncPlayer;
 import me.brandonli.mcav.vnc.VncSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -1021,7 +1022,8 @@ final class VMPlayerImplTest {
   }
 
   private static void startTinyMachine(final VMPlayer player) {
-    final VMSettings settings = VMSettings.of(160, 120, 10);
+    final int port = FreePorts.find();
+    final VMSettings settings = VMSettings.of(port, 160, 120, 10);
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.memory(64);
     final boolean started = player.start(settings, VMPlayer.Architecture.X86_64, configuration);
