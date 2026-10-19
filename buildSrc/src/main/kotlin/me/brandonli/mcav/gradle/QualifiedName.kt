@@ -18,4 +18,27 @@
 
 package me.brandonli.mcav.gradle
 
-data class QualifiedName(val line: Int, val name: String)
+import java.util.Objects
+
+class QualifiedName(val line: Int, val name: String) {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+
+        if (other !is QualifiedName) {
+            return false
+        }
+
+        return this.line == other.line && this.name == other.name
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(this.line, this.name)
+    }
+
+    override fun toString(): String {
+        return "QualifiedName(line=${this.line}, name=${this.name})"
+    }
+}

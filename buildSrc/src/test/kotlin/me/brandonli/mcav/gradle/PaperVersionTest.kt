@@ -20,6 +20,7 @@ package me.brandonli.mcav.gradle
 
 import org.gradle.api.GradleException
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
@@ -28,6 +29,10 @@ class PaperVersionTest {
     private companion object {
 
         const val MINECRAFT_VERSION: String = "26.3"
+        const val OTHER_MINECRAFT_VERSION: String = "26.4"
+
+        const val BUILD: Int = 49
+        const val OTHER_BUILD: Int = 50
 
         const val BUILD_FILE_NAME: String = "paper-26.3-49.jar"
         const val RELEASE_FILE_NAME: String = "paper-26.4-123.jar"
@@ -40,7 +45,7 @@ class PaperVersionTest {
         assertEquals(MINECRAFT_VERSION, minecraft)
 
         val build: Int = version.build
-        assertEquals(49, build)
+        assertEquals(BUILD, build)
 
         val fileName: String = version.fileName
         assertEquals(BUILD_FILE_NAME, fileName)
@@ -55,6 +60,34 @@ class PaperVersionTest {
         val messages: Map<String, String?> = versions.associateWith(this::rejectionOf)
         val expected: Map<String, String?> = versions.associateWith { "Paper version $it must name a build!" }
         assertEquals(expected, messages)
+    }
+
+    @Test
+    fun shouldEqualOnlyAVersionOfTheSameMinecraftVersionAndBuild(): Unit {
+        val version: PaperVersion = PaperVersion(MINECRAFT_VERSION, BUILD)
+        val same: PaperVersion = PaperVersion(MINECRAFT_VERSION, BUILD)
+        val otherMinecraft: PaperVersion = PaperVersion(OTHER_MINECRAFT_VERSION, BUILD)
+        val otherBuild: PaperVersion = PaperVersion(MINECRAFT_VERSION, OTHER_BUILD)
+
+        assertEquals(version, version)
+        assertEquals(same, version)
+        assertNotEquals(otherMinecraft, version)
+        assertNotEquals(otherBuild, version)
+        assertNotEquals(version, MINECRAFT_VERSION)
+
+        val versionHash: Int = version.hashCode()
+        val sameHash: Int = same.hashCode()
+        assertEquals(sameHash, versionHash)
+
+        val otherHash: Int = otherBuild.hashCode()
+        assertNotEquals(otherHash, versionHash)
+    }
+
+    @Test
+    fun shouldShowTheMinecraftVersionAndTheBuild(): Unit {
+        val version: PaperVersion = PaperVersion(MINECRAFT_VERSION, BUILD)
+        val text: String = version.toString()
+        assertEquals("PaperVersion(minecraft=26.3, build=49)", text)
     }
 
     private fun rejectionOf(version: String): String? {

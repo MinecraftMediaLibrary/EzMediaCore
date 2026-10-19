@@ -18,4 +18,27 @@
 
 package me.brandonli.mcav.gradle
 
-data class ConcatenatedLogMessage(val line: Int, val call: String)
+import java.util.Objects
+
+class ConcatenatedLogMessage(val line: Int, val call: String) {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+
+        if (other !is ConcatenatedLogMessage) {
+            return false
+        }
+
+        return this.line == other.line && this.call == other.call
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(this.line, this.call)
+    }
+
+    override fun toString(): String {
+        return "ConcatenatedLogMessage(line=${this.line}, call=${this.call})"
+    }
+}

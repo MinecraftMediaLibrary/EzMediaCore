@@ -18,9 +18,10 @@
 
 package me.brandonli.mcav.gradle
 
+import java.util.Objects
 import org.gradle.api.GradleException
 
-internal data class PaperVersion(val minecraft: String, val build: Int) {
+internal class PaperVersion(val minecraft: String, val build: Int) {
 
     companion object {
 
@@ -46,4 +47,24 @@ internal data class PaperVersion(val minecraft: String, val build: Int) {
         get() {
             return "$FILE_PREFIX${this.minecraft}$NAME_SEPARATOR${this.build}$JAR_EXTENSION"
         }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+
+        if (other !is PaperVersion) {
+            return false
+        }
+
+        return this.minecraft == other.minecraft && this.build == other.build
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(this.minecraft, this.build)
+    }
+
+    override fun toString(): String {
+        return "PaperVersion(minecraft=${this.minecraft}, build=${this.build})"
+    }
 }

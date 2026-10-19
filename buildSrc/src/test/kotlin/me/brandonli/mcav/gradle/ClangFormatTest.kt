@@ -49,7 +49,9 @@ class ClangFormatTest {
     @Test
     fun shouldFailTheCheckOnEveryUnformattedLineWithoutChangingTheSources(): Unit {
         val processes: RecordedProcesses = RecordedProcesses(VERSION_OUTPUT)
-        this.format(false, processes)
+        val task: RecordingFormat = this.createTask(processes)
+        task.rewrite.set(false)
+        task.format()
 
         val commands: List<List<String>> = processes.commands
         assertEquals(
@@ -64,7 +66,9 @@ class ClangFormatTest {
     @Test
     fun shouldRewriteTheSourcesInPlace(): Unit {
         val processes: RecordedProcesses = RecordedProcesses(VERSION_OUTPUT)
-        this.format(true, processes)
+        val task: RecordingFormat = this.createTask(processes)
+        task.rewrite.set(true)
+        task.format()
 
         val expected: List<List<String>> =
             listOf(listOf(this.clangFormat(), VERSION_OPTION), listOf(this.clangFormat(), "-i", STYLE_OPTION) + this.sources())
@@ -75,7 +79,10 @@ class ClangFormatTest {
     @Test
     fun shouldTouchNoSourceWithAnotherClangFormatVersion(): Unit {
         val processes: RecordedProcesses = RecordedProcesses("Ubuntu clang-format version 19.1.1\n")
-        val failure: GradleException = assertThrows(GradleException::class.java) { this.format(true, processes) }
+        val task: RecordingFormat = this.createTask(processes)
+        task.rewrite.set(true)
+
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.format() }
         val message: String? = failure.message
         assertEquals(
             "${this.clangFormat()} reports Ubuntu clang-format version 19.1.1, which is not the clang-format 18.1.8 this build pins!",
@@ -86,7 +93,7 @@ class ClangFormatTest {
         assertEquals(listOf(listOf(this.clangFormat(), VERSION_OPTION)), commands)
     }
 
-    private fun format(rewrite: Boolean, processes: RecordedProcesses): Unit {
+    private fun createTask(processes: RecordedProcesses): RecordingFormat {
         val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val task: RecordingFormat = project.tasks.register("format", RecordingFormat::class.java).get()
         val files: List<File> = listOf(SECOND_SOURCE, FIRST_SOURCE).map { this.directory.resolve(it).toFile() }
@@ -94,9 +101,8 @@ class ClangFormatTest {
         task.clangFormat.set(this.directory.resolve(CLANG_FORMAT_EXECUTABLE).toFile())
         task.clangFormatVersion.set("18.1.8")
         task.sources.from(files)
-        task.rewrite.set(rewrite)
         task.recordedProcesses = processes.operations
-        task.format()
+        return task
     }
 
     private fun clangFormat(): String {

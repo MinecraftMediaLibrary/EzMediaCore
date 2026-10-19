@@ -18,4 +18,27 @@
 
 package me.brandonli.mcav.gradle
 
-data class UndescriptiveName(val line: Long, val name: String, val kind: String, val member: String)
+import java.util.Objects
+
+class UndescriptiveName(val line: Long, val name: String, val kind: String, val member: String) {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+
+        if (other !is UndescriptiveName) {
+            return false
+        }
+
+        return this.line == other.line && this.name == other.name && this.kind == other.kind && this.member == other.member
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(this.line, this.name, this.kind, this.member)
+    }
+
+    override fun toString(): String {
+        return "UndescriptiveName(line=${this.line}, name=${this.name}, kind=${this.kind}, member=${this.member})"
+    }
+}

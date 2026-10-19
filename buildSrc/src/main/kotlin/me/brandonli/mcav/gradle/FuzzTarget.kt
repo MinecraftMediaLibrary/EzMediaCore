@@ -19,6 +19,7 @@
 package me.brandonli.mcav.gradle
 
 import java.util.Locale
+import java.util.Objects
 
 /**
  * One fuzz test method: a method annotated with Jazzer's `@FuzzTest` in a test class.
@@ -33,8 +34,6 @@ class FuzzTarget(val className: String, val methodName: String) {
         const val PACKAGE_SEPARATOR: Char = '.'
 
         const val TASK_PREFIX: String = "fuzz"
-
-        const val HASH_MULTIPLIER: Int = 31
     }
 
     /**
@@ -81,7 +80,7 @@ class FuzzTarget(val className: String, val methodName: String) {
      * @return the hash code
      */
     override fun hashCode(): Int {
-        return HASH_MULTIPLIER * this.className.hashCode() + this.methodName.hashCode()
+        return Objects.hash(this.className, this.methodName)
     }
 
     /**

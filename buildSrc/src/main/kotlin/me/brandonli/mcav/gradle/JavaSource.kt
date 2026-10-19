@@ -35,11 +35,11 @@ object JavaSource {
     private const val ESCAPE_SEQUENCE_LENGTH: Int = 2
 
     fun mask(source: String): String {
-        return Masker(source, true).mask()
+        return Masker(source, Literals.MASKED).mask()
     }
 
     fun withoutComments(source: String): String {
-        return Masker(source, false).mask()
+        return Masker(source, Literals.KEPT).mask()
     }
 
     private enum class State {
@@ -51,7 +51,12 @@ object JavaSource {
         CHARACTER,
     }
 
-    private class Masker(private val source: String, private val maskLiterals: Boolean) {
+    private enum class Literals {
+        MASKED,
+        KEPT,
+    }
+
+    private class Masker(private val source: String, private val literals: Literals) {
 
         private val out: StringBuilder = StringBuilder(this.source.length)
         private var state: State = State.CODE
@@ -128,7 +133,7 @@ object JavaSource {
         }
 
         private fun literalCharacters(length: Int): Unit {
-            if (this.maskLiterals) {
+            if (this.literals == Literals.MASKED) {
                 this.blank(length)
             } else {
                 repeat(minOf(length, this.source.length - this.index)) { this.keep() }

@@ -143,6 +143,9 @@ class FuzzTargetsTest {
         val targetHash: Int = target.hashCode()
         assertEquals(sameHash, targetHash)
 
+        val otherHash: Int = otherMethod.hashCode()
+        assertNotEquals(otherHash, targetHash)
+
         assertNotEquals(otherMethod, target)
         assertNotEquals(otherClass, target)
         assertNotEquals(target, CLASS_NAME)
