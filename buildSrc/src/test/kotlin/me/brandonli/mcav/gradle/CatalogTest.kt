@@ -28,6 +28,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -40,6 +41,8 @@ class CatalogTest {
         const val BUNDLE_ALIAS: String = "testing"
 
         const val JAVA_VERSION: String = "25"
+
+        const val MISSING_ALIAS: String = "missing"
 
         const val NEVER_RESOLVED_MESSAGE: String = "Never resolved!"
     }
@@ -83,5 +86,28 @@ class CatalogTest {
     fun shouldReadABundleByItsAlias(): Unit {
         val found: Provider<ExternalModuleDependencyBundle> = CatalogUtils.bundleOf(this.catalog, BUNDLE_ALIAS)
         assertSame(this.bundle, found)
+    }
+
+    @Test
+    fun shouldNameAVersionAliasThatIsMissingFromTheCatalog(): Unit {
+        val message: String? = this.readMissingAlias(CatalogUtils::versionOf)
+        assertEquals("Version missing is missing from the catalog!", message)
+    }
+
+    @Test
+    fun shouldNameALibraryAliasThatIsMissingFromTheCatalog(): Unit {
+        val message: String? = this.readMissingAlias(CatalogUtils::libraryOf)
+        assertEquals("Library missing is missing from the catalog!", message)
+    }
+
+    @Test
+    fun shouldNameABundleAliasThatIsMissingFromTheCatalog(): Unit {
+        val message: String? = this.readMissingAlias(CatalogUtils::bundleOf)
+        assertEquals("Bundle missing is missing from the catalog!", message)
+    }
+
+    private fun readMissingAlias(read: (VersionCatalog, String) -> Any): String? {
+        val failure: IllegalArgumentException = assertThrows(IllegalArgumentException::class.java) { read(this.catalog, MISSING_ALIAS) }
+        return failure.message
     }
 }

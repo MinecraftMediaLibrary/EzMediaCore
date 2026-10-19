@@ -18,11 +18,13 @@
 
 package me.brandonli.mcav.gradle
 
+import java.util.Optional
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.getByType
 
@@ -33,9 +35,36 @@ val Project.libs: VersionCatalog
 
 object CatalogUtils {
 
-    fun versionOf(catalog: VersionCatalog, alias: String): String = catalog.findVersion(alias).get().requiredVersion
+    fun versionOf(catalog: VersionCatalog, alias: String): String {
+        val version: Optional<VersionConstraint> = catalog.findVersion(alias)
+        val constraint: VersionConstraint? = version.orElse(null)
+        if (constraint == null) {
+            val message: String = "Version $alias is missing from the catalog!"
+            throw IllegalArgumentException(message)
+        }
 
-    fun libraryOf(catalog: VersionCatalog, alias: String): Provider<MinimalExternalModuleDependency> = catalog.findLibrary(alias).get()
+        return constraint.requiredVersion
+    }
 
-    fun bundleOf(catalog: VersionCatalog, alias: String): Provider<ExternalModuleDependencyBundle> = catalog.findBundle(alias).get()
+    fun libraryOf(catalog: VersionCatalog, alias: String): Provider<MinimalExternalModuleDependency> {
+        val library: Optional<Provider<MinimalExternalModuleDependency>> = catalog.findLibrary(alias)
+        val dependency: Provider<MinimalExternalModuleDependency>? = library.orElse(null)
+        if (dependency == null) {
+            val message: String = "Library $alias is missing from the catalog!"
+            throw IllegalArgumentException(message)
+        }
+
+        return dependency
+    }
+
+    fun bundleOf(catalog: VersionCatalog, alias: String): Provider<ExternalModuleDependencyBundle> {
+        val bundle: Optional<Provider<ExternalModuleDependencyBundle>> = catalog.findBundle(alias)
+        val dependencies: Provider<ExternalModuleDependencyBundle>? = bundle.orElse(null)
+        if (dependencies == null) {
+            val message: String = "Bundle $alias is missing from the catalog!"
+            throw IllegalArgumentException(message)
+        }
+
+        return dependencies
+    }
 }
