@@ -44,6 +44,7 @@ class TestRuntimeProfileTest {
         test.systemProperty("jqwik.database", JQWIK_DATABASE_PATH)
         test.systemProperty("jqwik.failures.after.default", "PREVIOUS_SEED")
         test.systemProperty("jqwik.tries.default", "10")
+
         val arguments: List<String> = TestRuntimeProfile.forMutation(test)
         assertEquals(listOf(
             "--enable-native-access=ALL-UNNAMED",
@@ -54,6 +55,7 @@ class TestRuntimeProfileTest {
         test.systemProperty("mcav.networkTests", "true")
         test.systemProperty("mcav.syncMeasurement", "true")
         test.systemProperty("jqwik.tries.default", "500")
+
         val changedArguments: List<String> = TestRuntimeProfile.forMutation(test)
         assertEquals(listOf(
             "--enable-native-access=ALL-UNNAMED",

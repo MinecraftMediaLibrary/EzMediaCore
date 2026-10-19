@@ -48,8 +48,10 @@ class PythonTaskTest {
         environment.get().requirements.set(this.directory.resolve(LOCK_FILE).toFile())
         environment.get().pythonVersion.set("3.13.16")
         environment.get().installationDirectory.set(this.directory.resolve(PYTHON_DIRECTORY).toFile())
+
         val book: JupyterBook = project.tasks.register("book", JupyterBook::class.java).get()
         book.useEnvironment(environment)
+
         val dependencies: Set<Task> = book.taskDependencies.getDependencies(book)
         assertEquals(setOf(environment.get()), dependencies)
 

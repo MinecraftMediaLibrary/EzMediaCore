@@ -99,11 +99,14 @@ tasks.withType<Test>().configureEach {
     )
     this.systemProperty(networkTestsProperty, networkTests)
     this.systemProperty(syncMeasurementProperty, syncMeasurement)
+
     if (testJavaHome.isPresent) {
         this.executable = HostPlatform.current().javaExecutable(testJavaHome.get())
     }
+
     this.systemProperty(jqwikDatabaseProperty, "$jqwikDatabasePath-$name")
     this.systemProperty(jqwikFailuresProperty, previousSeed)
+
     if (measuresSync) {
         this.usesService(quietMachine)
     }

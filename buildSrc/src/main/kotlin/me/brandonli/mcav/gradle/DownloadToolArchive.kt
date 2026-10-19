@@ -101,6 +101,7 @@ abstract class DownloadToolArchive : DefaultTask() {
         val fileName: String = uri.path.substringAfterLast(PATH_SEPARATOR)
         val archive: File = this.temporaryDir.resolve(fileName)
         this.logger.lifecycle(DOWNLOADING, address)
+
         try {
             this.copyFrom(uri, archive)
         } catch (exception: IOException) {

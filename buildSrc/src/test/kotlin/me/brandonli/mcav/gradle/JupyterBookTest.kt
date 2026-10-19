@@ -73,6 +73,7 @@ class JupyterBookTest {
         task.sources.from(project.fileTree(source))
         task.pythonExecutable.set(this.directory.resolve(MANAGED_PYTHON_DIRECTORY).toFile())
         task.outputDirectory.set(this.directory.resolve(HTML_DIRECTORY).toFile())
+
         val commands: MutableList<List<String>> = mutableListOf<List<String>>()
         val processes: ExecOperations = mock(ExecOperations::class.java)
         doAnswer { invocation -> this.runJupyterBook(invocation, commands) }.`when`(processes).exec(any())

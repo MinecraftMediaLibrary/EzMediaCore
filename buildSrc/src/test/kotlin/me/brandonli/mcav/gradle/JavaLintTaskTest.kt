@@ -49,6 +49,7 @@ class JavaLintTaskTest {
         val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val source: File = this.directory.resolve(SOURCE_FILE).toFile()
         source.writeText("final class Example {}\n")
+
         val tasks: List<Pair<JavaLintTask, String>> = listOf(
             project.tasks.register(LOGS_TASK, LogMessagesTask::class.java).get() to "no log call with a concatenated message in 1 files\n",
             project.tasks.register(QUALIFIED_TASK, QualifiedNamesTask::class.java).get() to "no fully qualified type names in 1 files\n",
@@ -92,6 +93,7 @@ class JavaLintTaskTest {
         task.sources.from(source)
         task.report.set(this.directory.resolve(VARIABLES_REPORT).toFile())
         task.publishedNames.set(setOf("me.example.Example#x"))
+
         val failure: GradleException = assertThrows(GradleException::class.java) { task.check() }
         val message: String? = failure.message
         assertEquals("Found 1 undescriptive variable names!", message)
@@ -108,6 +110,7 @@ class JavaLintTaskTest {
     private fun configureLint(task: JavaLintTask, source: File): Unit {
         task.sources.from(source)
         task.report.set(this.directory.resolve(task.name + REPORT_EXTENSION).toFile())
+
         if (task is VariableNamesTask) {
             task.publishedNames.set(emptySet())
         }

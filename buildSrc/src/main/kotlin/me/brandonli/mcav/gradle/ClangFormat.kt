@@ -63,6 +63,7 @@ abstract class ClangFormat : DefaultTask() {
     fun format(): Unit {
         val executable: File = this.clangFormat.get().asFile
         ToolVersions.verify(this.processes, executable, TOOL, this.clangFormatVersion.get(), VERSION_PREFIX)
+
         val mode: List<String> = if (this.rewrite.get()) listOf("-i") else listOf("--dry-run", "--Werror")
         val sourcePaths: List<String> = this.sources.files.sorted().map { it.path }
         this.processes.exec {

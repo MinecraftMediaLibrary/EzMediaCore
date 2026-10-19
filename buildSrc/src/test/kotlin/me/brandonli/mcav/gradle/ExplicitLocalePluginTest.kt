@@ -48,9 +48,11 @@ class ExplicitLocalePluginTest {
         val project: File = this.directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'locale-fixture'\n")
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.java-library' }\n")
+
         val catalog: File = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
+
         val source: File = project.resolve(SOURCE_PATH)
         source.parentFile.mkdirs()
         source.writeText(
@@ -64,6 +66,7 @@ class ExplicitLocalePluginTest {
             }
             """.trimIndent()
         )
+
         val runner: GradleRunner = GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()
@@ -84,6 +87,7 @@ class ExplicitLocalePluginTest {
             }
             """.trimIndent()
         )
+
         val accepted: BuildResult = runner.build()
         val outcome: TaskOutcome? = accepted.task(":compileJava")?.outcome
         assertEquals(TaskOutcome.SUCCESS, outcome, accepted.output)

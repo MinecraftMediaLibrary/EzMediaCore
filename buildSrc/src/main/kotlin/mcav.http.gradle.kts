@@ -69,10 +69,10 @@ val pnpmProjectInstall: TaskProvider<Exec> = tasks.register<Exec>("pnpmProjectIn
     this.description = "Installs the pnpm dependencies of the website"
     this.dependsOn(nodeSetup)
     this.workingDir = file(websitePath)
-    executable = nodeExecutable.absolutePath
+    this.executable = nodeExecutable.absolutePath
     this.environment(pathVariable, nodePath)
     this.environment(corepackPromptVariable, disabledPrompt)
-    args(corepack.absolutePath, "pnpm", "install", "--frozen-lockfile")
+    this.args(corepack.absolutePath, "pnpm", "install", "--frozen-lockfile")
     this.inputs.file(packageJsonPath)
     this.inputs.file(pnpmLockPath)
     this.outputs.file(installedModulesPath)
@@ -83,11 +83,11 @@ val buildWebsite: TaskProvider<Exec> = tasks.register<Exec>("buildWebsite") {
     this.description = "Builds the Next.js website"
     this.dependsOn(pnpmProjectInstall)
     this.workingDir = file(websitePath)
-    executable = nodeExecutable.absolutePath
+    this.executable = nodeExecutable.absolutePath
     this.environment(pathVariable, nodePath)
     this.environment(corepackPromptVariable, disabledPrompt)
     this.environment(nodeOptionsVariable, "--max-old-space-size=$nodeHeapMegabytes")
-    args(corepack.absolutePath, "pnpm", "run", "build")
+    this.args(corepack.absolutePath, "pnpm", "run", "build")
     this.inputs.dir(websiteSourcePath)
     this.inputs.dir(websitePublicPath)
     this.inputs.file(packageJsonPath)
@@ -102,13 +102,14 @@ val testWebsite: TaskProvider<Exec> = tasks.register<Exec>("testWebsite") {
     this.description = "Runs the tests of the website"
     this.dependsOn(pnpmProjectInstall)
     this.workingDir = file(websitePath)
-    executable = nodeExecutable.absolutePath
+    this.executable = nodeExecutable.absolutePath
     this.environment(pathVariable, nodePath)
     this.environment(corepackPromptVariable, disabledPrompt)
-    args(corepack.absolutePath, "pnpm", "test")
+    this.args(corepack.absolutePath, "pnpm", "test")
     this.inputs.dir(websiteSourcePath)
     this.inputs.dir(websiteTestPath)
     this.inputs.file(packageJsonPath)
+
     val passed: Provider<RegularFile> = layout.buildDirectory.file(websiteTestsPassedPath)
     this.outputs.file(passed)
     this.doLast {

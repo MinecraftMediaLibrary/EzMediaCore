@@ -49,14 +49,19 @@ class TestFiltersTest {
         val commandLine: GradleTest = this.createTestTask()
         val commandLineFilter: DefaultTestFilter = commandLine.filter as DefaultTestFilter
         commandLineFilter.setCommandLineIncludePatterns(listOf(TEST_PATTERN))
+
         val included: GradleTest = this.createTestTask()
         included.filter.includeTestsMatching(TEST_PATTERN)
+
         val excluded: GradleTest = this.createTestTask()
         excluded.filter.excludeTestsMatching(TEST_PATTERN)
+
         val includedFiles: GradleTest = this.createTestTask()
         includedFiles.include(FILE_PATTERN)
+
         val excludedFiles: GradleTest = this.createTestTask()
         excludedFiles.exclude(FILE_PATTERN)
+
         val tests: List<GradleTest> = listOf(commandLine, included, excluded, includedFiles, excludedFiles)
 
         val filtered: List<Boolean> = tests.map(TestFilters::isFiltered)

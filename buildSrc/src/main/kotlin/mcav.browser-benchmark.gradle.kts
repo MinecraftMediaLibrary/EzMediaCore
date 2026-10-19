@@ -48,6 +48,7 @@ tasks.register<JavaExec>("browserBenchmark") {
     this.description = "Measures the frame rate and latency of a browser backend: -Pbenchmark.backend=<backend> -Pbenchmark.output=<file>"
     this.classpath = benchmark.runtimeClasspath
     this.mainClass = benchmarkMainClass
+
     val backend: Provider<String> = providers.gradleProperty(backendProperty).orElse("")
     val output: Provider<String> = providers.gradleProperty(outputProperty)
         .orElse(layout.buildDirectory.file(defaultOutputPath).map { it.asFile.absolutePath })

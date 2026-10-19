@@ -44,14 +44,17 @@ class CoverageLintPluginTest {
     fun shouldKeepTheCoverageOfAnotherModuleWhenOneModuleIsFiltered(): Unit {
         val project: File = this.directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'coverage-fixture'\ninclude 'first', 'second'\n")
+
         for (name in listOf("first", "second")) {
             val module: File = project.resolve(name)
             module.mkdirs()
             module.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.coverage' }\n")
+
             val source: File = module.resolve(SOURCE_PATH)
             source.parentFile.mkdirs()
             source.writeText("public class Example { public int value() { return 42; } }\n")
         }
+
         val result: BuildResult = GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()

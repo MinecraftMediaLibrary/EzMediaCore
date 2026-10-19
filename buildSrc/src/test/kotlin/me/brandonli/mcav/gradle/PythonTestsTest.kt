@@ -53,24 +53,17 @@ class PythonTestsTest {
     @TempDir
     lateinit var directory: Path
 
-    abstract class RecordingTests : PythonTests() {
-
-        lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations
-            get() {
-                return this.recordedProcesses
-            }
-    }
-
     @Test
     fun shouldRunTheTestFilesInOneProcessEachAndTheTimingTestsAfterThemInASingleProcess(): Unit {
         val task: RecordingTests = this.pythonTests(8)
         val reports: File = this.directory.resolve(REPORTS_DIRECTORY).toFile()
         reports.mkdirs()
         reports.resolve(STALE_REPORT).writeText("<testsuites/>")
+
         val processes: RecordedProcesses = RecordedProcesses("") { this.assertNoStaleReport(reports) }
         task.recordedProcesses = processes.operations
         task.test()
+
         val tests: Path = this.directory.resolve(TESTS_DIRECTORY)
         val commands: List<List<String>> = processes.commands
         assertEquals(
@@ -103,9 +96,29 @@ class PythonTestsTest {
         val processes: RecordedProcesses = RecordedProcesses("")
         task.recordedProcesses = processes.operations
         task.test()
+
         val parallel: List<String> = processes.commands.first()
         val processCount: String = parallel[parallel.indexOf(WORKERS_OPTION) + 1]
         assertEquals("2", processCount)
+    }
+
+    private fun pythonTests(processCount: Int): RecordingTests {
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
+        val tests: File = this.directory.resolve(TESTS_DIRECTORY).toFile()
+        tests.mkdirs()
+
+        val parallel: List<File> = listOf(SECOND_TEST, FIRST_TEST, THIRD_TEST).map { tests.resolve(it) }
+        val timing: File = tests.resolve(TIMING_TEST)
+        (parallel + timing).forEach { it.writeText("") }
+
+        val task: RecordingTests = project.tasks.register("pythonTest", RecordingTests::class.java).get()
+        task.pythonExecutable.set(this.directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toFile())
+        task.testDirectory.set(tests)
+        task.parallelTests.from(parallel)
+        task.serialTests.from(timing)
+        task.processCount.set(processCount)
+        task.reportDirectory.set(this.directory.resolve(REPORTS_DIRECTORY).toFile())
+        return task
     }
 
     private fun assertNoStaleReport(reports: File): Unit {
@@ -128,20 +141,12 @@ class PythonTestsTest {
         )
     }
 
-    private fun pythonTests(processCount: Int): RecordingTests {
-        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
-        val tests: File = this.directory.resolve(TESTS_DIRECTORY).toFile()
-        tests.mkdirs()
-        val parallel: List<File> = listOf(SECOND_TEST, FIRST_TEST, THIRD_TEST).map { tests.resolve(it) }
-        val timing: File = tests.resolve(TIMING_TEST)
-        (parallel + timing).forEach { it.writeText("") }
-        val task: RecordingTests = project.tasks.register("pythonTest", RecordingTests::class.java).get()
-        task.pythonExecutable.set(this.directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toFile())
-        task.testDirectory.set(tests)
-        task.parallelTests.from(parallel)
-        task.serialTests.from(timing)
-        task.processCount.set(processCount)
-        task.reportDirectory.set(this.directory.resolve(REPORTS_DIRECTORY).toFile())
-        return task
+    abstract class RecordingTests : PythonTests() {
+
+        lateinit var recordedProcesses: ExecOperations
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
     }
 }

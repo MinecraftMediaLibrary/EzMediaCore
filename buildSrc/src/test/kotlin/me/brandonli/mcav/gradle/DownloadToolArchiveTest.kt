@@ -61,6 +61,7 @@ class DownloadToolArchiveTest {
     fun shouldInstallTheVerifiedZipAndMakeItsToolExecutable(): Unit {
         val task: DownloadToolArchive = this.zippedTool()
         task.install()
+
         val installed: File = this.directory.resolve(INSTALLED_EXECUTABLE).toFile()
         val content: String = installed.readText()
         assertEquals(EXECUTABLE_CONTENT, content)
@@ -75,9 +76,11 @@ class DownloadToolArchiveTest {
         val installed: File = this.directory.resolve(INSTALLED_EXECUTABLE).toFile()
         installed.parentFile.mkdirs()
         installed.writeText("previous verified tool\n")
+
         val expected: String = "0".repeat(64)
         val actual: String = task.sha256.get()
         task.sha256.set(expected)
+
         val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals(
@@ -96,6 +99,7 @@ class DownloadToolArchiveTest {
     fun shouldFailOnAnInvalidChecksumBeforeDownloading(): Unit {
         val task: DownloadToolArchive = this.zippedTool()
         task.sha256.set("missing")
+
         val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Pinned SHA-256 of ${task.archiveUrl.get()} must be 64 lowercase hexadecimal digits!", message)
@@ -108,6 +112,7 @@ class DownloadToolArchiveTest {
     fun shouldNameTheUnavailableArchiveWhenTheDownloadFails(): Unit {
         val task: DownloadToolArchive = this.zippedTool()
         task.archiveUrl.set(this.directory.resolve(MISSING_ARCHIVE).toUri().toString())
+
         val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Tool archive ${task.archiveUrl.get()} could not be downloaded!", message)
@@ -120,6 +125,7 @@ class DownloadToolArchiveTest {
     fun shouldRequireTheRequestedExecutableInAVerifiedArchive(): Unit {
         val task: DownloadToolArchive = this.zippedTool()
         task.executablePath.set(MISSING_EXECUTABLE_PATH)
+
         val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Tool archive ${task.archiveUrl.get()} must contain missing to be installed!", message)
@@ -131,6 +137,7 @@ class DownloadToolArchiveTest {
         val archive: File = this.directory.resolve(SEVEN_ZIP_ARCHIVE).toFile()
         this.directory.resolve(ARCHIVE_FILE).toFile().copyTo(archive)
         task.archiveUrl.set(archive.toURI().toString())
+
         val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Tool archive ${task.archiveUrl.get()} must be a .zip, .tar.gz or .tar.xz file!", message)

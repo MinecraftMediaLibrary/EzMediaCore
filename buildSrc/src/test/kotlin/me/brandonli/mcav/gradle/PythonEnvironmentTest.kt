@@ -52,21 +52,13 @@ class PythonEnvironmentTest {
     @TempDir
     lateinit var directory: Path
 
-    abstract class RecordingEnvironment : PythonEnvironment() {
-
-        lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations
-            get() {
-                return this.recordedProcesses
-            }
-    }
-
     @Test
     fun shouldInstallThePinnedPythonIntoAFreshVirtualEnvironmentAndSyncItWithTheHashedLock(): Unit {
         val task: RecordingEnvironment = this.environment("numpy==2.5.3 \\\n    --hash=sha256:00\npytest==9.1.1 \\\n    --hash=sha256:11\n")
         val processes: RecordedProcesses = RecordedProcesses(UV_VERSION_OUTPUT)
         task.recordedProcesses = processes.operations
         task.install()
+
         val uv: String = this.directory.resolve(UV_EXECUTABLE).toString()
         val installation: File = this.directory.resolve(PYTHON_DIRECTORY).toFile()
         val virtualEnvironment: File = installation.resolve(VIRTUAL_ENVIRONMENT_DIRECTORY)
@@ -96,6 +88,7 @@ class PythonEnvironmentTest {
         val task: RecordingEnvironment = this.environment("numpy==2.5.2 \\\n    --hash=sha256:00\n")
         val processes: RecordedProcesses = RecordedProcesses(UV_VERSION_OUTPUT)
         task.recordedProcesses = processes.operations
+
         val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals(
@@ -122,5 +115,14 @@ class PythonEnvironmentTest {
         task.installationDirectory.set(this.directory.resolve(PYTHON_DIRECTORY).toFile())
         task.cacheDirectory.set(this.directory.resolve(UV_CACHE_DIRECTORY).toFile())
         return task
+    }
+
+    abstract class RecordingEnvironment : PythonEnvironment() {
+
+        lateinit var recordedProcesses: ExecOperations
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
     }
 }

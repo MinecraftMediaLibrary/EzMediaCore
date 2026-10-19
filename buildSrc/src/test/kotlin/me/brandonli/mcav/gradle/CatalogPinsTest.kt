@@ -57,6 +57,7 @@ class CatalogPinsTest {
         val archives: List<String> = hosts.flatMap { host -> this.archivesOf(host, zig, uv) }
         val pins: Properties = Properties()
         this.repository.resolve(TOOL_CHECKSUMS_PATH).inputStream().use(pins::load)
+
         val pinnedArchives: Set<String> = pins.stringPropertyNames()
         assertEquals(archives.toSet(), pinnedArchives)
     }

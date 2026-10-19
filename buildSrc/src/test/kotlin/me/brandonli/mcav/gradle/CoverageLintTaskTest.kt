@@ -63,6 +63,7 @@ class CoverageLintTaskTest {
     fun shouldFailOnAnExceptionThatMatchesNoUncoveredLine(): Unit {
         val task: CoverageLintTask = this.lint(uncoveredLine = false)
         this.directory.resolve(EXCEPTIONS_FILE).toFile().writeText(EXCEPTION_LINE)
+
         val failure: GradleException = assertThrows(GradleException::class.java) { task.lint() }
         val message: String? = failure.message
         assertEquals("0 lines are not fully covered by tests and 1 coverage exceptions are stale!", message)
@@ -79,12 +80,14 @@ class CoverageLintTaskTest {
         val source: File = this.directory.resolve(SOURCE_PATH).toFile()
         source.parentFile.mkdirs()
         source.writeText("serverOnly();\n")
+
         val coverage: File = this.directory.resolve(REPORT_FILE).toFile()
         val counts: String = if (uncoveredLine) "mi=\"1\" ci=\"0\"" else "mi=\"0\" ci=\"1\""
         coverage.writeText(
             "<report name=\"fixture\"><package name=\"sample\"><sourcefile name=\"Example.java\">" +
                 "<line nr=\"1\" $counts mb=\"0\" cb=\"0\"/></sourcefile></package></report>"
         )
+
         val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val sources: File = this.directory.resolve(SOURCES_DIRECTORY).toFile()
         val exceptions: File = this.directory.resolve(EXCEPTIONS_FILE).toFile()

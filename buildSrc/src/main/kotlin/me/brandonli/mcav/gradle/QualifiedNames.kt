@@ -18,8 +18,6 @@
 
 package me.brandonli.mcav.gradle
 
-data class QualifiedName(val line: Int, val name: String)
-
 object QualifiedNames {
 
     private const val NEW_LINE: Char = '\n'

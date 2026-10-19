@@ -155,6 +155,7 @@ class VariableNamesTest {
     fun shouldKeyAFileByItsNormalizedPathWhenTheGivenPathTakesADetour(@TempDir directory: Path): Unit {
         val file: File = directory.resolve(SOURCE_FILE).toFile()
         file.writeText("final class Sample {\n  private int x;\n}\n")
+
         val detour: File = directory.resolve(DETOUR_PATH).toFile()
 
         val found: Map<File, List<UndescriptiveName>> = VariableNames.findInFiles(listOf(detour))

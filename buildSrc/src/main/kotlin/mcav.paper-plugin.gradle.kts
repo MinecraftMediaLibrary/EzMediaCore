@@ -251,6 +251,7 @@ if (endToEnd) {
     repositories.addFirst(repository)
     tasks.named<WriteDependencySet>("writeDependencies") {
         this.dependsOn(downloadedModules.map { modules -> modules.map { "$it:$endToEndPublishTaskSuffix" } })
+
         val publicRepositories: List<String> = repositories.withType<MavenArtifactRepository>()
             .filter { it.url.scheme in publicRepositorySchemes }
             .map { it.url.toString() }
@@ -272,6 +273,7 @@ tasks.register<Test>(endToEndTestName) {
     this.description = "Runs the plugin on a headless Paper server; needs the internet, -Pmcav.e2e=true and -Pmcav.acceptMinecraftEula=true"
     this.testClassesDirs = endToEndTestSourceSet.output.classesDirs
     this.classpath = endToEndTestSourceSet.runtimeClasspath
+
     val pluginJar: Provider<RegularFile> = tasks.shadowJar.flatMap { it.archiveFile }
     this.inputs.file(pluginJar)
     this.outputs.upToDateWhen { false }
@@ -281,6 +283,7 @@ tasks.register<Test>(endToEndTestName) {
     this.systemProperty(acceptEulaTestProperty, providers.gradleProperty(acceptEulaProperty).getOrElse(disabledValue))
     this.systemProperty(repositoryDirectoryProperty, endToEndRepository.absolutePath)
     this.systemProperty(endToEndPortProperty, endToEndPort)
+
     val launcher: Provider<JavaLauncher> = JavaToolchains.launcher(project)
     val usesThisBuild: Boolean = endToEnd
     this.doFirst {
@@ -298,6 +301,7 @@ tasks.runServer {
     this.systemProperty(legacyFormattingWarningProperty, false)
     this.downloadPlugins {
         this.modrinth(voiceChatModrinthProject, CatalogUtils.versionOf(libs, voiceChatAlias))
+
         val spark: String = CatalogUtils.versionOf(libs, sparkAlias)
         this.url("$sparkJobUrl/${CatalogUtils.versionOf(libs, sparkBuildAlias)}/artifact/spark-bukkit/build/libs/spark-$spark-bukkit.jar")
     }

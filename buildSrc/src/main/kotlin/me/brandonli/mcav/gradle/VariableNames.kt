@@ -42,8 +42,6 @@ import javax.tools.SimpleJavaFileObject
 import javax.tools.StandardJavaFileManager
 import javax.tools.ToolProvider
 
-data class UndescriptiveName(val line: Long, val name: String, val kind: String, val member: String)
-
 object VariableNames {
 
     private const val SOURCE_URI: String = "string:///Source.java"
@@ -71,18 +69,18 @@ object VariableNames {
         return fileManager.use { manager -> this.findInFiles(files, manager) }
     }
 
-    private fun findInFiles(files: List<File>, manager: StandardJavaFileManager): Map<File, List<UndescriptiveName>> {
-        val objects: List<JavaFileObject> = manager.getJavaFileObjectsFromFiles(files).toList()
-        val byUri: Map<URI, File> = files.associateBy { file -> file.toPath().toUri() }
-        val names: Map<URI, List<UndescriptiveName>> = this.find(objects)
-        return names.mapKeys { (uri, _) -> byUri[uri] ?: File(uri) }
-    }
-
     private fun find(files: List<JavaFileObject>): Map<URI, List<UndescriptiveName>> {
         val compiler: JavaCompiler = ToolProvider.getSystemJavaCompiler()
         val task: JavacTask = compiler.getTask(null, null, { }, listOf("-proc:none"), null, files) as JavacTask
         val positions: SourcePositions = Trees.instance(task).sourcePositions
         return task.parse().associate { unit -> unit.sourceFile.toUri() to Scanner(unit, positions).names() }
+    }
+
+    private fun findInFiles(files: List<File>, manager: StandardJavaFileManager): Map<File, List<UndescriptiveName>> {
+        val objects: List<JavaFileObject> = manager.getJavaFileObjectsFromFiles(files).toList()
+        val byUri: Map<URI, File> = files.associateBy { file -> file.toPath().toUri() }
+        val names: Map<URI, List<UndescriptiveName>> = this.find(objects)
+        return names.mapKeys { (uri, _) -> byUri[uri] ?: File(uri) }
     }
 
     private class Scanner(
@@ -114,6 +112,17 @@ object VariableNames {
             return name in ABBREVIATIONS || (name.length == 1 && name[0].isLetter())
         }
 
+        private fun owner(): String {
+            val types: List<String> = generateSequence(this.currentPath) { it.parentPath }
+                .map { it.leaf }
+                .filterIsInstance<ClassTree>()
+                .map { it.simpleName.toString().ifEmpty { ANONYMOUS_CLASS } }
+                .toList()
+                .asReversed()
+            val packageName: String? = this.unit.packageName?.toString()
+            return (listOfNotNull(packageName) + types).joinToString(PACKAGE_SEPARATOR)
+        }
+
         private fun kind(node: VariableTree): String {
             val parent: Tree = this.currentPath.parentPath.leaf
             return when {
@@ -127,17 +136,6 @@ object VariableNames {
                 parent is BindingPatternTree -> "pattern variable"
                 else -> "local variable"
             }
-        }
-
-        private fun owner(): String {
-            val types: List<String> = generateSequence(this.currentPath) { it.parentPath }
-                .map { it.leaf }
-                .filterIsInstance<ClassTree>()
-                .map { it.simpleName.toString().ifEmpty { ANONYMOUS_CLASS } }
-                .toList()
-                .asReversed()
-            val packageName: String? = this.unit.packageName?.toString()
-            return (listOfNotNull(packageName) + types).joinToString(PACKAGE_SEPARATOR)
         }
     }
 }

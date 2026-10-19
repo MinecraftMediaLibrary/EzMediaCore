@@ -97,6 +97,7 @@ afterEvaluate {
                 url = projectUrl
             }
         }
+
         if (settings.bundledJar.isPresent) {
             artifact(settings.bundledJar.get())
             artifact(tasks.named("sourcesJar").get())
@@ -104,10 +105,12 @@ afterEvaluate {
         } else {
             from(components["java"])
         }
+
         if (!settings.gradleModuleMetadata.get()) {
             suppressAllPomMetadataWarnings()
         }
     }
+
     val generatedPom: TaskProvider<GenerateMavenPom> = tasks.named<GenerateMavenPom>("generatePomFileForMavenPublication")
     val publishedPom: String = "-D$publishedPomProperty=" + generatedPom.get().destination.absolutePath
     tasks.named<Test>("test") {

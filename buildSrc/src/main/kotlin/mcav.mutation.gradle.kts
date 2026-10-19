@@ -43,6 +43,7 @@ pitest {
     outputFormats = setOf("HTML", "XML")
     timestampedReports = false
     jvmArgs = provider { TestRuntimeProfile.forMutation(tasks.test.get()) }
+
     val testJavaHome: Provider<String> = providers.gradleProperty(testJavaHomeProperty)
     if (testJavaHome.isPresent) {
         jvmPath = file(HostPlatform.current().javaExecutable(testJavaHome.get()))

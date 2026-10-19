@@ -99,8 +99,10 @@ class LockPythonRequirementsTest {
         val task: RecordingLock = this.lockTask()
         val lock: File = this.directory.resolve(LOCK_FILE).toFile()
         lock.writeText("numpy==2.5.2\n")
+
         val processes: RecordedProcesses = RecordedProcesses("uv 0.12.22\n")
         task.recordedProcesses = processes.operations
+
         val failure: GradleException = assertThrows(GradleException::class.java) { task.lock() }
         val message: String? = failure.message
         assertEquals("${this.directory.resolve(UV_EXECUTABLE)} reports uv 0.12.22, which is not the uv 0.12.23 this build pins!", message)

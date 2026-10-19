@@ -104,16 +104,6 @@ abstract class PythonEnvironment : DefaultTask() {
         this.syncPackages(uv, virtualEnvironment, lock)
     }
 
-    private fun syncPackages(uv: File, virtualEnvironment: File, lock: File): Unit {
-        val pythonPath: String = HostPlatform.current().virtualEnvironmentExecutable(PythonTask.PYTHON_EXECUTABLE)
-        val virtualEnvironmentPython: File = virtualEnvironment.resolve(pythonPath)
-        val arguments: List<Any> = listOf(
-            "pip", "sync", "--python", virtualEnvironmentPython, "--require-hashes",
-            "--only-binary", ":all:", "--default-index", UvEnvironment.PACKAGE_INDEX, lock
-        )
-        this.runUv(uv, arguments)
-    }
-
     private fun runUv(uv: File, arguments: List<Any>): Unit {
         val installation: File = this.installationDirectory.get().asFile
         val cache: File = this.cacheDirectory.get().asFile
@@ -122,5 +112,15 @@ abstract class PythonEnvironment : DefaultTask() {
             this.commandLine(listOf(uv) + arguments)
             this.environment(environment)
         }
+    }
+
+    private fun syncPackages(uv: File, virtualEnvironment: File, lock: File): Unit {
+        val pythonPath: String = HostPlatform.current().virtualEnvironmentExecutable(PythonTask.PYTHON_EXECUTABLE)
+        val virtualEnvironmentPython: File = virtualEnvironment.resolve(pythonPath)
+        val arguments: List<Any> = listOf(
+            "pip", "sync", "--python", virtualEnvironmentPython, "--require-hashes",
+            "--only-binary", ":all:", "--default-index", UvEnvironment.PACKAGE_INDEX, lock
+        )
+        this.runUv(uv, arguments)
     }
 }

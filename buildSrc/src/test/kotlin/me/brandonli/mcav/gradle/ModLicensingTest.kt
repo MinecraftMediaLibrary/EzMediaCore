@@ -56,9 +56,11 @@ class ModLicensingTest {
         val project: File = this.directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'mcav-mod'\n")
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.node'; id 'mcav.mod' }\nversion = '1.0.0-SNAPSHOT'\n")
+
         val catalog: File = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
+
         val license: String = "Fixture license: preserve the whole file.\n"
         val notices: String = "Fixture third-party notices: preserve the whole file.\n"
         project.resolve(LICENSE_FILE).writeText(license)

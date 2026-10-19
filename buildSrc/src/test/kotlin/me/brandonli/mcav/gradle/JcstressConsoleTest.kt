@@ -96,10 +96,12 @@ class JcstressConsoleTest {
         tee.write("[OK] one\n".toByteArray())
         tee.write('x'.code)
         tee.close()
+
         val consoleClosed: Boolean = closed
         assertFalse(consoleClosed, "the build's console stays open for everything after the run")
 
         shown.write('!'.code)
+
         val shownText: String = shown.toString()
         assertEquals("[OK] one\nx!", shownText)
 
@@ -128,6 +130,7 @@ class JcstressConsoleTest {
 
         val written: String = file.readText()
         tee.close()
+
         val consoleFlushed: Boolean = flushed
         assertTrue(consoleFlushed)
 

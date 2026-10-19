@@ -57,12 +57,15 @@ class NativeResourcesTest {
         val project: File = this.directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'native-resources'\ninclude 'producer', 'consumer'\n")
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.python' }\n")
+
         val catalog: File = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
+
         val producer: File = project.resolve(PRODUCER_PROJECT).apply { this.mkdirs() }
         val sources: File = producer.resolve(NATIVE_SOURCES_PATH).apply { this.mkdirs() }
         sources.resolve(NATIVE_SOURCE).writeText("native fixture bytes")
+
         val compiler: File = project.resolve(ZIG_EXECUTABLE).apply { this.writeText("unused fixture compiler") }
         producer.resolve(BUILD_SCRIPT).writeText("""
             plugins { id 'mcav.natives' }
@@ -75,6 +78,7 @@ class NativeResourcesTest {
                 }
             }
         """.trimIndent())
+
         val consumer: File = project.resolve(CONSUMER_PROJECT).apply { this.mkdirs() }
         consumer.resolve(BUILD_SCRIPT).writeText("""
             plugins {
@@ -89,6 +93,7 @@ class NativeResourcesTest {
             }
             tasks.named('shadowJar') { from(project.configurations.natives) }
         """.trimIndent())
+
         val runner: GradleRunner = GradleRunner.create().withProjectDir(project).withPluginClasspath()
             .withEnvironment(System.getenv() + ("ZIG" to compiler.absolutePath))
             .withArguments(":consumer:shadowJar", "--stacktrace")
@@ -106,6 +111,7 @@ class NativeResourcesTest {
         assertEquals(TaskOutcome.UP_TO_DATE, unchangedOutcome)
 
         sources.resolve(NATIVE_SOURCE).writeText("changed native fixture bytes")
+
         val changedOutcome: TaskOutcome = runner.build().task(":producer:buildMcv2Natives")!!.outcome
         assertEquals(TaskOutcome.SUCCESS, changedOutcome)
 

@@ -47,11 +47,13 @@ class NodeInstallationTest {
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'node-fixture'\ninclude 'first', 'second'\n")
         Path.of(REPOSITORY_DIRECTORY, KOTLIN_BUILD_SCRIPT).toFile().copyTo(project.resolve(KOTLIN_BUILD_SCRIPT))
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(project.resolve(CATALOG_PATH))
+
         for (name in listOf("first", "second")) {
             val module: File = project.resolve(name)
             module.mkdirs()
             module.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.formatting'; id 'mcav.script-testing' }\n")
         }
+
         val result: BuildResult = GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()

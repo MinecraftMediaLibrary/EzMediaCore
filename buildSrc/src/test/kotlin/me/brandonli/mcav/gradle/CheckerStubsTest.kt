@@ -56,6 +56,7 @@ class CheckerStubsTest {
         assertEquals(emptyList<String>(), withoutFolders)
 
         this.directory.resolve(GUAVA_STUBS).toFile().mkdirs()
+
         val withGuava: List<String> = this.stubNamesOf(BUKKIT_PROJECT)
         assertEquals(listOf(GUAVA_STUBS), withGuava)
 

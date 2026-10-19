@@ -95,6 +95,7 @@ class ModuleClassesTest {
         File(classes, VM_PACKAGE_PATH).mkdirs()
         File(classes, VM_PLAYER_CLASS_FILE).writeBytes(ByteArray(0))
         File(classes, VM_NOTES_FILE).writeText(NOT_A_CLASS)
+
         val jar: File = this.jar(COMMON_JAR, MCAV_CLASS, "com/google/common/base/Preconditions")
         val available: Set<String> = ModuleClasses.available(listOf(classes, jar, this.folder.resolve(MISSING_JAR).toFile()))
         assertEquals(setOf("me/brandonli/mcav/vm/VMPlayer", MCAV_CLASS), available)
@@ -113,6 +114,7 @@ class ModuleClassesTest {
                 PACK_SERVER_CLASS
             )
         )
+
         val modules: List<File> = listOf(
             this.jar(COMMON_JAR, MCAV_CLASS),
             this.jar(BUKKIT_JAR, PACK_SERVER_CLASS)
@@ -133,6 +135,7 @@ class ModuleClassesTest {
                 PACK_SERVER_CLASS
             )
         )
+
         val project: Project = ProjectBuilder.builder().withProjectDir(this.folder.resolve(PROJECT_DIRECTORY).toFile()).build()
         val task: RequiredModuleClassesTask = project.tasks.register("requiredModuleClasses", RequiredModuleClassesTask::class.java).get()
         task.pluginClasses.from(plugin)
@@ -155,15 +158,19 @@ class ModuleClassesTest {
         for (project in listOf(root, module, other)) {
             project.pluginManager.apply(JAVA_LIBRARY_PLUGIN)
         }
+
         val libraries: File = this.folder.resolve(LIBRARIES_DIRECTORY).toFile()
         libraries.mkdirs()
         libraries.resolve("external-1.0.jar").writeText("")
         root.repositories.flatDir { this.dirs(libraries) }
+
         for (path in listOf(module.path, other.path)) {
             val dependency: Dependency = root.dependencies.project(mapOf("path" to path))
             root.dependencies.add(IMPLEMENTATION_CONFIGURATION, dependency)
         }
+
         root.dependencies.add(IMPLEMENTATION_CONFIGURATION, "fixture:external:1.0")
+
         val classpath: Configuration = root.configurations.getByName("compileClasspath")
 
         val artifacts: FileCollection = ModuleClasses.moduleArtifacts(classpath, listOf(module.path))

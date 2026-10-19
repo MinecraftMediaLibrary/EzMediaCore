@@ -47,6 +47,7 @@ dependencies {
 val writeToolsClasspath: TaskProvider<Task> = tasks.register("writeMcv2ToolsClasspath") {
     this.group = "verification"
     this.description = "Writes the test runtime classpath that Mcv2ToolsTest starts Mcv2Tools with"
+
     val output: Provider<RegularFile> = layout.buildDirectory.file(toolsClasspathPath)
     val classpath: Provider<FileCollection> = sourceSets.test.map { it.runtimeClasspath }
     this.inputs.files(classpath)

@@ -46,19 +46,11 @@ class ClangFormatTest {
     @TempDir
     lateinit var directory: Path
 
-    abstract class RecordingFormat : ClangFormat() {
-
-        lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations
-            get() {
-                return this.recordedProcesses
-            }
-    }
-
     @Test
     fun shouldFailTheCheckOnEveryUnformattedLineWithoutChangingTheSources(): Unit {
         val processes: RecordedProcesses = RecordedProcesses(VERSION_OUTPUT)
         this.format(false, processes)
+
         val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(
@@ -73,6 +65,7 @@ class ClangFormatTest {
     fun shouldRewriteTheSourcesInPlace(): Unit {
         val processes: RecordedProcesses = RecordedProcesses(VERSION_OUTPUT)
         this.format(true, processes)
+
         val expected: List<List<String>> =
             listOf(listOf(this.clangFormat(), VERSION_OPTION), listOf(this.clangFormat(), "-i", STYLE_OPTION) + this.sources())
         val commands: List<List<String>> = processes.commands
@@ -93,14 +86,6 @@ class ClangFormatTest {
         assertEquals(listOf(listOf(this.clangFormat(), VERSION_OPTION)), commands)
     }
 
-    private fun clangFormat(): String {
-        return this.directory.resolve(CLANG_FORMAT_EXECUTABLE).toString()
-    }
-
-    private fun sources(): List<String> {
-        return listOf(FIRST_SOURCE, SECOND_SOURCE).map { this.directory.resolve(it).toString() }
-    }
-
     private fun format(rewrite: Boolean, processes: RecordedProcesses): Unit {
         val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val task: RecordingFormat = project.tasks.register("format", RecordingFormat::class.java).get()
@@ -112,5 +97,22 @@ class ClangFormatTest {
         task.rewrite.set(rewrite)
         task.recordedProcesses = processes.operations
         task.format()
+    }
+
+    private fun clangFormat(): String {
+        return this.directory.resolve(CLANG_FORMAT_EXECUTABLE).toString()
+    }
+
+    private fun sources(): List<String> {
+        return listOf(FIRST_SOURCE, SECOND_SOURCE).map { this.directory.resolve(it).toString() }
+    }
+
+    abstract class RecordingFormat : ClangFormat() {
+
+        lateinit var recordedProcesses: ExecOperations
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
     }
 }

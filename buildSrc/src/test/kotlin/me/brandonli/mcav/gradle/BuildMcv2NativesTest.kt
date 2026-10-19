@@ -102,6 +102,7 @@ class BuildMcv2NativesTest {
         assertTrue(staleBeforeWork)
 
         this.submitted.single().execute()
+
         val compileCount: Int = this.commands.count { it.first() == COMPILE_COMMAND }
         assertEquals(22, compileCount)
 
@@ -116,6 +117,7 @@ class BuildMcv2NativesTest {
     fun shouldBuildAllTargetsWithTheirBaselineAndOnlyTheirOwnExtensions(): Unit {
         val task: RecordingBuild = this.compiler(TEST_VERSION)
         this.buildWithWorkers(task)
+
         val links: List<List<String>> = this.commands.filter { it.first() == LINK_COMMAND }
         val targets: Set<String> = links.map { it[2] }.toSet()
         assertEquals(setOf("x86_64-linux-gnu.2.28", "aarch64-linux-gnu.2.28", "x86_64-windows-gnu",
@@ -172,6 +174,7 @@ class BuildMcv2NativesTest {
         val mostAtOnce: AtomicInteger = AtomicInteger()
         val task: RecordingBuild = this.compiler(TEST_VERSION, 2) { this.compileAlongside(running, mostAtOnce, bothStarted) }
         this.buildWithWorkers(task)
+
         val mostCompilesAtOnce: Int = mostAtOnce.get()
         assertEquals(2, mostCompilesAtOnce)
 
@@ -212,48 +215,6 @@ class BuildMcv2NativesTest {
         assertTrue(nothingSubmitted)
     }
 
-    private fun compileAlongside(running: AtomicInteger, mostAtOnce: AtomicInteger, bothStarted: CountDownLatch): Unit {
-        mostAtOnce.accumulateAndGet(running.incrementAndGet(), ::maxOf)
-        bothStarted.countDown()
-        bothStarted.await(30, TimeUnit.SECONDS)
-        running.decrementAndGet()
-    }
-
-    private fun failOnAvx2(arguments: List<String>, failure: IllegalStateException): Unit {
-        if (AVX2_SOURCE in arguments) {
-            throw failure
-        }
-    }
-
-    private fun assertCompileFlags(command: List<String>): Unit {
-        val baseline: Boolean = "-mcpu=baseline" in command
-        assertTrue(baseline)
-
-        val strict: Boolean = "-ffp-contract=off" in command && "-fwrapv" in command && "-fno-strict-aliasing" in command
-        assertTrue(strict)
-
-        val hostTuned: Boolean = command.any { "native" == it.substringAfter('=') || it == "-ffast-math" }
-        assertFalse(hostTuned)
-
-        val source: String = command[command.indexOf("-c") + 1]
-        val avx2: Boolean = "-mavx2" in command
-        assertEquals(source == AVX2_SOURCE, avx2)
-
-        val avx512: Boolean = "-mavx512f" in command
-        assertEquals(source == AVX512_SOURCE, avx512)
-
-        val sve: Boolean = "-mcpu=baseline+sve" in command
-        assertEquals(source.startsWith(SVE_SOURCE_PREFIX), sve)
-
-        val branchesAligned: Boolean = "-mbranches-within-32B-boundaries" in command
-        assertEquals(command[2].startsWith("x86_64") && MACOS !in command[2], branchesAligned)
-    }
-
-    private fun buildWithWorkers(task: RecordingBuild): Unit {
-        task.build()
-        this.submitted.forEach { it.execute() }
-    }
-
     private fun compiler(version: String, processCount: Int = 4, onCompile: (List<String>) -> Unit = {}): RecordingBuild {
         val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val task: RecordingBuild = project.tasks.register("natives", RecordingBuild::class.java).get()
@@ -290,6 +251,7 @@ class BuildMcv2NativesTest {
 
         val output: File = File(arguments[arguments.indexOf("-o") + 1])
         output.writeText("abc")
+
         if (output.extension == "dll") {
             output.resolveSibling("mcv2kernels.lib").writeText("unused")
         }
@@ -314,6 +276,48 @@ class BuildMcv2NativesTest {
         val action: Action<Parameters> = invocation.getArgument<Action<Parameters>>(1)
         action.execute(parameters)
         this.submitted.add(RecordingWork(parameters, this.processes.operations))
+    }
+
+    private fun buildWithWorkers(task: RecordingBuild): Unit {
+        task.build()
+        this.submitted.forEach { it.execute() }
+    }
+
+    private fun assertCompileFlags(command: List<String>): Unit {
+        val baseline: Boolean = "-mcpu=baseline" in command
+        assertTrue(baseline)
+
+        val strict: Boolean = "-ffp-contract=off" in command && "-fwrapv" in command && "-fno-strict-aliasing" in command
+        assertTrue(strict)
+
+        val hostTuned: Boolean = command.any { "native" == it.substringAfter('=') || it == "-ffast-math" }
+        assertFalse(hostTuned)
+
+        val source: String = command[command.indexOf("-c") + 1]
+        val avx2: Boolean = "-mavx2" in command
+        assertEquals(source == AVX2_SOURCE, avx2)
+
+        val avx512: Boolean = "-mavx512f" in command
+        assertEquals(source == AVX512_SOURCE, avx512)
+
+        val sve: Boolean = "-mcpu=baseline+sve" in command
+        assertEquals(source.startsWith(SVE_SOURCE_PREFIX), sve)
+
+        val branchesAligned: Boolean = "-mbranches-within-32B-boundaries" in command
+        assertEquals(command[2].startsWith("x86_64") && MACOS !in command[2], branchesAligned)
+    }
+
+    private fun compileAlongside(running: AtomicInteger, mostAtOnce: AtomicInteger, bothStarted: CountDownLatch): Unit {
+        mostAtOnce.accumulateAndGet(running.incrementAndGet(), ::maxOf)
+        bothStarted.countDown()
+        bothStarted.await(30, TimeUnit.SECONDS)
+        running.decrementAndGet()
+    }
+
+    private fun failOnAvx2(arguments: List<String>, failure: IllegalStateException): Unit {
+        if (AVX2_SOURCE in arguments) {
+            throw failure
+        }
     }
 
     abstract class RecordingBuild : BuildMcv2Natives() {

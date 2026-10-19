@@ -69,6 +69,7 @@ val jcstressJar: TaskProvider<Jar> = tasks.register<Jar>("jcstressJar") {
         this.attributes("Main-Class" to jcstressMainClass)
     }
     this.from(sourceSets.main.get().output)
+
     val runtimeClasspath: NamedDomainObjectProvider<Configuration> = configurations.runtimeClasspath
     this.dependsOn(runtimeClasspath)
     this.from(runtimeClasspath.map { classpath -> classpath.map { if (it.isDirectory) it else zipTree(it) } }) {
@@ -87,17 +88,22 @@ val cpus: String = providers.gradleProperty(cpusProperty).getOrElse(defaultCpus)
 tasks.register<JavaExec>("jcstressTest") {
     this.group = "verification"
     this.description = "Runs the jcstress concurrency tests; -Pjcstress.mode, -Pjcstress.timeBudgetMinutes, -Pjcstress.tests"
+
     val jar: Provider<RegularFile> = jcstressJar.flatMap { it.archiveFile }
     this.inputs.file(jar)
     this.classpath = files(jar)
     this.mainClass = jcstressMainClass
+
     val workingDirectory: Provider<Directory> = layout.buildDirectory.dir(workingPath)
     this.workingDir = workingDirectory.get().asFile
+
     val arguments: MutableList<String> = mutableListOf("-m", mode, "-c", cpus, "-r", resultsPath, "-v")
     if (selection.isPresent) {
         arguments += listOf("-t", selection.get())
     }
+
     this.args(arguments)
+
     val budget: Int? = budgetMinutes.orNull
     val tests: String? = selection.orNull
     val cpuCount: Int = cpus.toInt()
@@ -107,6 +113,7 @@ tasks.register<JavaExec>("jcstressTest") {
     this.doFirst {
         workingDirectory.get().asFile.mkdirs()
         this@register.standardOutput = JcstressConsole.tee(System.out, console.get().asFile)
+
         if (budget != null) {
             val testCount: Int = JcstressBudget.countTests(jar.get().asFile, tests)
             val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds(stressMode, budget, testCount, cpuCount)

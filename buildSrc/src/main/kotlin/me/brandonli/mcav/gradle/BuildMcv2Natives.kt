@@ -148,16 +148,6 @@ abstract class BuildMcv2Natives : DefaultTask() {
 
     abstract class Work : WorkAction<Work.Parameters> {
 
-        interface Parameters : WorkParameters {
-            val zigExecutable: RegularFileProperty
-            val sourcesDirectory: DirectoryProperty
-            val outputDirectory: DirectoryProperty
-            val objectsDirectory: DirectoryProperty
-            val cacheDirectory: DirectoryProperty
-            val compilerFlags: ListProperty<String>
-            val processCount: Property<Int>
-        }
-
         @get:Inject
         protected abstract val processes: ExecOperations
 
@@ -204,6 +194,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
             units["sse2"] = emptyList()
             units["sse41"] = listOf("-msse4.1")
             units["avx2"] = listOf("-mavx2")
+
             if (system == MACOS) {
                 return
             }
@@ -217,6 +208,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
 
         private fun addArmUnits(units: MutableMap<String, List<String>>, system: String): Unit {
             units["neon"] = emptyList()
+
             if (system != LINUX) {
                 return
             }
@@ -343,6 +335,16 @@ abstract class BuildMcv2Natives : DefaultTask() {
                 get() {
                     return "${this.system}-${this.architecture}"
                 }
+        }
+
+        interface Parameters : WorkParameters {
+            val zigExecutable: RegularFileProperty
+            val sourcesDirectory: DirectoryProperty
+            val outputDirectory: DirectoryProperty
+            val objectsDirectory: DirectoryProperty
+            val cacheDirectory: DirectoryProperty
+            val compilerFlags: ListProperty<String>
+            val processCount: Property<Int>
         }
     }
 }

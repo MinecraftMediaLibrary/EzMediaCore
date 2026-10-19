@@ -99,6 +99,7 @@ class PublishingPluginTest {
     @Test
     fun shouldLetTheMutationTestJvmReadTheGeneratedPublication(): Unit {
         this.prepareProject()
+
         val catalog: File = this.directory.resolve(CATALOG_PATH).toFile()
         catalog.parentFile.mkdirs()
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
@@ -157,6 +158,7 @@ class PublishingPluginTest {
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.publishing' }\ngroup = 'me.brandonli'\nversion = '1.2.3'\n")
         project.resolve(LICENSE_FILE).writeText("Fixture license: preserve the complete root file.\n")
         project.resolve(NOTICES_FILE).writeText("Fixture notices: preserve the complete root file.\n")
+
         val source: File = project.resolve(SOURCE_PATH)
         source.parentFile.mkdirs()
         source.writeText("/** A public example for the documentation jar. */ public class Example {}\n")

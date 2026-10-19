@@ -25,44 +25,6 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
 
-class CoverageException(val path: String, val sourceLine: String, val reason: String) {
-
-    var used: Boolean = false
-}
-
-object CoverageExceptions {
-
-    private const val SEPARATOR: String = " | "
-
-    private const val COMMENT_PREFIX: String = "#"
-
-    fun read(file: File): List<CoverageException> {
-        if (!file.isFile) {
-            return emptyList()
-        }
-
-        val lines: List<String> = file.readLines()
-        val entries: List<String> = lines.map(String::trim)
-            .filter { it.isNotEmpty() && !it.startsWith(COMMENT_PREFIX) }
-        return entries.map { entry -> this.parse(file, entry) }
-    }
-
-    private fun parse(file: File, entry: String): CoverageException {
-        val first: Int = entry.indexOf(SEPARATOR)
-        val last: Int = entry.lastIndexOf(SEPARATOR)
-        val malformed: Boolean = first < 0 || last < first + SEPARATOR.length
-        if (malformed) {
-            val message: String = "Coverage exception '$entry' in $file must read 'path | source line | reason'!"
-            throw IllegalArgumentException(message)
-        }
-
-        val path: String = entry.substring(0, first)
-        val sourceLine: String = entry.substring(first + SEPARATOR.length, last)
-        val reason: String = entry.substring(last + SEPARATOR.length)
-        return CoverageException(path, sourceLine, reason)
-    }
-}
-
 object CoverageReport {
 
     private const val LOAD_EXTERNAL_DTD: String = "http://apache.org/xml/features/nonvalidating/load-external-dtd"

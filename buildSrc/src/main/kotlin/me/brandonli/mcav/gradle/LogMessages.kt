@@ -18,8 +18,6 @@
 
 package me.brandonli.mcav.gradle
 
-data class ConcatenatedLogMessage(val line: Int, val call: String)
-
 object LogMessages {
 
     private const val RECEIVER_GROUP: Int = 1
