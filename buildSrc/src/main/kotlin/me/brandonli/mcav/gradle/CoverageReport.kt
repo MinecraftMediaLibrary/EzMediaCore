@@ -46,9 +46,12 @@ object CoverageExceptions {
     private fun parse(file: File, entry: String): CoverageException {
         val first: Int = entry.indexOf(SEPARATOR)
         val last: Int = entry.lastIndexOf(SEPARATOR)
-        require(first >= 0 && last >= first + SEPARATOR.length) {
-            "Coverage exception '$entry' in $file must read 'path | source line | reason'!"
+        val malformed: Boolean = first < 0 || last < first + SEPARATOR.length
+        if (malformed) {
+            val message: String = "Coverage exception '$entry' in $file must read 'path | source line | reason'!"
+            throw IllegalArgumentException(message)
         }
+
         val path: String = entry.substring(0, first)
         val sourceLine: String = entry.substring(first + SEPARATOR.length, last)
         val reason: String = entry.substring(last + SEPARATOR.length)
