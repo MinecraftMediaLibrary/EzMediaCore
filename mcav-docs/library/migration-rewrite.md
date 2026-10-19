@@ -98,6 +98,8 @@ Names that abbreviated a word now spell it out:
 | `IOUtils.MAX_IMAGE_BYTES` | `IoUtils.MAXIMUM_IMAGE_BYTES` |
 | `PixelMapper.MIN_STRENGTH` | `MINIMUM_STRENGTH` |
 | `PixelMapper.MAX_STRENGTH` | `MAXIMUM_STRENGTH` |
+| `VMConfiguration.buildArgs()` | `buildArguments()` |
+| `VMSettings.getTargetFps()` | `getTargetFrameRate()` |
 | `VolumeFilter.MAX_VOLUME` | `MAXIMUM_VOLUME` |
 | `WinInstallationStrategy` | `WindowsInstallationStrategy` |
 

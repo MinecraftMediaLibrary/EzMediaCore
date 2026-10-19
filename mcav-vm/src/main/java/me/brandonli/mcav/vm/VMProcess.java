@@ -103,10 +103,10 @@ final class VMProcess {
   private static final List<String> NETWORK_OPTIONS = List.of("nic", "netdev", "net", "nodefaults");
   private static final String RESTRICTED_NETWORK = "user,restrict=on";
   static final InetAddress LOOPBACK = InetAddress.ofLiteral(LOCALHOST);
-  private static final long START_TIMEOUT_MILLIS = 60_000L;
-  private static final long POLL_MILLIS = 100L;
+  private static final long START_TIMEOUT_MILLISECONDS = 60_000L;
+  private static final long POLL_MILLISECONDS = 100L;
   private static final long STOP_TIMEOUT_SECONDS = 10L;
-  private static final long OUTPUT_TIMEOUT_MILLIS = 2_000L;
+  private static final long OUTPUT_TIMEOUT_MILLISECONDS = 2_000L;
   private static final int OUTPUT_TAIL_LINES = 40;
   private static final int OUTPUT_LINE_CHARACTERS = 4096;
   private static final String SOFTWARE_ACCELERATOR = "tcg";
@@ -119,8 +119,8 @@ final class VMProcess {
   private final Launcher launcher;
   private final Os os;
   private final Path kvmDevice;
-  private final long startTimeoutNanos;
-  private final LongSupplier nanoClock;
+  private final long startTimeoutNanoseconds;
+  private final LongSupplier nanosecondClock;
   private final SecretFolder secretFolder;
   private final String password;
   private final Deque<String> outputTail;
@@ -152,7 +152,7 @@ final class VMProcess {
       new RecordingLauncher(QemuProcessRecords.ofUser()),
       currentOs,
       KVM_DEVICE,
-      START_TIMEOUT_MILLIS,
+      START_TIMEOUT_MILLISECONDS,
       () -> createSecretFolder(TEMPORARY_FOLDER, POSIX)
     );
   }
@@ -160,15 +160,15 @@ final class VMProcess {
   /**
    * Constructs a process with its environment replaced, so tests can run without QEMU.
    *
-   * @param settings           the display settings
-   * @param architecture       the guest architecture
-   * @param executable         the QEMU program
-   * @param configuration      the QEMU options
-   * @param launcher           starts the process from its command line
-   * @param os                 the operating system, which decides the accelerator
-   * @param kvmDevice          the KVM device, used on Linux
-   * @param startTimeoutMillis how long the display may take to accept connections
-   * @param secretFolder       creates the folder of the password file of a start
+   * @param settings                 the display settings
+   * @param architecture             the guest architecture
+   * @param executable               the QEMU program
+   * @param configuration            the QEMU options
+   * @param launcher                 starts the process from its command line
+   * @param os                       the operating system, which decides the accelerator
+   * @param kvmDevice                the KVM device, used on Linux
+   * @param startTimeoutMilliseconds how long the display may take to accept connections
+   * @param secretFolder             creates the folder of the password file of a start
    */
   @VisibleForTesting
   VMProcess(
@@ -179,10 +179,21 @@ final class VMProcess {
     final Launcher launcher,
     final Os os,
     final Path kvmDevice,
-    final long startTimeoutMillis,
+    final long startTimeoutMilliseconds,
     final SecretFolder secretFolder
   ) {
-    this(settings, architecture, executable, configuration, launcher, os, kvmDevice, startTimeoutMillis, System::nanoTime, secretFolder);
+    this(
+      settings,
+      architecture,
+      executable,
+      configuration,
+      launcher,
+      os,
+      kvmDevice,
+      startTimeoutMilliseconds,
+      System::nanoTime,
+      secretFolder
+    );
   }
 
   /** Constructs a process with a monotonic clock for deterministic startup deadline checks. */
@@ -195,8 +206,8 @@ final class VMProcess {
     final Launcher launcher,
     final Os os,
     final Path kvmDevice,
-    final long startTimeoutMillis,
-    final LongSupplier nanoClock,
+    final long startTimeoutMilliseconds,
+    final LongSupplier nanosecondClock,
     final SecretFolder secretFolder
   ) {
     this.settings = settings;
@@ -206,8 +217,8 @@ final class VMProcess {
     this.launcher = launcher;
     this.os = os;
     this.kvmDevice = kvmDevice;
-    this.startTimeoutNanos = TimeUnit.MILLISECONDS.toNanos(startTimeoutMillis);
-    this.nanoClock = nanoClock;
+    this.startTimeoutNanoseconds = TimeUnit.MILLISECONDS.toNanos(startTimeoutMilliseconds);
+    this.nanosecondClock = nanosecondClock;
     this.secretFolder = secretFolder;
     this.password = createPassword();
     this.outputTail = new ArrayDeque<>();
@@ -711,9 +722,9 @@ final class VMProcess {
   private void waitForDisplay(final Process started) {
     final int port = this.settings.getPort();
     final InetSocketAddress address = new InetSocketAddress(LOOPBACK, port);
-    final long start = this.nanoClock.getAsLong();
+    final long start = this.nanosecondClock.getAsLong();
 
-    while (this.nanoClock.getAsLong() - start < this.startTimeoutNanos) {
+    while (this.nanosecondClock.getAsLong() - start < this.startTimeoutNanoseconds) {
       this.checkAlive(started);
       final boolean reachable = isReachable(address);
       if (reachable) {
@@ -748,15 +759,15 @@ final class VMProcess {
 
   private void awaitOutput() {
     final Thread drain = Objects.requireNonNull(this.drainThread, "Output of QEMU must be drained while QEMU runs!");
-    final long timeoutNanos = TimeUnit.MILLISECONDS.toNanos(OUTPUT_TIMEOUT_MILLIS);
-    final long deadline = System.nanoTime() + timeoutNanos;
+    final long timeoutNanoseconds = TimeUnit.MILLISECONDS.toNanos(OUTPUT_TIMEOUT_MILLISECONDS);
+    final long deadline = System.nanoTime() + timeoutNanoseconds;
     boolean interrupted = Thread.interrupted();
     try {
       while (drain.isAlive()) {
         final long remaining = deadline - System.nanoTime();
         if (remaining <= 0) {
           drain.interrupt();
-          LOGGER.warn("QEMU output reader did not stop within {} ms.", OUTPUT_TIMEOUT_MILLIS);
+          LOGGER.warn("QEMU output reader did not stop within {} ms.", OUTPUT_TIMEOUT_MILLISECONDS);
           return;
         }
         try {
@@ -778,7 +789,7 @@ final class VMProcess {
    */
   private void waitBeforeNextAttempt(final Process started) {
     try {
-      started.waitFor(POLL_MILLIS, TimeUnit.MILLISECONDS);
+      started.waitFor(POLL_MILLISECONDS, TimeUnit.MILLISECONDS);
     } catch (final InterruptedException exception) {
       final Thread current = Thread.currentThread();
       current.interrupt();
@@ -790,7 +801,7 @@ final class VMProcess {
 
   private static boolean isReachable(final InetSocketAddress address) {
     try (final Socket socket = new Socket()) {
-      socket.connect(address, (int) POLL_MILLIS * 5);
+      socket.connect(address, (int) POLL_MILLISECONDS * 5);
       return true;
     } catch (final IOException exception) {
       return false;
@@ -855,8 +866,8 @@ final class VMProcess {
    * @param current the process whose termination was requested
    */
   private static void awaitForcedExit(final Process current) {
-    final long timeoutNanos = TimeUnit.SECONDS.toNanos(STOP_TIMEOUT_SECONDS);
-    final long deadline = System.nanoTime() + timeoutNanos;
+    final long timeoutNanoseconds = TimeUnit.SECONDS.toNanos(STOP_TIMEOUT_SECONDS);
+    final long deadline = System.nanoTime() + timeoutNanoseconds;
     boolean interrupted = Thread.interrupted();
     try {
       while (current.isAlive()) {
@@ -914,8 +925,8 @@ final class VMProcess {
 
     @Override
     public void ended(final Process process) {
-      final long pid = process.pid();
-      this.records.remove(pid);
+      final long processId = process.pid();
+      this.records.remove(processId);
     }
   }
 

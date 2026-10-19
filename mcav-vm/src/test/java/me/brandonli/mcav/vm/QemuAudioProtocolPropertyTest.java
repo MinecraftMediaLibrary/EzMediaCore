@@ -69,14 +69,14 @@ final class QemuAudioProtocolPropertyTest {
     @ForAll @Size(max = 20) final List<@From("messages") Sent> messages,
     @ForAll final long cuts
   ) throws IOException {
-    final byte[] stream = QemuAudioProtocolTest.bytes(out -> {
+    final byte[] stream = QemuAudioProtocolTest.bytes(output -> {
       for (final Sent message : messages) {
-        write(out, message);
+        write(output, message);
       }
     });
-    final DataInputStream in = new DataInputStream(new Trickle(stream, new Random(cuts)));
+    final DataInputStream input = new DataInputStream(new Trickle(stream, new Random(cuts)));
     for (final Sent expected : messages) {
-      final QemuAudioProtocol.Message read = QemuAudioProtocol.readMessage(in, FRAME, byte[]::new);
+      final QemuAudioProtocol.Message read = QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
       final QemuAudioProtocol.Kind expectedKind = expected.kind();
       final QemuAudioProtocol.Kind kind = read.getKind();
       final byte[] expectedSamples = expected.samples();
@@ -84,21 +84,21 @@ final class QemuAudioProtocolPropertyTest {
       assertEquals(expectedKind, kind);
       assertArrayEquals(expectedSamples, samples);
     }
-    final int next = in.read();
+    final int next = input.read();
     assertEquals(-1, next, "nothing is left over");
   }
 
-  private static void write(final DataOutputStream out, final Sent message) throws IOException {
+  private static void write(final DataOutputStream output, final Sent message) throws IOException {
     switch (message.kind()) {
-      case DATA -> QemuAudioProtocolTest.writeData(out, message.samples());
-      case BEGIN -> out.write(new byte[] { (byte) 255, 1, 0, 1 });
-      case END -> out.write(new byte[] { (byte) 255, 1, 0, 0 });
-      case ACKNOWLEDGED -> QemuAudioProtocolTest.writeAcknowledgement(out);
+      case DATA -> QemuAudioProtocolTest.writeData(output, message.samples());
+      case BEGIN -> output.write(new byte[] { (byte) 255, 1, 0, 1 });
+      case END -> output.write(new byte[] { (byte) 255, 1, 0, 0 });
+      case ACKNOWLEDGED -> QemuAudioProtocolTest.writeAcknowledgement(output);
       case IGNORED -> {
-        out.writeByte(QemuAudioProtocol.SERVER_CUT_TEXT);
-        out.write(new byte[3]);
-        out.writeInt(3);
-        out.write(new byte[] { 'a', 'b', 'c' });
+        output.writeByte(QemuAudioProtocol.SERVER_CUT_TEXT);
+        output.write(new byte[3]);
+        output.writeInt(3);
+        output.write(new byte[] { 'a', 'b', 'c' });
       }
     }
   }

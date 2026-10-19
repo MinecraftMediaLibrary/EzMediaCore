@@ -39,7 +39,7 @@ final class VMSettingsTest {
     final int port = settings.getPort();
     final int width = settings.getWidth();
     final int height = settings.getHeight();
-    final int frameRate = settings.getTargetFps();
+    final int frameRate = settings.getTargetFrameRate();
     assertEquals(5905, port);
     assertEquals(640, width);
     assertEquals(480, height);

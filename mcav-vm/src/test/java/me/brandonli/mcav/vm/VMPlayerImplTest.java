@@ -212,7 +212,7 @@ final class VMPlayerImplTest {
     final int port = settings.getPort();
     final int width = settings.getWidth();
     final int height = settings.getHeight();
-    final int frameRate = settings.getTargetFps();
+    final int frameRate = settings.getTargetFrameRate();
     final Optional<String> expectedPassword = Optional.of(PASSWORD);
     assertEquals("127.0.0.1", sourceHost);
     assertEquals(port, sourcePort);

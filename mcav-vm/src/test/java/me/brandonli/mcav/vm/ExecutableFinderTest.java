@@ -172,27 +172,27 @@ final class ExecutableFinderTest {
 
   @Test
   void shouldAddTheExecutableExtensionsOnWindows() throws IOException {
-    final Path exe = this.createProgram("exe", "qemu.exe");
+    final Path executable = this.createProgram("exe", "qemu.exe");
     final Path batch = this.createProgram("batch", "script.bat");
     final Path command = this.createProgram("command", "legacy.cmd");
-    final Path exeFolder = exe.getParent();
+    final Path executableFolder = executable.getParent();
     final Path batchFolder = batch.getParent();
     final Path commandFolder = command.getParent();
-    final String path = pathOf(exeFolder, batchFolder, commandFolder);
+    final String path = pathOf(executableFolder, batchFolder, commandFolder);
     final ExecutableFinder windows = this.finder(Os.WINDOWS, path);
     final ExecutableFinder linux = this.finder(Os.LINUX, path);
-    final Optional<Path> windowsExe = windows.find("qemu");
+    final Optional<Path> windowsExecutable = windows.find("qemu");
     final Optional<Path> windowsBatch = windows.find("script");
     final Optional<Path> windowsCommand = windows.find("legacy");
-    final Optional<Path> linuxExe = linux.find("qemu");
-    final Optional<Path> expectedExe = absolute(exe);
+    final Optional<Path> linuxExecutable = linux.find("qemu");
+    final Optional<Path> expectedExecutable = absolute(executable);
     final Optional<Path> expectedBatch = absolute(batch);
     final Optional<Path> expectedCommand = absolute(command);
-    final boolean linuxExeIsEmpty = linuxExe.isEmpty();
-    assertEquals(expectedExe, windowsExe);
+    final boolean linuxExecutableIsEmpty = linuxExecutable.isEmpty();
+    assertEquals(expectedExecutable, windowsExecutable);
     assertEquals(expectedBatch, windowsBatch);
     assertEquals(expectedCommand, windowsCommand);
-    assertTrue(linuxExeIsEmpty);
+    assertTrue(linuxExecutableIsEmpty);
   }
 
   @Test

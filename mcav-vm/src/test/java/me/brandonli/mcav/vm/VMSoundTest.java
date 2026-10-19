@@ -60,7 +60,7 @@ final class VMSoundTest {
   private static final int TONE_HERTZ = 1000;
 
   /** The fewest changes of the picture a measurement must match to say anything of the sync. */
-  private static final int MIN_MATCHED = 10;
+  private static final int MINIMUM_MATCHED = 10;
   private static final int WINDOW_FRAMES = AudioFilter.SAMPLE_RATE / 200;
 
   @TempDir
@@ -281,9 +281,9 @@ final class VMSoundTest {
   private static void assertInSync(final SyncJudgement judgement) {
     final List<Double> offsets = judgement.offsets();
     final int changes = judgement.changes();
-    final boolean enoughMatched = offsets.size() >= MIN_MATCHED;
+    final boolean enoughMatched = offsets.size() >= MINIMUM_MATCHED;
     final boolean nearlyAllMatched = offsets.size() >= Math.ceil(changes * 0.9);
-    assertTrue(enoughMatched, "matched " + offsets.size() + " changes of the picture, fewer than " + MIN_MATCHED);
+    assertTrue(enoughMatched, "matched " + offsets.size() + " changes of the picture, fewer than " + MINIMUM_MATCHED);
     assertTrue(nearlyAllMatched, "matched " + offsets.size() + " of " + changes + " changes of the picture");
     final List<Double> sorted = new ArrayList<>(offsets);
     Collections.sort(sorted);
@@ -308,7 +308,7 @@ final class VMSoundTest {
    * @param offsets the sound minus the picture of each matched change, in milliseconds, in the order of the picture
    */
   record SyncJudgement(int changes, List<Double> offsets) {
-    static SyncJudgement of(final List<Long> pictureOnsets, final List<Long> soundOnsets, final long windowNanos) {
+    static SyncJudgement of(final List<Long> pictureOnsets, final List<Long> soundOnsets, final long windowNanoseconds) {
       final List<Double> offsets = new ArrayList<>();
       for (final long shown : pictureOnsets) {
         long nearest = Long.MAX_VALUE;
@@ -317,7 +317,7 @@ final class VMSoundTest {
             nearest = heard - shown;
           }
         }
-        if (Math.abs(nearest) <= windowNanos) {
+        if (Math.abs(nearest) <= windowNanoseconds) {
           offsets.add(nearest / 1e6);
         }
       }

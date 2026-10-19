@@ -97,32 +97,32 @@ final class QemuProcessRecords {
    * @param process the started process
    */
   void add(final ProcessHandle process) {
-    final long pid = process.pid();
+    final long processId = process.pid();
     final Optional<Instant> started = startOf(process);
     final Optional<Instant> ownerStarted = startOf(this.owner);
     if (started.isEmpty() || ownerStarted.isEmpty()) {
-      LOGGER.warn(NOT_RECORDED, pid);
+      LOGGER.warn(NOT_RECORDED, processId);
       return;
     }
     final String record = started.get() + "\n" + this.owner.pid() + "\n" + ownerStarted.get() + "\n";
     try {
       Files.createDirectories(this.folder);
-      Files.writeString(this.fileOf(pid), record, StandardCharsets.US_ASCII);
+      Files.writeString(this.fileOf(processId), record, StandardCharsets.US_ASCII);
     } catch (final IOException exception) {
-      LOGGER.warn(NOT_RECORDED, pid, exception);
+      LOGGER.warn(NOT_RECORDED, processId, exception);
     }
   }
 
   /**
    * Deletes the record of a process that ended.
    *
-   * @param pid the process id
+   * @param processId the process id
    */
-  void remove(final long pid) {
+  void remove(final long processId) {
     try {
-      Files.deleteIfExists(this.fileOf(pid));
+      Files.deleteIfExists(this.fileOf(processId));
     } catch (final IOException exception) {
-      LOGGER.warn("The record of QEMU process {} could not be deleted.", pid, exception);
+      LOGGER.warn("The record of QEMU process {} could not be deleted.", processId, exception);
     }
   }
 
@@ -158,14 +158,14 @@ final class QemuProcessRecords {
 
   private int reapOne(final Path record) throws IOException {
     final Optional<ProcessRecord> parsed = parse(record);
-    if (parsed.isPresent() && this.isRunning(parsed.get().ownerPid(), parsed.get().ownerStarted())) {
+    if (parsed.isPresent() && this.isRunning(parsed.get().ownerProcessId(), parsed.get().ownerStarted())) {
       return 0;
     }
     int stopped = 0;
     if (parsed.isPresent()) {
       final ProcessRecord found = parsed.get();
       final Optional<ProcessHandle> process = this.lookup
-        .apply(found.pid())
+        .apply(found.processId())
         .filter(handle -> startOf(handle).equals(Optional.of(found.started())));
       if (process.isPresent()) {
         this.stop(process.get());
@@ -176,8 +176,8 @@ final class QemuProcessRecords {
     return stopped;
   }
 
-  private boolean isRunning(final long pid, final Instant started) {
-    final Optional<ProcessHandle> process = this.lookup.apply(pid);
+  private boolean isRunning(final long processId, final Instant started) {
+    final Optional<ProcessHandle> process = this.lookup.apply(processId);
     return process.isPresent() && startOf(process.get()).equals(Optional.of(started));
   }
 
@@ -189,40 +189,40 @@ final class QemuProcessRecords {
     if (process.isAlive()) {
       process.destroyForcibly();
     }
-    final long pid = process.pid();
-    LOGGER.warn("Stopped QEMU process {}, which a server that ended without releasing it left running.", pid);
+    final long processId = process.pid();
+    LOGGER.warn("Stopped QEMU process {}, which a server that ended without releasing it left running.", processId);
   }
 
   private static Optional<Instant> startOf(final ProcessHandle process) {
-    final ProcessHandle.Info info = process.info();
-    return info.startInstant();
+    final ProcessHandle.Info information = process.info();
+    return information.startInstant();
   }
 
   private static Optional<ProcessRecord> parse(final Path record) throws IOException {
     final String name = IoUtils.getName(record);
     final List<String> lines = Files.readAllLines(record, StandardCharsets.US_ASCII);
     try {
-      final long pid = Long.parseLong(name.substring(0, name.length() - SUFFIX.length()));
+      final long processId = Long.parseLong(name.substring(0, name.length() - SUFFIX.length()));
       final Instant started = Instant.parse(lines.get(0));
-      final long ownerPid = Long.parseLong(lines.get(1));
+      final long ownerProcessId = Long.parseLong(lines.get(1));
       final Instant ownerStarted = Instant.parse(lines.get(2));
-      return Optional.of(new ProcessRecord(pid, started, ownerPid, ownerStarted));
+      return Optional.of(new ProcessRecord(processId, started, ownerProcessId, ownerStarted));
     } catch (final NumberFormatException | DateTimeParseException | IndexOutOfBoundsException exception) {
       return Optional.empty();
     }
   }
 
-  private Path fileOf(final long pid) {
-    return this.folder.resolve(pid + SUFFIX);
+  private Path fileOf(final long processId) {
+    return this.folder.resolve(processId + SUFFIX);
   }
 
   /**
    * A recorded process: its id and start instant, and those of the JVM that started it.
    *
-   * @param pid          the process id
-   * @param started      when the process started
-   * @param ownerPid     the process id of the JVM that started it
-   * @param ownerStarted when that JVM started
+   * @param processId      the process id
+   * @param started        when the process started
+   * @param ownerProcessId the process id of the JVM that started it
+   * @param ownerStarted   when that JVM started
    */
-  private record ProcessRecord(long pid, Instant started, long ownerPid, Instant ownerStarted) {}
+  private record ProcessRecord(long processId, Instant started, long ownerProcessId, Instant ownerStarted) {}
 }

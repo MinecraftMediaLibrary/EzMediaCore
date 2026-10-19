@@ -55,12 +55,12 @@ public final class VMPlayerImpl implements VMPlayer {
    * guest about every 10 ms, but it refreshes the picture of its VNC display 30 ms after a change at the earliest, and
    * later when the screen was idle, so without the delay the sound would run ahead of the picture.
    */
-  private static final int AUDIO_DELAY_MILLIS = 70;
+  private static final int AUDIO_DELAY_MILLISECONDS = 70;
 
   /**
    * The most sound of the guest that waits for the pipeline, the delay included, in milliseconds.
    */
-  private static final int MAX_QUEUED_AUDIO_MILLIS = AUDIO_DELAY_MILLIS + 60;
+  private static final int MAXIMUM_QUEUED_AUDIO_MILLISECONDS = AUDIO_DELAY_MILLISECONDS + 60;
 
   private final VncPlayer vncPlayer;
   private final ExecutableFinder finder;
@@ -237,8 +237,8 @@ public final class VMPlayerImpl implements VMPlayer {
     }
     final DelayedAudioOutput output = DelayedAudioOutput.start(
       "the virtual machine",
-      AUDIO_DELAY_MILLIS,
-      MAX_QUEUED_AUDIO_MILLIS,
+      AUDIO_DELAY_MILLISECONDS,
+      MAXIMUM_QUEUED_AUDIO_MILLISECONDS,
       this.audioCallback::retrieve,
       this::report
     );
@@ -285,7 +285,7 @@ public final class VMPlayerImpl implements VMPlayer {
     final int port = settings.getPort();
     final int width = settings.getWidth();
     final int height = settings.getHeight();
-    final int frameRate = settings.getTargetFps();
+    final int frameRate = settings.getTargetFrameRate();
     final VncSourceBuilder builder = VncSource.builder();
     builder.host("127.0.0.1");
     builder.port(port);

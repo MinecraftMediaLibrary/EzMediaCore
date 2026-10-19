@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class FakeProcess extends Process {
 
-  private static final long LONGEST_WAIT_MILLIS = 200L;
+  private static final long LONGEST_WAIT_MILLISECONDS = 200L;
 
   private static final String TEXT_NULL_MESSAGE = "Text must not be null!";
 
@@ -46,7 +46,7 @@ public final class FakeProcess extends Process {
   private volatile boolean interruptsWaits;
   private volatile boolean interruptsFirstWait;
   private volatile int exitCodeOnWait = -1;
-  private volatile long forcedExitDelayMillis;
+  private volatile long forcedExitDelayMilliseconds;
 
   private FakeProcess(final InputStream output) {
     this.output = output;
@@ -104,11 +104,11 @@ public final class FakeProcess extends Process {
   /**
    * Delays actual termination after the force request, as an operating system may do.
    *
-   * @param delayMillis the delay before the process exits
+   * @param delayMilliseconds the delay before the process exits
    */
-  public void delayingForcedExit(final long delayMillis) {
-    Preconditions.checkArgument(delayMillis > 0, "Delay %s must be positive!", delayMillis);
-    this.forcedExitDelayMillis = delayMillis;
+  public void delayingForcedExit(final long delayMilliseconds) {
+    Preconditions.checkArgument(delayMilliseconds > 0, "Delay %s must be positive!", delayMilliseconds);
+    this.forcedExitDelayMilliseconds = delayMilliseconds;
   }
 
   /**
@@ -202,7 +202,7 @@ public final class FakeProcess extends Process {
       this.exit(codeOnWait);
     }
     final long requested = unit.toMillis(timeout);
-    final long wait = Math.min(requested, LONGEST_WAIT_MILLIS);
+    final long wait = Math.min(requested, LONGEST_WAIT_MILLISECONDS);
     return this.exited.await(wait, TimeUnit.MILLISECONDS);
   }
 
@@ -230,20 +230,20 @@ public final class FakeProcess extends Process {
   @Override
   public Process destroyForcibly() {
     final int calls = this.forcibleDestroyCalls.incrementAndGet();
-    final long delayMillis = this.forcedExitDelayMillis;
-    if (delayMillis == 0) {
+    final long delayMilliseconds = this.forcedExitDelayMilliseconds;
+    if (delayMilliseconds == 0) {
       this.exit(137);
     } else if (calls == 1) {
-      final Thread termination = new Thread(() -> this.exitAfterDelay(delayMillis), "fake-qemu-termination");
+      final Thread termination = new Thread(() -> this.exitAfterDelay(delayMilliseconds), "fake-qemu-termination");
       termination.setDaemon(true);
       termination.start();
     }
     return this;
   }
 
-  private void exitAfterDelay(final long delayMillis) {
+  private void exitAfterDelay(final long delayMilliseconds) {
     try {
-      Thread.sleep(delayMillis);
+      Thread.sleep(delayMilliseconds);
     } catch (final InterruptedException exception) {
       final Thread current = Thread.currentThread();
       current.interrupt();

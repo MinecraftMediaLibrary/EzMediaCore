@@ -106,7 +106,7 @@ public final class VMSettings {
    *
    * @return the strictly positive requested frames per second; actual updates depend on the remote display
    */
-  public int getTargetFps() {
+  public int getTargetFrameRate() {
     return this.targetFrameRate;
   }
 

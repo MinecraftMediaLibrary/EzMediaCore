@@ -44,20 +44,20 @@ final class QemuAudioProtocolFuzzTest {
   @FuzzTest(maxDuration = "30s")
   void shouldReadTheHandshakeAndTheMessagesOrRefuseThem(final FuzzedDataProvider data) {
     final byte[] bytes = data.consumeRemainingAsBytes();
-    final DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes));
-    final DataOutputStream out = new DataOutputStream(OutputStream.nullOutputStream());
+    final DataInputStream input = new DataInputStream(new ByteArrayInputStream(bytes));
+    final DataOutputStream output = new DataOutputStream(OutputStream.nullOutputStream());
     try {
-      QemuAudioProtocol.readVersion(in);
-      final boolean authenticates = QemuAudioProtocol.negotiateSecurity(in, out, PASSWORD);
+      QemuAudioProtocol.readVersion(input);
+      final boolean authenticates = QemuAudioProtocol.negotiateSecurity(input, output, PASSWORD);
       if (authenticates) {
-        QemuAudioProtocol.answerChallenge(in, out, PASSWORD);
+        QemuAudioProtocol.answerChallenge(input, output, PASSWORD);
       }
-      QemuAudioProtocol.readSecurityResult(in);
-      QemuAudioProtocol.readServerInit(in);
+      QemuAudioProtocol.readSecurityResult(input);
+      QemuAudioProtocol.readServerInitialization(input);
       while (true) {
-        final QemuAudioProtocol.Message message = QemuAudioProtocol.readMessage(in, FRAME, byte[]::new);
+        final QemuAudioProtocol.Message message = QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
         final int length = message.getLength();
-        final boolean wholeFramesWithinTheLimit = length >= 0 && length <= QemuAudioProtocol.MAX_AUDIO_BYTES && length % FRAME == 0;
+        final boolean wholeFramesWithinTheLimit = length >= 0 && length <= QemuAudioProtocol.MAXIMUM_AUDIO_BYTES && length % FRAME == 0;
         assertTrue(wholeFramesWithinTheLimit, () -> "length " + length);
       }
     } catch (final IOException exception) {

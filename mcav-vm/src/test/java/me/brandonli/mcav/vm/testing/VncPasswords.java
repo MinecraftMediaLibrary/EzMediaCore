@@ -50,12 +50,12 @@ public final class VncPasswords {
    * @throws IOException if Vernacular fails
    */
   public static byte[] response(final byte[] challenge, final String password) throws IOException {
-    final VernacularConfig config = new VernacularConfig();
-    config.setPasswordSupplier(() -> password);
+    final VernacularConfig configuration = new VernacularConfig();
+    configuration.setPasswordSupplier(() -> password);
     final byte[] received = Arrays.copyOf(challenge, challenge.length + RESULT_BYTES);
-    final ByteArrayInputStream in = new ByteArrayInputStream(received);
+    final ByteArrayInputStream input = new ByteArrayInputStream(received);
     final ByteArrayOutputStream sent = new ByteArrayOutputStream();
-    final VncSession session = new VncSession(config, in, sent);
+    final VncSession session = new VncSession(configuration, input, sent);
     session.setProtocolVersion(new ProtocolVersion(3, 8));
     try {
       new VncAuthenticationHandler().authenticate(session);

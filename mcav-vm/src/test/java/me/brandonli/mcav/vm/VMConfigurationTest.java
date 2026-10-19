@@ -39,7 +39,7 @@ final class VMConfigurationTest {
   void shouldStartEmpty() {
     final VMConfiguration configuration = VMConfiguration.builder();
     final List<String> arguments = configuration.getArguments();
-    final String[] array = configuration.buildArgs();
+    final String[] array = configuration.buildArguments();
     final String text = configuration.toString();
     final boolean argumentsIsEmpty = arguments.isEmpty();
     assertTrue(argumentsIsEmpty);
@@ -140,7 +140,7 @@ final class VMConfigurationTest {
     final List<String> expected = orderedArguments();
     assertEquals(expected, arguments);
 
-    final String[] array = configuration.buildArgs();
+    final String[] array = configuration.buildArguments();
     final String[] expectedArray = expected.toArray(new String[0]);
     assertArrayEquals(expectedArray, array);
     final String text = configuration.toString();
@@ -278,7 +278,7 @@ final class VMConfigurationTest {
     configuration.memory(64);
     final List<String> arguments = configuration.getArguments();
     assertThrows(UnsupportedOperationException.class, arguments::clear);
-    final String[] array = configuration.buildArgs();
+    final String[] array = configuration.buildArguments();
     array[0] = "-changed";
     final List<String> again = configuration.getArguments();
     final List<String> expectedAgain = List.of("-m", "64M");

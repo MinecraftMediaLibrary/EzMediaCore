@@ -84,13 +84,13 @@ public final class VMConfiguration {
   /**
    * Sets the memory of the machine ({@code -m}).
    *
-   * @param memoryMB the strictly positive memory amount, passed to QEMU with its {@code M} suffix
+   * @param memoryMegabytes the strictly positive memory amount, passed to QEMU with its {@code M} suffix
    * @return this configuration
-   * @throws IllegalArgumentException if {@code memoryMB} is zero or negative
+   * @throws IllegalArgumentException if {@code memoryMegabytes} is zero or negative
    */
-  public VMConfiguration memory(final int memoryMB) {
-    Preconditions.checkArgument(memoryMB > 0, MEMORY_NOT_POSITIVE_MESSAGE, memoryMB);
-    return this.option("m", memoryMB + "M");
+  public VMConfiguration memory(final int memoryMegabytes) {
+    Preconditions.checkArgument(memoryMegabytes > 0, MEMORY_NOT_POSITIVE_MESSAGE, memoryMegabytes);
+    return this.option("m", memoryMegabytes + "M");
   }
 
   /**
@@ -430,7 +430,7 @@ public final class VMConfiguration {
    *
    * @return a new array snapshot; changes to the array do not affect this configuration
    */
-  public String[] buildArgs() {
+  public String[] buildArguments() {
     final List<String> arguments = this.getArguments();
     return arguments.toArray(new String[0]);
   }

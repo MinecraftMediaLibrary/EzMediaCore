@@ -71,7 +71,7 @@ import org.mockito.Mockito;
 final class VMProcessTest {
 
   private static final Path QEMU = Path.of("qemu-system-x86_64");
-  private static final long SHORT_TIMEOUT_MILLIS = 400L;
+  private static final long SHORT_TIMEOUT_MILLISECONDS = 400L;
 
   @TempDir
   private Path directory;
@@ -158,7 +158,7 @@ final class VMProcessTest {
       launcher,
       os,
       this.missingKvm,
-      SHORT_TIMEOUT_MILLIS,
+      SHORT_TIMEOUT_MILLISECONDS,
       this::secretFolder
     );
   }
@@ -336,7 +336,7 @@ final class VMProcessTest {
   @ValueSource(longs = { 0L, Long.MAX_VALUE - 100L })
   void shouldRejectAReachableDisplayAtTheStartupDeadline(final long origin) {
     final FakeProcess qemu = FakeProcess.running("");
-    final long duration = TimeUnit.MILLISECONDS.toNanos(SHORT_TIMEOUT_MILLIS);
+    final long duration = TimeUnit.MILLISECONDS.toNanos(SHORT_TIMEOUT_MILLISECONDS);
     final Deque<Long> times = new ArrayDeque<>(List.of(origin, origin + duration));
     final LongSupplier clock = times::removeFirst;
     final VMSettings settings = this.reachableSettings();
@@ -353,7 +353,7 @@ final class VMProcessTest {
       launcher,
       Os.FREEBSD,
       this.missingKvm,
-      SHORT_TIMEOUT_MILLIS,
+      SHORT_TIMEOUT_MILLISECONDS,
       clock,
       this::secretFolder
     );
@@ -365,7 +365,7 @@ final class VMProcessTest {
   @Test
   void shouldAcceptAReachableDisplayBeforeTheStartupDeadline() {
     final FakeProcess qemu = FakeProcess.running("");
-    final long duration = TimeUnit.MILLISECONDS.toNanos(SHORT_TIMEOUT_MILLIS);
+    final long duration = TimeUnit.MILLISECONDS.toNanos(SHORT_TIMEOUT_MILLISECONDS);
     final Deque<Long> times = new ArrayDeque<>(List.of(0L, duration - 1));
     final LongSupplier clock = times::removeFirst;
     final VMSettings settings = this.reachableSettings();
@@ -382,7 +382,7 @@ final class VMProcessTest {
       launcher,
       Os.FREEBSD,
       this.missingKvm,
-      SHORT_TIMEOUT_MILLIS,
+      SHORT_TIMEOUT_MILLISECONDS,
       clock,
       this::secretFolder
     );
@@ -447,7 +447,7 @@ final class VMProcessTest {
       launcher,
       Os.LINUX,
       this.missingKvm,
-      SHORT_TIMEOUT_MILLIS,
+      SHORT_TIMEOUT_MILLISECONDS,
       this::secretFolder
     );
     process.start();
@@ -529,7 +529,7 @@ final class VMProcessTest {
       launcher,
       Os.WINDOWS,
       this.missingKvm,
-      SHORT_TIMEOUT_MILLIS,
+      SHORT_TIMEOUT_MILLISECONDS,
       this::secretFolder
     );
     process.start();
@@ -558,7 +558,7 @@ final class VMProcessTest {
       launcher,
       Os.LINUX,
       this.missingKvm,
-      SHORT_TIMEOUT_MILLIS,
+      SHORT_TIMEOUT_MILLISECONDS,
       () -> Files.createDirectories(folder)
     );
     process.start();
@@ -583,7 +583,7 @@ final class VMProcessTest {
       launcher,
       Os.LINUX,
       this.missingKvm,
-      SHORT_TIMEOUT_MILLIS,
+      SHORT_TIMEOUT_MILLISECONDS,
       () -> {
         throw new IOException("disk full!");
       }
@@ -621,7 +621,7 @@ final class VMProcessTest {
       launcher,
       Os.LINUX,
       this.missingKvm,
-      SHORT_TIMEOUT_MILLIS,
+      SHORT_TIMEOUT_MILLISECONDS,
       this::secretFolder
     );
     process.start();
@@ -713,7 +713,7 @@ final class VMProcessTest {
       launcher,
       Os.LINUX,
       this.missingKvm,
-      SHORT_TIMEOUT_MILLIS,
+      SHORT_TIMEOUT_MILLISECONDS,
       this::secretFolder
     );
     return process.buildCommand(null, this.passwordFile());
@@ -1206,9 +1206,9 @@ final class VMProcessTest {
       if (forced > 0) {
         final long timeout = invocation.getArgument(0);
         final TimeUnit unit = invocation.getArgument(1);
-        final long nanos = unit.toNanos(timeout);
+        final long nanoseconds = unit.toNanos(timeout);
         final long maximum = TimeUnit.SECONDS.toNanos(10);
-        final boolean withinTheDeadline = nanos > 0 && nanos <= maximum;
+        final boolean withinTheDeadline = nanoseconds > 0 && nanoseconds <= maximum;
         assertTrue(withinTheDeadline, "every forced wait must stay within the total ten-second deadline");
         if (interruptedOnce.compareAndSet(false, true)) {
           throw new InterruptedException("interrupt while forced exit is pending!");
@@ -1529,9 +1529,9 @@ final class VMProcessTest {
    * @return the live drain threads
    */
   private static List<Thread> awaitDrainThreads() {
-    final long timeoutNanos = TimeUnit.SECONDS.toNanos(10);
-    final long pauseNanos = TimeUnit.MILLISECONDS.toNanos(5);
-    final long deadline = System.nanoTime() + timeoutNanos;
+    final long timeoutNanoseconds = TimeUnit.SECONDS.toNanos(10);
+    final long pauseNanoseconds = TimeUnit.MILLISECONDS.toNanos(5);
+    final long deadline = System.nanoTime() + timeoutNanoseconds;
     while (true) {
       final List<Thread> found = drainThreads();
       final boolean empty = found.isEmpty();
@@ -1542,7 +1542,7 @@ final class VMProcessTest {
       if (now - deadline > 0) {
         fail("Output of QEMU is never drained!");
       }
-      LockSupport.parkNanos(pauseNanos);
+      LockSupport.parkNanos(pauseNanoseconds);
     }
   }
 
@@ -1620,13 +1620,13 @@ final class VMProcessTest {
   private static final class DelayedStream extends InputStream {
 
     private final byte[] content;
-    private final long delayMillis;
+    private final long delayMilliseconds;
     private int position;
     private volatile boolean closed;
 
-    DelayedStream(final String text, final long delayMillis) {
+    DelayedStream(final String text, final long delayMilliseconds) {
       this.content = text.getBytes(StandardCharsets.UTF_8);
-      this.delayMillis = delayMillis;
+      this.delayMilliseconds = delayMilliseconds;
     }
 
     @Override
@@ -1645,7 +1645,7 @@ final class VMProcessTest {
     public int read(final byte @NonNull [] buffer, final int offset, final int length) {
       if (this.position == 0) {
         try {
-          Thread.sleep(this.delayMillis);
+          Thread.sleep(this.delayMilliseconds);
         } catch (final InterruptedException exception) {
           final Thread current = Thread.currentThread();
           current.interrupt();

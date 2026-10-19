@@ -40,23 +40,23 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
  *
  * <p>QEMU is asked for the format of the audio pipeline, 16-bit little-endian stereo at 48 kHz, and converts to it
  * itself, so the samples need no conversion here. The whole handshake must finish within
- * {@value #HANDSHAKE_TIMEOUT_MILLIS} ms; afterwards a reader thread waits for as long as the guest stays silent. A
+ * {@value #HANDSHAKE_TIMEOUT_MILLISECONDS} ms; afterwards a reader thread waits for as long as the guest stays silent. A
  * connection that ends or breaks the protocol while nobody closed it, or whose sink fails, is reported, once.
  */
 final class VMAudioClient implements Closeable {
 
-  static final int HANDSHAKE_TIMEOUT_MILLIS = 5_000;
+  static final int HANDSHAKE_TIMEOUT_MILLISECONDS = 5_000;
 
   private final Socket socket;
-  private final DataInputStream in;
+  private final DataInputStream input;
   private final Sink sink;
   private final BiConsumer<String, Throwable> failures;
   private volatile Thread reader;
   private volatile boolean closed;
 
-  private VMAudioClient(final Socket socket, final DataInputStream in, final Sink sink, final BiConsumer<String, Throwable> failures) {
+  private VMAudioClient(final Socket socket, final DataInputStream input, final Sink sink, final BiConsumer<String, Throwable> failures) {
     this.socket = socket;
-    this.in = in;
+    this.input = input;
     this.sink = sink;
     this.failures = failures;
     this.reader = new Thread("mcav-vm-audio-not-started");
@@ -89,17 +89,21 @@ final class VMAudioClient implements Closeable {
     // the read timeout only limits a pause, so a server that trickles its handshake is cut off once it took too long;
     // a deadline cancelled in time never runs, and one that runs gets a thread of its own, as the common pool of the
     // server may be busy with the tasks of other plugins for longer than the deadline
-    final Executor later = CompletableFuture.delayedExecutor(HANDSHAKE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, VMAudioClient::onOwnThread);
+    final Executor later = CompletableFuture.delayedExecutor(
+      HANDSHAKE_TIMEOUT_MILLISECONDS,
+      TimeUnit.MILLISECONDS,
+      VMAudioClient::onOwnThread
+    );
     final CompletableFuture<Void> deadline = CompletableFuture.runAsync(() -> closeQuietly(socket), later);
     try {
-      socket.connect(address, HANDSHAKE_TIMEOUT_MILLIS);
+      socket.connect(address, HANDSHAKE_TIMEOUT_MILLISECONDS);
       final InputStream rawInput = socket.getInputStream();
-      final DataInputStream in = new DataInputStream(new BufferedInputStream(rawInput));
+      final DataInputStream input = new DataInputStream(new BufferedInputStream(rawInput));
       final OutputStream rawOutput = socket.getOutputStream();
-      final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(rawOutput));
-      handshake(in, out, password);
+      final DataOutputStream output = new DataOutputStream(new BufferedOutputStream(rawOutput));
+      handshake(input, output, password);
       deadline.cancel(false);
-      final VMAudioClient client = new VMAudioClient(socket, in, sink, failures);
+      final VMAudioClient client = new VMAudioClient(socket, input, sink, failures);
       client.startReading();
       return client;
     } catch (final IOException exception) {
@@ -112,35 +116,35 @@ final class VMAudioClient implements Closeable {
    * Agrees on RFB 3.8 with the password of the display, or without authentication if the server asks for none, shares
    * the display, and enables the audio in the format of the audio pipeline.
    *
-   * @param in       the stream from the server
-   * @param out      the stream to the server
+   * @param input    the stream from the server
+   * @param output   the stream to the server
    * @param password the password of the display, or an empty string for none
    * @throws IOException if the handshake fails
    */
-  private static void handshake(final DataInputStream in, final DataOutputStream out, final String password) throws IOException {
-    QemuAudioProtocol.readVersion(in);
-    QemuAudioProtocol.writeVersion(out);
-    out.flush();
-    final boolean authenticate = QemuAudioProtocol.negotiateSecurity(in, out, password);
-    out.flush();
+  private static void handshake(final DataInputStream input, final DataOutputStream output, final String password) throws IOException {
+    QemuAudioProtocol.readVersion(input);
+    QemuAudioProtocol.writeVersion(output);
+    output.flush();
+    final boolean authenticate = QemuAudioProtocol.negotiateSecurity(input, output, password);
+    output.flush();
     if (authenticate) {
-      QemuAudioProtocol.answerChallenge(in, out, password);
-      out.flush();
+      QemuAudioProtocol.answerChallenge(input, output, password);
+      output.flush();
     }
-    QemuAudioProtocol.readSecurityResult(in);
-    QemuAudioProtocol.writeClientInit(out);
-    out.flush();
-    QemuAudioProtocol.readServerInit(in);
-    QemuAudioProtocol.writeSetEncodings(out);
-    QemuAudioProtocol.writeEnableAudio(out, AudioFilter.CHANNELS, AudioFilter.SAMPLE_RATE);
-    out.flush();
+    QemuAudioProtocol.readSecurityResult(input);
+    QemuAudioProtocol.writeClientInitialization(output);
+    output.flush();
+    QemuAudioProtocol.readServerInitialization(input);
+    QemuAudioProtocol.writeSetEncodings(output);
+    QemuAudioProtocol.writeEnableAudio(output, AudioFilter.CHANNELS, AudioFilter.SAMPLE_RATE);
+    output.flush();
   }
 
   private void read() {
-    final byte[] buffer = new byte[QemuAudioProtocol.MAX_AUDIO_BYTES];
+    final byte[] buffer = new byte[QemuAudioProtocol.MAXIMUM_AUDIO_BYTES];
     try {
       while (true) {
-        final QemuAudioProtocol.Message message = QemuAudioProtocol.readMessage(this.in, AudioFilter.FRAME_SIZE, size -> buffer);
+        final QemuAudioProtocol.Message message = QemuAudioProtocol.readMessage(this.input, AudioFilter.FRAME_SIZE, size -> buffer);
         final QemuAudioProtocol.Kind kind = message.getKind();
         if (kind == QemuAudioProtocol.Kind.DATA) {
           this.sink.accept(message.getSamples(), message.getLength());
@@ -191,7 +195,7 @@ final class VMAudioClient implements Closeable {
   }
 
   /**
-   * Waits for a thread of the sound to end, at most {@value #HANDSHAKE_TIMEOUT_MILLIS} ms, unless it is the calling
+   * Waits for a thread of the sound to end, at most {@value #HANDSHAKE_TIMEOUT_MILLISECONDS} ms, unless it is the calling
    * thread: a filter or a failure callback that releases the player runs on the thread it would wait for.
    *
    * @param thread the thread
@@ -202,7 +206,7 @@ final class VMAudioClient implements Closeable {
       return;
     }
     try {
-      thread.join(HANDSHAKE_TIMEOUT_MILLIS);
+      thread.join(HANDSHAKE_TIMEOUT_MILLISECONDS);
     } catch (final InterruptedException exception) {
       caller.interrupt();
     }

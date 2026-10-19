@@ -107,15 +107,15 @@ final class QemuProcessRecordsTest {
 
   private static ProcessHandle goneServer() {
     final ProcessHandle owner = mock(ProcessHandle.class);
-    final ProcessHandle.Info info = mock(ProcessHandle.Info.class);
+    final ProcessHandle.Info information = mock(ProcessHandle.Info.class);
     when(owner.pid()).thenReturn(GONE);
-    when(owner.info()).thenReturn(info);
-    when(info.startInstant()).thenReturn(Optional.of(Instant.parse("2026-10-05T00:00:00Z")));
+    when(owner.info()).thenReturn(information);
+    when(information.startInstant()).thenReturn(Optional.of(Instant.parse("2026-10-05T00:00:00Z")));
     return owner;
   }
 
-  private Path recordOf(final long pid) {
-    return this.directory.resolve("records").resolve(pid + ".qemu");
+  private Path recordOf(final long processId) {
+    return this.directory.resolve("records").resolve(processId + ".qemu");
   }
 
   @Test
@@ -272,10 +272,10 @@ final class QemuProcessRecordsTest {
   @Test
   void shouldNotRecordAProcessWithoutAKnownStart() throws IOException {
     final ProcessHandle unknown = mock(ProcessHandle.class);
-    final ProcessHandle.Info info = mock(ProcessHandle.Info.class);
+    final ProcessHandle.Info information = mock(ProcessHandle.Info.class);
     when(unknown.pid()).thenReturn(42L);
-    when(unknown.info()).thenReturn(info);
-    when(info.startInstant()).thenReturn(Optional.empty());
+    when(unknown.info()).thenReturn(information);
+    when(information.startInstant()).thenReturn(Optional.empty());
     this.records(ProcessHandle.current()).add(unknown);
     final boolean unknownRecorded = Files.exists(this.recordOf(42L));
     assertFalse(unknownRecorded, "it could not be told from a later process with its id");
