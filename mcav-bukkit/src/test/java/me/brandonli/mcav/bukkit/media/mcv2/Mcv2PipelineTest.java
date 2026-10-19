@@ -146,8 +146,8 @@ final class Mcv2PipelineTest {
       final byte[] expected = control.encode(source, 32, 32, frame);
       final byte[] encoded = encoder.encode(source, 32, 32, frame);
       assertArrayEquals(expected, encoded);
-      final double expectedLambda = control.getStatistics().orElseThrow().lambda();
-      final double lambda = encoder.getStatistics().orElseThrow().lambda();
+      final double expectedLambda = control.getStatistics().orElseThrow().getLambda();
+      final double lambda = encoder.getStatistics().orElseThrow().getLambda();
       assertEquals(expectedLambda, lambda);
       final byte[] expectedReference = control.getReference().orElseThrow();
       final byte[] reference = encoder.getReference().orElseThrow();
@@ -176,14 +176,14 @@ final class Mcv2PipelineTest {
         resume.countDown();
       }
 
-      final double firstLambda = encoder.finish(first.get()).getStatistics().lambda();
+      final double firstLambda = encoder.finish(first.get()).getStatistics().getLambda();
       assertEquals(72, firstLambda);
 
       final Mcv2.Pending requested = encoder.begin(new byte[3], 1, 1, 1);
       final boolean keyframeRequested = requested.isKeyframe();
       assertTrue(keyframeRequested);
 
-      final double requestedLambda = encoder.finish(requested).getStatistics().lambda();
+      final double requestedLambda = encoder.finish(requested).getStatistics().getLambda();
       assertEquals(55, requestedLambda);
 
       for (int frameId = 2; frameId <= 121; frameId++) {
@@ -288,13 +288,13 @@ final class Mcv2PipelineTest {
     ((byte[]) picture.get(frame))[0] ^= 1;
     final Mcv2.Encoded encoded = encoder.finish(frame);
     final int expectedBytes = encoded.getData().length;
-    final int bytes = encoded.getStatistics().bytes();
+    final int bytes = encoded.getStatistics().getBytes();
     assertEquals(expectedBytes, bytes);
 
-    final boolean keyframe = encoded.getStatistics().keyframe();
+    final boolean keyframe = encoded.getStatistics().isKeyframe();
     assertTrue(keyframe);
 
-    final boolean timed = encoded.getStatistics().nanoseconds() > 0;
+    final boolean timed = encoded.getStatistics().getNanoseconds() > 0;
     assertTrue(timed);
   }
 
@@ -314,12 +314,12 @@ final class Mcv2PipelineTest {
           encoder
             .finish(frames.get(frameNumber - 1))
             .getStatistics()
-            .keyframe()
+            .isKeyframe()
         );
       }
     }
 
-    keyframes.add(encoder.finish(frames.get(4)).getStatistics().keyframe());
+    keyframes.add(encoder.finish(frames.get(4)).getStatistics().isKeyframe());
     final List<Boolean> expected = List.of(true, false, false, true, false);
     assertEquals(expected, keyframes);
 
@@ -331,7 +331,7 @@ final class Mcv2PipelineTest {
 
     final Mcv2.Statistics last = encoder.getStatistics().orElseThrow();
 
-    final boolean lastKeyframe = last.keyframe();
+    final boolean lastKeyframe = last.isKeyframe();
     assertFalse(lastKeyframe);
   }
 }

@@ -17,10 +17,12 @@
  */
 package me.brandonli.mcav.bukkit.media.map;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.utils.PacketUtils;
@@ -32,6 +34,7 @@ import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Converts map patches into map data packets and sends them to players.
@@ -71,7 +74,7 @@ public final class MapPacketFactory {
     }
 
     for (final Bundle bundle : bundles(patches)) {
-      PacketUtils.sendPackets(viewers, bundle.packet());
+      PacketUtils.sendPackets(viewers, bundle.getPacket());
     }
   }
 
@@ -95,7 +98,7 @@ public final class MapPacketFactory {
         packets.add(createPacket(patch));
         bytes += patch.getEncodedSize();
       }
-      bundles.add(new Bundle(new ClientboundBundlePacket(packets), bytes));
+      bundles.add(Bundle.of(new ClientboundBundlePacket(packets), bytes));
     }
 
     return bundles;
@@ -152,12 +155,31 @@ public final class MapPacketFactory {
 
   /**
    * A bundle of map data packets, and their estimated size in bytes before network compression.
-   * The record retains the packet without copying; it does not validate either component.
    *
-   * @param packet the bundle
-   * @param bytes  the sum of its patches' {@link MapTilePatch#getEncodedSize()}
+   * <p>The bundle retains the packet without copying; it does not validate either part. Instances never change, and
+   * the packet is shared rather than copied.
    */
-  public record Bundle(ClientboundBundlePacket packet, long bytes) {
+  public static final class Bundle {
+
+    private final ClientboundBundlePacket packet;
+    private final long bytes;
+
+    private Bundle(final ClientboundBundlePacket packet, final long bytes) {
+      this.packet = packet;
+      this.bytes = bytes;
+    }
+
+    /**
+     * Returns a bundle of the given packet and size.
+     *
+     * @param packet the bundle
+     * @param bytes  the sum of its patches' {@link MapTilePatch#getEncodedSize()}
+     * @return the bundle
+     */
+    public static Bundle of(final ClientboundBundlePacket packet, final long bytes) {
+      return new Bundle(packet, bytes);
+    }
+
     /**
      * Sends the bundle to one player and runs a callback once its write completed or failed, or at once when the
      * player is not connected, since nothing reaches a connection then. May be called from any thread.
@@ -175,6 +197,63 @@ public final class MapPacketFactory {
       if (!PacketUtils.sendPacket(viewer, this.packet, _ -> written.run())) {
         written.run();
       }
+    }
+
+    /**
+     * Returns the bundle packet.
+     *
+     * @return the bundle
+     */
+    public ClientboundBundlePacket getPacket() {
+      return this.packet;
+    }
+
+    /**
+     * Returns the estimated size of the bundle in bytes.
+     *
+     * @return the sum of its patches' {@link MapTilePatch#getEncodedSize()}
+     */
+    public long getBytes() {
+      return this.bytes;
+    }
+
+    /**
+     * Returns whether {@code other} is a bundle with the same parts.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Bundle bundle)) {
+        return false;
+      }
+
+      return this.packet.equals(bundle.packet) && this.bytes == bundle.bytes;
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.packet, this.bytes);
+    }
+
+    /**
+     * Returns a debugging representation with every part.
+     *
+     * @return the representation
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this).add("packet", this.packet).add("bytes", this.bytes).toString();
     }
   }
 }

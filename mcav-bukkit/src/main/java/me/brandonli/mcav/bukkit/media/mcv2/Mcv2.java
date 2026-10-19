@@ -63,6 +63,7 @@ import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.round;
 import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.signed;
 import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.sizeIndex;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.InputStream;
@@ -348,8 +349,8 @@ public final class Mcv2 {
     final boolean predictable =
       !requested && previous != null && width == this.width && height == this.height && this.framesSinceKey < KEY_INTERVAL;
     final Settings settings = this.settings;
-    final boolean fast = settings.fast();
-    final double base = settings.lambda();
+    final boolean fast = settings.isFast();
+    final double base = settings.getLambda();
     double lambda = Math.min(this.motionLambda.lambda(base), Double.MAX_VALUE);
     final boolean keyframe = !predictable;
     final byte[] predictFrom = keyframe ? NONE : Preconditions.checkNotNull(previous);
@@ -456,7 +457,7 @@ public final class Mcv2 {
     }
 
     pending.finished = true;
-    final Statistics result = new Statistics(
+    final Statistics result = Statistics.of(
       pending.data.length,
       pending.keyframe,
       pending.leaves,
@@ -1161,26 +1162,40 @@ public final class Mcv2 {
   /**
    * Controls the live search without changing the version 3 syntax.
    *
-   * @param lambda finite, nonnegative cost of a coded bit relative to distortion
-   * @param fast   whether to use the fast search thresholds
+   * <p>This class is immutable and thread-safe.
    */
-  public record Settings(double lambda, boolean fast) {
+  public static final class Settings {
+
     /**
      * Normal live thresholds with lambda 72.
      */
-    public static final Settings DEFAULT = new Settings(72, false);
+    public static final Settings DEFAULT = of(72, false);
+
     /**
      * Fast live thresholds with lambda 55.
      */
-    public static final Settings FAST = new Settings(55, true);
+    public static final Settings FAST = of(55, true);
+
+    private final double lambda;
+    private final boolean fast;
+
+    private Settings(final double lambda, final boolean fast) {
+      this.lambda = lambda;
+      this.fast = fast;
+    }
 
     /**
-     * Validates the rate cost.
+     * Returns settings of the given rate cost and thresholds.
      *
-     * @throws IllegalArgumentException if lambda is negative or nonfinite
+     * @param lambda the finite, non-negative cost of a coded bit relative to distortion
+     * @param fast   whether the search uses the fast thresholds
+     * @return the settings
+     * @throws IllegalArgumentException if {@code lambda} is negative or not finite
      */
-    public Settings {
+    public static Settings of(final double lambda, final boolean fast) {
       Preconditions.checkArgument(lambda >= 0 && Double.isFinite(lambda), "Lambda must be finite and non-negative!");
+
+      return new Settings(lambda, fast);
     }
 
     /**
@@ -1191,20 +1206,198 @@ public final class Mcv2 {
      * @throws IllegalArgumentException if value is negative or nonfinite
      */
     public Settings withLambda(final double value) {
-      return new Settings(value, this.fast);
+      return of(value, this.fast);
+    }
+
+    /**
+     * Returns the cost of a coded bit relative to distortion.
+     *
+     * @return the finite, non-negative cost of a coded bit relative to distortion
+     */
+    public double getLambda() {
+      return this.lambda;
+    }
+
+    /**
+     * Returns whether the search uses the fast thresholds.
+     *
+     * @return whether the search uses the fast thresholds
+     */
+    public boolean isFast() {
+      return this.fast;
+    }
+
+    /**
+     * Returns whether {@code other} is a settings with the same parts.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Settings settings)) {
+        return false;
+      }
+
+      return Double.compare(this.lambda, settings.lambda) == 0 && this.fast == settings.fast;
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.lambda, this.fast);
+    }
+
+    /**
+     * Returns a debugging representation with every part.
+     *
+     * @return the representation
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this).add("lambda", this.lambda).add("fast", this.fast).toString();
     }
   }
 
   /**
    * Measurements of the most recently finished frame.
    *
-   * @param bytes       encoded frame length
-   * @param keyframe    whether the frame decodes independently
-   * @param leaves      number of chosen leaves, including absent roots
-   * @param nanoseconds elapsed search and writing time
-   * @param lambda      effective lambda, including motion adjustment and any size retries
+   * <p>This class is immutable and thread-safe.
    */
-  public record Statistics(int bytes, boolean keyframe, int leaves, long nanoseconds, double lambda) {}
+  public static final class Statistics {
+
+    private final int bytes;
+    private final boolean keyframe;
+    private final int leaves;
+    private final long nanoseconds;
+    private final double lambda;
+
+    private Statistics(final int bytes, final boolean keyframe, final int leaves, final long nanoseconds, final double lambda) {
+      this.bytes = bytes;
+      this.keyframe = keyframe;
+      this.leaves = leaves;
+      this.nanoseconds = nanoseconds;
+      this.lambda = lambda;
+    }
+
+    /**
+     * Returns the measurements of one frame.
+     *
+     * @param bytes       the encoded frame length
+     * @param keyframe    whether the frame decodes independently
+     * @param leaves      the number of chosen leaves, including absent roots
+     * @param nanoseconds the elapsed search and writing time
+     * @param lambda      the effective lambda, including motion adjustment and any size retries
+     * @return the statistics
+     */
+    public static Statistics of(final int bytes, final boolean keyframe, final int leaves, final long nanoseconds, final double lambda) {
+      return new Statistics(bytes, keyframe, leaves, nanoseconds, lambda);
+    }
+
+    /**
+     * Returns the encoded frame length.
+     *
+     * @return the encoded frame length
+     */
+    public int getBytes() {
+      return this.bytes;
+    }
+
+    /**
+     * Returns whether the frame decodes independently.
+     *
+     * @return whether the frame decodes independently
+     */
+    public boolean isKeyframe() {
+      return this.keyframe;
+    }
+
+    /**
+     * Returns the number of chosen leaves, including absent roots.
+     *
+     * @return the number of chosen leaves, including absent roots
+     */
+    public int getLeaves() {
+      return this.leaves;
+    }
+
+    /**
+     * Returns the elapsed search and writing time in nanoseconds.
+     *
+     * @return the elapsed search and writing time
+     */
+    public long getNanoseconds() {
+      return this.nanoseconds;
+    }
+
+    /**
+     * Returns the effective lambda, including motion adjustment and any size retries.
+     *
+     * @return the effective lambda, including motion adjustment and any size retries
+     */
+    public double getLambda() {
+      return this.lambda;
+    }
+
+    /**
+     * Returns whether {@code other} is a statistics with the same parts.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Statistics statistics)) {
+        return false;
+      }
+
+      return (
+        this.bytes == statistics.bytes &&
+        this.keyframe == statistics.keyframe &&
+        this.leaves == statistics.leaves &&
+        this.nanoseconds == statistics.nanoseconds &&
+        Double.compare(this.lambda, statistics.lambda) == 0
+      );
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.bytes, this.keyframe, this.leaves, this.nanoseconds, this.lambda);
+    }
+
+    /**
+     * Returns a debugging representation with every part.
+     *
+     * @return the representation
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+        .add("bytes", this.bytes)
+        .add("keyframe", this.keyframe)
+        .add("leaves", this.leaves)
+        .add("nanoseconds", this.nanoseconds)
+        .add("lambda", this.lambda)
+        .toString();
+    }
+  }
 
   /**
    * A finished frame whose bytes and measurements are ready for transmission.

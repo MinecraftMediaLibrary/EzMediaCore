@@ -17,11 +17,13 @@
  */
 package me.brandonli.mcav.bukkit.media.mcv2;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -183,7 +185,7 @@ public final class Mcv2Pacer {
 
     for (int index = 1; index < presets.size(); index++) {
       Preconditions.checkArgument(
-        presets.get(index).cost() < presets.get(index - 1).cost(),
+        presets.get(index).getCost() < presets.get(index - 1).getCost(),
         "Each preset must cost less than the one before!"
       );
     }
@@ -193,10 +195,10 @@ public final class Mcv2Pacer {
     for (final int[] size : sizes) {
       Preconditions.checkArgument(size.length == SIZE_COMPONENTS && size[0] > 0 && size[1] > 0, "Sizes must be positive width and height!");
       for (final Preset preset : presets.subList(0, presets.size() - 1)) {
-        rungs.add(new Rung(size[0], size[1], FULL_RATE_DIVISOR, preset));
+        rungs.add(Rung.of(size[0], size[1], FULL_RATE_DIVISOR, preset));
       }
       for (final int divisor : DIVISORS) {
-        rungs.add(new Rung(size[0], size[1], divisor, fastest));
+        rungs.add(Rung.of(size[0], size[1], divisor, fastest));
       }
     }
 
@@ -252,7 +254,7 @@ public final class Mcv2Pacer {
    */
   public boolean isEncoded() {
     final Rung rung = this.getRung();
-    return !rung.isDithered() && (this.arrivals - 1) % rung.divisor() == 0;
+    return !rung.isDithered() && (this.arrivals - 1) % rung.getDivisor() == 0;
   }
 
   /**
@@ -359,7 +361,7 @@ public final class Mcv2Pacer {
   private int findFittingRungBelow(final Rung from, final double share, final int encoded) {
     for (int next = this.current + 1; next < encoded; next++) {
       final Rung rung = this.ladder.get(next);
-      final boolean sameFrames = rung.pixels() == from.pixels() && rung.divisor() == from.divisor();
+      final boolean sameFrames = rung.pixels() == from.pixels() && rung.getDivisor() == from.getDivisor();
       if (this.isAllowed(rung) && this.predict(next) <= (sameFrames ? HIGH : share) * this.frameMilliseconds(rung)) {
         return next;
       }
@@ -373,7 +375,7 @@ public final class Mcv2Pacer {
   }
 
   private Change move(final int next, final boolean down, final double encodeMilliseconds, final double frameMilliseconds) {
-    final Change change = new Change(
+    final Change change = Change.of(
       this.getRung(),
       this.ladder.get(next),
       down,
@@ -393,18 +395,18 @@ public final class Mcv2Pacer {
   }
 
   private double frameMilliseconds(final Rung rung) {
-    return (rung.divisor() * this.videoInterval) / NANOSECONDS_PER_MILLISECOND;
+    return (rung.getDivisor() * this.videoInterval) / NANOSECONDS_PER_MILLISECOND;
   }
 
   private double predict(final int index) {
     final Rung target = this.ladder.get(index);
     final Rung rung = this.getRung();
-    return (this.smoothed * target.pixels() * target.preset().cost()) / (rung.pixels() * rung.preset().cost());
+    return (this.smoothed * target.pixels() * target.getPreset().getCost()) / (rung.pixels() * rung.getPreset().getCost());
   }
 
   private boolean isAllowed(final Rung rung) {
     return (
-      rung.divisor() == FULL_RATE_DIVISOR ||
+      rung.getDivisor() == FULL_RATE_DIVISOR ||
       rung.framesPerSecond(this.getVideoFramesPerSecond()) >= MINIMUM_FRAME_RATE * MINIMUM_FRAME_RATE_TOLERANCE
     );
   }
@@ -463,56 +465,149 @@ public final class Mcv2Pacer {
   /**
    * A preset of the ladder: how hard the screen's encoder searches.
    *
-   * @param name the preset's name in messages, for example {@code FAST}; empty for the one preset of a screen that
-   *             does not step through presets
-   * @param cost its encode time relative to the other presets of the ladder, which the pacer's predictions scale by
+   * <p>This class is immutable and thread-safe.
    */
-  public record Preset(String name, double cost) {
+  public static final class Preset {
+
     /** The one preset of a screen that does not step through presets. */
-    public static final Preset ONLY = new Preset("", 1);
+    public static final Preset ONLY = of("", 1);
+
+    private final String name;
+    private final double cost;
+
+    private Preset(final String name, final double cost) {
+      this.name = name;
+      this.cost = cost;
+    }
 
     /**
-     * Constructs and validates a preset used to compare expected search costs.
+     * Returns a preset used to compare expected search costs.
      *
-     * @param name the non-null diagnostic name, possibly empty for an unnamed single preset
-     * @param cost the strictly positive finite relative cost; only ratios between presets matter
-     * @throws NullPointerException     if name is null
-     * @throws IllegalArgumentException if the cost is not positive and finite
+     * @param name the preset's name in messages, for example {@code FAST}; empty for the one preset of a screen that
+     *             does not step through presets
+     * @param cost its encode time relative to the other presets of the ladder, which the pacer's predictions scale by
+     * @return the preset
+     * @throws NullPointerException     if {@code name} is null
+     * @throws IllegalArgumentException if {@code cost} is not positive and finite
      */
-    public Preset {
+    public static Preset of(final String name, final double cost) {
       Preconditions.checkNotNull(name, "Name must not be null!");
       Preconditions.checkArgument(cost > 0 && Double.isFinite(cost), "Cost must be positive and finite!");
+
+      return new Preset(name, cost);
     }
 
     private String suffix() {
       return this.name.isEmpty() ? "" : " with the " + this.name + " search";
+    }
+
+    /**
+     * Returns the preset's name in messages.
+     *
+     * @return the preset's name in messages, for example {@code FAST}; empty for the one preset of a screen that does not
+     *         step through presets
+     */
+    public String getName() {
+      return this.name;
+    }
+
+    /**
+     * Returns the preset's encode time relative to the other presets of the ladder.
+     *
+     * @return its encode time relative to the other presets of the ladder, which the pacer's predictions scale by
+     */
+    public double getCost() {
+      return this.cost;
+    }
+
+    /**
+     * Returns whether {@code other} is a preset with the same parts.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Preset preset)) {
+        return false;
+      }
+
+      return this.name.equals(preset.name) && Double.compare(this.cost, preset.cost) == 0;
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.name, this.cost);
+    }
+
+    /**
+     * Returns a debugging representation with every part.
+     *
+     * @return the representation
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this).add("name", this.name).add("cost", this.cost).toString();
     }
   }
 
   /**
    * A rung of the ladder.
    *
-   * <p>Direct construction does not validate components. Use positive pixel dimensions, a positive frame
-   * divisor and a non-null preset for encoded rungs; {@link #DITHERED} is the canonical zero-divisor sentinel.
+   * <p>Construction does not validate the parts. Use positive pixel dimensions, a positive frame divisor and a
+   * non-null preset for encoded rungs; {@link #DITHERED} is the canonical zero-divisor sentinel.
    *
-   * @param width   the video width, or 0 for the dithered maps
-   * @param height  the video height, or 0 for the dithered maps
-   * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
-   * @param preset  how hard the encoder searches; {@link Preset#ONLY} on the dithered maps
+   * <p>This class is immutable and thread-safe.
    */
-  public record Rung(int width, int height, int divisor, Preset preset) {
+  public static final class Rung {
+
     /** The dithered maps, the lowest rung. */
-    public static final Rung DITHERED = new Rung(0, 0, 0);
+    public static final Rung DITHERED = of(0, 0, 0);
+
+    private final int width;
+    private final int height;
+    private final int divisor;
+    private final Preset preset;
+
+    private Rung(final int width, final int height, final int divisor, final Preset preset) {
+      this.width = width;
+      this.height = height;
+      this.divisor = divisor;
+      this.preset = preset;
+    }
 
     /**
-     * Creates a rung of a screen that does not step through presets.
+     * Returns a rung of the given size, frame divisor and preset.
      *
      * @param width   the video width, or 0 for the dithered maps
      * @param height  the video height, or 0 for the dithered maps
      * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
+     * @param preset  how hard the encoder searches; {@link Preset#ONLY} on the dithered maps
+     * @return the rung
      */
-    public Rung(final int width, final int height, final int divisor) {
-      this(width, height, divisor, Preset.ONLY);
+    public static Rung of(final int width, final int height, final int divisor, final Preset preset) {
+      return new Rung(width, height, divisor, preset);
+    }
+
+    /**
+     * Returns a rung of a screen that does not step through presets.
+     *
+     * @param width   the video width, or 0 for the dithered maps
+     * @param height  the video height, or 0 for the dithered maps
+     * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
+     * @return the rung
+     */
+    public static Rung of(final int width, final int height, final int divisor) {
+      return of(width, height, divisor, Preset.ONLY);
     }
 
     /**
@@ -557,19 +652,140 @@ public final class Mcv2Pacer {
             this.preset.suffix()
           );
     }
+
+    /**
+     * Returns the video width.
+     *
+     * @return the video width, or 0 for the dithered maps
+     */
+    public int getWidth() {
+      return this.width;
+    }
+
+    /**
+     * Returns the video height.
+     *
+     * @return the video height, or 0 for the dithered maps
+     */
+    public int getHeight() {
+      return this.height;
+    }
+
+    /**
+     * Returns every how many frames of the video one is encoded.
+     *
+     * @return every how many frames of the video one is encoded, or 0 for the dithered maps
+     */
+    public int getDivisor() {
+      return this.divisor;
+    }
+
+    /**
+     * Returns how hard the encoder searches.
+     *
+     * @return how hard the encoder searches; {@link Preset#ONLY} on the dithered maps
+     */
+    public Preset getPreset() {
+      return this.preset;
+    }
+
+    /**
+     * Returns whether {@code other} is a rung with the same parts.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Rung rung)) {
+        return false;
+      }
+
+      return this.width == rung.width && this.height == rung.height && this.divisor == rung.divisor && this.preset.equals(rung.preset);
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.width, this.height, this.divisor, this.preset);
+    }
+
+    /**
+     * Returns a debugging representation with every part.
+     *
+     * @return the representation
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+        .add("width", this.width)
+        .add("height", this.height)
+        .add("divisor", this.divisor)
+        .add("preset", this.preset)
+        .toString();
+    }
   }
 
   /**
    * A step of the pacer.
    *
-   * @param from               the rung before
-   * @param to                 the rung now
-   * @param down               whether the step went down the ladder
-   * @param encodeMilliseconds the smoothed encode time per frame that decided the step, 0 for a try from the dithered maps
-   * @param frameMilliseconds  the time a frame had on the rung before, 0 on the dithered maps
-   * @param videoFrameRate     the video's frames per second as measured
+   * <p>This class is immutable and thread-safe.
    */
-  public record Change(Rung from, Rung to, boolean down, double encodeMilliseconds, double frameMilliseconds, double videoFrameRate) {
+  public static final class Change {
+
+    private final Rung from;
+    private final Rung to;
+    private final boolean down;
+    private final double encodeMilliseconds;
+    private final double frameMilliseconds;
+    private final double videoFrameRate;
+
+    private Change(
+      final Rung from,
+      final Rung to,
+      final boolean down,
+      final double encodeMilliseconds,
+      final double frameMilliseconds,
+      final double videoFrameRate
+    ) {
+      this.from = from;
+      this.to = to;
+      this.down = down;
+      this.encodeMilliseconds = encodeMilliseconds;
+      this.frameMilliseconds = frameMilliseconds;
+      this.videoFrameRate = videoFrameRate;
+    }
+
+    /**
+     * Returns a step between two rungs.
+     *
+     * @param from               the rung before
+     * @param to                 the rung now
+     * @param down               whether the step went down the ladder
+     * @param encodeMilliseconds the smoothed encode time per frame that decided the step, 0 for a try from the dithered maps
+     * @param frameMilliseconds  the time a frame had on the rung before, 0 on the dithered maps
+     * @param videoFrameRate     the video's frames per second as measured
+     * @return the change
+     */
+    public static Change of(
+      final Rung from,
+      final Rung to,
+      final boolean down,
+      final double encodeMilliseconds,
+      final double frameMilliseconds,
+      final double videoFrameRate
+    ) {
+      return new Change(from, to, down, encodeMilliseconds, frameMilliseconds, videoFrameRate);
+    }
+
     /**
      * Describes the step for the server's operator: what was chosen and why.
      *
@@ -583,9 +799,9 @@ public final class Mcv2Pacer {
       final String timing = String.format(
         Locale.ROOT,
         "encoding %dx%d%s takes %.1f ms per frame, %s the %.1f ms a frame has at %s fps",
-        this.from.width(),
-        this.from.height(),
-        this.from.preset().suffix(),
+        this.from.getWidth(),
+        this.from.getHeight(),
+        this.from.getPreset().suffix(),
         this.encodeMilliseconds,
         this.down ? "more than" : "well within",
         this.frameMilliseconds,
@@ -594,6 +810,113 @@ public final class Mcv2Pacer {
       return this.down
         ? "MCV2 screen steps down to %s: %s with the encoder threads it has".formatted(this.to.describe(this.videoFrameRate), timing)
         : "MCV2 screen steps back up to %s: %s".formatted(this.to.describe(this.videoFrameRate), timing);
+    }
+
+    /**
+     * Returns the rung before the step.
+     *
+     * @return the rung before
+     */
+    public Rung getFrom() {
+      return this.from;
+    }
+
+    /**
+     * Returns the rung after the step.
+     *
+     * @return the rung now
+     */
+    public Rung getTo() {
+      return this.to;
+    }
+
+    /**
+     * Returns whether the step went down the ladder.
+     *
+     * @return whether the step went down the ladder
+     */
+    public boolean isDown() {
+      return this.down;
+    }
+
+    /**
+     * Returns the smoothed encode time per frame that decided the step.
+     *
+     * @return the smoothed encode time per frame that decided the step, 0 for a try from the dithered maps
+     */
+    public double getEncodeMilliseconds() {
+      return this.encodeMilliseconds;
+    }
+
+    /**
+     * Returns the time a frame had on the rung before.
+     *
+     * @return the time a frame had on the rung before, 0 on the dithered maps
+     */
+    public double getFrameMilliseconds() {
+      return this.frameMilliseconds;
+    }
+
+    /**
+     * Returns the video's frames per second as measured.
+     *
+     * @return the video's frames per second as measured
+     */
+    public double getVideoFrameRate() {
+      return this.videoFrameRate;
+    }
+
+    /**
+     * Returns whether {@code other} is a change with the same parts.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Change change)) {
+        return false;
+      }
+
+      return (
+        this.from.equals(change.from) &&
+        this.to.equals(change.to) &&
+        this.down == change.down &&
+        Double.compare(this.encodeMilliseconds, change.encodeMilliseconds) == 0 &&
+        Double.compare(this.frameMilliseconds, change.frameMilliseconds) == 0 &&
+        Double.compare(this.videoFrameRate, change.videoFrameRate) == 0
+      );
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.from, this.to, this.down, this.encodeMilliseconds, this.frameMilliseconds, this.videoFrameRate);
+    }
+
+    /**
+     * Returns a debugging representation with every part.
+     *
+     * @return the representation
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+        .add("from", this.from)
+        .add("to", this.to)
+        .add("down", this.down)
+        .add("encodeMilliseconds", this.encodeMilliseconds)
+        .add("frameMilliseconds", this.frameMilliseconds)
+        .add("videoFrameRate", this.videoFrameRate)
+        .toString();
     }
   }
 }

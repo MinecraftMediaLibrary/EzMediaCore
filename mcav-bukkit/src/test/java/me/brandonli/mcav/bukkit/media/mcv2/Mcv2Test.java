@@ -56,13 +56,13 @@ final class Mcv2Test {
       final byte[] decoded = Mcv2Decoder.decode(predicted, picture, 1);
       assertArrayEquals(picture, decoded);
 
-      final int bytes = encoder.getStatistics().orElseThrow().bytes();
+      final int bytes = encoder.getStatistics().orElseThrow().getBytes();
       assertEquals(40, bytes);
 
-      final boolean keyframe = encoder.getStatistics().orElseThrow().keyframe();
+      final boolean keyframe = encoder.getStatistics().orElseThrow().isKeyframe();
       assertFalse(keyframe);
 
-      final double lambda = encoder.getStatistics().orElseThrow().lambda();
+      final double lambda = encoder.getStatistics().orElseThrow().getLambda();
       assertEquals(LAMBDA, lambda);
     }
   }
@@ -182,7 +182,7 @@ final class Mcv2Test {
       encoder.setFrameLimit(40);
       final byte[] source = { 10, 20, 30 };
       final byte[] data = encoder.encode(source, 1, 1, 0);
-      final double lambda = encoder.getStatistics().orElseThrow().lambda();
+      final double lambda = encoder.getStatistics().orElseThrow().getLambda();
       assertEquals(16, lambda);
 
       final int frameLength = data.length;
@@ -204,7 +204,8 @@ final class Mcv2Test {
       assertTrue(searchWithinElapsed);
 
       final Mcv2.Statistics statistics = encoder.finish(pending).getStatistics();
-      final boolean measuredWithinElapsed = statistics.nanoseconds() >= searched && statistics.nanoseconds() <= System.nanoTime() - started;
+      final boolean measuredWithinElapsed =
+        statistics.getNanoseconds() >= searched && statistics.getNanoseconds() <= System.nanoTime() - started;
       assertTrue(measuredWithinElapsed);
     }
   }
@@ -241,7 +242,7 @@ final class Mcv2Test {
   @Test
   void shouldPlaceKeyframesByRequestsSizesIntervalsAndWrappedIds() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(new Mcv2.Settings(LAMBDA, false), pool, 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.of(LAMBDA, false), pool, 1, true);
       final byte[] black = new byte[3];
       final boolean firstIsKeyframe = Mcv2Decoder.parse(encoder.encode(black, 1, 1, 0xFFFFFFFEL)).isKeyframe();
       assertTrue(firstIsKeyframe);
@@ -287,7 +288,7 @@ final class Mcv2Test {
       Arrays.fill(source, (byte) 20);
       encoder.encode(source, 32, 32, 2);
       final double raised = LAMBDA * Math.pow(10 / 4.6, 0.79);
-      final double lambda = encoder.getStatistics().orElseThrow().lambda();
+      final double lambda = encoder.getStatistics().orElseThrow().getLambda();
       assertEquals(raised, lambda);
 
       encoder.switchTo(Mcv2.Settings.FAST.withLambda(30));
@@ -303,7 +304,7 @@ final class Mcv2Test {
       assertEquals(2, referenceId);
 
       final double expectedLambda = 30 * Math.pow(10 / 4.6, 0.79);
-      final double lambdaAfterSwitch = encoder.getStatistics().orElseThrow().lambda();
+      final double lambdaAfterSwitch = encoder.getStatistics().orElseThrow().getLambda();
       assertEquals(expectedLambda, lambdaAfterSwitch);
     }
   }
@@ -362,9 +363,9 @@ final class Mcv2Test {
   @Test
   void shouldCheckSettingsInputsAndReferenceOwnership() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      assertThrows(IllegalArgumentException.class, () -> new Mcv2.Settings(-1, false));
-      assertThrows(IllegalArgumentException.class, () -> new Mcv2.Settings(Double.NaN, false));
-      assertThrows(IllegalArgumentException.class, () -> new Mcv2.Settings(Double.POSITIVE_INFINITY, false));
+      assertThrows(IllegalArgumentException.class, () -> Mcv2.Settings.of(-1, false));
+      assertThrows(IllegalArgumentException.class, () -> Mcv2.Settings.of(Double.NaN, false));
+      assertThrows(IllegalArgumentException.class, () -> Mcv2.Settings.of(Double.POSITIVE_INFINITY, false));
       assertThrows(IllegalArgumentException.class, () -> new Mcv2(Mcv2.Settings.DEFAULT, pool, 0, false));
       assertThrows(NullPointerException.class, () -> new Mcv2(null, pool, 1, false));
       assertThrows(NullPointerException.class, () -> new Mcv2(Mcv2.Settings.DEFAULT, null, 1, false));

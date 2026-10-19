@@ -261,16 +261,16 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   }
 
   private static List<Settings> ladder(final Settings settings) {
-    if (settings.fast()) {
+    if (settings.isFast()) {
       return List.of(settings);
     }
 
     // Every finite product is divided as before, so 72 still gives exactly 55; one that overflows is scaled instead.
-    final double product = settings.lambda() * Settings.FAST.lambda();
+    final double product = settings.getLambda() * Settings.FAST.getLambda();
     final double lambda = Double.isFinite(product)
-      ? product / Settings.DEFAULT.lambda()
-      : settings.lambda() * (Settings.FAST.lambda() / Settings.DEFAULT.lambda());
-    return List.of(settings, new Settings(lambda, true));
+      ? product / Settings.DEFAULT.getLambda()
+      : settings.getLambda() * (Settings.FAST.getLambda() / Settings.DEFAULT.getLambda());
+    return List.of(settings, Settings.of(lambda, true));
   }
 
   private static List<Mcv2Pacer.Preset> presets(final List<Settings> ladder) {
@@ -287,11 +287,11 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   }
 
   private static Mcv2Pacer.Preset preset(final Settings settings) {
-    if (settings.fast()) {
-      return new Mcv2Pacer.Preset("FAST", FAST_COST);
+    if (settings.isFast()) {
+      return Mcv2Pacer.Preset.of("FAST", FAST_COST);
     }
 
-    return new Mcv2Pacer.Preset("DEFAULT", DEFAULT_COST);
+    return Mcv2Pacer.Preset.of("DEFAULT", DEFAULT_COST);
   }
 
   private static MapConfiguration fallbackConfiguration(final Mcv2Configuration configuration, final Set<UUID> viewers) {
@@ -404,7 +404,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       if (screenPacer != null) {
         tried = this.followArrival(screenPacer);
         encode = screenPacer.isEncoded();
-        preset = screenPacer.getRung().preset();
+        preset = screenPacer.getRung().getPreset();
       } else {
         encode = true;
       }
@@ -514,12 +514,12 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     event.frameId = delivery.frameId;
-    event.keyframe = delivery.statistics.keyframe();
+    event.keyframe = delivery.statistics.isKeyframe();
     event.bytes = delivery.frame.length;
     event.colors = colors;
     event.arrived = delivery.source.arrived;
     event.sent = System.currentTimeMillis();
-    event.encode = delivery.statistics.nanoseconds();
+    event.encode = delivery.statistics.getNanoseconds();
     event.sentTo = (int) (after[SENT] - before[SENT]);
     event.behind = (int) (after[BEHIND] - before[BEHIND]);
     event.waiting = (int) (after[UNDECODABLE] - before[UNDECODABLE]);
@@ -627,7 +627,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (running == null) {
       final byte[] frame = encoder.encode(arrival.pictureBytes, width, height, frameId);
       final Mcv2.Statistics statistics = encoder.getStatistics().orElseThrow();
-      isKeyframe = statistics.keyframe();
+      isKeyframe = statistics.isKeyframe();
       delivery = new Delivery(frame, statistics, frameId, arrival);
     } else {
       final Mcv2.Pending pending = running.budget().run(() -> encoder.begin(arrival.pictureBytes, width, height, frameId));
@@ -751,7 +751,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   }
 
   private void follow(final Mcv2Pacer.Change change) {
-    this.ditheredForAll = change.to().isDithered();
+    this.ditheredForAll = change.getTo().isDithered();
 
     if (this.ditheredForAll) {
       this.pending.clear();
@@ -783,10 +783,10 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     Screen target = current;
-    if (this.size(rung.width(), rung.height()) != this.size(configuration.getVideoWidth(), configuration.getVideoHeight())) {
+    if (this.size(rung.getWidth(), rung.getHeight()) != this.size(configuration.getVideoWidth(), configuration.getVideoHeight())) {
       current.channel().close();
       this.opened = false;
-      final Mcv2Configuration size = this.requested.withVideo(rung.width(), rung.height());
+      final Mcv2Configuration size = this.requested.withVideo(rung.getWidth(), rung.getHeight());
       target = new Screen(size, Preconditions.checkNotNull(this.resizer).resize(size));
       this.screen = target;
     }
@@ -798,7 +798,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   }
 
   private void announce(final Mcv2Pacer.Change change) {
-    if (change.down()) {
+    if (change.isDown()) {
       LOGGER.warn(PACING_STEP, change.describe());
     } else {
       LOGGER.debug(PACING_STEP, change.describe());
@@ -1002,10 +1002,10 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
     synchronized void add(final Mcv2.Statistics statistics, final int mapColors) {
       this.frames++;
-      this.keyframes += statistics.keyframe() ? 1 : 0;
-      this.bytes += statistics.bytes();
+      this.keyframes += statistics.isKeyframe() ? 1 : 0;
+      this.bytes += statistics.getBytes();
       this.mapBytes += mapColors;
-      this.nanoseconds += statistics.nanoseconds();
+      this.nanoseconds += statistics.getNanoseconds();
     }
 
     private synchronized void drop() {

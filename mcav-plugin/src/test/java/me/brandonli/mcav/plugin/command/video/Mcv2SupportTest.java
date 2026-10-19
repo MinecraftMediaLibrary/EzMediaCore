@@ -235,9 +235,9 @@ final class Mcv2SupportTest {
       @SuppressWarnings("unchecked")
       final ArgumentCaptor<Consumer<Mcv2Pacer.Change>> listeners = ArgumentCaptor.forClass(Consumer.class);
       verify(result).setPacingListener(listeners.capture());
-      final Mcv2Pacer.Change change = new Mcv2Pacer.Change(
-        new Mcv2Pacer.Rung(640, 384, 1),
-        new Mcv2Pacer.Rung(640, 384, 2),
+      final Mcv2Pacer.Change change = Mcv2Pacer.Change.of(
+        Mcv2Pacer.Rung.of(640, 384, 1),
+        Mcv2Pacer.Rung.of(640, 384, 2),
         true,
         20,
         16.7,

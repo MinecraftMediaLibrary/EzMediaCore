@@ -58,7 +58,7 @@ final class Mcv2BoundsTest {
     assertEquals(76064, firstLength);
 
     final int expectedLambda = 72 * 16;
-    final double lambda = encoder.getStatistics().orElseThrow().lambda();
+    final double lambda = encoder.getStatistics().orElseThrow().getLambda();
     assertEquals(expectedLambda, lambda);
 
     final int expectedLeafCount = 128 * 128;
@@ -98,7 +98,7 @@ final class Mcv2BoundsTest {
     final boolean withinLimit = data.length <= 131071;
     assertTrue(withinLimit);
 
-    final double lambda = encoder.getStatistics().orElseThrow().lambda();
+    final double lambda = encoder.getStatistics().orElseThrow().getLambda();
     assertEquals(0, lambda);
 
     final int expectedLeafCount = 32 * 32;

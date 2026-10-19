@@ -17,12 +17,14 @@
  */
 package me.brandonli.mcav.bukkit.media.mcv2;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.LongConsumer;
 import me.brandonli.mcav.bukkit.media.map.MapLayout;
@@ -34,6 +36,7 @@ import org.bytedeco.ffmpeg.global.swscale;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Encodes a video ahead of time into an MCV2 stream: the path for a server too small to encode a video while it plays.
@@ -113,7 +116,7 @@ public final class Mcv2FileEncoder {
         final long started = System.nanoTime();
         final byte[] frame = budget.run(() -> encoder.encode(pictureBytes, width, height, frameId));
         nanoseconds += System.nanoTime() - started;
-        keyframes += encoder.getStatistics().orElseThrow().keyframe() ? 1 : 0;
+        keyframes += encoder.getStatistics().orElseThrow().isKeyframe() ? 1 : 0;
         ByteBuffer.wrap(length).order(ByteOrder.LITTLE_ENDIAN).putInt(0, frame.length);
         output.write(length);
         output.write(frame);
@@ -218,12 +221,35 @@ public final class Mcv2FileEncoder {
   /**
    * What an encode did.
    *
-   * @param frames      the frames encoded
-   * @param keyframes   how many of them were keyframes
-   * @param bytes       the MCV2 frame bytes, excluding each four-byte length prefix
-   * @param nanoseconds the time the encodes took, waiting for the budget's threads included
+   * <p>This class is immutable and thread-safe.
    */
-  public record Result(long frames, long keyframes, long bytes, long nanoseconds) {
+  public static final class Result {
+
+    private final long frames;
+    private final long keyframes;
+    private final long bytes;
+    private final long nanoseconds;
+
+    private Result(final long frames, final long keyframes, final long bytes, final long nanoseconds) {
+      this.frames = frames;
+      this.keyframes = keyframes;
+      this.bytes = bytes;
+      this.nanoseconds = nanoseconds;
+    }
+
+    /**
+     * Returns the result of an encode.
+     *
+     * @param frames      the frames encoded
+     * @param keyframes   how many of them were keyframes
+     * @param bytes       the MCV2 frame bytes, excluding each four-byte length prefix
+     * @param nanoseconds the time the encodes took, waiting for the budget's threads included
+     * @return the result
+     */
+    public static Result of(final long frames, final long keyframes, final long bytes, final long nanoseconds) {
+      return new Result(frames, keyframes, bytes, nanoseconds);
+    }
+
     /**
      * Returns the mean time a frame took.
      *
@@ -231,6 +257,91 @@ public final class Mcv2FileEncoder {
      */
     public double millisecondsPerFrame() {
       return this.frames == 0 ? 0 : this.nanoseconds / NANOSECONDS_PER_MILLISECOND / this.frames;
+    }
+
+    /**
+     * Returns the number of frames encoded.
+     *
+     * @return the frames encoded
+     */
+    public long getFrames() {
+      return this.frames;
+    }
+
+    /**
+     * Returns how many of the frames were keyframes.
+     *
+     * @return how many of them were keyframes
+     */
+    public long getKeyframes() {
+      return this.keyframes;
+    }
+
+    /**
+     * Returns the MCV2 frame bytes, excluding each four-byte length prefix.
+     *
+     * @return the MCV2 frame bytes, excluding each four-byte length prefix
+     */
+    public long getBytes() {
+      return this.bytes;
+    }
+
+    /**
+     * Returns the time the encodes took in nanoseconds.
+     *
+     * @return the time the encodes took, waiting for the budget's threads included
+     */
+    public long getNanoseconds() {
+      return this.nanoseconds;
+    }
+
+    /**
+     * Returns whether {@code other} is a result with the same parts.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Result result)) {
+        return false;
+      }
+
+      return (
+        this.frames == result.frames &&
+        this.keyframes == result.keyframes &&
+        this.bytes == result.bytes &&
+        this.nanoseconds == result.nanoseconds
+      );
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.frames, this.keyframes, this.bytes, this.nanoseconds);
+    }
+
+    /**
+     * Returns a debugging representation with every part.
+     *
+     * @return the representation
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+        .add("frames", this.frames)
+        .add("keyframes", this.keyframes)
+        .add("bytes", this.bytes)
+        .add("nanoseconds", this.nanoseconds)
+        .toString();
     }
   }
 

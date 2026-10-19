@@ -861,7 +861,7 @@ final class Mcv2Tools {
       this.measured.times[frameIndex] = System.nanoTime() - startNanoseconds;
       this.measured.cpu[frameIndex] = this.system.getProcessCpuTime() - cpuBefore;
       this.measured.allocated[frameIndex] = this.threadBean.getTotalThreadAllocatedBytes() - allocatedBefore;
-      if (this.encoder.getStatistics().orElseThrow().keyframe()) {
+      if (this.encoder.getStatistics().orElseThrow().isKeyframe()) {
         this.measured.keyframes++;
       }
 

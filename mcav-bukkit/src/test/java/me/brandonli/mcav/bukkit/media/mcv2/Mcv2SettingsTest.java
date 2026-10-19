@@ -26,10 +26,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
+import me.brandonli.mcav.bukkit.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
 final class Mcv2SettingsTest {
@@ -48,7 +50,7 @@ final class Mcv2SettingsTest {
       factory.set(encoder, (Supplier<?>) () -> this.recordingKernels(original.get(), contract, widths));
       encoder.encode(Mcv2Pictures.scene(128, 96, 0, 3), 128, 96, 0);
       encoder.encode(Mcv2Pictures.scene(128, 96, 2, 3), 128, 96, 1);
-      final Set<Integer> expected = settings.fast() ? Set.of(64, 128) : Set.of(32, 64, 128);
+      final Set<Integer> expected = settings.isFast() ? Set.of(64, 128) : Set.of(32, 64, 128);
       assertEquals(expected, widths);
     }
   }
@@ -117,17 +119,17 @@ final class Mcv2SettingsTest {
 
   @Test
   void shouldKeepTheTwoLivePresetsAsData() {
-    final Settings expectedDefault = new Settings(LAMBDA, false);
+    final Settings expectedDefault = Settings.of(LAMBDA, false);
     assertEquals(expectedDefault, Settings.DEFAULT);
 
-    final Settings expectedFast = new Settings(55, true);
+    final Settings expectedFast = Settings.of(55, true);
     assertEquals(expectedFast, Settings.FAST);
   }
 
   @Test
   void shouldCopyWithOneValueChanged() {
-    final Settings settings = new Settings(LAMBDA, true);
-    final Settings expected = new Settings(0, true);
+    final Settings settings = Settings.of(LAMBDA, true);
+    final Settings expected = Settings.of(0, true);
     final Settings copy = settings.withLambda(0);
     assertEquals(expected, copy);
   }
@@ -137,5 +139,62 @@ final class Mcv2SettingsTest {
     assertThrows(IllegalArgumentException.class, () -> Settings.DEFAULT.withLambda(-1));
     assertThrows(IllegalArgumentException.class, () -> Settings.DEFAULT.withLambda(Double.POSITIVE_INFINITY));
     assertThrows(IllegalArgumentException.class, () -> Settings.DEFAULT.withLambda(Double.NaN));
+  }
+
+  @Test
+  void shouldCompareSettingsByEveryPart() {
+    final Mcv2.Settings settings = Mcv2.Settings.of(72, false);
+    EqualityAssertions.assertEqualityContract(
+      settings,
+      Mcv2.Settings.of(72, false),
+      Mcv2.Settings.of(55, false),
+      Mcv2.Settings.of(72, true)
+    );
+  }
+
+  @Test
+  void shouldHashSettingsByEveryPart() {
+    final Mcv2.Settings settings = Mcv2.Settings.of(72, true);
+
+    final int hash = settings.hashCode();
+    final int expected = Objects.hash(72.0, true);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldDescribeSettingsWithEveryPart() {
+    final String description = Mcv2.Settings.FAST.toString();
+    assertEquals("Settings{lambda=55.0, fast=true}", description);
+  }
+
+  @Test
+  void shouldCompareStatisticsByEveryPart() {
+    final Mcv2.Statistics statistics = Mcv2.Statistics.of(1, true, 2, 3, 4);
+    EqualityAssertions.assertEqualityContract(
+      statistics,
+      Mcv2.Statistics.of(1, true, 2, 3, 4),
+      Mcv2.Statistics.of(9, true, 2, 3, 4),
+      Mcv2.Statistics.of(1, false, 2, 3, 4),
+      Mcv2.Statistics.of(1, true, 9, 3, 4),
+      Mcv2.Statistics.of(1, true, 2, 9, 4),
+      Mcv2.Statistics.of(1, true, 2, 3, 9)
+    );
+  }
+
+  @Test
+  void shouldHashStatisticsByEveryPart() {
+    final Mcv2.Statistics statistics = Mcv2.Statistics.of(1, true, 2, 3, 4);
+
+    final int hash = statistics.hashCode();
+    final int expected = Objects.hash(1, true, 2, 3L, 4.0);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldDescribeStatisticsWithEveryPart() {
+    final Mcv2.Statistics statistics = Mcv2.Statistics.of(1, true, 2, 3, 4);
+
+    final String description = statistics.toString();
+    assertEquals("Statistics{bytes=1, keyframe=true, leaves=2, nanoseconds=3, lambda=4.0}", description);
   }
 }

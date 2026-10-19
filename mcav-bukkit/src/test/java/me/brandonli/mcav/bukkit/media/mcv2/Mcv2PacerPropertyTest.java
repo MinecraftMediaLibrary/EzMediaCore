@@ -49,9 +49,9 @@ final class Mcv2PacerPropertyTest {
 
   /** The presets a screen steps through, when it has more than one. */
   private static final List<Mcv2Pacer.Preset> PRESETS = List.of(
-    new Mcv2Pacer.Preset("live", 1),
-    new Mcv2Pacer.Preset("live-fast", 0.6),
-    new Mcv2Pacer.Preset("fastest", 0.35)
+    Mcv2Pacer.Preset.of("live", 1),
+    Mcv2Pacer.Preset.of("live-fast", 0.6),
+    Mcv2Pacer.Preset.of("fastest", 0.35)
   );
 
   @Provide
@@ -60,7 +60,7 @@ final class Mcv2PacerPropertyTest {
   }
 
   private double frameMilliseconds(final Mcv2Pacer.Rung rung, final double framesPerSecond) {
-    return (1000.0 * rung.divisor()) / framesPerSecond;
+    return (1000.0 * rung.getDivisor()) / framesPerSecond;
   }
 
   /**
@@ -85,7 +85,8 @@ final class Mcv2PacerPropertyTest {
         continue;
       }
       final double rungMilliseconds =
-        (fullMilliseconds * stretch.rung().width() * stretch.rung().height() * stretch.rung().preset().cost()) / (FULL_WIDTH * FULL_HEIGHT);
+        (fullMilliseconds * stretch.rung().getWidth() * stretch.rung().getHeight() * stretch.rung().getPreset().getCost()) /
+        (FULL_WIDTH * FULL_HEIGHT);
       final double seconds = (stretch.to() - stretch.from()) / (double) SECOND;
       final boolean over = rungMilliseconds * (1 - noise) > this.frameMilliseconds(stretch.rung(), framesPerSecond);
       // it waits for the rung's first samples (and, on the first rung, for the encoder to warm up), then a second
@@ -170,13 +171,13 @@ final class Mcv2PacerPropertyTest {
 
     private double costOf(final Mcv2Pacer.Rung rung, final double fullMilliseconds) {
       final double scale = 1 + this.noise * (2 * this.random.nextDouble() - 1);
-      return (fullMilliseconds * scale * rung.width() * rung.height() * rung.preset().cost()) / (FULL_WIDTH * FULL_HEIGHT);
+      return (fullMilliseconds * scale * rung.getWidth() * rung.getHeight() * rung.getPreset().getCost()) / (FULL_WIDTH * FULL_HEIGHT);
     }
 
     private void record(final Mcv2Pacer.Change change, final long at) {
-      this.stretches.add(new Stretch(change.from(), this.started, at, this.climbed, change.down()));
+      this.stretches.add(new Stretch(change.getFrom(), this.started, at, this.climbed, change.isDown()));
       this.started = at;
-      this.climbed = !change.down() && !change.from().isDithered();
+      this.climbed = !change.isDown() && !change.getFrom().isDithered();
     }
 
     /** Plays the video for a while with 1080p frames taking {@code fullMilliseconds}. */

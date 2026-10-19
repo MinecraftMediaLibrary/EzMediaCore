@@ -482,8 +482,8 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
         String.format(
           Locale.ROOT,
           "%d frames (%d keyframes) into %s in %.0f s, %.0f ms per frame",
-          result.frames(),
-          result.keyframes(),
+          result.getFrames(),
+          result.getKeyframes(),
           target,
           (System.nanoTime() - started) / NANOSECONDS_PER_SECOND,
           result.millisecondsPerFrame()

@@ -35,12 +35,14 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import me.brandonli.mcav.bukkit.media.map.MapLayout;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Pool;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.transport.TransportPages;
+import me.brandonli.mcav.bukkit.testing.EqualityAssertions;
 import me.brandonli.mcav.bukkit.testing.TestMedia;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
@@ -93,7 +95,7 @@ final class Mcv2FileEncoderTest {
     }
 
     final int count = TestMedia.VIDEO_SECONDS * TestMedia.VIDEO_FRAME_RATE;
-    final long frameCount = result.frames();
+    final long frameCount = result.getFrames();
     assertEquals(count, frameCount);
 
     final int progressCount = progress.size();
@@ -102,10 +104,10 @@ final class Mcv2FileEncoderTest {
     final long lastProgress = progress.getLast();
     assertEquals(count, lastProgress);
 
-    final boolean hasSeveralKeyframes = result.keyframes() >= 2;
+    final boolean hasSeveralKeyframes = result.getKeyframes() >= 2;
     assertTrue(hasSeveralKeyframes);
 
-    final boolean tookTime = result.nanoseconds() > 0;
+    final boolean tookTime = result.getNanoseconds() > 0;
     assertTrue(tookTime);
 
     final boolean tookTimePerFrame = result.millisecondsPerFrame() > 0;
@@ -115,7 +117,7 @@ final class Mcv2FileEncoderTest {
     final int writtenFrameCount = frames.size();
     assertEquals(count, writtenFrameCount);
 
-    final long expectedBytes = result.bytes();
+    final long expectedBytes = result.getBytes();
     final long writtenBytes = frames
       .stream()
       .mapToLong(frame -> frame.length)
@@ -205,10 +207,10 @@ final class Mcv2FileEncoderTest {
       }
     }
 
-    final long frameCount = result.frames();
+    final long frameCount = result.getFrames();
     assertEquals(3, frameCount);
 
-    final long countedKeyframes = result.keyframes();
+    final long countedKeyframes = result.getKeyframes();
     assertEquals(keyframes, countedKeyframes, "the keyframes in the stream of three frames");
   }
 
@@ -229,8 +231,8 @@ final class Mcv2FileEncoderTest {
     }
 
     final long elapsed = System.nanoTime() - started;
-    final boolean withinTheCall = result.nanoseconds() >= 0 && result.nanoseconds() <= elapsed;
-    assertTrue(withinTheCall, result.nanoseconds() + " ns in a call of " + elapsed + " ns");
+    final boolean withinTheCall = result.getNanoseconds() >= 0 && result.getNanoseconds() <= elapsed;
+    assertTrue(withinTheCall, result.getNanoseconds() + " ns in a call of " + elapsed + " ns");
   }
 
   @Test
@@ -301,10 +303,10 @@ final class Mcv2FileEncoderTest {
     final boolean videoClosed = closed.get();
     assertTrue(videoClosed);
 
-    final double emptyMillisecondsPerFrame = new Mcv2FileEncoder.Result(0, 0, 0, 0).millisecondsPerFrame();
+    final double emptyMillisecondsPerFrame = Mcv2FileEncoder.Result.of(0, 0, 0, 0).millisecondsPerFrame();
     assertEquals(0, emptyMillisecondsPerFrame);
 
-    final double millisecondsPerFrame = new Mcv2FileEncoder.Result(2, 0, 0, 5_000_000).millisecondsPerFrame();
+    final double millisecondsPerFrame = Mcv2FileEncoder.Result.of(2, 0, 0, 5_000_000).millisecondsPerFrame();
     assertEquals(2.5, millisecondsPerFrame);
   }
 
@@ -382,6 +384,36 @@ final class Mcv2FileEncoderTest {
 
     assertThrows(IllegalStateException.class, () -> Mcv2FileEncoder.copy(frame, rgb, 3, 2));
     assertThrows(IllegalStateException.class, () -> Mcv2FileEncoder.copy(frame, rgb, 2, 3));
+  }
+
+  @Test
+  void shouldCompareResultsByEveryPart() {
+    final Mcv2FileEncoder.Result result = Mcv2FileEncoder.Result.of(1, 2, 3, 4);
+    EqualityAssertions.assertEqualityContract(
+      result,
+      Mcv2FileEncoder.Result.of(1, 2, 3, 4),
+      Mcv2FileEncoder.Result.of(9, 2, 3, 4),
+      Mcv2FileEncoder.Result.of(1, 9, 3, 4),
+      Mcv2FileEncoder.Result.of(1, 2, 9, 4),
+      Mcv2FileEncoder.Result.of(1, 2, 3, 9)
+    );
+  }
+
+  @Test
+  void shouldHashResultsByEveryPart() {
+    final Mcv2FileEncoder.Result result = Mcv2FileEncoder.Result.of(1, 2, 3, 4);
+
+    final int hash = result.hashCode();
+    final int expected = Objects.hash(1L, 2L, 3L, 4L);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldDescribeResultsWithEveryPart() {
+    final Mcv2FileEncoder.Result result = Mcv2FileEncoder.Result.of(1, 2, 3, 4);
+
+    final String description = result.toString();
+    assertEquals("Result{frames=1, keyframes=2, bytes=3, nanoseconds=4}", description);
   }
 
   private static final class RepeatingReader implements Mcv2FileEncoder.FrameReader {

@@ -43,7 +43,7 @@ final class Mcv2RoundTripPropertyTest {
 
   private static final ForkJoinPool POOL = ForkJoinPool.commonPool();
 
-  private static final List<Settings> PROFILES = List.of(new Settings(72, false), Settings.FAST, Settings.DEFAULT, Settings.FAST);
+  private static final List<Settings> PROFILES = List.of(Settings.of(72, false), Settings.FAST, Settings.DEFAULT, Settings.FAST);
 
   /** A picture of flat rectangles, noise and ramps, the kinds of content different leaf modes win on. */
   private static byte[] picture(final Random random, final int width, final int height) {

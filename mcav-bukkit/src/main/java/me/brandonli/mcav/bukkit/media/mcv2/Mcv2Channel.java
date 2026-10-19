@@ -424,7 +424,7 @@ public final class Mcv2Channel {
     final List<MapPacketFactory.Bundle> bundles = MapPacketFactory.bundles(patches);
     long bytes = 0;
     for (final MapPacketFactory.Bundle bundle : bundles) {
-      bytes += bundle.bytes();
+      bytes += bundle.getBytes();
     }
 
     for (final Map.Entry<UUID, Mcv2Link> recipient : this.recipients.entrySet()) {
@@ -450,7 +450,7 @@ public final class Mcv2Channel {
 
   private void sendBundles(final UUID viewer, final Mcv2Link link, final List<MapPacketFactory.Bundle> bundles) {
     for (final MapPacketFactory.Bundle bundle : bundles) {
-      bundle.send(viewer, () -> link.written(bundle.bytes()));
+      bundle.send(viewer, () -> link.written(bundle.getBytes()));
     }
   }
 

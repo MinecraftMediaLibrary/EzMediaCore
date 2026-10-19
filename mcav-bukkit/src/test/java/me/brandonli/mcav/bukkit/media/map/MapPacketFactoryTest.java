@@ -25,10 +25,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import me.brandonli.mcav.bukkit.testing.EqualityAssertions;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -241,5 +244,38 @@ final class MapPacketFactoryTest {
   @Test
   void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(MapPacketFactory.class);
+  }
+
+  @Test
+  void shouldCompareBundlesByEveryPart() {
+    final ClientboundBundlePacket packet = new ClientboundBundlePacket(List.of());
+    final ClientboundBundlePacket other = new ClientboundBundlePacket(List.of());
+    final MapPacketFactory.Bundle bundle = MapPacketFactory.Bundle.of(packet, 1);
+    EqualityAssertions.assertEqualityContract(
+      bundle,
+      MapPacketFactory.Bundle.of(packet, 1),
+      MapPacketFactory.Bundle.of(other, 1),
+      MapPacketFactory.Bundle.of(packet, 2)
+    );
+  }
+
+  @Test
+  void shouldHashBundlesByEveryPart() {
+    final ClientboundBundlePacket packet = new ClientboundBundlePacket(List.of());
+    final MapPacketFactory.Bundle bundle = MapPacketFactory.Bundle.of(packet, 1);
+
+    final int hash = bundle.hashCode();
+    final int expected = Objects.hash(packet, 1L);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldDescribeBundlesWithEveryPart() {
+    final ClientboundBundlePacket packet = new ClientboundBundlePacket(List.of());
+    final MapPacketFactory.Bundle bundle = MapPacketFactory.Bundle.of(packet, 1);
+
+    final String description = bundle.toString();
+    final String expected = "Bundle{packet=%s, bytes=1}".formatted(packet);
+    assertEquals(expected, description);
   }
 }
