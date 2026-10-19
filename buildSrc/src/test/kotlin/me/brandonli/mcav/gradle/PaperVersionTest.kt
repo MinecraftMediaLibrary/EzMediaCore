@@ -51,7 +51,7 @@ class PaperVersionTest {
 
     @Test
     fun shouldRejectAVersionWithoutAnExplicitBuild(): Unit {
-        val versions: List<String> = listOf(MINECRAFT_VERSION, "26.3.build.latest")
+        val versions: List<String> = listOf(MINECRAFT_VERSION, "26.3.build.latest", "26.3.build.2147483648")
         val messages: Map<String, String?> = versions.associateWith { version ->
             assertThrows(GradleException::class.java) { PaperVersion.parse(version) }.message
         }
