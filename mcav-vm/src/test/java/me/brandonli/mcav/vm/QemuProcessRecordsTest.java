@@ -120,7 +120,7 @@ final class QemuProcessRecordsTest {
 
   @Test
   void shouldRecordAProcessTheLauncherStartsUntilItEnds() throws IOException, InterruptedException {
-    final VMProcess.RecordingLauncher launcher = new VMProcess.RecordingLauncher(this.records(ProcessHandle.current()));
+    final VmProcess.RecordingLauncher launcher = new VmProcess.RecordingLauncher(this.records(ProcessHandle.current()));
     final Process qemu = launcher.launch(this.sleeper(false));
     this.children.add(qemu);
     final boolean recorded = Files.isRegularFile(this.recordOf(qemu.pid()));

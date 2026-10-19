@@ -47,9 +47,9 @@ import me.brandonli.mcav.plugin.utils.MapCodec;
 import me.brandonli.mcav.utils.immutable.Pair;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 import me.brandonli.mcav.vm.ExecutableNotInPathException;
-import me.brandonli.mcav.vm.VMConfiguration;
-import me.brandonli.mcav.vm.VMPlayer;
-import me.brandonli.mcav.vm.VMSettings;
+import me.brandonli.mcav.vm.VmConfiguration;
+import me.brandonli.mcav.vm.VmPlayer;
+import me.brandonli.mcav.vm.VmSettings;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -71,7 +71,7 @@ import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
  * server, load a plugin library of its own, share a folder of the host with the guest and publish its display and its
  * monitor on the network, none of which belongs in a chat command.
  */
-public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer> {
+public final class VirtualizeCommand extends AbstractInteractiveCommand<VmPlayer> {
 
   /**
    * The permission a player needs to send input to the running virtual machine, by chat or by clicking the screen.
@@ -142,7 +142,7 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
    * @param screenY the y coordinate on the display, in pixels
    */
   @Override
-  protected void handleLeftClick(final VMPlayer current, final int screenX, final int screenY) {
+  protected void handleLeftClick(final VmPlayer current, final int screenX, final int screenY) {
     Preconditions.checkNotNull(current, "Virtual machine must not be null");
     current.sendMouseEvent(MouseClick.LEFT, screenX, screenY);
   }
@@ -155,7 +155,7 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
    * @param screenY the y coordinate on the display, in pixels
    */
   @Override
-  protected void handleRightClick(final VMPlayer current, final int screenX, final int screenY) {
+  protected void handleRightClick(final VmPlayer current, final int screenX, final int screenY) {
     Preconditions.checkNotNull(current, "Virtual machine must not be null");
     current.sendMouseEvent(MouseClick.RIGHT, screenX, screenY);
   }
@@ -167,7 +167,7 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
    * @param text    the text to type
    */
   @Override
-  protected void handleTextInput(final VMPlayer current, final String text) {
+  protected void handleTextInput(final VmPlayer current, final String text) {
     Preconditions.checkNotNull(current, "Virtual machine must not be null");
     Preconditions.checkNotNull(text, "Text must not be null");
     current.sendKeyEvent(text);
@@ -179,7 +179,7 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
    * @param current the virtual machine to stop, which is no longer the running one
    */
   @Override
-  protected void releasePlayer(final VMPlayer current) {
+  protected void releasePlayer(final VmPlayer current) {
     Preconditions.checkNotNull(current, "Virtual machine must not be null");
     // QEMU takes up to ten seconds to stop, and is then killed; no frame or sound of it meanwhile
     CleanupUtils.runAll(
@@ -289,7 +289,7 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
     @Argument(suggestions = "dimensions") @Quoted final String blockDimensions,
     @Argument(suggestions = "ids") @Range(min = "0") final int mapId,
     final DitheringArgument ditheringAlgorithm,
-    final VMPlayer.Architecture architecture,
+    final VmPlayer.Architecture architecture,
     final AudioArgument audioType,
     @Greedy final String flags
   ) {
@@ -318,12 +318,12 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
       sender.sendMessage(Message.UNKNOWN_CODEC.build());
       return;
     }
-    final VMConfiguration vmConfiguration = this.parseOptions(sender, split.options());
+    final VmConfiguration vmConfiguration = this.parseOptions(sender, split.options());
     if (vmConfiguration == null) {
       return;
     }
     // only x86-64 PC and Q35 machines get a sound card from mcav-vm
-    if (audioType != AudioArgument.NONE && architecture != VMPlayer.Architecture.X86_64) {
+    if (audioType != AudioArgument.NONE && architecture != VmPlayer.Architecture.X86_64) {
       final Component silent = Message.VM_NO_SOUND.build();
       sender.sendMessage(silent);
       return;
@@ -336,7 +336,7 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
     }
     final int width = resolution.getFirst();
     final int height = resolution.getSecond();
-    final VMSettings vmSettings = VMSettings.of(width, height, targetFps);
+    final VmSettings vmSettings = VmSettings.of(width, height, targetFps);
     final MapCodec codec = this.chooseCodec(split.codec());
     final ScreenSettings settings = new ScreenSettings(sender, playerSelector, blocks, resolution, mapId, ditheringAlgorithm, codec);
     final Screen screen = this.createScreen(settings);
@@ -348,12 +348,12 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
   private void startMachine(
     final CommandSender sender,
     final Screen screen,
-    final VMSettings settings,
-    final VMPlayer.Architecture architecture,
-    final VMConfiguration vmConfiguration,
+    final VmSettings settings,
+    final VmPlayer.Architecture architecture,
+    final VmConfiguration vmConfiguration,
     final ScreenSound sound
   ) {
-    final VMPlayer machine = VMPlayer.create();
+    final VmPlayer machine = VmPlayer.create();
     this.ownCreatedPlayer(machine);
     final VideoAttachableCallback callback = machine.getVideoAttachableCallback();
     final VideoPipelineStep pipeline = screen.getPipeline();
@@ -430,11 +430,11 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
    * @param flags  the options as entered
    * @return the configuration, or {@code null} if an option was refused
    */
-  private @Nullable VMConfiguration parseOptions(final CommandSender sender, final String flags) {
+  private @Nullable VmConfiguration parseOptions(final CommandSender sender, final String flags) {
     final Path dataFolder = this.plugin.getDataPath();
     final Path imageFolder = DiskImages.folderOf(dataFolder);
     try {
-      final VMConfiguration configuration = parseOptions(flags, imageFolder, maxMemoryBytes());
+      final VmConfiguration configuration = parseOptions(flags, imageFolder, maxMemoryBytes());
       // without it, the guest gets mcav's network that reaches nothing, as no option of the command chooses one
       final PluginDataConfigurationMapper settings = this.plugin.getConfiguration();
       if (settings.isVmAllowNetwork()) {
@@ -461,7 +461,7 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
    * @throws IllegalArgumentException if an option is not supported, is given a value it does not take, misses the
    *                                  value it needs, or names a disk image outside the image folder
    */
-  static VMConfiguration parseOptions(final String commandLine, final Path imageFolder) {
+  static VmConfiguration parseOptions(final String commandLine, final Path imageFolder) {
     return parseOptions(commandLine, imageFolder, Long.MAX_VALUE);
   }
 
@@ -475,8 +475,8 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
    * @return the configuration
    * @throws IllegalArgumentException if an option is refused, or the machine would have more memory than allowed
    */
-  static VMConfiguration parseOptions(final String commandLine, final Path imageFolder, final long maxMemoryBytes) {
-    final VMConfiguration configuration = parseAllowedOptions(commandLine, imageFolder);
+  static VmConfiguration parseOptions(final String commandLine, final Path imageFolder, final long maxMemoryBytes) {
+    final VmConfiguration configuration = parseAllowedOptions(commandLine, imageFolder);
     final String memory = Objects.requireNonNullElse(configuration.get("m"), "128");
     final long requested = QemuHardwareValues.memoryBytes(memory);
     if (requested > maxMemoryBytes) {
@@ -508,9 +508,9 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
     return Math.max(MIN_MACHINE_MEMORY_BYTES, totalMemoryBytes / 2);
   }
 
-  private static VMConfiguration parseAllowedOptions(final String commandLine, final Path imageFolder) {
+  private static VmConfiguration parseAllowedOptions(final String commandLine, final Path imageFolder) {
     final List<String> tokens = tokenize(commandLine);
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     final int count = tokens.size();
     int index = 0;
     while (index < count) {
@@ -525,7 +525,7 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VMPlayer
    *
    * @return the index of the token after the option and its value
    */
-  private static int addOption(final VMConfiguration configuration, final List<String> tokens, final int index, final Path imageFolder) {
+  private static int addOption(final VmConfiguration configuration, final List<String> tokens, final int index, final Path imageFolder) {
     final String token = tokens.get(index);
     final int next = index + 1;
     if (!token.startsWith("-")) {

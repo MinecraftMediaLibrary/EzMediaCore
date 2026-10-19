@@ -31,13 +31,13 @@ import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link VMConfiguration}.
+ * Tests {@link VmConfiguration}.
  */
-final class VMConfigurationTest {
+final class VmConfigurationTest {
 
   @Test
   void shouldStartEmpty() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     final List<String> arguments = configuration.getArguments();
     final String[] array = configuration.buildArguments();
     final String text = configuration.toString();
@@ -49,8 +49,8 @@ final class VMConfigurationTest {
 
   @Test
   void shouldCreateANewConfigurationEveryTime() {
-    final VMConfiguration first = VMConfiguration.builder();
-    final VMConfiguration second = VMConfiguration.builder();
+    final VmConfiguration first = VmConfiguration.builder();
+    final VmConfiguration second = VmConfiguration.builder();
     first.memory(256);
     final boolean secondHasMemory = second.has("m");
     assertNotSame(first, second);
@@ -59,7 +59,7 @@ final class VMConfigurationTest {
 
   @Test
   void shouldRenderEveryTypedOptionAsAQemuArgument() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.memory(2048);
     configuration.cores(4);
     configuration.cdrom("alpine.iso");
@@ -107,7 +107,7 @@ final class VMConfigurationTest {
 
   @Test
   void shouldSetMemoryWithAUnit() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.memory(2, "G");
     final String memory = configuration.get("m");
     assertEquals("2G", memory);
@@ -115,7 +115,7 @@ final class VMConfigurationTest {
 
   @Test
   void shouldReplaceOptionsButKeepTheirFirstPosition() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.memory(512);
     configuration.cores(1);
     configuration.memory(1024);
@@ -126,7 +126,7 @@ final class VMConfigurationTest {
 
   @Test
   void shouldOrderOptionsBeforeRepeatableOptionsBeforeFlags() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.flag("enable-kvm");
     configuration.drive("file=a.qcow2,format=qcow2");
     configuration.device("virtio-rng-pci");
@@ -167,7 +167,7 @@ final class VMConfigurationTest {
 
   @Test
   void shouldAnswerWhichOptionsAndFlagsAreSet() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.cdrom("alpine.iso");
     configuration.flag("snapshot");
     configuration.device("usb-tablet");
@@ -189,7 +189,7 @@ final class VMConfigurationTest {
 
   @Test
   void shouldListTheValuesOfRepeatableOptions() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.device("usb-tablet");
     configuration.drive("file=disk.qcow2");
     configuration.device("virtio-net-pci");
@@ -211,7 +211,7 @@ final class VMConfigurationTest {
 
   @Test
   void shouldRemoveEveryValueOfARepeatableOption() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.device("usb-tablet");
     configuration.drive("file=disk.qcow2");
     configuration.device("virtio-net-pci");
@@ -227,11 +227,11 @@ final class VMConfigurationTest {
 
   @Test
   void shouldRemoveOptionsAndFlags() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.cdrom("alpine.iso");
     configuration.flag("snapshot");
     configuration.cores(2);
-    final VMConfiguration result = configuration.remove("cdrom");
+    final VmConfiguration result = configuration.remove("cdrom");
     configuration.remove("snapshot");
     configuration.remove("not-set");
     final boolean hasCdrom = configuration.has("cdrom");
@@ -246,8 +246,8 @@ final class VMConfigurationTest {
 
   @Test
   void shouldReturnItselfFromEverySetter() {
-    final VMConfiguration configuration = VMConfiguration.builder();
-    final List<UnaryOperator<VMConfiguration>> setters = List.of(
+    final VmConfiguration configuration = VmConfiguration.builder();
+    final List<UnaryOperator<VmConfiguration>> setters = List.of(
       candidate -> candidate.memory(1),
       candidate -> candidate.memory(1, "G"),
       candidate -> candidate.cores(1),
@@ -266,15 +266,15 @@ final class VMConfigurationTest {
       candidate -> candidate.repeatable("a", "b"),
       candidate -> candidate.flag("a")
     );
-    for (final UnaryOperator<VMConfiguration> setter : setters) {
-      final VMConfiguration result = setter.apply(configuration);
+    for (final UnaryOperator<VmConfiguration> setter : setters) {
+      final VmConfiguration result = setter.apply(configuration);
       assertSame(configuration, result);
     }
   }
 
   @Test
   void shouldReturnArgumentsThatCannotBeModified() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.memory(64);
     final List<String> arguments = configuration.getArguments();
     assertThrows(UnsupportedOperationException.class, arguments::clear);
@@ -287,7 +287,7 @@ final class VMConfigurationTest {
 
   @Test
   void shouldRejectInvalidTypedOptions() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     assertThrows(IllegalArgumentException.class, () -> configuration.memory(0));
     assertThrows(IllegalArgumentException.class, () -> configuration.memory(0, "G"));
     assertThrows(NullPointerException.class, () -> configuration.memory(1, null));
@@ -310,7 +310,7 @@ final class VMConfigurationTest {
 
   @Test
   void shouldRejectInvalidGenericOptionsAndKeys() {
-    final VMConfiguration configuration = VMConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder();
     assertThrows(NullPointerException.class, () -> configuration.option(null, "value"));
     assertThrows(NullPointerException.class, () -> configuration.option("key", null));
     assertThrows(IllegalArgumentException.class, () -> configuration.option(" ", "value"));

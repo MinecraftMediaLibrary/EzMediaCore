@@ -42,12 +42,12 @@ import me.brandonli.mcav.vnc.VncModule;
  * Boots an ISO image in QEMU, shows the screen in a window, and forwards clicks and typed keys to the machine.
  * Pass the path of the ISO as the first argument.
  */
-public final class VMInputExample {
+public final class VmInputExample {
 
   private static final int WIDTH = 1024;
   private static final int HEIGHT = 768;
 
-  private VMInputExample() {
+  private VmInputExample() {
     throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
 
@@ -58,16 +58,16 @@ public final class VMInputExample {
    */
   static void main(final String[] args) {
     if (args.length == 0) {
-      System.err.println("Usage: VMInputExample <iso>");
+      System.err.println("Usage: VmInputExample <iso>");
       return;
     }
 
     final String iso = args[0];
     final MCAVApi api = MCAV.api();
-    api.install(VncModule.class, VMModule.class);
+    api.install(VncModule.class, VmModule.class);
 
     final JLabel label = createWindow();
-    final VMPlayer player = VMPlayer.create();
+    final VmPlayer player = VmPlayer.create();
     showFrames(player, label);
     startMachine(player, iso);
     forwardInput(player, label);
@@ -94,7 +94,7 @@ public final class VMInputExample {
     return label;
   }
 
-  private static void showFrames(final VMPlayer player, final JLabel label) {
+  private static void showFrames(final VmPlayer player, final JLabel label) {
     final VideoPipelineStepBuilder builder = PipelineBuilder.video();
     builder.then((image, _) -> {
       show(label, image);
@@ -106,16 +106,16 @@ public final class VMInputExample {
     callback.attach(pipeline);
   }
 
-  private static void startMachine(final VMPlayer player, final String iso) {
-    final VMConfiguration configuration = VMConfiguration.builder();
+  private static void startMachine(final VmPlayer player, final String iso) {
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.cdrom(iso);
     configuration.memory(2048);
     configuration.cores(2);
-    final VMSettings settings = VMSettings.of(WIDTH, HEIGHT, 30);
-    player.start(settings, VMPlayer.Architecture.X86_64, configuration);
+    final VmSettings settings = VmSettings.of(WIDTH, HEIGHT, 30);
+    player.start(settings, VmPlayer.Architecture.X86_64, configuration);
   }
 
-  private static void forwardInput(final VMPlayer player, final JLabel label) {
+  private static void forwardInput(final VmPlayer player, final JLabel label) {
     final MouseAdapter clicks = new MouseAdapter() {
       @Override
       public void mouseClicked(final MouseEvent event) {

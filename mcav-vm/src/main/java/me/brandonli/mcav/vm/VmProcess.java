@@ -64,14 +64,14 @@ import org.slf4j.LoggerFactory;
  * {@code -audio} or {@code -audiodev}, or routes the PC speaker itself, is refused. The display is shared by every
  * client, and on x86 PC and Q35 machines an Intel HD Audio card and the PC speaker play into an audio backend without
  * a host device, whose sound QEMU's VNC server hands to the audio connection of the player
- * ({@link VMAudioClient}). Other machines have no sound.
+ * ({@link VmAudioClient}). Other machines have no sound.
  *
  * <p>The VNC port must be free before QEMU starts, and QEMU must still run a moment after the port accepts
  * connections, so the player never connects to another server that listens on the port. The display asks for a random
  * password, which QEMU reads from a file of a folder only the server's user can open; the file is deleted once QEMU
  * started, and the password reaches the players of the display through {@link #getPassword()}.
  */
-final class VMProcess {
+final class VmProcess {
 
   static final int FIRST_VNC_PORT = 5900;
 
@@ -97,7 +97,7 @@ final class VMProcess {
     PosixFilePermissions.fromString("rwx------")
   );
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(VMProcess.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(VmProcess.class);
   private static final String LOCALHOST = "127.0.0.1";
   private static final Set<String> MACHINE_OPTIONS = Set.of("machine", "M");
   private static final List<String> NETWORK_OPTIONS = List.of("nic", "netdev", "net", "nodefaults");
@@ -112,10 +112,10 @@ final class VMProcess {
   private static final String SOFTWARE_ACCELERATOR = "tcg";
   private static final Path KVM_DEVICE = Path.of("/dev/kvm");
 
-  private final VMSettings settings;
-  private final VMPlayer.Architecture architecture;
+  private final VmSettings settings;
+  private final VmPlayer.Architecture architecture;
   private final Path executable;
-  private final VMConfiguration configuration;
+  private final VmConfiguration configuration;
   private final Launcher launcher;
   private final Os os;
   private final Path kvmDevice;
@@ -137,14 +137,14 @@ final class VMProcess {
    * @param configuration the QEMU options
    * @return the process
    */
-  static VMProcess create(
-    final VMSettings settings,
-    final VMPlayer.Architecture architecture,
+  static VmProcess create(
+    final VmSettings settings,
+    final VmPlayer.Architecture architecture,
     final Path executable,
-    final VMConfiguration configuration
+    final VmConfiguration configuration
   ) {
     final Os currentOs = OsUtils.getOs();
-    return new VMProcess(
+    return new VmProcess(
       settings,
       architecture,
       executable,
@@ -171,11 +171,11 @@ final class VMProcess {
    * @param secretFolder             creates the folder of the password file of a start
    */
   @VisibleForTesting
-  VMProcess(
-    final VMSettings settings,
-    final VMPlayer.Architecture architecture,
+  VmProcess(
+    final VmSettings settings,
+    final VmPlayer.Architecture architecture,
     final Path executable,
-    final VMConfiguration configuration,
+    final VmConfiguration configuration,
     final Launcher launcher,
     final Os os,
     final Path kvmDevice,
@@ -198,11 +198,11 @@ final class VMProcess {
 
   /** Constructs a process with a monotonic clock for deterministic startup deadline checks. */
   @VisibleForTesting
-  VMProcess(
-    final VMSettings settings,
-    final VMPlayer.Architecture architecture,
+  VmProcess(
+    final VmSettings settings,
+    final VmPlayer.Architecture architecture,
     final Path executable,
-    final VMConfiguration configuration,
+    final VmConfiguration configuration,
     final Launcher launcher,
     final Os os,
     final Path kvmDevice,
@@ -355,7 +355,7 @@ final class VMProcess {
    *                         PC speaker
    */
   @VisibleForTesting
-  static void checkModuleOptions(final VMConfiguration configuration) {
+  static void checkModuleOptions(final VmConfiguration configuration) {
     for (final String option : List.of("vnc", "audio", "audiodev")) {
       if (configuration.has(option)) {
         final String message = "Option -%s is set by MCAV itself and must be removed from the configuration!".formatted(option);
@@ -376,7 +376,7 @@ final class VMProcess {
    * @return true if the machine plays into the audio backend of mcav
    */
   boolean hasAudio() {
-    return this.architecture == VMPlayer.Architecture.X86_64 && isPcMachine(machineType(this.configuration));
+    return this.architecture == VmPlayer.Architecture.X86_64 && isPcMachine(machineType(this.configuration));
   }
 
   /**
@@ -387,7 +387,7 @@ final class VMProcess {
    * @return the type in lower case, or empty for the default machine of QEMU
    */
   @VisibleForTesting
-  static String machineType(final VMConfiguration configuration) {
+  static String machineType(final VmConfiguration configuration) {
     String type = "";
     for (final String machine : machineValues(configuration)) {
       boolean first = true;
@@ -409,7 +409,7 @@ final class VMProcess {
    * @param configuration the QEMU options
    * @return the values
    */
-  private static List<String> machineValues(final VMConfiguration configuration) {
+  private static List<String> machineValues(final VmConfiguration configuration) {
     // in the order of the arguments QEMU gets: grouped by spelling, -M q35 -machine microvm would read as q35 where QEMU
     // runs microvm; and by option name, as a scan of every argument would read -name -M -cpu host as the machine -cpu
     return configuration.valuesOf(MACHINE_OPTIONS);

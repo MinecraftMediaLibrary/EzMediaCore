@@ -27,14 +27,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * the requested VNC update rate. This does not change the guest display rate. Instances are immutable and
  * may be shared across threads; creating settings does not reserve a port or start a machine.
  */
-public final class VMSettings {
+public final class VmSettings {
 
   private final int port;
   private final int width;
   private final int height;
   private final int targetFrameRate;
 
-  VMSettings(final int port, final int width, final int height, final int targetFrameRate) {
+  VmSettings(final int port, final int width, final int height, final int targetFrameRate) {
     this.port = port;
     this.width = width;
     this.height = height;
@@ -52,7 +52,7 @@ public final class VMSettings {
    * @throws IllegalArgumentException if a dimension or frame rate is nonpositive
    * @throws MCAVException            if no port in the VNC range can be bound by the probe
    */
-  public static VMSettings of(final int width, final int height, final int targetFrameRate) {
+  public static VmSettings of(final int width, final int height, final int targetFrameRate) {
     final int port = IoUtils.getNextFreeVncPort();
     return of(port, width, height, targetFrameRate);
   }
@@ -67,11 +67,11 @@ public final class VMSettings {
    * @return the settings
    * @throws IllegalArgumentException if the port is outside 5900 through 65535, or a dimension or frame rate is nonpositive
    */
-  public static VMSettings of(final int port, final int width, final int height, final int targetFrameRate) {
-    Preconditions.checkArgument(port >= VMProcess.FIRST_VNC_PORT && port <= 65535, "VNC port %s must be between 5900 and 65535!", port);
+  public static VmSettings of(final int port, final int width, final int height, final int targetFrameRate) {
+    Preconditions.checkArgument(port >= VmProcess.FIRST_VNC_PORT && port <= 65535, "VNC port %s must be between 5900 and 65535!", port);
     Preconditions.checkArgument(width > 0 && height > 0, "Frame size %sx%s must be positive!", width, height);
     Preconditions.checkArgument(targetFrameRate > 0, "Frame rate %s must be positive!", targetFrameRate);
-    return new VMSettings(port, width, height, targetFrameRate);
+    return new VmSettings(port, width, height, targetFrameRate);
   }
 
   /**
@@ -115,7 +115,7 @@ public final class VMSettings {
     if (this == other) {
       return true;
     }
-    if (!(other instanceof final VMSettings settings)) {
+    if (!(other instanceof final VmSettings settings)) {
       return false;
     }
     return (
@@ -137,6 +137,6 @@ public final class VMSettings {
 
   @Override
   public String toString() {
-    return "VMSettings[port=" + this.port + ", " + this.width + "x" + this.height + "@" + this.targetFrameRate + "]";
+    return "VmSettings[port=" + this.port + ", " + this.width + "x" + this.height + "@" + this.targetFrameRate + "]";
   }
 }

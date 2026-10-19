@@ -55,7 +55,7 @@ import org.opentest4j.AssertionFailedError;
  * picture. Skipped where QEMU for x86-64 is not installed; the matching times real events, so it only runs with
  * {@code -Pmcav.syncMeasurement=true}.
  */
-final class VMSoundTest {
+final class VmSoundTest {
 
   private static final int TONE_HERTZ = 1000;
 
@@ -67,21 +67,21 @@ final class VMSoundTest {
   private Path directory;
 
   private static void assumeQemuInstalled() {
-    final Optional<Path> qemu = new ExecutableFinder().find(VMPlayer.Architecture.X86_64.getCommand());
+    final Optional<Path> qemu = new ExecutableFinder().find(VmPlayer.Architecture.X86_64.getCommand());
     assumeTrue(qemu.isPresent(), "QEMU for x86-64 is not installed!");
   }
 
   private Path bootSector(final String name) throws IOException {
     final Path image = this.directory.resolve(name);
     final String message = "Guest image %s is missing from the test resources!".formatted(name);
-    try (final InputStream resource = Objects.requireNonNull(VMSoundTest.class.getResourceAsStream("/guests/" + name), message)) {
+    try (final InputStream resource = Objects.requireNonNull(VmSoundTest.class.getResourceAsStream("/guests/" + name), message)) {
       Files.copy(resource, image);
     }
     return image;
   }
 
-  private static VMConfiguration floppy(final Path image) {
-    final VMConfiguration configuration = VMConfiguration.builder();
+  private static VmConfiguration floppy(final Path image) {
+    final VmConfiguration configuration = VmConfiguration.builder();
     configuration.memory(16);
     configuration.option("drive", "file=" + image + ",format=raw,if=floppy");
     configuration.boot("a");
@@ -143,7 +143,7 @@ final class VMSoundTest {
   void shouldHandTheToneOfTheGuestsPcSpeakerToTheAudioPipeline() throws IOException {
     assumeQemuInstalled();
     final ByteArrayOutputStream pcm = new ByteArrayOutputStream();
-    final VMPlayer player = VMPlayer.create();
+    final VmPlayer player = VmPlayer.create();
     final AudioAttachableCallback audio = player.getAudioAttachableCallback();
     audio.attach(
       AudioPipelineStep.of((samples, metadata) -> {
@@ -159,8 +159,8 @@ final class VMSoundTest {
     );
     try {
       final int port = FreePorts.find();
-      final VMSettings settings = VMSettings.of(port, 320, 200, 10);
-      final boolean started = player.start(settings, VMPlayer.Architecture.X86_64, floppy(this.bootSector("beep.img")));
+      final VmSettings settings = VmSettings.of(port, 320, 200, 10);
+      final boolean started = player.start(settings, VmPlayer.Architecture.X86_64, floppy(this.bootSector("beep.img")));
       assertTrue(started);
       final int twoSeconds = 2 * AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE;
       waitUntil("two seconds of sound", 60, () -> {
@@ -207,7 +207,7 @@ final class VMSoundTest {
     assumeQemuInstalled();
     final List<long[]> sound = new CopyOnWriteArrayList<>();
     final List<long[]> picture = new CopyOnWriteArrayList<>();
-    final VMPlayer player = VMPlayer.create();
+    final VmPlayer player = VmPlayer.create();
     player.getAudioAttachableCallback().attach(
       AudioPipelineStep.of((samples, metadata) -> {
         final long arrival = System.nanoTime();
@@ -237,8 +237,8 @@ final class VMSoundTest {
     );
     try {
       final int port = FreePorts.find();
-      final VMSettings settings = VMSettings.of(port, 320, 200, 60);
-      final boolean started = player.start(settings, VMPlayer.Architecture.X86_64, floppy(this.bootSector("toggle.img")));
+      final VmSettings settings = VmSettings.of(port, 320, 200, 60);
+      final boolean started = player.start(settings, VmPlayer.Architecture.X86_64, floppy(this.bootSector("toggle.img")));
       assertTrue(started);
       waitUntil("20 seconds of sound", 90, () -> sound.size() >= 20 * 200);
     } finally {

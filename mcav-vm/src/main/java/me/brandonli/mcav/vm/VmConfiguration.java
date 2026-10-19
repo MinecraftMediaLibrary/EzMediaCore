@@ -27,7 +27,7 @@ import java.util.Set;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * Mutable QEMU command-line settings for a {@link VMPlayer}.
+ * Mutable QEMU command-line settings for a {@link VmPlayer}.
  *
  * <p>This object is not thread-safe. Finish configuring it before starting the player, and do not modify it
  * during startup or while the player uses it. Values are passed as individual process arguments, without a
@@ -37,7 +37,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * QEMU accepts more than once, such as {@code -drive} or {@code -device}, are added with
  * {@link #repeatable(String, String)}.
  *
- * <p>The player supplies {@code -vnc} from {@link VMSettings}, reserves {@code -audio}, {@code -audiodev} and
+ * <p>The player supplies {@code -vnc} from {@link VmSettings}, reserves {@code -audio}, {@code -audiodev} and
  * {@code pcspk-audiodev} routing, and rejects configurations that set those options. It also supplies defaults
  * for {@code -vga std}, {@code -display none} and a USB tablet ({@code -usb -device usb-tablet}) unless overridden,
  * which reports absolute pointer positions so clicks land where they are sent. The tablet is left out when the
@@ -46,13 +46,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * at all, which also leaves out the tablet, set {@code usb=off}, as in {@code machine("q35,usb=off")}.
  *
  * <pre><code>
- *   final VMConfiguration configuration = VMConfiguration.builder();
+ *   final VmConfiguration configuration = VmConfiguration.builder();
  *   configuration.cdrom("alpine.iso");
  *   configuration.memory(2048);
  *   configuration.cores(2);
  * </code></pre>
  */
-public final class VMConfiguration {
+public final class VmConfiguration {
 
   private static final String MEMORY_NOT_POSITIVE_MESSAGE = "Memory %s must be positive!";
 
@@ -66,7 +66,7 @@ public final class VMConfiguration {
   private final List<String> repeatable;
   private final Set<String> flags;
 
-  private VMConfiguration() {
+  private VmConfiguration() {
     this.options = new LinkedHashMap<>();
     this.repeatable = new ArrayList<>();
     this.flags = new LinkedHashSet<>();
@@ -77,8 +77,8 @@ public final class VMConfiguration {
    *
    * @return the configuration
    */
-  public static VMConfiguration builder() {
-    return new VMConfiguration();
+  public static VmConfiguration builder() {
+    return new VmConfiguration();
   }
 
   /**
@@ -88,7 +88,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws IllegalArgumentException if {@code memoryMegabytes} is zero or negative
    */
-  public VMConfiguration memory(final int memoryMegabytes) {
+  public VmConfiguration memory(final int memoryMegabytes) {
     Preconditions.checkArgument(memoryMegabytes > 0, MEMORY_NOT_POSITIVE_MESSAGE, memoryMegabytes);
     return this.option("m", memoryMegabytes + "M");
   }
@@ -103,7 +103,7 @@ public final class VMConfiguration {
    * @throws IllegalArgumentException if {@code amount} is zero or negative
    * @throws NullPointerException     if {@code unit} is null
    */
-  public VMConfiguration memory(final int amount, final String unit) {
+  public VmConfiguration memory(final int amount, final String unit) {
     Preconditions.checkArgument(amount > 0, MEMORY_NOT_POSITIVE_MESSAGE, amount);
     Preconditions.checkNotNull(unit, "Unit must not be null!");
     return this.option("m", amount + unit);
@@ -116,7 +116,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws IllegalArgumentException if {@code cores} is zero or negative
    */
-  public VMConfiguration cores(final int cores) {
+  public VmConfiguration cores(final int cores) {
     Preconditions.checkArgument(cores > 0, "Cores %s must be positive!", cores);
     final String value = String.valueOf(cores);
     return this.option("smp", value);
@@ -129,7 +129,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code isoPath} is null
    */
-  public VMConfiguration cdrom(final String isoPath) {
+  public VmConfiguration cdrom(final String isoPath) {
     Preconditions.checkNotNull(isoPath, "ISO path must not be null!");
     return this.option("cdrom", isoPath);
   }
@@ -141,7 +141,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code hdaPath} is null
    */
-  public VMConfiguration hda(final String hdaPath) {
+  public VmConfiguration hda(final String hdaPath) {
     Preconditions.checkNotNull(hdaPath, DISK_PATH_NULL_MESSAGE);
     return this.option("hda", hdaPath);
   }
@@ -153,7 +153,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code hdbPath} is null
    */
-  public VMConfiguration hdb(final String hdbPath) {
+  public VmConfiguration hdb(final String hdbPath) {
     Preconditions.checkNotNull(hdbPath, DISK_PATH_NULL_MESSAGE);
     return this.option("hdb", hdbPath);
   }
@@ -165,7 +165,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code bootOrder} is null
    */
-  public VMConfiguration boot(final String bootOrder) {
+  public VmConfiguration boot(final String bootOrder) {
     Preconditions.checkNotNull(bootOrder, "Boot order must not be null!");
     return this.option("boot", bootOrder);
   }
@@ -177,7 +177,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code networkConfiguration} is null
    */
-  public VMConfiguration network(final String networkConfiguration) {
+  public VmConfiguration network(final String networkConfiguration) {
     Preconditions.checkNotNull(networkConfiguration, "Network configuration must not be null!");
     return this.option("nic", networkConfiguration);
   }
@@ -189,7 +189,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code model} is null
    */
-  public VMConfiguration cpu(final String model) {
+  public VmConfiguration cpu(final String model) {
     Preconditions.checkNotNull(model, "CPU model must not be null!");
     return this.option("cpu", model);
   }
@@ -201,7 +201,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code machineType} is null
    */
-  public VMConfiguration machine(final String machineType) {
+  public VmConfiguration machine(final String machineType) {
     Preconditions.checkNotNull(machineType, "Machine type must not be null!");
     return this.option("machine", machineType);
   }
@@ -214,7 +214,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code accelerator} is null
    */
-  public VMConfiguration accelerator(final String accelerator) {
+  public VmConfiguration accelerator(final String accelerator) {
     Preconditions.checkNotNull(accelerator, "Accelerator must not be null!");
     return this.option("accel", accelerator);
   }
@@ -226,7 +226,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code adapter} is null
    */
-  public VMConfiguration vga(final String adapter) {
+  public VmConfiguration vga(final String adapter) {
     Preconditions.checkNotNull(adapter, "Adapter must not be null!");
     return this.option("vga", adapter);
   }
@@ -238,7 +238,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code drive} is null
    */
-  public VMConfiguration drive(final String drive) {
+  public VmConfiguration drive(final String drive) {
     Preconditions.checkNotNull(drive, "Drive must not be null!");
     return this.repeatable("drive", drive);
   }
@@ -250,7 +250,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code device} is null
    */
-  public VMConfiguration device(final String device) {
+  public VmConfiguration device(final String device) {
     Preconditions.checkNotNull(device, "Device must not be null!");
     return this.repeatable("device", device);
   }
@@ -264,7 +264,7 @@ public final class VMConfiguration {
    * @throws IllegalArgumentException if {@code key} is blank
    * @throws NullPointerException     if {@code key} or {@code value} is null
    */
-  public VMConfiguration option(final String key, final String value) {
+  public VmConfiguration option(final String key, final String value) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
     Preconditions.checkNotNull(value, VALUE_NULL_MESSAGE);
     Preconditions.checkArgument(!key.isBlank(), KEY_BLANK_MESSAGE);
@@ -281,7 +281,7 @@ public final class VMConfiguration {
    * @throws IllegalArgumentException if {@code key} is blank
    * @throws NullPointerException     if {@code key} or {@code value} is null
    */
-  public VMConfiguration repeatable(final String key, final String value) {
+  public VmConfiguration repeatable(final String key, final String value) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
     Preconditions.checkNotNull(value, VALUE_NULL_MESSAGE);
     Preconditions.checkArgument(!key.isBlank(), KEY_BLANK_MESSAGE);
@@ -298,7 +298,7 @@ public final class VMConfiguration {
    * @throws IllegalArgumentException if {@code flag} is blank
    * @throws NullPointerException     if {@code flag} is null
    */
-  public VMConfiguration flag(final String flag) {
+  public VmConfiguration flag(final String flag) {
     Preconditions.checkNotNull(flag, "Flag must not be null!");
     Preconditions.checkArgument(!flag.isBlank(), "Flag must not be blank!");
     this.flags.add(flag);
@@ -312,7 +312,7 @@ public final class VMConfiguration {
    * @return this configuration
    * @throws NullPointerException if {@code key} is null
    */
-  public VMConfiguration remove(final String key) {
+  public VmConfiguration remove(final String key) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
     this.options.remove(key);
     this.flags.remove(key);

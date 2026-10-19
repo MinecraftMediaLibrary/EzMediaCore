@@ -53,7 +53,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class VMAudioClientTest {
+class VmAudioClientTest {
 
   private static final String PASSWORD = "Pa55word";
   private static final SecureRandom RANDOM = new SecureRandom();
@@ -76,8 +76,8 @@ class VMAudioClientTest {
     return new InetSocketAddress(InetAddress.getLoopbackAddress(), this.server.getLocalPort());
   }
 
-  private VMAudioClient connect() throws IOException {
-    return VMAudioClient.connect(
+  private VmAudioClient connect() throws IOException {
+    return VmAudioClient.connect(
       this.address(),
       PASSWORD,
       (samples, length) -> this.chunks.add(Arrays.copyOf(samples, length)),
@@ -152,7 +152,7 @@ class VMAudioClientTest {
         throw new UncheckedIOException(exception);
       }
     });
-    final VMAudioClient client = VMAudioClient.connect(this.address(), "", (samples, length) -> {}, (message, failure) -> {});
+    final VmAudioClient client = VmAudioClient.connect(this.address(), "", (samples, length) -> {}, (message, failure) -> {});
     final boolean alive = client.isAlive();
     assertTrue(alive);
     client.close();
@@ -203,7 +203,7 @@ class VMAudioClientTest {
         throw new UncheckedIOException(exception);
       }
     });
-    try (final VMAudioClient client = this.connect()) {
+    try (final VmAudioClient client = this.connect()) {
       served.get(10, TimeUnit.SECONDS);
       final byte[] expectedFirstChunk = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
       final byte[] expectedSecondChunk = new byte[] { 9, 9, 9, 9 };
@@ -220,7 +220,7 @@ class VMAudioClientTest {
   @Test
   void shouldTellTheSinkWhenTheSoundOfTheGuestEnds() throws Exception {
     final List<String> heard = new CopyOnWriteArrayList<>();
-    final VMAudioClient.Sink sink = new VMAudioClient.Sink() {
+    final VmAudioClient.Sink sink = new VmAudioClient.Sink() {
       @Override
       public void accept(final byte[] samples, final int length) {
         heard.add("sound " + length);
@@ -244,14 +244,14 @@ class VMAudioClientTest {
         throw new UncheckedIOException(exception);
       }
     });
-    try (final VMAudioClient client = VMAudioClient.connect(this.address(), PASSWORD, sink, (message, failure) -> {})) {
+    try (final VmAudioClient client = VmAudioClient.connect(this.address(), PASSWORD, sink, (message, failure) -> {})) {
       served.get(10, TimeUnit.SECONDS);
       final List<String> expected = List.of("sound 4", "quiet");
       final boolean readerStarted = client.getReader() != null;
       assertEquals(expected, heard, "the end of the guest's sound, after its samples");
       assertTrue(readerStarted);
     }
-    final VMAudioClient.Sink plain = (samples, length) -> {};
+    final VmAudioClient.Sink plain = (samples, length) -> {};
     plain.quiet();
   }
 
@@ -270,11 +270,11 @@ class VMAudioClientTest {
         throw new UncheckedIOException(exception);
       }
     });
-    final VMAudioClient.Sink failing = (samples, length) -> {
+    final VmAudioClient.Sink failing = (samples, length) -> {
       throw new IllegalStateException("sink broke!");
     };
     try (
-      final VMAudioClient client = VMAudioClient.connect(this.address(), PASSWORD, failing, (message, failure) ->
+      final VmAudioClient client = VmAudioClient.connect(this.address(), PASSWORD, failing, (message, failure) ->
         this.failures.add(message)
       )
     ) {
@@ -365,7 +365,7 @@ class VMAudioClientTest {
     final long start = System.nanoTime();
     assertThrows(IOException.class, this::connect);
     final long seconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
-    final boolean withinTheDeadline = seconds < VMAudioClient.HANDSHAKE_TIMEOUT_MILLISECONDS / 1000 + 3;
+    final boolean withinTheDeadline = seconds < VmAudioClient.HANDSHAKE_TIMEOUT_MILLISECONDS / 1000 + 3;
     assertTrue(withinTheDeadline, "the handshake took " + seconds + " s");
     served.get(20, TimeUnit.SECONDS);
   }
@@ -380,9 +380,9 @@ class VMAudioClientTest {
         throw new UncheckedIOException(exception);
       }
     });
-    final AtomicReference<VMAudioClient> self = new AtomicReference<>();
+    final AtomicReference<VmAudioClient> self = new AtomicReference<>();
     final AtomicLong closeNanoseconds = new AtomicLong(-1);
-    final VMAudioClient client = VMAudioClient.connect(
+    final VmAudioClient client = VmAudioClient.connect(
       this.address(),
       PASSWORD,
       (samples, length) -> {},
@@ -411,7 +411,7 @@ class VMAudioClientTest {
         throw new UncheckedIOException(exception);
       }
     });
-    final VMAudioClient client = this.connect();
+    final VmAudioClient client = this.connect();
     final boolean daemon = client.getReader().isDaemon();
     assertTrue(daemon, "the sound never keeps the JVM alive");
     client.close();
@@ -430,7 +430,7 @@ class VMAudioClientTest {
         throw new UncheckedIOException(exception);
       }
     });
-    final VMAudioClient client = this.connect();
+    final VmAudioClient client = this.connect();
     final boolean aliveBeforeClose = client.isAlive();
     assertTrue(aliveBeforeClose);
     Thread.currentThread().interrupt();
@@ -463,7 +463,7 @@ class VMAudioClientTest {
       }
     });
     final ProtocolException failure = assertThrows(ProtocolException.class, () ->
-      VMAudioClient.connect(this.address(), "", (samples, length) -> {}, (message, cause) -> {})
+      VmAudioClient.connect(this.address(), "", (samples, length) -> {}, (message, cause) -> {})
     );
     final String message = failure.getMessage();
     assertEquals("VNC server asks for authentication, which the audio connection does not do!", message);
@@ -473,7 +473,7 @@ class VMAudioClientTest {
   @Test
   void shouldChangeNothingWhenCloseFails() {
     final AtomicInteger closed = new AtomicInteger();
-    VMAudioClient.closeQuietly(() -> {
+    VmAudioClient.closeQuietly(() -> {
       closed.incrementAndGet();
       throw new IOException("gone!");
     });
@@ -512,7 +512,7 @@ class VMAudioClientTest {
     alive.start();
     Thread.currentThread().interrupt();
     try {
-      VMAudioClient.join(alive);
+      VmAudioClient.join(alive);
       final boolean interrupted = Thread.currentThread().isInterrupted();
       assertTrue(interrupted, "the interrupt stays for the caller");
     } finally {

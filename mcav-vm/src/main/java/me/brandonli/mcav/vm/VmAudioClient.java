@@ -43,7 +43,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
  * {@value #HANDSHAKE_TIMEOUT_MILLISECONDS} ms; afterwards a reader thread waits for as long as the guest stays silent. A
  * connection that ends or breaks the protocol while nobody closed it, or whose sink fails, is reported, once.
  */
-final class VMAudioClient implements Closeable {
+final class VmAudioClient implements Closeable {
 
   static final int HANDSHAKE_TIMEOUT_MILLISECONDS = 5_000;
 
@@ -54,7 +54,7 @@ final class VMAudioClient implements Closeable {
   private volatile Thread reader;
   private volatile boolean closed;
 
-  private VMAudioClient(final Socket socket, final DataInputStream input, final Sink sink, final BiConsumer<String, Throwable> failures) {
+  private VmAudioClient(final Socket socket, final DataInputStream input, final Sink sink, final BiConsumer<String, Throwable> failures) {
     this.socket = socket;
     this.input = input;
     this.sink = sink;
@@ -79,7 +79,7 @@ final class VMAudioClient implements Closeable {
    * @return the connected client
    * @throws IOException if the connection or the handshake fails
    */
-  static VMAudioClient connect(
+  static VmAudioClient connect(
     final InetSocketAddress address,
     final String password,
     final Sink sink,
@@ -92,7 +92,7 @@ final class VMAudioClient implements Closeable {
     final Executor later = CompletableFuture.delayedExecutor(
       HANDSHAKE_TIMEOUT_MILLISECONDS,
       TimeUnit.MILLISECONDS,
-      VMAudioClient::onOwnThread
+      VmAudioClient::onOwnThread
     );
     final CompletableFuture<Void> deadline = CompletableFuture.runAsync(() -> closeQuietly(socket), later);
     try {
@@ -103,7 +103,7 @@ final class VMAudioClient implements Closeable {
       final DataOutputStream output = new DataOutputStream(new BufferedOutputStream(rawOutput));
       handshake(input, output, password);
       deadline.cancel(false);
-      final VMAudioClient client = new VMAudioClient(socket, input, sink, failures);
+      final VmAudioClient client = new VmAudioClient(socket, input, sink, failures);
       client.startReading();
       return client;
     } catch (final IOException exception) {

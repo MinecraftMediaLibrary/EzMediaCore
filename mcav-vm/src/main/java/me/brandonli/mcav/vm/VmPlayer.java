@@ -37,7 +37,7 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
  * machines the player adds an Intel HD Audio card and routes the PC speaker, and a second VNC connection receives
  * their sound through QEMU's audio extension, in the format of the audio pipeline; the configuration may not set
  * {@code -vnc}, {@code -audio} or {@code -audiodev} itself. QEMU must be installed on the machine; see
- * {@link VMModule}.
+ * {@link VmModule}.
  *
  * <p>Pausing suppresses picture and sound delivery; it does not suspend the guest or its QEMU process. Input
  * can still be forwarded while paused. The caller owns the player and must {@link #release()} it before
@@ -46,24 +46,24 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
  * on background threads and must not retain borrowed buffers without copying them.
  *
  * <pre><code>
- *   final VMPlayer player = VMPlayer.create();
+ *   final VmPlayer player = VmPlayer.create();
  *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
  *   video.attach(pipeline);
- *   final VMConfiguration configuration = VMConfiguration.builder();
+ *   final VmConfiguration configuration = VmConfiguration.builder();
  *   configuration.cdrom("alpine.iso");
  *   configuration.memory(1024);
- *   final VMSettings settings = VMSettings.of(1024, 768, 30);
- *   player.start(settings, VMPlayer.Architecture.X86_64, configuration);
+ *   final VmSettings settings = VmSettings.of(1024, 768, 30);
+ *   player.start(settings, VmPlayer.Architecture.X86_64, configuration);
  * </code></pre>
  */
-public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, ExceptionHandler {
+public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, ExceptionHandler {
   /**
    * Creates a player.
    *
    * @return the player
    */
-  static VMPlayer create() {
-    return VMPlayerImpl.createDefault();
+  static VmPlayer create() {
+    return VmPlayerImpl.createDefault();
   }
 
   /**
@@ -83,7 +83,7 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @throws me.brandonli.mcav.vnc.VncException             if the display opens but the VNC connection to it fails
    * @throws NullPointerException                           if any argument is null
    */
-  boolean start(final VMSettings settings, final Architecture architecture, final VMConfiguration configuration);
+  boolean start(final VmSettings settings, final Architecture architecture, final VmConfiguration configuration);
 
   /**
    * Starts the machine on an executor.
@@ -99,9 +99,9 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    *                                                         {@code executor} is null
    */
   default CompletableFuture<Boolean> startAsync(
-    final VMSettings settings,
+    final VmSettings settings,
     final Architecture architecture,
-    final VMConfiguration configuration,
+    final VmConfiguration configuration,
     final ExecutorService executor
   ) {
     Preconditions.checkNotNull(settings, "Settings must not be null!");
@@ -122,9 +122,9 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @throws NullPointerException if any argument is null
    */
   default CompletableFuture<Boolean> startAsync(
-    final VMSettings settings,
+    final VmSettings settings,
     final Architecture architecture,
-    final VMConfiguration configuration
+    final VmConfiguration configuration
   ) {
     final ForkJoinPool pool = ForkJoinPool.commonPool();
     return this.startAsync(settings, architecture, configuration, pool);

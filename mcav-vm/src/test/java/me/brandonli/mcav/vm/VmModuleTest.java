@@ -36,9 +36,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Tests {@link VMModule}.
+ * Tests {@link VmModule}.
  */
-final class VMModuleTest {
+final class VmModuleTest {
 
   @TempDir
   private Path directory;
@@ -66,7 +66,7 @@ final class VMModuleTest {
     assertTrue(madeExecutable);
 
     final ExecutableFinder finder = this.finderWithPath(folder);
-    final VMModule module = new VMModule(finder, this.records());
+    final VmModule module = new VmModule(finder, this.records());
     final boolean beforeStart = module.isQemuInstalled();
     module.start();
     final boolean qemuFoundAfterStart = module.isQemuInstalled();
@@ -87,7 +87,7 @@ final class VMModuleTest {
       Files.writeString(record, started + "\n" + Long.MAX_VALUE + "\n" + started + "\n");
       final Path empty = this.directory.resolve("empty");
       Files.createDirectories(empty);
-      final VMModule module = new VMModule(this.finderWithPath(empty), this.records());
+      final VmModule module = new VmModule(this.finderWithPath(empty), this.records());
 
       module.start();
 
@@ -105,7 +105,7 @@ final class VMModuleTest {
     final Path empty = this.directory.resolve("empty");
     Files.createDirectories(empty);
     final ExecutableFinder finder = this.finderWithPath(empty);
-    final VMModule module = new VMModule(finder, this.records());
+    final VmModule module = new VmModule(finder, this.records());
     module.start();
     final boolean installed = module.isQemuInstalled();
     assertFalse(installed);
@@ -113,11 +113,11 @@ final class VMModuleTest {
 
   @Test
   void shouldLookForQemuOnThisMachineByDefault() {
-    final VMModule module = new VMModule();
+    final VmModule module = new VmModule();
     module.start();
     final boolean installed = module.isQemuInstalled();
     final ExecutableFinder finder = new ExecutableFinder();
-    final String command = VMPlayer.Architecture.X86_64.getCommand();
+    final String command = VmPlayer.Architecture.X86_64.getCommand();
     final Optional<Path> qemu = finder.find(command);
     final boolean present = qemu.isPresent();
     assertEquals(present, installed);
@@ -126,15 +126,15 @@ final class VMModuleTest {
 
   @Test
   void shouldBeNamedVm() {
-    final VMModule module = new VMModule();
+    final VmModule module = new VmModule();
     final String name = module.getModuleName();
     assertEquals("vm", name);
   }
 
   @Test
   void shouldBeCreatableByTheModuleLoader() throws ReflectiveOperationException {
-    final Constructor<VMModule> constructor = VMModule.class.getConstructor();
-    final VMModule module = constructor.newInstance();
+    final Constructor<VmModule> constructor = VmModule.class.getConstructor();
+    final VmModule module = constructor.newInstance();
     final boolean installed = module.isQemuInstalled();
     assertFalse(installed, "nothing is looked up before the module starts");
   }

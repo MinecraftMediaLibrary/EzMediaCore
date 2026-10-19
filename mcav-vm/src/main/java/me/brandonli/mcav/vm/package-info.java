@@ -18,10 +18,10 @@
 /**
  * Runs caller-configured QEMU virtual machines and streams their video and supported guest audio.
  *
- * <p>Use {@link me.brandonli.mcav.vm.VMConfiguration} for QEMU arguments,
- * {@link me.brandonli.mcav.vm.VMSettings} for output dimensions, update rate and VNC port, and
- * {@link me.brandonli.mcav.vm.VMPlayer} for playback and input. QEMU must be available on the host;
- * {@link me.brandonli.mcav.vm.VMModule} only checks its availability and does not install or run it.
+ * <p>Use {@link me.brandonli.mcav.vm.VmConfiguration} for QEMU arguments,
+ * {@link me.brandonli.mcav.vm.VmSettings} for output dimensions, update rate and VNC port, and
+ * {@link me.brandonli.mcav.vm.VmPlayer} for playback and input. QEMU must be available on the host;
+ * {@link me.brandonli.mcav.vm.VmModule} only checks its availability and does not install or run it.
  * The player owns its QEMU process and local VNC connections, and reserves their display/audio options.
  *
  * <p>Configuration objects are mutable and not thread-safe; finish them before starting the player.

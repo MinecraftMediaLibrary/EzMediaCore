@@ -29,13 +29,13 @@ import me.brandonli.mcav.vm.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link VMSettings}.
+ * Tests {@link VmSettings}.
  */
-final class VMSettingsTest {
+final class VmSettingsTest {
 
   @Test
   void shouldKeepTheGivenValues() {
-    final VMSettings settings = VMSettings.of(5905, 640, 480, 25);
+    final VmSettings settings = VmSettings.of(5905, 640, 480, 25);
     final int port = settings.getPort();
     final int width = settings.getWidth();
     final int height = settings.getHeight();
@@ -48,10 +48,10 @@ final class VMSettingsTest {
 
   @Test
   void shouldPickAFreeVncPort() throws IOException {
-    final VMSettings settings = VMSettings.of(320, 200, 10);
+    final VmSettings settings = VmSettings.of(320, 200, 10);
     final int port = settings.getPort();
     final int width = settings.getWidth();
-    final boolean vncRange = port >= VMProcess.FIRST_VNC_PORT && port <= 65535;
+    final boolean vncRange = port >= VmProcess.FIRST_VNC_PORT && port <= 65535;
     assertTrue(vncRange, () -> "port " + port);
     assertEquals(320, width);
     final InetAddress loopback = InetAddress.ofLiteral("127.0.0.1");
@@ -63,8 +63,8 @@ final class VMSettingsTest {
 
   @Test
   void shouldAcceptTheLimitsOfEveryRange() {
-    final VMSettings lowest = VMSettings.of(5900, 1, 1, 1);
-    final VMSettings highest = VMSettings.of(65535, 1, 1, 1);
+    final VmSettings lowest = VmSettings.of(5900, 1, 1, 1);
+    final VmSettings highest = VmSettings.of(65535, 1, 1, 1);
     final int lowestPort = lowest.getPort();
     final int highestPort = highest.getPort();
     assertEquals(5900, lowestPort);
@@ -73,30 +73,30 @@ final class VMSettingsTest {
 
   @Test
   void shouldRejectInvalidValues() {
-    assertThrows(IllegalArgumentException.class, () -> VMSettings.of(5899, 640, 480, 30));
-    assertThrows(IllegalArgumentException.class, () -> VMSettings.of(65536, 640, 480, 30));
-    assertThrows(IllegalArgumentException.class, () -> VMSettings.of(5900, 0, 480, 30));
-    assertThrows(IllegalArgumentException.class, () -> VMSettings.of(5900, 640, 0, 30));
-    assertThrows(IllegalArgumentException.class, () -> VMSettings.of(5900, 640, 480, 0));
-    assertThrows(IllegalArgumentException.class, () -> VMSettings.of(0, 480, 30));
-    assertThrows(IllegalArgumentException.class, () -> VMSettings.of(640, 0, 30));
-    assertThrows(IllegalArgumentException.class, () -> VMSettings.of(640, 480, 0));
+    assertThrows(IllegalArgumentException.class, () -> VmSettings.of(5899, 640, 480, 30));
+    assertThrows(IllegalArgumentException.class, () -> VmSettings.of(65536, 640, 480, 30));
+    assertThrows(IllegalArgumentException.class, () -> VmSettings.of(5900, 0, 480, 30));
+    assertThrows(IllegalArgumentException.class, () -> VmSettings.of(5900, 640, 0, 30));
+    assertThrows(IllegalArgumentException.class, () -> VmSettings.of(5900, 640, 480, 0));
+    assertThrows(IllegalArgumentException.class, () -> VmSettings.of(0, 480, 30));
+    assertThrows(IllegalArgumentException.class, () -> VmSettings.of(640, 0, 30));
+    assertThrows(IllegalArgumentException.class, () -> VmSettings.of(640, 480, 0));
   }
 
   @Test
   void shouldCompareEveryValue() {
-    final VMSettings settings = VMSettings.of(5901, 640, 480, 30);
-    final VMSettings equal = VMSettings.of(5901, 640, 480, 30);
-    final VMSettings otherPort = VMSettings.of(5902, 640, 480, 30);
-    final VMSettings otherWidth = VMSettings.of(5901, 641, 480, 30);
-    final VMSettings otherHeight = VMSettings.of(5901, 640, 481, 30);
-    final VMSettings otherFrameRate = VMSettings.of(5901, 640, 480, 31);
+    final VmSettings settings = VmSettings.of(5901, 640, 480, 30);
+    final VmSettings equal = VmSettings.of(5901, 640, 480, 30);
+    final VmSettings otherPort = VmSettings.of(5902, 640, 480, 30);
+    final VmSettings otherWidth = VmSettings.of(5901, 641, 480, 30);
+    final VmSettings otherHeight = VmSettings.of(5901, 640, 481, 30);
+    final VmSettings otherFrameRate = VmSettings.of(5901, 640, 480, 31);
     EqualityAssertions.assertEqualityContract(settings, equal, otherPort, otherWidth, otherHeight, otherFrameRate);
   }
 
   @Test
   void shouldBuildTheHashCodeFromEveryValueInOrder() {
-    final VMSettings settings = VMSettings.of(5901, 640, 480, 30);
+    final VmSettings settings = VmSettings.of(5901, 640, 480, 30);
     final int hash = settings.hashCode();
     final int expected = ((5901 * 31 + 640) * 31 + 480) * 31 + 30;
     assertEquals(expected, hash);
@@ -104,11 +104,11 @@ final class VMSettingsTest {
 
   @Test
   void shouldGiveSettingsThatDifferInOneValueDifferentHashCodes() {
-    final VMSettings settings = VMSettings.of(5901, 640, 480, 30);
-    final VMSettings otherPort = VMSettings.of(5902, 640, 480, 30);
-    final VMSettings otherWidth = VMSettings.of(5901, 641, 480, 30);
-    final VMSettings otherHeight = VMSettings.of(5901, 640, 481, 30);
-    final VMSettings otherFrameRate = VMSettings.of(5901, 640, 480, 31);
+    final VmSettings settings = VmSettings.of(5901, 640, 480, 30);
+    final VmSettings otherPort = VmSettings.of(5902, 640, 480, 30);
+    final VmSettings otherWidth = VmSettings.of(5901, 641, 480, 30);
+    final VmSettings otherHeight = VmSettings.of(5901, 640, 481, 30);
+    final VmSettings otherFrameRate = VmSettings.of(5901, 640, 480, 31);
     final int hash = settings.hashCode();
     final int portHash = otherPort.hashCode();
     final int widthHash = otherWidth.hashCode();
@@ -122,8 +122,8 @@ final class VMSettingsTest {
 
   @Test
   void shouldDescribeItself() {
-    final VMSettings settings = VMSettings.of(5901, 640, 480, 30);
+    final VmSettings settings = VmSettings.of(5901, 640, 480, 30);
     final String text = settings.toString();
-    assertEquals("VMSettings[port=5901, 640x480@30]", text);
+    assertEquals("VmSettings[port=5901, 640x480@30]", text);
   }
 }

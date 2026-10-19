@@ -504,7 +504,7 @@ public abstract class AbstractInteractiveCommand<T> implements AnnotationCommand
   /**
    * Gates queued startup by this specific screen and assigns in-flight cancellation cleanup to the worker.
    * A canceled queued task is skipped; its future is canceled by Screen even if it was bound after cancellation.
-   * BrowserPlayer and VMPlayer submit their CompletableFuture startup through execute. Screen creation,
+   * BrowserPlayer and VmPlayer submit their CompletableFuture startup through execute. Screen creation,
    * reportStartWhenDone, release commands and shutdown are main-thread operations; startup runs on the worker.
    */
   final ExecutorService startExecutor(final T started, final Screen screen) {
