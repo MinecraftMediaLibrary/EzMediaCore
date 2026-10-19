@@ -94,7 +94,7 @@ public final class VMModule implements MCAVModule {
   public void stop() {}
 
   /**
-   * Gets the module identifier.
+   * Returns the module identifier.
    *
    * @return {@code vm}
    */
@@ -104,7 +104,7 @@ public final class VMModule implements MCAVModule {
   }
 
   /**
-   * Checks whether QEMU for x86-64 guests was found when the module started.
+   * Returns whether QEMU for x86-64 guests was found when the module started.
    *
    * @return the result of the last module start, initially false; this does not recheck the executable
    */

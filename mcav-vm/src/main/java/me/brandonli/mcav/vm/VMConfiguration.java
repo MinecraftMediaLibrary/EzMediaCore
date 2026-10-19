@@ -101,7 +101,7 @@ public final class VMConfiguration {
    *               and is not validated here
    * @return this configuration
    * @throws IllegalArgumentException if {@code amount} is zero or negative
-   * @throws NullPointerException if {@code unit} is null
+   * @throws NullPointerException     if {@code unit} is null
    */
   public VMConfiguration memory(final int amount, final String unit) {
     Preconditions.checkArgument(amount > 0, MEMORY_NOT_POSITIVE_MESSAGE, amount);
@@ -262,7 +262,7 @@ public final class VMConfiguration {
    * @param value the non-null value, passed verbatim as one process argument; empty values are allowed
    * @return this configuration
    * @throws IllegalArgumentException if {@code key} is blank
-   * @throws NullPointerException if {@code key} or {@code value} is null
+   * @throws NullPointerException     if {@code key} or {@code value} is null
    */
   public VMConfiguration option(final String key, final String value) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
@@ -279,7 +279,7 @@ public final class VMConfiguration {
    * @param value the non-null value, passed verbatim as one process argument; empty values are allowed
    * @return this configuration
    * @throws IllegalArgumentException if {@code key} is blank
-   * @throws NullPointerException if {@code key} or {@code value} is null
+   * @throws NullPointerException     if {@code key} or {@code value} is null
    */
   public VMConfiguration repeatable(final String key, final String value) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
@@ -296,7 +296,7 @@ public final class VMConfiguration {
    * @param flag the non-null, nonblank option name without the leading dash; duplicates are ignored
    * @return this configuration
    * @throws IllegalArgumentException if {@code flag} is blank
-   * @throws NullPointerException if {@code flag} is null
+   * @throws NullPointerException     if {@code flag} is null
    */
   public VMConfiguration flag(final String flag) {
     Preconditions.checkNotNull(flag, "Flag must not be null!");
@@ -334,7 +334,7 @@ public final class VMConfiguration {
   }
 
   /**
-   * Checks whether an option, a repeatable option, or a flag is set.
+   * Returns whether an option, a repeatable option, or a flag is set.
    *
    * @param key the option name without the leading dash
    * @return true if set
@@ -347,7 +347,7 @@ public final class VMConfiguration {
   }
 
   /**
-   * Gets the values of a repeatable option, such as every {@code -device}.
+   * Returns the values of a repeatable option, such as every {@code -device}.
    *
    * @param key the option name without the leading dash
    * @return an unmodifiable snapshot in insertion order, empty if no repeatable values exist; singleton
@@ -369,7 +369,7 @@ public final class VMConfiguration {
   }
 
   /**
-   * Gets the value of an option. Repeatable options are read with {@link #getAll(String)}.
+   * Returns the value of an option. Repeatable options are read with {@link #getAll(String)}.
    *
    * @param key the option name without the leading dash
    * @return the value, or null if the option is not set
@@ -404,7 +404,7 @@ public final class VMConfiguration {
   }
 
   /**
-   * Gets the command-line arguments in order: options, repeatable options, then flags.
+   * Returns the command-line arguments in order: options, repeatable options, then flags.
    *
    * @return an unmodifiable snapshot; later configuration changes do not affect the returned list
    */
@@ -426,7 +426,7 @@ public final class VMConfiguration {
   }
 
   /**
-   * Gets the command-line arguments as an array.
+   * Returns the command-line arguments as an array.
    *
    * @return a new array snapshot; changes to the array do not affect this configuration
    */

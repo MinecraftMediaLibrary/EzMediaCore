@@ -76,12 +76,12 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @param architecture  the non-null guest architecture, which picks the QEMU program
    * @param configuration the non-null QEMU options; do not mutate them while this player uses them
    * @return true if the machine started, false if the player is already running or released
-   * @throws ExecutableNotInPathException              if the QEMU program is not installed
-   * @throws me.brandonli.mcav.media.player.PlayerException if reserved display/audio options are configured,
-   *         the port cannot be bound, QEMU cannot launch or exits, the display does not open within the startup
-   *         deadline, the wait is interrupted, or a previous machine cannot be stopped
-   * @throws me.brandonli.mcav.vnc.VncException if the display opens but the VNC connection to it fails
-   * @throws NullPointerException if any argument is null
+   * @throws ExecutableNotInPathException                   if the QEMU program is not installed
+   * @throws me.brandonli.mcav.media.player.PlayerException if reserved display/audio options are configured, the port cannot be bound, QEMU
+   *                                                        cannot launch or exits, the display does not open within the startup deadline,
+   *                                                        the wait is interrupted, or a previous machine cannot be stopped
+   * @throws me.brandonli.mcav.vnc.VncException             if the display opens but the VNC connection to it fails
+   * @throws NullPointerException                           if any argument is null
    */
   boolean start(final VMSettings settings, final Architecture architecture, final VMConfiguration configuration);
 
@@ -95,7 +95,8 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @return a future that completes with the startup result, or exceptionally if startup fails; cancelling
    *         the future does not release the player or terminate its process
    * @throws java.util.concurrent.RejectedExecutionException if the executor refuses the startup task
-   * @throws NullPointerException if {@code settings}, {@code architecture}, {@code configuration} or {@code executor} is null
+   * @throws NullPointerException                            if {@code settings}, {@code architecture}, {@code configuration} or
+   *                                                         {@code executor} is null
    */
   default CompletableFuture<Boolean> startAsync(
     final VMSettings settings,
@@ -158,21 +159,21 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
   void sendMouseEvent(final MouseClick type, final int frameX, final int frameY);
 
   /**
-   * Checks whether the machine is running and frames are delivered.
+   * Returns whether the machine is running and frames are delivered.
    *
    * @return true while running and not paused
    */
   boolean isPlaying();
 
   /**
-   * Gets the slot that holds the video pipeline the frames are sent through.
+   * Returns the slot that holds the video pipeline the frames are sent through.
    *
    * @return the video pipeline slot
    */
   VideoAttachableCallback getVideoAttachableCallback();
 
   /**
-   * Gets the slot that holds the audio pipeline the sound of the guest is sent through: 16-bit little-endian stereo
+   * Returns the slot that holds the audio pipeline the sound of the guest is sent through: 16-bit little-endian stereo
    * PCM at 48 kHz. Only x86 PC and Q35 machines have sound; while the player is paused, their sound is dropped.
    *
    * @return the audio pipeline slot
@@ -207,7 +208,7 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
     }
 
     /**
-     * Gets the name of the QEMU program for this architecture.
+     * Returns the name of the QEMU program for this architecture.
      *
      * @return the program name
      */

@@ -75,7 +75,7 @@ public final class VMSettings {
   }
 
   /**
-   * Gets the local VNC port.
+   * Returns the local VNC port.
    *
    * @return the configured TCP port, from 5900 through 65535; it is not reserved by these settings
    */
@@ -84,7 +84,7 @@ public final class VMSettings {
   }
 
   /**
-   * Gets the width the frames are scaled to.
+   * Returns the width the frames are scaled to.
    *
    * @return the width in pixels
    */
@@ -93,7 +93,7 @@ public final class VMSettings {
   }
 
   /**
-   * Gets the height the frames are scaled to.
+   * Returns the height the frames are scaled to.
    *
    * @return the height in pixels
    */
@@ -102,7 +102,7 @@ public final class VMSettings {
   }
 
   /**
-   * Gets the requested VNC update rate. This setting does not change the guest display rate.
+   * Returns the requested VNC update rate. This setting does not change the guest display rate.
    *
    * @return the strictly positive requested frames per second; actual updates depend on the remote display
    */
