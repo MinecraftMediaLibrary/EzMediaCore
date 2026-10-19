@@ -21,6 +21,7 @@ package me.brandonli.mcav.gradle
 import org.gradle.api.GradleException
 
 internal data class PaperVersion(val minecraft: String, val build: Int) {
+
     val fileName: String get() = "$FILE_PREFIX${this.minecraft}$NAME_SEPARATOR${this.build}$JAR_EXTENSION"
 
     companion object {

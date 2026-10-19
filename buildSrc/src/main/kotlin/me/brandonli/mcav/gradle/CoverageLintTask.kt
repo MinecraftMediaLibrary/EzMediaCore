@@ -34,6 +34,7 @@ import org.gradle.api.tasks.TaskAction
 abstract class CoverageLintTask : DefaultTask() {
 
     private companion object {
+
         const val FILTERED: String =
             "Skipped coverageLint of {}, since the tests ran with a filter and the report covers only part of the code."
         const val GAP: String = "{}"

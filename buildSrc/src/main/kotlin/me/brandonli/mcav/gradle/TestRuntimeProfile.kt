@@ -21,6 +21,7 @@ package me.brandonli.mcav.gradle
 import org.gradle.api.tasks.testing.Test
 
 internal object TestRuntimeProfile {
+
     fun forMutation(test: Test): List<String> = test.jvmArgs +
         test.systemProperties.toSortedMap().map { (name, value) -> "-D$name=$value" }
 }

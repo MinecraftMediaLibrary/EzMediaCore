@@ -47,6 +47,7 @@ class ClangFormatTest {
     lateinit var directory: Path
 
     abstract class RecordingFormat : ClangFormat() {
+
         lateinit var recordedProcesses: ExecOperations
         override val processes: ExecOperations get() = this.recordedProcesses
     }

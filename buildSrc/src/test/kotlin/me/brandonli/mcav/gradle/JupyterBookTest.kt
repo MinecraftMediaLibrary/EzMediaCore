@@ -59,6 +59,7 @@ class JupyterBookTest {
     lateinit var directory: Path
 
     abstract class RecordingBook : JupyterBook() {
+
         lateinit var recordedProcesses: ExecOperations
         override val processes: ExecOperations get() = this.recordedProcesses
     }

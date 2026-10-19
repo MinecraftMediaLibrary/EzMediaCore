@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input
 abstract class VariableNamesTask : JavaLintTask() {
 
     private companion object {
+
         const val UNDESCRIPTIVE: String = "{}:{}: error: the {} {} says nothing; name what it holds."
     }
 

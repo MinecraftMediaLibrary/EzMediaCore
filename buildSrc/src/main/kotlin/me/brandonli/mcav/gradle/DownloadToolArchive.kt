@@ -40,6 +40,7 @@ import org.tukaani.xz.XZInputStream
 abstract class DownloadToolArchive : DefaultTask() {
 
     private companion object {
+
         const val DOWNLOADING: String = "Downloading tool archive {}."
         const val VERIFIED: String = "Verified SHA-256 {} of {}."
 

@@ -83,6 +83,7 @@ class BuildMcv2NativesTest {
     lateinit var directory: Path
 
     abstract class RecordingBuild : BuildMcv2Natives() {
+
         lateinit var recordedProcesses: ExecOperations
         lateinit var recordedWorkers: WorkerExecutor
         override val processes: ExecOperations get() = this.recordedProcesses
@@ -90,6 +91,7 @@ class BuildMcv2NativesTest {
     }
 
     class RecordingWork(private val recordedParameters: Parameters, override val processes: ExecOperations) : BuildMcv2Natives.Work() {
+
         override fun getParameters(): Parameters = this.recordedParameters
     }
 

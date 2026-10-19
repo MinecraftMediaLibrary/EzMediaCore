@@ -23,6 +23,7 @@ import java.io.File
 abstract class LogMessagesTask : JavaLintTask() {
 
     private companion object {
+
         const val CONCATENATED_MESSAGE: String =
             "{}:{}: error: the message of {} joins strings with +; use SLF4J placeholders for the arguments instead."
     }

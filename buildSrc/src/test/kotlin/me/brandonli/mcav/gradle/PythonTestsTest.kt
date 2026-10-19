@@ -54,6 +54,7 @@ class PythonTestsTest {
     lateinit var directory: Path
 
     abstract class RecordingTests : PythonTests() {
+
         lateinit var recordedProcesses: ExecOperations
         override val processes: ExecOperations get() = this.recordedProcesses
     }

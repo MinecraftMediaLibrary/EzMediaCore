@@ -32,6 +32,7 @@ import org.gradle.api.tasks.TaskAction
 abstract class RequiredModuleClassesTask : DefaultTask() {
 
     companion object {
+
         const val RESOURCE: String = "META-INF/mcav/required-classes.txt"
 
         private const val LINE_SEPARATOR: String = "\n"

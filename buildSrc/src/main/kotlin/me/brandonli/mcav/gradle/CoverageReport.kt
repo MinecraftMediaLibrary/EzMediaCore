@@ -25,6 +25,7 @@ import org.w3c.dom.Element
 import org.w3c.dom.NodeList
 
 class CoverageException(val path: String, val sourceLine: String, val reason: String) {
+
     var used: Boolean = false
 }
 

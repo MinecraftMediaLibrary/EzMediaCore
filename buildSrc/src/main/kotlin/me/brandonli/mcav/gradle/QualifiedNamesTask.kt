@@ -23,6 +23,7 @@ import java.io.File
 abstract class QualifiedNamesTask : JavaLintTask() {
 
     private companion object {
+
         const val WRITTEN_OUT: String =
             "{}:{}: error: {} is written out; import it, or mark the line // fqn: <why> if its simple name clashes."
     }
