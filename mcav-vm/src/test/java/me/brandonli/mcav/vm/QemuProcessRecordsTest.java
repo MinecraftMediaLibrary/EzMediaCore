@@ -20,15 +20,19 @@ package me.brandonli.mcav.vm;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.spi.FileSystemProvider;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -37,8 +41,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
@@ -251,17 +253,20 @@ final class QemuProcessRecordsTest {
   }
 
   @Test
-  @EnabledOnOs({ OS.LINUX, OS.MAC })
   void shouldOnlyLogAFolderItCannotList() throws IOException {
-    final Path folder = this.directory.resolve("records");
-    Files.createDirectories(folder);
-    Files.setPosixFilePermissions(folder, PosixFilePermissions.fromString("-wx------"));
-    try {
-      final int stopped = this.records(ProcessHandle.current()).reap();
-      assertEquals(0, stopped);
-    } finally {
-      Files.setPosixFilePermissions(folder, PosixFilePermissions.fromString("rwx------"));
-    }
+    final Path folder = mock(Path.class);
+    final FileSystem fileSystem = mock(FileSystem.class);
+    final FileSystemProvider provider = mock(FileSystemProvider.class);
+    final BasicFileAttributes attributes = mock(BasicFileAttributes.class);
+    final IOException unlistable = new IOException("Permission denied");
+    when(folder.getFileSystem()).thenReturn(fileSystem);
+    when(fileSystem.provider()).thenReturn(provider);
+    when(provider.readAttributesIfExists(folder, BasicFileAttributes.class)).thenReturn(attributes);
+    when(attributes.isDirectory()).thenReturn(true);
+    when(provider.newDirectoryStream(eq(folder), any())).thenThrow(unlistable);
+    final QemuProcessRecords records = new QemuProcessRecords(folder, ProcessHandle.current(), ProcessHandle::of, Duration.ofMillis(500));
+    final int stopped = records.reap();
+    assertEquals(0, stopped);
   }
 
   @Test

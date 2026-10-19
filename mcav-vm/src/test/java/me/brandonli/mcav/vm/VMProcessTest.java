@@ -991,6 +991,19 @@ final class VMProcessTest {
   }
 
   @Test
+  void shouldFailToStartAProcessCreatedForAMissingProgram() {
+    final VMSettings settings = this.reachableSettings();
+    final Path missing = this.directory.resolve("missing-qemu");
+    final VMConfiguration configuration = VMConfiguration.builder();
+    final VMProcess process = VMProcess.create(settings, VMPlayer.Architecture.X86_64, missing, configuration);
+    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final Throwable cause = exception.getCause();
+    final boolean alive = process.isAlive();
+    assertInstanceOf(IOException.class, cause);
+    assertFalse(alive);
+  }
+
+  @Test
   void shouldReportTheLastFortyLinesOfOutput() {
     final StringBuilder output = new StringBuilder();
     for (int line = 1; line <= 45; line++) {
