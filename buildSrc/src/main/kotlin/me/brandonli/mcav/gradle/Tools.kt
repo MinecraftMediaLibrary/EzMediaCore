@@ -18,7 +18,9 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.InputStream
 import java.util.Locale
+import java.util.Objects
 import java.util.Properties
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -33,7 +35,10 @@ object Tools {
     private const val VARIABLE_SEPARATOR: Char = '_'
 
     private val PINNED_CHECKSUMS: Properties = Properties().apply {
-        DownloadToolArchive::class.java.getResourceAsStream(CHECKSUMS_RESOURCE)!!.use { this.load(it) }
+        val message: String = "Resource $CHECKSUMS_RESOURCE is missing from buildSrc!"
+        val resource: InputStream? = DownloadToolArchive::class.java.getResourceAsStream(CHECKSUMS_RESOURCE)
+        val checksums: InputStream = Objects.requireNonNull<InputStream>(resource, message)
+        checksums.use { this.load(it) }
     }
 
     fun pinnedSha256(project: Project, tool: String, version: String, archive: String): Provider<String> = project.provider {

@@ -19,6 +19,7 @@
 package me.brandonli.mcav.gradle
 
 import java.io.File
+import java.nio.file.Files
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
@@ -218,7 +219,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
                     links += {
                         this.runZig(listOf("cc", TARGET_OPTION, target, "-shared", "-s") + linkFlags +
                             listOf(OUTPUT_OPTION, library.absolutePath) + objects)
-                        library.parentFile.listFiles()!!.filter { it.extension == IMPORT_LIBRARY_EXTENSION }.forEach { it.delete() }
+                        this.listDirectory(library.parentFile).filter { it.extension == IMPORT_LIBRARY_EXTENSION }.forEach { it.delete() }
                     }
                     libraries.add(library)
                 }
@@ -227,7 +228,12 @@ abstract class BuildMcv2Natives : DefaultTask() {
             this.inParallel(links)
             this.writeManifest(natives.resolve(CHECKSUMS_MANIFEST), natives, libraries)
             val sources: File = this.parameters.sourcesDirectory.get().asFile
-            this.writeManifest(natives.resolve(SOURCES_MANIFEST), sources, sources.listFiles()!!.filter { it.name != CLANG_FORMAT_FILE })
+            val sourceFiles: List<File> = this.listDirectory(sources).filter { it.name != CLANG_FORMAT_FILE }
+            this.writeManifest(natives.resolve(SOURCES_MANIFEST), sources, sourceFiles)
+        }
+
+        private fun listDirectory(directory: File): List<File> {
+            return Files.list(directory.toPath()).use { paths -> paths.map { it.toFile() }.toList() }
         }
 
         private fun inParallel(steps: List<() -> Unit>): Unit {
