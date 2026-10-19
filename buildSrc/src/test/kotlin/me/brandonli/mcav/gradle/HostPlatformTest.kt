@@ -111,8 +111,9 @@ class HostPlatformTest {
         val darwinUvTarget: String = darwin.uvTarget
         assertEquals(LINUX_ARM64_TARGET, darwinUvTarget)
 
-        val unknownArchitectures: List<String?> = listOf(LINUX_NAME, "Windows", MACOS_NAME, "FreeBSD", UNKNOWN_NAME).map {
-            HostPlatform.normalize(it, "unknown").lwjglNatives
+        val operatingSystems: List<String> = listOf(LINUX_NAME, "Windows", MACOS_NAME, "FreeBSD", UNKNOWN_NAME)
+        val unknownArchitectures: List<String?> = operatingSystems.map { operatingSystem ->
+            HostPlatform.normalize(operatingSystem, "unknown").lwjglNatives
         }
         assertEquals(List(5) { null }, unknownArchitectures)
 

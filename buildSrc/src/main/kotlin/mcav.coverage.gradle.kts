@@ -65,10 +65,10 @@ val coverageLint: TaskProvider<CoverageLintTask> = tasks.register<CoverageLintTa
     this.report.from(layout.buildDirectory.file(coverageReportPath))
     this.sourceDirectory = layout.projectDirectory.dir(mainSourcePath)
     this.exceptionsFile.from(layout.projectDirectory.file(coverageExceptionsPath))
-    this.testsFiltered = testTask.map {
-        val filter: DefaultTestFilter = it.filter as DefaultTestFilter
+    this.testsFiltered = testTask.map { test ->
+        val filter: DefaultTestFilter = test.filter as DefaultTestFilter
         filter.commandLineIncludePatterns.isNotEmpty() || filter.includePatterns.isNotEmpty() ||
-            filter.excludePatterns.isNotEmpty() || it.includes.isNotEmpty() || it.excludes.isNotEmpty()
+            filter.excludePatterns.isNotEmpty() || test.includes.isNotEmpty() || test.excludes.isNotEmpty()
     }
     this.projectPath = project.path
 }

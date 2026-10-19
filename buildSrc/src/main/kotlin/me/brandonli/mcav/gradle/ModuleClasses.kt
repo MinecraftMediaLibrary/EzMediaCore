@@ -41,8 +41,8 @@ object ModuleClasses {
                 }
             } else {
                 ZipFile(root).use { jar ->
-                    jar.entries().asSequence().map { it.name }.filter { it.endsWith(CLASS_SUFFIX) }.forEach {
-                        names.add(it.removeSuffix(CLASS_SUFFIX))
+                    jar.entries().asSequence().map { it.name }.filter { it.endsWith(CLASS_SUFFIX) }.forEach { name ->
+                        names.add(name.removeSuffix(CLASS_SUFFIX))
                     }
                 }
             }

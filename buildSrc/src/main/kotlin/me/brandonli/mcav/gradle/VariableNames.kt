@@ -65,8 +65,8 @@ object VariableNames {
     fun findInFiles(files: List<File>): Map<File, List<UndescriptiveName>> {
         val compiler: JavaCompiler = ToolProvider.getSystemJavaCompiler()
         val fileManager: StandardJavaFileManager = compiler.getStandardFileManager(null, null, Charsets.UTF_8)
-        fileManager.use {
-            val objects: List<JavaFileObject> = it.getJavaFileObjectsFromFiles(files).toList()
+        fileManager.use { manager ->
+            val objects: List<JavaFileObject> = manager.getJavaFileObjectsFromFiles(files).toList()
             val byUri: Map<URI, File> = files.associateBy { file -> file.toPath().toUri() }
             return this.find(objects).mapKeys { (uri, _) -> byUri[uri] ?: File(uri) }
         }

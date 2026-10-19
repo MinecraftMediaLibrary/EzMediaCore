@@ -69,8 +69,8 @@ val requirementsLock: RegularFile = layout.projectDirectory.file(requirementsLoc
 val pythonInstallation: Provider<Directory> = layout.buildDirectory.dir("$pythonToolsPath/$pinnedPythonVersion")
 val uvCache: Provider<Directory> = layout.buildDirectory.dir(uvCachePath)
 val lockHeader: Provider<String> = providers.fileContents(layout.settingsDirectory.file(licenseHeaderPath)).asText.map { header ->
-    header.trimEnd().lines().drop(1).dropLast(1).joinToString(lineSeparator, postfix = lineSeparator + lineSeparator) {
-        lockCommentPrefix + it.removePrefix(javadocLinePrefix).trimEnd()
+    header.trimEnd().lines().drop(1).dropLast(1).joinToString(lineSeparator, postfix = lineSeparator + lineSeparator) { line ->
+        lockCommentPrefix + line.removePrefix(javadocLinePrefix).trimEnd()
     }
 }
 
