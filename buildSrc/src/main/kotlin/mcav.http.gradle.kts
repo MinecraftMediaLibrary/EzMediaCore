@@ -18,7 +18,6 @@
 
 import com.github.gradle.node.NodeExtension
 import me.brandonli.mcav.gradle.HostPlatform
-import me.brandonli.mcav.gradle.NodeLayout
 
 plugins {
     id("mcav.module")
@@ -30,7 +29,6 @@ val corepackPromptVariable: String = "COREPACK_ENABLE_DOWNLOAD_PROMPT"
 val disabledPrompt: String = "0"
 val nodeOptionsVariable: String = "NODE_OPTIONS"
 val nodeHeapMegabytes: Int = 4096
-val pnpmTool: String = "pnpm"
 
 val websitePath: String = "mcav-website"
 val packageJsonPath: String = "mcav-website/package.json"
@@ -58,20 +56,23 @@ val builtJarPath: String = "libs/mcav-http.jar"
 val node: NodeExtension = rootProject.extensions.getByType<NodeExtension>()
 val nodeSetup: TaskProvider<Task> = rootProject.tasks.named("nodeSetup")
 val host: HostPlatform = HostPlatform.current()
-val nodeInstallation: Directory = node.resolvedNodeDir.get()
-val nodeExecutable: File = NodeLayout.executable(nodeInstallation, host).asFile
-val corepackScript: File = NodeLayout.corepackScript(nodeInstallation, host).asFile
-val nodePath: String = nodeExecutable.parentFile.absolutePath + File.pathSeparator + System.getenv(pathVariable)
+val isWindows: Boolean = host.isWindows
+val nodeDirectory: Directory = node.resolvedNodeDir.get()
+val nodeExecutable: File = nodeDirectory.file(if (isWindows) "node.exe" else "bin/node").asFile
+// node-gradle unpacks the bin/corepack symlink as an empty file, so corepack runs through node
+val corepackScript: String = if (isWindows) "node_modules/corepack/dist/corepack.js" else "lib/node_modules/corepack/dist/corepack.js"
+val corepack: File = nodeDirectory.file(corepackScript).asFile
+val nodePath: String = nodeExecutable.parentFile.absolutePath + File.pathSeparator + System.getenv("PATH")
 
 val pnpmProjectInstall: TaskProvider<Exec> = tasks.register<Exec>("pnpmProjectInstall") {
     this.group = "build"
     this.description = "Installs the pnpm dependencies of the website"
     this.dependsOn(nodeSetup)
     this.workingDir = file(websitePath)
-    this.executable = nodeExecutable.absolutePath
+    executable = nodeExecutable.absolutePath
     this.environment(pathVariable, nodePath)
     this.environment(corepackPromptVariable, disabledPrompt)
-    this.args(corepackScript.absolutePath, pnpmTool, "install", "--frozen-lockfile")
+    args(corepack.absolutePath, "pnpm", "install", "--frozen-lockfile")
     this.inputs.file(packageJsonPath)
     this.inputs.file(pnpmLockPath)
     this.outputs.file(installedModulesPath)
@@ -82,11 +83,11 @@ val buildWebsite: TaskProvider<Exec> = tasks.register<Exec>("buildWebsite") {
     this.description = "Builds the Next.js website"
     this.dependsOn(pnpmProjectInstall)
     this.workingDir = file(websitePath)
-    this.executable = nodeExecutable.absolutePath
+    executable = nodeExecutable.absolutePath
     this.environment(pathVariable, nodePath)
     this.environment(corepackPromptVariable, disabledPrompt)
     this.environment(nodeOptionsVariable, "--max-old-space-size=$nodeHeapMegabytes")
-    this.args(corepackScript.absolutePath, pnpmTool, "run", "build")
+    args(corepack.absolutePath, "pnpm", "run", "build")
     this.inputs.dir(websiteSourcePath)
     this.inputs.dir(websitePublicPath)
     this.inputs.file(packageJsonPath)
@@ -101,10 +102,10 @@ val testWebsite: TaskProvider<Exec> = tasks.register<Exec>("testWebsite") {
     this.description = "Runs the tests of the website"
     this.dependsOn(pnpmProjectInstall)
     this.workingDir = file(websitePath)
-    this.executable = nodeExecutable.absolutePath
+    executable = nodeExecutable.absolutePath
     this.environment(pathVariable, nodePath)
     this.environment(corepackPromptVariable, disabledPrompt)
-    this.args(corepackScript.absolutePath, pnpmTool, "test")
+    args(corepack.absolutePath, "pnpm", "test")
     this.inputs.dir(websiteSourcePath)
     this.inputs.dir(websiteTestPath)
     this.inputs.file(packageJsonPath)
