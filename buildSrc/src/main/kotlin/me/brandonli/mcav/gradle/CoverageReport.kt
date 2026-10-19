@@ -25,6 +25,9 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
 
+/**
+ * Finds the lines that a JaCoCo XML report shows as not fully covered.
+ */
 object CoverageReport {
 
     private const val LOAD_EXTERNAL_DTD: String = "http://apache.org/xml/features/nonvalidating/load-external-dtd"
@@ -44,6 +47,18 @@ object CoverageReport {
 
     private const val FIRST_LINE_NUMBER: Int = 1
 
+    /**
+     * Returns a warning for every line in [report] that the tests do not fully cover and no exception excuses.
+     *
+     * An exception excuses one uncovered line of its source file with the same trimmed text, and is marked as used. Without
+     * a report, the result is one warning that no test ran, or nothing when [sourceDirectory] holds no Java source.
+     *
+     * @param report          the JaCoCo XML report
+     * @param sourceDirectory the directory of the main sources
+     * @param exceptions      the coverage exceptions of the module
+     * @return the warnings, one for each gap, in report order
+     * @throws org.xml.sax.SAXException if the report is not well-formed XML
+     */
     fun findGaps(report: File, sourceDirectory: File, exceptions: List<CoverageException>): List<String> {
         if (!report.isFile) {
             return this.describeMissingReport(sourceDirectory)

@@ -28,6 +28,12 @@ import org.gradle.api.Project
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 
+/**
+ * Finds the pinned checksums of the tool archives that this build downloads, and the local tools that may replace them.
+ *
+ * An environment variable named for a tool, such as `ZIG` or `CLANG_FORMAT`, points the build at a local executable
+ * instead of the download, for a platform without a pinned archive.
+ */
 object Tools {
 
     private const val CHECKSUMS_RESOURCE: String = "/tool-checksums.properties"
@@ -37,10 +43,29 @@ object Tools {
 
     private val PINNED_CHECKSUMS: Properties = this.loadPinnedChecksums()
 
+    /**
+     * Returns the SHA-256 that `tool-checksums.properties` pins for an archive of a tool.
+     *
+     * Querying the provider throws a [GradleException] that names the tool's environment variable when the archive has no
+     * pinned SHA-256.
+     *
+     * @param project the project that creates the provider
+     * @param tool    the name of the tool, such as `zig`
+     * @param version the version of the tool
+     * @param archive the file name of the archive
+     * @return a provider of the SHA-256, as 64 lowercase hexadecimal digits
+     */
     fun pinnedSha256(project: Project, tool: String, version: String, archive: String): Provider<String> {
         return project.provider { this.pinnedSha256Of(tool, version, archive) }
     }
 
+    /**
+     * Returns the local executable that the environment variable of [tool] names, such as `CLANG_FORMAT` for `clang-format`.
+     *
+     * @param project the project that resolves the path
+     * @param tool    the name of the tool
+     * @return a provider of the executable, without a value when the variable is not set
+     */
     fun toolOverride(project: Project, tool: String): Provider<RegularFile> {
         val variable: String = this.overrideVariable(tool)
         val path: Provider<String> = project.providers.environmentVariable(variable)
@@ -48,6 +73,14 @@ object Tools {
         return project.layout.file(file)
     }
 
+    /**
+     * Returns the local executable of [tool] when its environment variable is set, or else [installed].
+     *
+     * @param project   the project that resolves the path
+     * @param tool      the name of the tool
+     * @param installed the executable that this build downloads
+     * @return a provider of the executable to run
+     */
     fun selectTool(project: Project, tool: String, installed: Provider<RegularFile>): Provider<RegularFile> {
         val override: Provider<RegularFile> = this.toolOverride(project, tool)
         return if (override.isPresent) override else installed

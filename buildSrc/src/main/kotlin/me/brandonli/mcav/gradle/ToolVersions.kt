@@ -22,12 +22,28 @@ import java.io.ByteArrayOutputStream
 import org.gradle.api.GradleException
 import org.gradle.process.ExecOperations
 
+/**
+ * Checks the version that a tool reports against the version this build pins.
+ */
 object ToolVersions {
 
     private const val VERSION_ARGUMENT: String = "--version"
 
     private const val VERSION_GROUP: Int = 1
 
+    /**
+     * Checks that [executable] reports [expected] as its version.
+     *
+     * The executable runs with [argument], and its version is the first word after [prefix] in its output.
+     *
+     * @param processes  the service that runs the executable
+     * @param executable the executable to run, as a path or a file
+     * @param tool       the name of the tool, for the failure message
+     * @param expected   the version that this build pins
+     * @param prefix     the text before the version, the tool name and a space unless given
+     * @param argument   the argument that prints the version, `--version` unless given
+     * @throws GradleException if the executable cannot run or reports another version
+     */
     fun verify(
         processes: ExecOperations,
         executable: Any,

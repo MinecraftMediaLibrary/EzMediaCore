@@ -31,6 +31,12 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 
+/**
+ * Builds the HTML site of a Jupyter Book with the Python of a [PythonEnvironment].
+ *
+ * The task stages [sources] as the book, configures Sphinx, builds the book with warnings as errors and syncs the HTML
+ * into [outputDirectory].
+ */
 @CacheableTask
 abstract class JupyterBook : PythonTask() {
 
@@ -57,19 +63,36 @@ abstract class JupyterBook : PythonTask() {
         )
     }
 
+    /**
+     * The notebooks and the other files of the book.
+     */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sources: ConfigurableFileCollection
 
+    /**
+     * The directory that receives the HTML site.
+     */
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
 
+    /**
+     * The service that stages the book and publishes the site.
+     */
     @get:Inject
     protected abstract val files: FileSystemOperations
 
+    /**
+     * The service that runs Jupyter Book.
+     */
     @get:Inject
     protected abstract val processes: ExecOperations
 
+    /**
+     * Stages the book, builds it and publishes its HTML site.
+     *
+     * @throws GradleException if Jupyter Book fails or warns
+     */
     @TaskAction
     fun build(): Unit {
         val staging: File = this.temporaryDir

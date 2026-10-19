@@ -21,10 +21,20 @@ package me.brandonli.mcav.gradle
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
+/**
+ * Names the modules of this build: their Maven coordinates and their project paths.
+ */
 object ModuleCoordinates {
 
     private const val PROJECT_PATH_PREFIX: String = ":"
 
+    /**
+     * Returns the Maven coordinate of a module of this build, with the group and the version of the root project.
+     *
+     * @param project    a project of the build
+     * @param moduleName the artifact name of the module, such as `mcav-common`
+     * @return the coordinate, as `group:name:version`
+     */
     fun coordinateOf(project: Project, moduleName: String): String {
         val root: Project = project.rootProject
         return "${root.group}:$moduleName:${root.version}"

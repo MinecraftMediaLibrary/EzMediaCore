@@ -23,6 +23,9 @@ import java.io.File
 import java.io.OutputStream
 import org.gradle.api.GradleException
 
+/**
+ * Captures the console of a jcstress run and checks it for skipped tests.
+ */
 object JcstressConsole {
 
     private const val TEST_GROUP: Int = 1
@@ -31,15 +34,36 @@ object JcstressConsole {
 
     private val SKIPPED_LINE: Regex = Regex("""\[SKIPPED]\s+(\S+)""")
 
+    /**
+     * Returns a stream that writes to both [console] and a buffered stream of [file].
+     *
+     * Closing the stream flushes [console] and closes the stream of [file].
+     *
+     * @param console the console stream
+     * @param file    the file that receives a copy of the console
+     * @return the stream
+     */
     fun tee(console: OutputStream, file: File): OutputStream {
         return Tee(console, BufferedOutputStream(file.outputStream()))
     }
 
+    /**
+     * Returns the names of the tests that a jcstress console marks as `[SKIPPED]`, each once and in console order.
+     *
+     * @param lines the lines of the console
+     * @return the names of the skipped tests
+     */
     fun skippedTests(lines: List<String>): List<String> {
         return lines.mapNotNull { line -> SKIPPED_LINE.find(line)?.groupValues?.get(TEST_GROUP) }
             .distinct()
     }
 
+    /**
+     * Checks that a jcstress console marks no test as skipped.
+     *
+     * @param console the file that holds the console
+     * @throws GradleException if a test was skipped, listing every skipped test
+     */
     fun checkNoneSkipped(console: File): Unit {
         val lines: List<String> = console.readLines()
         val skipped: List<String> = this.skippedTests(lines)

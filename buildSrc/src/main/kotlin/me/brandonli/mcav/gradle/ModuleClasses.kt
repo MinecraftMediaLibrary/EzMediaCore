@@ -29,6 +29,12 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.specs.Spec
 
+/**
+ * Finds the classes of the MCAV modules that the classes of a plugin use.
+ *
+ * A class counts when its internal name starts with `me/brandonli/mcav/`; the names are read from the bytes of the class
+ * files.
+ */
 object ModuleClasses {
 
     private const val CLASS_SUFFIX: String = ".class"
@@ -49,10 +55,22 @@ object ModuleClasses {
         return view.files
     }
 
+    /**
+     * Returns the MCAV class names that a class file refers to, in internal form such as `me/brandonli/mcav/MCAV`.
+     *
+     * @param classFile the bytes of the class file
+     * @return the referenced names
+     */
     fun referenced(classFile: ByteArray): Set<String> {
         return NAME.findAll(String(classFile, Charsets.ISO_8859_1)).map { it.value }.toSet()
     }
 
+    /**
+     * Returns the MCAV class names in [roots], skipping the roots that do not exist.
+     *
+     * @param roots the class directories and jars to read
+     * @return the class names in internal form
+     */
     fun available(roots: Iterable<File>): Set<String> {
         return roots.filter { it.exists() }
             .flatMap(this::classNamesIn)
@@ -60,6 +78,13 @@ object ModuleClasses {
             .toSet()
     }
 
+    /**
+     * Returns the classes of [modules] that the class files in [pluginClasses] refer to.
+     *
+     * @param pluginClasses the class directories of the plugin
+     * @param modules       the class directories and jars of the modules
+     * @return the required class names in internal form, sorted
+     */
     fun required(pluginClasses: Iterable<File>, modules: Iterable<File>): SortedSet<String> {
         val inModules: Set<String> = this.available(modules)
         return pluginClasses.filter { it.isDirectory }

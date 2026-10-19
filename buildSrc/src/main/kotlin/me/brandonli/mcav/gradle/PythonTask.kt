@@ -28,6 +28,12 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskProvider
 
+/**
+ * A task that runs the Python of a [PythonEnvironment].
+ *
+ * [useEnvironment] connects the task to its environment, so that the task runs again when the requirements, the Python
+ * version or the platform change.
+ */
 abstract class PythonTask : DefaultTask() {
 
     internal companion object {
@@ -45,19 +51,36 @@ abstract class PythonTask : DefaultTask() {
         const val MATPLOTLIB_CONFIG_DIRECTORY: String = "matplotlib"
     }
 
+    /**
+     * The requirements lock of the environment.
+     */
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val requirements: RegularFileProperty
 
+    /**
+     * The Python version of the environment.
+     */
     @get:Input
     abstract val pythonVersion: Property<String>
 
+    /**
+     * The uv target of the host, so that outputs built on one platform are not reused on another.
+     */
     @get:Input
     abstract val platform: Property<String>
 
+    /**
+     * The `python` executable of the environment.
+     */
     @get:Internal
     abstract val pythonExecutable: RegularFileProperty
 
+    /**
+     * Runs this task with the Python of [environment], after the environment is installed.
+     *
+     * @param environment the task that installs the environment
+     */
     fun useEnvironment(environment: TaskProvider<PythonEnvironment>): Unit {
         this.dependsOn(environment)
         this.requirements.set(environment.flatMap { it.requirements })

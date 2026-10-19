@@ -18,8 +18,14 @@
 
 package me.brandonli.mcav.gradle
 
+/**
+ * Reads and writes the requirements lock of a Python environment.
+ */
 object RequirementsLock {
 
+    /**
+     * The separator between the name and the version of a pinned requirement.
+     */
     const val PIN_SEPARATOR: String = "=="
 
     private const val PIN_END: Char = ' '
@@ -28,6 +34,13 @@ object RequirementsLock {
     private const val COMMENT_PREFIX: String = "#"
     private const val LINE_SEPARATOR: String = "\n"
 
+    /**
+     * Returns the pins of [versions] that [lock] does not hold, as `name==version`.
+     *
+     * @param lock     the text of the lock
+     * @param versions the version of each requirement that must be pinned
+     * @return the missing pins, or an empty list when the lock holds them all
+     */
     fun missingPins(lock: String, versions: Map<String, String>): List<String> {
         val lines: List<String> = lock.lines()
         val locked: Set<String> = lines.map { line -> line.substringBefore(PIN_END) }

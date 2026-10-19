@@ -33,6 +33,13 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 
+/**
+ * Runs the pytest suites of a Python project: first the parallel tests, spread over processes by file, then the serial
+ * tests.
+ *
+ * Each suite writes a JUnit XML report to [reportDirectory]. The tests run headless, with a fixed hash seed and without
+ * the user's site packages or pytest options.
+ */
 @CacheableTask
 abstract class PythonTests : PythonTask() {
 
@@ -48,33 +55,62 @@ abstract class PythonTests : PythonTask() {
         const val HEADLESS_BACKEND: String = "Agg"
     }
 
+    /**
+     * The test files that may run in parallel.
+     */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val parallelTests: ConfigurableFileCollection
 
+    /**
+     * The test files that must run one at a time.
+     */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val serialTests: ConfigurableFileCollection
 
+    /**
+     * The sources that the tests check.
+     */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sources: ConfigurableFileCollection
 
+    /**
+     * The root directory of the tests, which they run in.
+     */
     @get:Internal
     abstract val testDirectory: DirectoryProperty
 
+    /**
+     * The number of processes that the parallel tests are spread over.
+     */
     @get:Internal
     abstract val processCount: Property<Int>
 
+    /**
+     * The directory that receives the `parallel.xml` and `serial.xml` reports.
+     */
     @get:OutputDirectory
     abstract val reportDirectory: DirectoryProperty
 
+    /**
+     * The service that clears the report directory.
+     */
     @get:Inject
     protected abstract val files: FileSystemOperations
 
+    /**
+     * The service that runs pytest.
+     */
     @get:Inject
     protected abstract val processes: ExecOperations
 
+    /**
+     * Runs the parallel tests, then the serial tests.
+     *
+     * @throws GradleException if a test fails
+     */
     @TaskAction
     fun test(): Unit {
         val reports: File = this.reportDirectory.get().asFile

@@ -18,6 +18,12 @@
 
 package me.brandonli.mcav.gradle
 
+/**
+ * Finds the fully qualified type names written out in Java code.
+ *
+ * A name counts when it starts with a common top-level package, such as `java` or `org`, and ends in a capitalized type.
+ * Comments, literals, `package` and `import` lines, and lines marked `// fqn: <why>` are skipped.
+ */
 object QualifiedNames {
 
     private const val NEW_LINE: Char = '\n'
@@ -37,6 +43,12 @@ object QualifiedNames {
 
     private val DECLARATION: Regex = Regex("^\\s*(package|import)\\s")
 
+    /**
+     * Returns every fully qualified type name in the code of [source], in source order.
+     *
+     * @param source the Java source
+     * @return the written-out names with their lines
+     */
     fun find(source: String): List<QualifiedName> {
         val lines: List<String> = source.split(NEW_LINE)
         val masked: String = JavaSource.mask(source)

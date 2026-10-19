@@ -39,6 +39,12 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 
+/**
+ * Installs a Python virtual environment from a requirements lock with uv.
+ *
+ * The task checks that the lock pins every version of the catalog, installs the pinned Python as a uv-managed build and
+ * syncs the virtual environment to the lock, with hashed binary packages only.
+ */
 @DisableCachingByDefault(because = "Python virtual environments contain absolute installation paths")
 abstract class PythonEnvironment : DefaultTask() {
 
@@ -48,40 +54,78 @@ abstract class PythonEnvironment : DefaultTask() {
         const val PATH_SEPARATOR: String = "/"
     }
 
+    /**
+     * The uv executable that installs the environment.
+     */
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val uvExecutable: RegularFileProperty
 
+    /**
+     * The uv version that [uvExecutable] must report.
+     */
     @get:Input
     abstract val uvVersion: Property<String>
 
+    /**
+     * The Python version of the environment.
+     */
     @get:Input
     abstract val pythonVersion: Property<String>
 
+    /**
+     * The requirements lock that the environment is synced to.
+     */
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val requirements: RegularFileProperty
 
+    /**
+     * The version of each requirement that the catalog pins, which the lock must pin too.
+     */
     @get:Input
     abstract val versions: MapProperty<String, String>
 
+    /**
+     * The path of the task that writes the lock, for the failure message of a stale lock.
+     */
     @get:Internal
     abstract val lockTask: Property<String>
 
+    /**
+     * The directory that receives Python and the virtual environment.
+     */
     @get:OutputDirectory
     abstract val installationDirectory: DirectoryProperty
 
+    /**
+     * The uv cache directory.
+     */
     @get:LocalState
     abstract val cacheDirectory: DirectoryProperty
 
+    /**
+     * The service that runs uv.
+     */
     @get:Inject
     protected abstract val processes: ExecOperations
 
+    /**
+     * Returns an executable of the virtual environment.
+     *
+     * @param name the name of the executable, such as `python`
+     * @return the executable, in `venv/Scripts` on Windows and `venv/bin` elsewhere
+     */
     fun executable(name: String): Provider<RegularFile> {
         val executablePath: String = HostPlatform.current().virtualEnvironmentExecutable(name)
         return this.installationDirectory.file("$VIRTUAL_ENVIRONMENT_DIRECTORY$PATH_SEPARATOR$executablePath")
     }
 
+    /**
+     * Checks the lock and the uv version, installs Python and syncs the virtual environment to the lock.
+     *
+     * @throws GradleException if the lock misses a pinned version, uv reports another version or an installation step fails
+     */
     @TaskAction
     fun install(): Unit {
         val lock: File = this.requirements.get().asFile

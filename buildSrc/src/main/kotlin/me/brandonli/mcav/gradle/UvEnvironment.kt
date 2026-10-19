@@ -20,6 +20,9 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 
+/**
+ * Sets up the environment that uv runs in.
+ */
 object UvEnvironment {
 
     internal const val TOOL: String = "uv"
@@ -40,6 +43,16 @@ object UvEnvironment {
     private const val MANAGED_PYTHON_ONLY: String = "only-managed"
     private const val COPY_LINKS: String = "copy"
 
+    /**
+     * Returns the environment variables that keep uv inside the build.
+     *
+     * uv ignores the user's configuration, keeps its caches in [cacheDirectory] and uses only the Python builds that it
+     * installs into [installationDirectory], copying files instead of linking them.
+     *
+     * @param installationDirectory the directory that receives Python
+     * @param cacheDirectory        the uv cache directory
+     * @return the variables by name
+     */
     fun variables(installationDirectory: File, cacheDirectory: File): Map<String, String> {
         return mapOf(
             NO_CONFIG_VARIABLE to ENABLED,

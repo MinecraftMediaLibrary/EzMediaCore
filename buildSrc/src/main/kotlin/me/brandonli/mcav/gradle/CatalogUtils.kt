@@ -30,14 +30,28 @@ import org.gradle.kotlin.dsl.getByType
 
 private const val CATALOG_NAME: String = "libs"
 
+/**
+ * The `libs` version catalog of this project, as Gradle's generated accessor offers it to build scripts.
+ */
 val Project.libs: VersionCatalog
     get() {
         val catalogs: VersionCatalogsExtension = this.extensions.getByType<VersionCatalogsExtension>()
         return catalogs.named(CATALOG_NAME)
     }
 
+/**
+ * Reads versions, libraries and bundles from the version catalog.
+ */
 object CatalogUtils {
 
+    /**
+     * Returns the version that the catalog pins for [alias].
+     *
+     * @param catalog the version catalog to read
+     * @param alias   the version alias, such as `zig`
+     * @return the required version
+     * @throws IllegalArgumentException if the catalog has no such version
+     */
     fun versionOf(catalog: VersionCatalog, alias: String): String {
         val version: Optional<VersionConstraint> = catalog.findVersion(alias)
         val constraint: VersionConstraint? = version.orElse(null)
@@ -49,6 +63,14 @@ object CatalogUtils {
         return constraint.requiredVersion
     }
 
+    /**
+     * Returns the library that the catalog declares for [alias].
+     *
+     * @param catalog the version catalog to read
+     * @param alias   the library alias, such as `guava`
+     * @return the library
+     * @throws IllegalArgumentException if the catalog has no such library
+     */
     fun libraryOf(catalog: VersionCatalog, alias: String): Provider<MinimalExternalModuleDependency> {
         val library: Optional<Provider<MinimalExternalModuleDependency>> = catalog.findLibrary(alias)
         val dependency: Provider<MinimalExternalModuleDependency>? = library.orElse(null)
@@ -60,6 +82,14 @@ object CatalogUtils {
         return dependency
     }
 
+    /**
+     * Returns the bundle that the catalog declares for [alias].
+     *
+     * @param catalog the version catalog to read
+     * @param alias   the bundle alias, such as `testing`
+     * @return the bundle
+     * @throws IllegalArgumentException if the catalog has no such bundle
+     */
     fun bundleOf(catalog: VersionCatalog, alias: String): Provider<ExternalModuleDependencyBundle> {
         val bundle: Optional<Provider<ExternalModuleDependencyBundle>> = catalog.findBundle(alias)
         val dependencies: Provider<ExternalModuleDependencyBundle>? = bundle.orElse(null)

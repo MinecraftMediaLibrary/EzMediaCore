@@ -23,8 +23,20 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.provider.Provider
 
+/**
+ * The operating system and the architecture of a machine, in the names that the tools of this build use.
+ *
+ * It maps the names of the JVM to the platform names of Zig, uv and the LWJGL natives, and to the paths of the Java and
+ * virtual environment executables.
+ *
+ * @property operatingSystem the operating system in lowercase, such as `linux` or `windows 11`
+ * @property architecture    the architecture in lowercase, with `amd64` named `x86_64` and `arm64` named `aarch64`
+ */
 class HostPlatform private constructor(val operatingSystem: String, val architecture: String) {
 
+    /**
+     * Creates host platforms from the running JVM or from given names.
+     */
     companion object {
 
         private const val WINDOWS: String = "windows"
@@ -77,10 +89,22 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
 
         private val ARCHITECTURE_ALIASES: Map<String, String> = mapOf(AMD64 to X86_64, ARM64 to AARCH64)
 
+        /**
+         * Returns the platform of the running JVM.
+         *
+         * @return the host platform
+         */
         fun current(): HostPlatform {
             return normalize(System.getProperty(OPERATING_SYSTEM_PROPERTY), System.getProperty(ARCHITECTURE_PROPERTY))
         }
 
+        /**
+         * Returns the platform with the given JVM names, in lowercase and with the architecture aliases resolved.
+         *
+         * @param operatingSystem the operating system, as `os.name` names it
+         * @param architecture    the architecture, as `os.arch` names it
+         * @return the host platform
+         */
         fun normalize(operatingSystem: String, architecture: String): HostPlatform {
             val name: String = architecture.lowercase(Locale.ROOT)
             val normalizedArchitecture: String = ARCHITECTURE_ALIASES.getOrDefault(name, name)
@@ -88,11 +112,17 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
         }
     }
 
+    /**
+     * Whether the operating system is Windows.
+     */
     val isWindows: Boolean
         get() {
             return this.operatingSystem.contains(WINDOWS)
         }
 
+    /**
+     * The operating system as Zig names it: `windows`, `macos` or `linux`, or else [operatingSystem] unchanged.
+     */
     val zigSystem: String
         get() {
             return when {
@@ -103,6 +133,9 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
             }
         }
 
+    /**
+     * The target triple of the uv build for this platform, such as `x86_64-unknown-linux-musl`.
+     */
     val uvTarget: String
         get() {
             val suffix: String = when {
@@ -113,6 +146,9 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
             return this.architecture + suffix
         }
 
+    /**
+     * The classifier of the LWJGL natives for this platform, such as `natives-linux-arm64`, or `null` when LWJGL has none.
+     */
     val lwjglNatives: String?
         get() {
             return when {
@@ -124,15 +160,35 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
             }
         }
 
+    /**
+     * Returns the path of the `java` executable of a Java installation.
+     *
+     * @param javaHome the home directory of the Java installation
+     * @return the path of the executable, ending in `.exe` on Windows
+     */
     fun javaExecutable(javaHome: String): String {
         val extension: String = if (this.isWindows) EXECUTABLE_EXTENSION else ""
         return javaHome + JAVA_BINARY + extension
     }
 
+    /**
+     * Returns the path of an executable inside a Python virtual environment, relative to the environment.
+     *
+     * @param name the name of the executable, such as `python`
+     * @return `Scripts/<name>.exe` on Windows and `bin/<name>` elsewhere
+     */
     fun virtualEnvironmentExecutable(name: String): String {
         return if (this.isWindows) "$WINDOWS_SCRIPTS_DIRECTORY$name$EXECUTABLE_EXTENSION" else "$UNIX_BINARIES_DIRECTORY$name"
     }
 
+    /**
+     * Adds the LWJGL natives of this platform for each of [libraries] to the `testRuntimeOnly` configuration.
+     *
+     * Nothing is added when LWJGL has no natives for this platform.
+     *
+     * @param dependencies the dependency handler of the project
+     * @param libraries    the LWJGL libraries whose natives the tests load
+     */
     fun addLwjglTestNatives(dependencies: DependencyHandler, libraries: Iterable<Provider<MinimalExternalModuleDependency>>): Unit {
         val natives: String = this.lwjglNatives ?: return
         libraries.forEach { library -> this.addTestNatives(dependencies, library, natives) }

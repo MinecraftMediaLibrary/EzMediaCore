@@ -20,12 +20,23 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 
+/**
+ * Reads a coverage exceptions file: one `path | source line | reason` entry on each line, where blank lines and lines
+ * starting with `#` are skipped.
+ */
 object CoverageExceptions {
 
     private const val SEPARATOR: String = " | "
 
     private const val COMMENT_PREFIX: String = "#"
 
+    /**
+     * Returns the coverage exceptions in [file].
+     *
+     * @param file the coverage exceptions file
+     * @return the exceptions in file order, or an empty list when there is no such file
+     * @throws IllegalArgumentException if an entry does not read `path | source line | reason`
+     */
     fun read(file: File): List<CoverageException> {
         if (!file.isFile) {
             return emptyList()

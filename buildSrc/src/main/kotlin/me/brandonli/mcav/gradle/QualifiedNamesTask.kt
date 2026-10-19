@@ -20,6 +20,11 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 
+/**
+ * Fails the build on every fully qualified type name in Java code.
+ *
+ * A line marked `// fqn: <why>` may write a name out, for a simple name that clashes with another.
+ */
 abstract class QualifiedNamesTask : JavaLintTask() {
 
     private companion object {
@@ -28,6 +33,12 @@ abstract class QualifiedNamesTask : JavaLintTask() {
             "{}:{}: error: {} is written out; import it, or mark the line // fqn: <why> if its simple name clashes."
     }
 
+    /**
+     * Finds the written-out type names in [files] with [QualifiedNames] and reports each one to [reportViolation].
+     *
+     * @param files           the sources to check, sorted by path
+     * @param reportViolation receives the file, the line and the name of each written-out type name
+     */
     override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit {
         for (file in files) {
             val source: String = file.readText()
@@ -36,14 +47,31 @@ abstract class QualifiedNamesTask : JavaLintTask() {
         }
     }
 
+    /**
+     * Returns the template that logs one written-out name, with its file, line and name.
+     *
+     * @return the template
+     */
     override fun diagnosticMessage(): String {
         return WRITTEN_OUT
     }
 
+    /**
+     * Returns the message of the build failure.
+     *
+     * @param count the number of written-out names
+     * @return the message
+     */
     override fun failureMessage(count: Int): String {
         return "Found $count fully qualified type names in Java code!"
     }
 
+    /**
+     * Returns the report text of sources without a written-out name.
+     *
+     * @param fileCount the number of checked files
+     * @return the report text
+     */
     override fun successMessage(fileCount: Int): String {
         return "no fully qualified type names in $fileCount files\n"
     }

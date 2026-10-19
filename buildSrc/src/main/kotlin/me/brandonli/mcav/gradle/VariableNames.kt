@@ -42,6 +42,13 @@ import javax.tools.SimpleJavaFileObject
 import javax.tools.StandardJavaFileManager
 import javax.tools.ToolProvider
 
+/**
+ * Finds the variables in Java source whose names say nothing about what they hold.
+ *
+ * A name says nothing when it is one letter or a common abbreviation, such as `tmp`, `sb` or `ctx`. The JDK compiler
+ * parses the sources, so fields, parameters, locals, loop variables, resources, record components and pattern variables
+ * all count.
+ */
 object VariableNames {
 
     private const val SOURCE_URI: String = "string:///Source.java"
@@ -53,6 +60,12 @@ object VariableNames {
     private val ABBREVIATIONS: Set<String> =
         setOf("buf", "tmp", "cfg", "idx", "cnt", "val", "res", "sb", "ctx", "mgr", "str", "arr", "len", "num")
 
+    /**
+     * Returns the undescriptive variable names in [source], in source order.
+     *
+     * @param source the Java source of one compilation unit
+     * @return the undescriptive names
+     */
     fun find(source: String): List<UndescriptiveName> {
         val file: SimpleJavaFileObject = object : SimpleJavaFileObject(URI.create(SOURCE_URI), JavaFileObject.Kind.SOURCE) {
             override fun getCharContent(ignoreEncodingErrors: Boolean): CharSequence {
@@ -63,6 +76,12 @@ object VariableNames {
         return names.values.single()
     }
 
+    /**
+     * Returns the undescriptive variable names in each of [files].
+     *
+     * @param files the Java sources
+     * @return the undescriptive names of each file
+     */
     fun findInFiles(files: List<File>): Map<File, List<UndescriptiveName>> {
         val compiler: JavaCompiler = ToolProvider.getSystemJavaCompiler()
         val fileManager: StandardJavaFileManager = compiler.getStandardFileManager(null, null, Charsets.UTF_8)

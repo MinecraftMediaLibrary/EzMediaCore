@@ -21,9 +21,19 @@ package me.brandonli.mcav.gradle
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 
+/**
+ * The settings of the `mcav.publishing` convention, registered as the `mcavPublishing` extension.
+ */
 abstract class MCAVPublishingExtension {
 
+    /**
+     * The jar to publish with the sources and Javadoc jars in place of the Java component, which is published when this has
+     * no value.
+     */
     abstract val bundledJar: Property<AbstractArchiveTask>
 
+    /**
+     * Whether the publication carries Gradle module metadata, `true` unless set.
+     */
     abstract val gradleModuleMetadata: Property<Boolean>
 }

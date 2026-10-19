@@ -23,6 +23,9 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import org.gradle.api.GradleException
 
+/**
+ * Sizes a jcstress run to a time budget.
+ */
 object JcstressBudget {
 
     private const val CONFIGURATIONS: Int = 14
@@ -46,6 +49,13 @@ object JcstressBudget {
         "stress" to Preset(10, 10, 50),
     )
 
+    /**
+     * Returns the number of tests in a jcstress jar that [selection] selects.
+     *
+     * @param jar       the jcstress test jar
+     * @param selection the regular expression that matches part of each selected test name, or `null` to select every test
+     * @return the number of selected tests, or `0` when the jar has no test list
+     */
     fun countTests(jar: File, selection: String?): Int {
         val pattern: Regex? = selection?.let { Regex(it) }
         val lines: List<String> = ZipFile(jar).use(this::readTestList)
@@ -71,6 +81,19 @@ object JcstressBudget {
         return line.substring(lengthEnd + 1, lengthEnd + 1 + length)
     }
 
+    /**
+     * Returns the iteration time that fits the iterations of a run, after the time that its JVMs take to start, into half of
+     * its budget.
+     *
+     * The result lies between 50 milliseconds and 10 seconds.
+     *
+     * @param mode          the jcstress mode: `sanity`, `quick`, `default`, `tough` or `stress`
+     * @param budgetMinutes the time budget of the run in minutes
+     * @param testCount     the number of tests that the run selects
+     * @param cpus          the number of processors that the run may use
+     * @return the iteration time in milliseconds
+     * @throws GradleException if [mode] is unknown
+     */
     fun iterationMilliseconds(mode: String, budgetMinutes: Int, testCount: Int, cpus: Int): Long {
         val message: String = "Jcstress mode $mode is unknown!"
         val preset: Preset = PRESETS[mode] ?: throw GradleException(message)

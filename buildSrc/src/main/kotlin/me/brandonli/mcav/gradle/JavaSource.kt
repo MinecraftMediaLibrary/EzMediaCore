@@ -18,6 +18,11 @@
 
 package me.brandonli.mcav.gradle
 
+/**
+ * Blanks out parts of Java source, so that a lint can match code without false hits in comments or literals.
+ *
+ * Both functions keep every offset and line: each blanked character becomes a space, except a line break, which stays.
+ */
 object JavaSource {
 
     private const val TEXT_BLOCK_QUOTES: String = "\"\"\""
@@ -34,10 +39,22 @@ object JavaSource {
 
     private const val ESCAPE_SEQUENCE_LENGTH: Int = 2
 
+    /**
+     * Returns [source] with its comments and its string, text block and character literals blanked out, quotes included.
+     *
+     * @param source the Java source
+     * @return the masked source
+     */
     fun mask(source: String): String {
         return Masker(source, Literals.MASKED).mask()
     }
 
+    /**
+     * Returns [source] with its comments blanked out and its literals kept.
+     *
+     * @param source the Java source
+     * @return the source without comments
+     */
     fun withoutComments(source: String): String {
         return Masker(source, Literals.KEPT).mask()
     }

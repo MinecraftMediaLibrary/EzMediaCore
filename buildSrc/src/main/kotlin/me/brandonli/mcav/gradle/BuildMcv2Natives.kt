@@ -47,6 +47,14 @@ import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerExecutor
 
+/**
+ * Builds MCV2's native kernels with Zig: one shared library for each of Linux, Windows and macOS on x86-64 and aarch64.
+ *
+ * Each instruction set level that a platform supports, from `scalar` up to `avx512` or `sve512`, compiles from its own
+ * `level_<name>.cpp` into an object, and the platform's objects link into its library. Next to the libraries, in the
+ * `mcav/mcv2/natives` folder of [outputDirectory], the task writes a `SHA256SUMS` manifest of them and a `SOURCES`
+ * manifest of the sources. It checks the Zig version first and hands the build to a Gradle worker.
+ */
 @CacheableTask
 abstract class BuildMcv2Natives : DefaultTask() {
 
@@ -93,41 +101,76 @@ abstract class BuildMcv2Natives : DefaultTask() {
         val SVE_VECTOR_BITS: List<Int> = listOf(256, 512)
     }
 
+    /**
+     * The directory of the C++ sources, with one `level_<name>.cpp` for each instruction set level.
+     */
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sourcesDirectory: DirectoryProperty
 
+    /**
+     * The Zig executable that compiles and links the kernels.
+     */
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val zigExecutable: RegularFileProperty
 
+    /**
+     * The Zig version that [zigExecutable] must report.
+     */
     @get:Input
     abstract val zigVersion: Property<String>
 
+    /**
+     * The SHA-256 of the Zig archive, so that another toolchain of the same version builds the natives again.
+     */
     @get:Input
     abstract val toolchainChecksum: Property<String>
 
+    /**
+     * The directory whose `mcav/mcv2/natives` folder receives the libraries and their manifests.
+     */
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
 
+    /**
+     * The Zig cache directory.
+     */
     @get:LocalState
     abstract val cacheDirectory: DirectoryProperty
 
+    /**
+     * The number of Zig processes that run at once.
+     */
     @get:Internal
     abstract val processCount: Property<Int>
 
+    /**
+     * The service that runs the Zig version check.
+     */
     @get:Inject
     protected abstract val processes: ExecOperations
 
+    /**
+     * The service that hands the build to a Gradle worker.
+     */
     @get:Inject
     protected abstract val workers: WorkerExecutor
 
+    /**
+     * The compiler flags that every instruction set level shares.
+     */
     @get:Input
     val compilerFlags: List<String> = listOf(
         "-std=c++17", "-O2", "-fPIC", "-fno-exceptions", "-fno-rtti", "-fvisibility=hidden",
         "-ffp-contract=off", "-fwrapv", "-fno-strict-aliasing", "-Wall", "-Wextra", "-Werror"
     )
 
+    /**
+     * Checks the Zig version and hands the build to a Gradle worker.
+     *
+     * @throws GradleException if Zig cannot run or reports another version
+     */
     @TaskAction
     fun build(): Unit {
         val zig: File = this.zigExecutable.get().asFile
@@ -146,11 +189,22 @@ abstract class BuildMcv2Natives : DefaultTask() {
         }
     }
 
+    /**
+     * Compiles and links the natives of every platform, then writes their manifests.
+     */
     abstract class Work : WorkAction<Work.Parameters> {
 
+        /**
+         * The service that runs Zig.
+         */
         @get:Inject
         protected abstract val processes: ExecOperations
 
+        /**
+         * Compiles every instruction set level of every platform, links each platform's library and writes the manifests.
+         *
+         * @throws GradleException if a compile or a link fails
+         */
         override fun execute(): Unit {
             val output: File = this.parameters.outputDirectory.get().asFile
             output.deleteRecursively()
@@ -337,13 +391,43 @@ abstract class BuildMcv2Natives : DefaultTask() {
                 }
         }
 
+        /**
+         * The parameters that [BuildMcv2Natives] hands to its worker.
+         */
         interface Parameters : WorkParameters {
+            /**
+             * The Zig executable.
+             */
             val zigExecutable: RegularFileProperty
+
+            /**
+             * The directory of the C++ sources.
+             */
             val sourcesDirectory: DirectoryProperty
+
+            /**
+             * The directory whose `mcav/mcv2/natives` folder receives the libraries and their manifests.
+             */
             val outputDirectory: DirectoryProperty
+
+            /**
+             * The directory that the object files are written to.
+             */
             val objectsDirectory: DirectoryProperty
+
+            /**
+             * The Zig cache directory.
+             */
             val cacheDirectory: DirectoryProperty
+
+            /**
+             * The compiler flags that every instruction set level shares.
+             */
             val compilerFlags: ListProperty<String>
+
+            /**
+             * The number of Zig processes that run at once.
+             */
             val processCount: Property<Int>
         }
     }

@@ -35,9 +35,18 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 
+/**
+ * Resolves the pinned Python requirements into a lock file with uv.
+ *
+ * The lock holds one universal resolution of hashed, binary-only packages from the default package index, for the minor
+ * version of the pinned Python, and starts with the license header.
+ */
 @DisableCachingByDefault(because = "The lock is resolved from the package index into the source tree")
 abstract class LockPythonRequirements : DefaultTask() {
 
+    /**
+     * Builds the requirement lines that the lock is resolved from.
+     */
     companion object {
 
         private const val REQUIREMENTS_INPUT: String = "requirements.in"
@@ -45,6 +54,15 @@ abstract class LockPythonRequirements : DefaultTask() {
         private const val MARKER_SEPARATOR: String = " ; "
         private const val VERSION_SEPARATOR: Char = '.'
 
+        /**
+         * Returns one `name==version` line for each of [versions], sorted by name.
+         *
+         * A requirement with an environment marker in [markers] carries it after ` ; `.
+         *
+         * @param versions the pinned version of each requirement
+         * @param markers  the environment marker of each requirement that needs one
+         * @return the requirement lines
+         */
         fun requirementLines(versions: Map<String, String>, markers: Map<String, String>): List<String> {
             val sorted: Map<String, String> = versions.toSortedMap()
             return sorted.map { (name, version) -> this.requirementLine(name, version, markers[name]) }
@@ -56,37 +74,72 @@ abstract class LockPythonRequirements : DefaultTask() {
         }
     }
 
+    /**
+     * The uv executable that resolves the lock.
+     */
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val uvExecutable: RegularFileProperty
 
+    /**
+     * The uv version that [uvExecutable] must report.
+     */
     @get:Input
     abstract val uvVersion: Property<String>
 
+    /**
+     * The pinned Python version, such as `3.13.5`.
+     */
     @get:Input
     abstract val pythonVersion: Property<String>
 
+    /**
+     * The pinned version of each requirement.
+     */
     @get:Input
     abstract val versions: MapProperty<String, String>
 
+    /**
+     * The environment marker of each requirement that needs one, such as `sys_platform == 'linux'`.
+     */
     @get:Input
     abstract val markers: MapProperty<String, String>
 
+    /**
+     * The license header that the lock file starts with.
+     */
     @get:Input
     abstract val licenseHeader: Property<String>
 
+    /**
+     * The lock file that the task writes.
+     */
     @get:OutputFile
     abstract val lockFile: RegularFileProperty
 
+    /**
+     * The directory that uv installs Python into.
+     */
     @get:Internal
     abstract val installationDirectory: DirectoryProperty
 
+    /**
+     * The uv cache directory.
+     */
     @get:Internal
     abstract val cacheDirectory: DirectoryProperty
 
+    /**
+     * The service that runs uv.
+     */
     @get:Inject
     protected abstract val processes: ExecOperations
 
+    /**
+     * Checks the uv version, resolves the requirements and writes the lock file with its license header.
+     *
+     * @throws GradleException if uv cannot run, reports another version or cannot resolve the requirements
+     */
     @TaskAction
     fun lock(): Unit {
         val uv: File = this.uvExecutable.get().asFile

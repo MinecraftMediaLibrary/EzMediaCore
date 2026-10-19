@@ -37,6 +37,12 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import org.tukaani.xz.XZInputStream
 
+/**
+ * Downloads a tool archive, checks its pinned SHA-256 and unpacks it into an installation directory.
+ *
+ * The task reads `.zip`, `.tar.gz` and `.tar.xz` archives and makes the tool's executable runnable. It installs nothing
+ * when the digest of the download differs from the pinned one.
+ */
 @DisableCachingByDefault(because = "Downloaded tools are cached in their installation directory")
 abstract class DownloadToolArchive : DefaultTask() {
 
@@ -61,24 +67,48 @@ abstract class DownloadToolArchive : DefaultTask() {
         val SHA256_DIGEST: Regex = Regex("[0-9a-f]{64}")
     }
 
+    /**
+     * The address of the archive.
+     */
     @get:Input
     abstract val archiveUrl: Property<String>
 
+    /**
+     * The pinned SHA-256 of the archive, as 64 lowercase hexadecimal digits.
+     */
     @get:Input
     abstract val sha256: Property<String>
 
+    /**
+     * The path of the tool's executable inside the archive.
+     */
     @get:Input
     abstract val executablePath: Property<String>
 
+    /**
+     * The directory that the archive is unpacked into.
+     */
     @get:OutputDirectory
     abstract val installationDirectory: DirectoryProperty
 
+    /**
+     * The service that opens the archive.
+     */
     @get:Inject
     protected abstract val archives: ArchiveOperations
 
+    /**
+     * The service that copies the archive's contents into the installation directory.
+     */
     @get:Inject
     protected abstract val files: FileSystemOperations
 
+    /**
+     * Downloads the archive, checks its digest and unpacks it.
+     *
+     * @throws GradleException if the pinned digest is malformed, the download fails, the digest differs, the archive is of
+     * another type or it lacks the executable
+     */
     @TaskAction
     fun install(): Unit {
         val address: String = this.archiveUrl.get()

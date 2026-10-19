@@ -33,6 +33,13 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 
+/**
+ * Checks or rewrites C++ sources with the clang-format version that this build pins, in the style of their `.clang-format`
+ * file.
+ *
+ * The task checks the clang-format version first. Then it either fails on every source that clang-format would change,
+ * or rewrites the sources in place.
+ */
 @DisableCachingByDefault(because = "clang-format checks or rewrites the sources in place")
 abstract class ClangFormat : DefaultTask() {
 
@@ -42,23 +49,43 @@ abstract class ClangFormat : DefaultTask() {
         const val VERSION_PREFIX: String = "clang-format version "
     }
 
+    /**
+     * The sources to format.
+     */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sources: ConfigurableFileCollection
 
+    /**
+     * The clang-format executable.
+     */
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val clangFormat: RegularFileProperty
 
+    /**
+     * The clang-format version that [clangFormat] must report.
+     */
     @get:Input
     abstract val clangFormatVersion: Property<String>
 
+    /**
+     * Whether the task rewrites the sources in place, instead of failing on unformatted ones.
+     */
     @get:Input
     abstract val rewrite: Property<Boolean>
 
+    /**
+     * The service that runs clang-format.
+     */
     @get:Inject
     protected abstract val processes: ExecOperations
 
+    /**
+     * Checks the clang-format version, then checks or rewrites the sources.
+     *
+     * @throws GradleException if clang-format cannot run, reports another version or finds an unformatted source in a check
+     */
     @TaskAction
     fun format(): Unit {
         val executable: File = this.clangFormat.get().asFile

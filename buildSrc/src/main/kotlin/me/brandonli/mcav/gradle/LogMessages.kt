@@ -18,6 +18,12 @@
 
 package me.brandonli.mcav.gradle
 
+/**
+ * Finds the log calls in Java source whose message is built by string concatenation.
+ *
+ * A log call is a `trace`, `debug`, `info`, `warn` or `error` call on a receiver named like a logger, such as `LOGGER`
+ * or `log`. It concatenates when one of its arguments joins a string literal with `+` outside any parentheses.
+ */
 object LogMessages {
 
     private const val RECEIVER_GROUP: Int = 1
@@ -38,6 +44,12 @@ object LogMessages {
 
     private val CLOSING: Set<Char> = setOf(')', ']', '}')
 
+    /**
+     * Returns the log calls in [source] that build their message by concatenation, in source order.
+     *
+     * @param source the Java source
+     * @return the concatenating log calls
+     */
     fun find(source: String): List<ConcatenatedLogMessage> {
         val code: String = JavaSource.mask(source)
         val text: String = JavaSource.withoutComments(source)

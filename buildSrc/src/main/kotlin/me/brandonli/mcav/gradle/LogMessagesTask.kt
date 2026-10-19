@@ -20,6 +20,9 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 
+/**
+ * Fails the build on every Java log call that builds its message by string concatenation instead of SLF4J placeholders.
+ */
 abstract class LogMessagesTask : JavaLintTask() {
 
     private companion object {
@@ -28,6 +31,12 @@ abstract class LogMessagesTask : JavaLintTask() {
             "{}:{}: error: the message of {} joins strings with +; use SLF4J placeholders for the arguments instead."
     }
 
+    /**
+     * Finds the concatenating log calls in [files] with [LogMessages] and reports each one to [reportViolation].
+     *
+     * @param files           the sources to check, sorted by path
+     * @param reportViolation receives the file, the line and the logger method of each call
+     */
     override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit {
         for (file in files) {
             val source: String = file.readText()
@@ -36,14 +45,31 @@ abstract class LogMessagesTask : JavaLintTask() {
         }
     }
 
+    /**
+     * Returns the template that logs one concatenating call, with its file, line and logger method.
+     *
+     * @return the template
+     */
     override fun diagnosticMessage(): String {
         return CONCATENATED_MESSAGE
     }
 
+    /**
+     * Returns the message of the build failure.
+     *
+     * @param count the number of concatenating calls
+     * @return the message
+     */
     override fun failureMessage(count: Int): String {
         return "Found $count log calls with a concatenated message!"
     }
 
+    /**
+     * Returns the report text of sources without a concatenating call.
+     *
+     * @param fileCount the number of checked files
+     * @return the report text
+     */
     override fun successMessage(fileCount: Int): String {
         return "no log call with a concatenated message in $fileCount files\n"
     }
