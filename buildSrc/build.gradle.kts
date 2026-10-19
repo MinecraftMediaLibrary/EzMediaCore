@@ -57,6 +57,11 @@ val jazzerFuzzVariable: String = "JAZZER_FUZZ"
 val enabledValue: String = "1"
 val jazzerDurationProperty: String = "jazzer.max_duration"
 
+val repositoryPath: String = ".."
+val repositoryBuildFiles: List<String> =
+    listOf("HEADER", ".readthedocs.yaml", "*.gradle.kts", "*/*.gradle.kts", "gradle/libs.versions.toml")
+val buildSourcesPath: String = "src"
+
 val catalogVersions: Provider<Directory> = layout.buildDirectory.dir(catalogVersionsPath)
 val jacocoVersion: Provider<String> = libs.versions.jacoco
 val repositoryHeader: RegularFile = layout.projectDirectory.file(repositoryHeaderPath)
@@ -92,11 +97,22 @@ val buildClasses: FileTree = sourceSets.main.get().output.classesDirs.asFileTree
     include(buildPackageClasses)
     exclude(generatedClasses)
 }
+val repositoryFiles: ConfigurableFileTree = fileTree(repositoryPath) {
+    include(repositoryBuildFiles)
+}
+val buildSources: Directory = layout.projectDirectory.dir(buildSourcesPath)
 
+// the tests read these files from disk, so a change to one of them must run the tests again
 tasks.test {
     this.useJUnitPlatform {
         this.excludeTags(fuzzTag)
     }
+    this.inputs.files(repositoryFiles)
+        .withPropertyName("repositoryFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    this.inputs.dir(buildSources)
+        .withPropertyName("buildSources")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 // one fuzz test method per class: forkEvery gives each class, and so each method, the JVM of its own that Jazzer needs
