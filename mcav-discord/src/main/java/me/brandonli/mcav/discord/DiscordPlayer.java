@@ -36,7 +36,7 @@ import net.dv8tion.jda.api.audio.AudioSendHandler;
  * concurrently. Do not change an input buffer while a filter call reads it. Queue queries are snapshots.
  * The caller owns the JDA instance and voice connection: detach the audio pipeline, {@link #flush()} the queue,
  * close the voice connection and shut down the bot when they are no longer needed. This player has no native
- * resources to close, and stopping {@link JDAModule} does not close the bot.
+ * resources to close, and stopping {@link JdaModule} does not close the bot.
  *
  * <pre><code>
  *   final DiscordPlayer player = DiscordPlayer.voice(jda);

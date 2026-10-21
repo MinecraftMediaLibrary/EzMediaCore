@@ -24,7 +24,7 @@
  * causes the oldest queued frames to be dropped. See {@link DiscordPlayer} for an example.
  *
  * <p>The caller logs in the bot, opens and closes its voice connection, releases its media player and shuts
- * down JDA. {@link JDAModule} registers the backend but owns none of those resources.
+ * down JDA. {@link JdaModule} registers the backend but owns none of those resources.
  * The default player's queue is safe for concurrent producers and JDA's consumer; supplied buffers must remain
  * stable while they are read.
  *

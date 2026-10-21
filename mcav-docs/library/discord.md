@@ -9,11 +9,11 @@ dependencies {
 }
 ```
 
-Install the `JDAModule` together with the library. The bot itself is created and logged in by your code with JDA.
+Install the `JdaModule` together with the library. The bot itself is created and logged in by your code with JDA.
 
 ```java
   final MCAVApi api = MCAV.api();
-  api.install(JDAModule.class);
+  api.install(JdaModule.class);
 ```
 
 The `DiscordPlayer` is both an audio filter, which you attach to the audio pipeline of any player, and a JDA

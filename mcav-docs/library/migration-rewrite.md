@@ -218,6 +218,8 @@ Custom `HttpResult` implementations must now supply `getCurrentMedia`, `setCurre
 Custom `SVCFilter` implementations must supply `getQueuedFrames`. Existing factory users usually need only to
 recompile, while implementation subclasses may also be affected by the new final modifiers.
 
+The Discord module cases its acronym as a word: install `JdaModule` instead of `JDAModule`.
+
 ## Virtual machines and VNC
 
 Replace `VMPlayer.vm()` with `VMPlayer.create()` and `VNCPlayer.vm()` with `VncPlayer.create()`. Replace

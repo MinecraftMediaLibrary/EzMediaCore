@@ -20,15 +20,15 @@ package me.brandonli.mcav.discord;
 import me.brandonli.mcav.module.MCAVModule;
 
 /**
- * Registers the Discord backend. Install it with {@code MCAV.api().install(JDAModule.class)}; the bot itself is
+ * Registers the Discord backend. Install it with {@code MCAV.api().install(JdaModule.class)}; the bot itself is
  * created and logged in by your code with JDA.
  */
-public final class JDAModule implements MCAVModule {
+public final class JdaModule implements MCAVModule {
 
   /**
    * Constructs the module. The module loader creates it for you.
    */
-  public JDAModule() {}
+  public JdaModule() {}
 
   /**
    * Starts the module. Nothing is prepared here, because the bot is logged in by your code and every

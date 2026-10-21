@@ -26,20 +26,20 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 /**
- * Tests {@link JDAModule}.
+ * Tests {@link JdaModule}.
  */
-final class JDAModuleTest {
+final class JdaModuleTest {
 
   @Test
   void shouldBeNamedJda() {
-    final JDAModule module = new JDAModule();
+    final JdaModule module = new JdaModule();
     final String name = module.getModuleName();
     assertEquals("jda", name);
   }
 
   @Test
   void shouldStartAndStopWithoutHoldingResources() {
-    final JDAModule module = new JDAModule();
+    final JdaModule module = new JdaModule();
     try (final MockedStatic<JDABuilder> builders = Mockito.mockStatic(JDABuilder.class)) {
       assertDoesNotThrow(module::start);
       builders.verifyNoInteractions();

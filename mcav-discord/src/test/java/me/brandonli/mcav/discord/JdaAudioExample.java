@@ -39,9 +39,9 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
  * read from the {@code DISCORD_TOKEN}, {@code DISCORD_GUILD}, {@code DISCORD_CHANNEL}, and {@code MEDIA_FILE}
  * environment variables so that no secret ends up in the source.
  */
-public final class JDAAudioExample {
+public final class JdaAudioExample {
 
-  private JDAAudioExample() {
+  private JdaAudioExample() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
@@ -56,7 +56,7 @@ public final class JDAAudioExample {
     final String channelId = getEnvironmentVariable("DISCORD_CHANNEL");
     final String file = getEnvironmentVariable("MEDIA_FILE");
     final MCAVApi api = MCAV.api();
-    api.install(JDAModule.class);
+    api.install(JdaModule.class);
 
     final JDA jda = login(token);
     final Guild guild = findGuild(jda, guildId);
