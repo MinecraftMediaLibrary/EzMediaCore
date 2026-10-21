@@ -88,7 +88,7 @@ public interface DiscordPlayer extends AudioFilter, AudioSendHandler {
   void flush();
 
   /**
-   * Gets the number of milliseconds of audio waiting to be sent.
+   * Returns the number of milliseconds of audio waiting to be sent.
    *
    * @return the duration of complete frames in milliseconds, from 0 to 3000 in multiples of 20;
    *         the incomplete frame is not counted

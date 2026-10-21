@@ -138,7 +138,7 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
   }
 
   /**
-   * Checks whether a complete frame is queued, which JDA asks before every 20 millisecond interval.
+   * Returns whether a complete frame is queued, which JDA asks before every 20 millisecond interval.
    *
    * @return true if a complete frame is queued at the time of this call; a concurrent flush or consumer
    *         can remove it before {@link #provide20MsAudio()}
@@ -175,7 +175,7 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
   }
 
   /**
-   * Gets the duration of the complete frames waiting to be sent; samples that do not fill a frame yet are not
+   * Returns the duration of the complete frames waiting to be sent; samples that do not fill a frame yet are not
    * counted.
    *
    * @return the queued duration in milliseconds, from 0 to 3000 in multiples of 20

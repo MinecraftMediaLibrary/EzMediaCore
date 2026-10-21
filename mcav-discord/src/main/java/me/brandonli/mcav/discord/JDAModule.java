@@ -44,7 +44,7 @@ public final class JDAModule implements MCAVModule {
   public void stop() {}
 
   /**
-   * Gets the name of the module.
+   * Returns the name of the module.
    *
    * @return {@code jda}
    */
