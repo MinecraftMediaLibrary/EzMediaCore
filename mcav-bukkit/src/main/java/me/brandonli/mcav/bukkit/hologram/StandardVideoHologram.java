@@ -45,6 +45,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * advances every 20 server ticks until the metadata duration, rounded up to whole seconds, is reached.
  * It is independent of player position and slows down with the server tick rate. Create an instance with
  * {@link Hologram#basic()}, populate it with {@link #spawn(Location, UrlParseDump)}, then start it.
+ *
+ * @since 1.0.0
  */
 public class StandardVideoHologram extends VideoHologram {
 
@@ -100,6 +102,7 @@ public class StandardVideoHologram extends VideoHologram {
    * @param dump     the metadata of the video, as parsed by yt-dlp
    * @throws NullPointerException     if the location or the metadata is null
    * @throws IllegalArgumentException if the location has no world
+   * @since 1.0.0
    */
   @Override
   public void spawn(final Location location, final UrlParseDump dump) {
@@ -184,6 +187,7 @@ public class StandardVideoHologram extends VideoHologram {
    * display is removed. Has no effect before {@link #spawn(Location, UrlParseDump)} was called or while the
    * progress bar is already running.
    * @throws IllegalStateException if a display is present but no plugin has been injected into BukkitModule
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -260,6 +264,8 @@ public class StandardVideoHologram extends VideoHologram {
   /**
    * Stops the progress bar and removes the display entity from the world. Calling this method on a hologram that
    * was never spawned has no effect.
+   *
+   * @since 1.0.0
    */
   @Override
   public void kill() {

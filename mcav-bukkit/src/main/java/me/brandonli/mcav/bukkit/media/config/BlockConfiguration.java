@@ -33,6 +33,8 @@ import org.bukkit.Location;
  *
  * <p>The position is retained by reference. Finish setting it before creating the display and do not
  * mutate it while rendering. {@link #getPosition()} returns that same mutable location.
+ *
+ * @since 1.0.0
  */
 public final class BlockConfiguration {
 
@@ -52,6 +54,7 @@ public final class BlockConfiguration {
    * Creates a new builder for a block configuration.
    *
    * @return a new builder
+   * @since 1.0.0
    */
   public static BlockConfigurationBuilder builder() {
     return new DefaultBlockConfigurationBuilder();
@@ -62,6 +65,7 @@ public final class BlockConfiguration {
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
    *         concurrent collection if another thread changes membership during rendering
+   * @since 1.0.0
    */
   public Collection<UUID> getViewers() {
     return this.viewers;
@@ -71,6 +75,7 @@ public final class BlockConfiguration {
    * Returns the width of the wall in blocks.
    *
    * @return the width in blocks
+   * @since 1.0.0
    */
   public int getBlockWidth() {
     return this.blockWidth;
@@ -80,6 +85,7 @@ public final class BlockConfiguration {
    * Returns the height of the wall in blocks.
    *
    * @return the height in blocks
+   * @since 1.0.0
    */
   public int getBlockHeight() {
     return this.blockHeight;
@@ -89,6 +95,7 @@ public final class BlockConfiguration {
    * Returns the bottom center of the wall.
    *
    * @return the original location supplied to the builder, without a defensive copy
+   * @since 1.0.0
    */
   public Location getPosition() {
     return this.position;

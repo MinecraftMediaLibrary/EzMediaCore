@@ -33,6 +33,8 @@ import java.nio.file.Path;
  * loops to close, so avoid calling it from an event-loop callback. The instance can be started again afterward.
  * The source file remains caller-owned, and file/read failures are reported to downloaders rather than checked
  * when the listener starts.
+ *
+ * @since 1.0.0
  */
 public class ServerPackHosting implements HttpHosting {
 
@@ -51,6 +53,7 @@ public class ServerPackHosting implements HttpHosting {
    * @param port     the port to listen on, from 1 to 65535
    * @throws IllegalArgumentException if the port is out of range
    * @throws NullPointerException     if the zip path or advertised host name is null
+   * @since 1.0.0
    */
   public ServerPackHosting(final Path zip, final String hostName, final int port) {
     this(zip, hostName, port, new FileHttpServer(port, zip));
@@ -73,6 +76,7 @@ public class ServerPackHosting implements HttpHosting {
    * Starts the HTTP server. Calling this method while the server is running has no effect.
    *
    * @throws HttpServerException if the port is already in use or cannot be bound
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -81,6 +85,8 @@ public class ServerPackHosting implements HttpHosting {
 
   /**
    * Stops the HTTP server. Calling this method while the server is stopped has no effect.
+   *
+   * @since 1.0.0
    */
   @Override
   public void shutdown() {
@@ -91,6 +97,7 @@ public class ServerPackHosting implements HttpHosting {
    * Returns the resource pack zip that is served. The file is read again for every download.
    *
    * @return the path to the resource pack zip
+   * @since 1.0.0
    */
   @Override
   public Path getZip() {
@@ -101,6 +108,7 @@ public class ServerPackHosting implements HttpHosting {
    * Returns the host name or address players use to reach this server, as passed to the constructor.
    *
    * @return the host name
+   * @since 1.0.0
    */
   @Override
   public String getHostName() {
@@ -111,6 +119,7 @@ public class ServerPackHosting implements HttpHosting {
    * Returns the port players use to reach this server, as passed to the constructor.
    *
    * @return the port, from 1 to 65535
+   * @since 1.0.0
    */
   @Override
   public int getPort() {

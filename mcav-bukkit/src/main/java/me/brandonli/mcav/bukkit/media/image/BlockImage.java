@@ -25,6 +25,8 @@ import me.brandonli.mcav.media.image.ImageBuffer;
 /**
  * Displays still images as a wall of colored blocks using fake block changes. The original blocks are shown again
  * when the image is released.
+ *
+ * @since 1.0.0
  */
 public class BlockImage implements DisplayableImage {
 
@@ -40,6 +42,7 @@ public class BlockImage implements DisplayableImage {
    *
    * @param image the image to show, which is resized to the wall in place
    * @throws NullPointerException if the image is null
+   * @since 1.0.0
    */
   @Override
   public void displayImage(final ImageBuffer image) {
@@ -53,6 +56,8 @@ public class BlockImage implements DisplayableImage {
    * Shows the original blocks to the viewers again. May be called from any thread.
    *
    * <p>During plugin shutdown, call on the main thread so entity removal or restoration can run immediately.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

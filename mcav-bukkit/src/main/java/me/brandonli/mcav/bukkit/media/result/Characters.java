@@ -20,41 +20,57 @@ package me.brandonli.mcav.bukkit.media.result;
 /**
  * Characters that work well as pixels in chat, scoreboard, and entity displays. {@link #FULL_CHARACTER} gives the
  * most solid picture, while the other characters leave gaps between pixels for a stylized look.
+ *
+ * @since 1.0.0
  */
 public final class Characters {
 
   /**
    * A full block, which fills the entire character cell.
+   *
+   * @since 1.0.0
    */
   public static final String FULL_CHARACTER = "█";
 
   /**
    * An outlined square.
+   *
+   * @since 1.0.0
    */
   public static final String WHITE_SQUARE = "□";
 
   /**
    * A filled square.
+   *
+   * @since 1.0.0
    */
   public static final String BLACK_SQUARE = "■";
 
   /**
    * An outlined circle.
+   *
+   * @since 1.0.0
    */
   public static final String WHITE_CIRCLE = "○";
 
   /**
    * A filled circle.
+   *
+   * @since 1.0.0
    */
   public static final String BLACK_CIRCLE = "●";
 
   /**
    * A small outlined square.
+   *
+   * @since 1.0.0
    */
   public static final String SMALL_WHITE_SQUARE = "▫";
 
   /**
    * A small filled square.
+   *
+   * @since 1.0.0
    */
   public static final String SMALL_BLACK_SQUARE = "▪";
 

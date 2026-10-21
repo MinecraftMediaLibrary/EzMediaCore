@@ -25,6 +25,8 @@ import java.util.UUID;
  *
  * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
  * required fields are checked by {@link #build()}, which may be called again to create another configuration.
+ *
+ * @since 1.0.0
  */
 public interface ChatConfigurationBuilder {
   /**
@@ -33,6 +35,7 @@ public interface ChatConfigurationBuilder {
    * @param viewers the UUIDs of the viewers
    * @return this builder
    * @throws NullPointerException if the viewers are null
+   * @since 1.0.0
    */
   ChatConfigurationBuilder viewers(final Collection<UUID> viewers);
 
@@ -45,6 +48,7 @@ public interface ChatConfigurationBuilder {
    * @param character the pixel text, usually a single character such as {@code █}
    * @return this builder
    * @throws NullPointerException if the character is null
+   * @since 1.0.0
    */
   ChatConfigurationBuilder character(final String character);
 
@@ -53,6 +57,7 @@ public interface ChatConfigurationBuilder {
    *
    * @param chatWidth the width in characters, which must be positive
    * @return this builder
+   * @since 1.0.0
    */
   ChatConfigurationBuilder chatWidth(final int chatWidth);
 
@@ -61,6 +66,7 @@ public interface ChatConfigurationBuilder {
    *
    * @param chatHeight the height in lines, which must be positive
    * @return this builder
+   * @since 1.0.0
    */
   ChatConfigurationBuilder chatHeight(final int chatHeight);
 
@@ -70,6 +76,7 @@ public interface ChatConfigurationBuilder {
    * @return the chat configuration
    * @throws IllegalArgumentException if a size is not positive or the character is empty
    * @throws NullPointerException     if the viewers or the character were not set
+   * @since 1.0.0
    */
   ChatConfiguration build();
 }

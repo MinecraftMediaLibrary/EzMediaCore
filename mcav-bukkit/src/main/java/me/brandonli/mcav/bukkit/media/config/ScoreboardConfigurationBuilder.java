@@ -25,6 +25,8 @@ import java.util.UUID;
  *
  * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
  * required fields are checked by {@link #build()}, which may be called again to create another configuration.
+ *
+ * @since 1.0.0
  */
 public interface ScoreboardConfigurationBuilder {
   /**
@@ -33,6 +35,7 @@ public interface ScoreboardConfigurationBuilder {
    * @param viewers the UUIDs of the viewers
    * @return this builder
    * @throws NullPointerException if the viewers are null
+   * @since 1.0.0
    */
   ScoreboardConfigurationBuilder viewers(final Collection<UUID> viewers);
 
@@ -45,6 +48,7 @@ public interface ScoreboardConfigurationBuilder {
    * @param character the pixel text, usually a single character such as {@code █}
    * @return this builder
    * @throws NullPointerException if the character is null
+   * @since 1.0.0
    */
   ScoreboardConfigurationBuilder character(final String character);
 
@@ -53,6 +57,7 @@ public interface ScoreboardConfigurationBuilder {
    *
    * @param lines the number of lines, from 1 to {@link ScoreboardConfiguration#MAXIMUM_LINES}
    * @return this builder
+   * @since 1.0.0
    */
   ScoreboardConfigurationBuilder lines(final int lines);
 
@@ -61,6 +66,7 @@ public interface ScoreboardConfigurationBuilder {
    *
    * @param width the width in characters, which must be positive
    * @return this builder
+   * @since 1.0.0
    */
   ScoreboardConfigurationBuilder width(final int width);
 
@@ -70,6 +76,7 @@ public interface ScoreboardConfigurationBuilder {
    * @return the scoreboard configuration
    * @throws IllegalArgumentException if a size is out of range or the character is empty
    * @throws NullPointerException     if the viewers or the character were not set
+   * @since 1.0.0
    */
   ScoreboardConfiguration build();
 }

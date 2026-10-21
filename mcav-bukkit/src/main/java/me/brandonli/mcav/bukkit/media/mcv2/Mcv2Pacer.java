@@ -52,10 +52,16 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>Times are {@link System#nanoTime()} values passed in by the caller. Not thread-safe: the screen calls it from
  * one thread at a time.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Pacer {
 
-  /** The lowest frame rate a rung may have, in frames per second. */
+  /**
+   * The lowest frame rate a rung may have, in frames per second.
+   *
+   * @since 1.0.0
+   */
   public static final double MINIMUM_FRAME_RATE = 10;
 
   private static final double HIGH = 1.0;
@@ -142,6 +148,7 @@ public final class Mcv2Pacer {
    *              can switch to
    * @throws IllegalArgumentException if there is no size, or a size is not positive
    * @throws NullPointerException     if the sizes or one of its arrays is null
+   * @since 1.0.0
    */
   public Mcv2Pacer(final List<int[]> sizes) {
     this(sizes, Floor.DITHERED_MAPS);
@@ -159,6 +166,7 @@ public final class Mcv2Pacer {
    *                 its frames take longer than they have
    * @throws IllegalArgumentException if there is no size, or a size is not positive
    * @throws NullPointerException     if the sizes, one of its arrays or the floor is null
+   * @since 1.0.0
    */
   public Mcv2Pacer(final List<int[]> sizes, final Floor floor) {
     this(sizes, List.of(Preset.ONLY), floor);
@@ -178,6 +186,7 @@ public final class Mcv2Pacer {
    * @throws IllegalArgumentException if there is no size or no preset, a size is not positive, or a preset does not
    *                                  cost less than the one before it
    * @throws NullPointerException     if the sizes, one of its arrays, the presets or the floor is null
+   * @since 1.0.0
    */
   public Mcv2Pacer(final List<int[]> sizes, final List<Preset> presets, final Floor floor) {
     Preconditions.checkNotNull(floor, "Floor must not be null!");
@@ -225,6 +234,7 @@ public final class Mcv2Pacer {
    *
    * @param now the arrival time in monotonic nanoseconds, from the same clock used for other calls
    * @return the step a try from the dithered maps takes, which the caller carries out, or empty
+   * @since 1.0.0
    */
   public Optional<Change> arrive(final long now) {
     if (this.firstArrival == NEVER) {
@@ -252,6 +262,7 @@ public final class Mcv2Pacer {
    * Checks whether the frame that arrived last is to be encoded on the current rung.
    *
    * @return true to encode it
+   * @since 1.0.0
    */
   public boolean isEncoded() {
     final Rung rung = this.getRung();
@@ -267,6 +278,7 @@ public final class Mcv2Pacer {
    * @return the step it causes, which the caller carries out, or empty
    * @throws NullPointerException     if kind is null
    * @throws IllegalArgumentException if milliseconds is negative, NaN or infinite
+   * @since 1.0.0
    */
   public Optional<Change> encoded(final double milliseconds, final Mcv2FrameKind kind, final long now) {
     Preconditions.checkNotNull(kind, "Kind must not be null!");
@@ -442,6 +454,7 @@ public final class Mcv2Pacer {
    * Returns the rungs of the ladder, top first; the last is {@link Rung#DITHERED} when the screen can fall back to it.
    *
    * @return the unmodifiable ladder, whose immutable rungs may be shared
+   * @since 1.0.0
    */
   public List<Rung> getLadder() {
     return this.ladder;
@@ -451,6 +464,7 @@ public final class Mcv2Pacer {
    * Returns the rung the screen is on.
    *
    * @return the rung
+   * @since 1.0.0
    */
   public Rung getRung() {
     return this.ladder.get(this.current);
@@ -460,6 +474,7 @@ public final class Mcv2Pacer {
    * Returns the video's frames per second, as measured from the frames it hands over.
    *
    * @return the frame rate, or NaN before two frames arrived
+   * @since 1.0.0
    */
   public double getVideoFramesPerSecond() {
     return NANOSECONDS_PER_SECOND / this.videoInterval;
@@ -469,10 +484,16 @@ public final class Mcv2Pacer {
    * A preset of the ladder: how hard the screen's encoder searches.
    *
    * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   public static final class Preset {
 
-    /** The one preset of a screen that does not step through presets. */
+    /**
+     * The one preset of a screen that does not step through presets.
+     *
+     * @since 1.0.0
+     */
     public static final Preset ONLY = of("", 1);
 
     private final String name;
@@ -492,6 +513,7 @@ public final class Mcv2Pacer {
      * @return the preset
      * @throws NullPointerException     if {@code name} is null
      * @throws IllegalArgumentException if {@code cost} is not positive and finite
+     * @since 1.0.0
      */
     public static Preset of(final String name, final double cost) {
       Preconditions.checkNotNull(name, "Name must not be null!");
@@ -509,6 +531,7 @@ public final class Mcv2Pacer {
      *
      * @return the preset's name in messages, for example {@code FAST}; empty for the one preset of a screen that does not
      *         step through presets
+     * @since 1.0.0
      */
     public String getName() {
       return this.name;
@@ -518,6 +541,7 @@ public final class Mcv2Pacer {
      * Returns the preset's encode time relative to the other presets of the ladder.
      *
      * @return its encode time relative to the other presets of the ladder, which the pacer's predictions scale by
+     * @since 1.0.0
      */
     public double getCost() {
       return this.cost;
@@ -528,6 +552,7 @@ public final class Mcv2Pacer {
      *
      * @param other the object to compare with
      * @return whether every part matches
+     * @since 1.0.0
      */
     @Override
     public boolean equals(final @Nullable Object other) {
@@ -546,6 +571,7 @@ public final class Mcv2Pacer {
      * Returns a hash code built from every part.
      *
      * @return the hash code
+     * @since 1.0.0
      */
     @Override
     public int hashCode() {
@@ -556,6 +582,7 @@ public final class Mcv2Pacer {
      * Returns a debugging representation with every part.
      *
      * @return the representation
+     * @since 1.0.0
      */
     @Override
     public String toString() {
@@ -570,10 +597,16 @@ public final class Mcv2Pacer {
    * non-null preset for encoded rungs; {@link #DITHERED} is the canonical zero-divisor sentinel.
    *
    * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   public static final class Rung {
 
-    /** The dithered maps, the lowest rung. */
+    /**
+     * The dithered maps, the lowest rung.
+     *
+     * @since 1.0.0
+     */
     public static final Rung DITHERED = of(0, 0, 0);
 
     private final int width;
@@ -596,6 +629,7 @@ public final class Mcv2Pacer {
      * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
      * @param preset  how hard the encoder searches; {@link Preset#ONLY} on the dithered maps
      * @return the rung
+     * @since 1.0.0
      */
     public static Rung of(final int width, final int height, final int divisor, final Preset preset) {
       return new Rung(width, height, divisor, preset);
@@ -608,6 +642,7 @@ public final class Mcv2Pacer {
      * @param height  the video height, or 0 for the dithered maps
      * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
      * @return the rung
+     * @since 1.0.0
      */
     public static Rung of(final int width, final int height, final int divisor) {
       return of(width, height, divisor, Preset.ONLY);
@@ -617,6 +652,7 @@ public final class Mcv2Pacer {
      * Checks whether this is the dithered maps.
      *
      * @return true for the dithered maps
+     * @since 1.0.0
      */
     public boolean isDithered() {
       return this.divisor == 0;
@@ -627,6 +663,7 @@ public final class Mcv2Pacer {
      *
      * @param videoFrameRate the video's frames per second
      * @return the encoded frames per second, 0 for the dithered maps
+     * @since 1.0.0
      */
     public double framesPerSecond(final double videoFrameRate) {
       return this.isDithered() ? 0 : videoFrameRate / this.divisor;
@@ -642,6 +679,7 @@ public final class Mcv2Pacer {
      * @param videoFrameRate the video's frames per second
      * @return for example {@code 1920x1080 at 30 fps}, {@code 1920x1080 at 30 fps with the FAST search} on a
      *         ladder of presets, or {@code the dithered maps}
+     * @since 1.0.0
      */
     public String describe(final double videoFrameRate) {
       return this.isDithered()
@@ -660,6 +698,7 @@ public final class Mcv2Pacer {
      * Returns the video width.
      *
      * @return the video width, or 0 for the dithered maps
+     * @since 1.0.0
      */
     public int getWidth() {
       return this.width;
@@ -669,6 +708,7 @@ public final class Mcv2Pacer {
      * Returns the video height.
      *
      * @return the video height, or 0 for the dithered maps
+     * @since 1.0.0
      */
     public int getHeight() {
       return this.height;
@@ -678,6 +718,7 @@ public final class Mcv2Pacer {
      * Returns every how many frames of the video one is encoded.
      *
      * @return every how many frames of the video one is encoded, or 0 for the dithered maps
+     * @since 1.0.0
      */
     public int getDivisor() {
       return this.divisor;
@@ -687,6 +728,7 @@ public final class Mcv2Pacer {
      * Returns how hard the encoder searches.
      *
      * @return how hard the encoder searches; {@link Preset#ONLY} on the dithered maps
+     * @since 1.0.0
      */
     public Preset getPreset() {
       return this.preset;
@@ -697,6 +739,7 @@ public final class Mcv2Pacer {
      *
      * @param other the object to compare with
      * @return whether every part matches
+     * @since 1.0.0
      */
     @Override
     public boolean equals(final @Nullable Object other) {
@@ -715,6 +758,7 @@ public final class Mcv2Pacer {
      * Returns a hash code built from every part.
      *
      * @return the hash code
+     * @since 1.0.0
      */
     @Override
     public int hashCode() {
@@ -725,6 +769,7 @@ public final class Mcv2Pacer {
      * Returns a debugging representation with every part.
      *
      * @return the representation
+     * @since 1.0.0
      */
     @Override
     public String toString() {
@@ -741,6 +786,8 @@ public final class Mcv2Pacer {
    * A step of the pacer.
    *
    * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   public static final class Change {
 
@@ -777,6 +824,7 @@ public final class Mcv2Pacer {
      * @param frameMilliseconds  the time a frame had on the rung before, 0 on the dithered maps
      * @param videoFrameRate     the video's frames per second as measured
      * @return the change
+     * @since 1.0.0
      */
     public static Change of(
       final Rung from,
@@ -793,6 +841,7 @@ public final class Mcv2Pacer {
      * Describes the step for the server's operator: what was chosen and why.
      *
      * @return the message
+     * @since 1.0.0
      */
     public String describe() {
       if (this.from.isDithered()) {
@@ -819,6 +868,7 @@ public final class Mcv2Pacer {
      * Returns the rung before the step.
      *
      * @return the rung before
+     * @since 1.0.0
      */
     public Rung getFrom() {
       return this.from;
@@ -828,6 +878,7 @@ public final class Mcv2Pacer {
      * Returns the rung after the step.
      *
      * @return the rung now
+     * @since 1.0.0
      */
     public Rung getTo() {
       return this.to;
@@ -837,6 +888,7 @@ public final class Mcv2Pacer {
      * Returns whether the step went down the ladder.
      *
      * @return whether the step went down the ladder
+     * @since 1.0.0
      */
     public boolean isDown() {
       return this.down;
@@ -846,6 +898,7 @@ public final class Mcv2Pacer {
      * Returns the smoothed encode time per frame that decided the step.
      *
      * @return the smoothed encode time per frame that decided the step, 0 for a try from the dithered maps
+     * @since 1.0.0
      */
     public double getEncodeMilliseconds() {
       return this.encodeMilliseconds;
@@ -855,6 +908,7 @@ public final class Mcv2Pacer {
      * Returns the time a frame had on the rung before.
      *
      * @return the time a frame had on the rung before, 0 on the dithered maps
+     * @since 1.0.0
      */
     public double getFrameMilliseconds() {
       return this.frameMilliseconds;
@@ -864,6 +918,7 @@ public final class Mcv2Pacer {
      * Returns the video's frames per second as measured.
      *
      * @return the video's frames per second as measured
+     * @since 1.0.0
      */
     public double getVideoFrameRate() {
       return this.videoFrameRate;
@@ -874,6 +929,7 @@ public final class Mcv2Pacer {
      *
      * @param other the object to compare with
      * @return whether every part matches
+     * @since 1.0.0
      */
     @Override
     public boolean equals(final @Nullable Object other) {
@@ -899,6 +955,7 @@ public final class Mcv2Pacer {
      * Returns a hash code built from every part.
      *
      * @return the hash code
+     * @since 1.0.0
      */
     @Override
     public int hashCode() {
@@ -909,6 +966,7 @@ public final class Mcv2Pacer {
      * Returns a debugging representation with every part.
      *
      * @return the representation
+     * @since 1.0.0
      */
     @Override
     public String toString() {

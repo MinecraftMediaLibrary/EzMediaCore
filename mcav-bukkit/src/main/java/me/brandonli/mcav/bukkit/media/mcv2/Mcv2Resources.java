@@ -21,7 +21,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 
-/** Computes hexadecimal digests for MCV2 resources. */
+/**
+ * Computes hexadecimal digests for MCV2 resources.
+ *
+ * @since 1.0.0
+ */
 public final class Mcv2Resources {
 
   private static final String SHA_256_ALGORITHM = "SHA-256";
@@ -36,6 +40,7 @@ public final class Mcv2Resources {
    * @param bytes the bytes
    * @return the lowercase hexadecimal SHA-256
    * @throws NullPointerException if bytes is null
+   * @since 1.0.0
    */
   public static String sha256(final byte[] bytes) {
     return digest(bytes, SHA_256_ALGORITHM);

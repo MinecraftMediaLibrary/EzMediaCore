@@ -22,10 +22,14 @@ import me.brandonli.mcav.utils.http.NetworkUtils;
 
 /**
  * Hosts a resource pack on a dedicated HTTP server with its own host name and port.
+ *
+ * @since 1.0.0
  */
 public interface HttpHosting extends PackHosting {
   /**
    * The format of the URL of the resource pack, with placeholders for the host name and the port.
+   *
+   * @since 1.0.0
    */
   String HOST_URL = "http://%s:%s";
 
@@ -33,6 +37,7 @@ public interface HttpHosting extends PackHosting {
    * Returns the host name or address players use to reach the HTTP server.
    *
    * @return the host name
+   * @since 1.0.0
    */
   String getHostName();
 
@@ -40,6 +45,7 @@ public interface HttpHosting extends PackHosting {
    * Returns the port the HTTP server listens on.
    *
    * @return the port
+   * @since 1.0.0
    */
   int getPort();
 
@@ -47,6 +53,7 @@ public interface HttpHosting extends PackHosting {
    * Returns the URL of the resource pack, built from the host name and the port.
    *
    * @return the URL in the format {@code http://<hostName>:<port>}
+   * @since 1.0.0
    */
   @Override
   default String getRawUrl() {

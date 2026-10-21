@@ -56,6 +56,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>Joins are handled as early as possible, with {@link EventPriority#LOWEST}, so other plugins can send media in
  * their own join handlers, and quits as late as possible, with {@link EventPriority#MONITOR}, so they can still
  * send packets in their quit handlers.
+ *
+ * @since 1.0.0
  */
 public final class PacketUtils {
 
@@ -76,6 +78,7 @@ public final class PacketUtils {
    * <p>Run on the server main thread. Reinitialization unregisters the previous listener and rebuilds the cache.
    *
    * @throws IllegalStateException if no plugin has been injected
+   * @since 1.0.0
    */
   public static synchronized void initialize() {
     final Map<UUID, CachedConnection> previous = Map.copyOf(PLAYER_CONNECTIONS);
@@ -101,6 +104,8 @@ public final class PacketUtils {
    * {@link BukkitModule}.
    *
    * <p>Run on the server main thread. Existing player connections remain server-owned and are not closed.
+   *
+   * @since 1.0.0
    */
   public static synchronized void shutdown() {
     final Listener listener = connectionListener;
@@ -120,6 +125,7 @@ public final class PacketUtils {
    * @return true if a connection is currently cached; this is a snapshot and does not guarantee that a
    *         subsequent send succeeds or that the client receives it
    * @throws NullPointerException if {@code player} is null
+   * @since 1.0.0
    */
   public static boolean isConnected(final UUID player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
@@ -135,6 +141,7 @@ public final class PacketUtils {
    * @param player the player's UUID
    * @return the connection identity, or empty while the player is offline; a snapshot, not a guarantee of delivery
    * @throws NullPointerException if {@code player} is null
+   * @since 1.0.0
    */
   public static Optional<Object> connectionIdentity(final UUID player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
@@ -150,6 +157,7 @@ public final class PacketUtils {
    * @param viewers the UUIDs of the players to send the packets to
    * @param packets the packets to send, in order
    * @throws NullPointerException if {@code viewers} or {@code packets} is null
+   * @since 1.0.0
    */
   public static void sendPackets(final Collection<UUID> viewers, final Packet<?>... packets) {
     Preconditions.checkNotNull(viewers, "Viewers must not be null!");
@@ -181,6 +189,7 @@ public final class PacketUtils {
    * @return true if the packet was handed to the player's connection, false for a player who is not online or a
    *     connection not open yet, in which case the listener is never called
    * @throws NullPointerException if {@code viewer}, {@code packet} or {@code listener} is null
+   * @since 1.0.0
    */
   public static boolean sendPacket(final UUID viewer, final Packet<?> packet, final ChannelFutureListener listener) {
     Preconditions.checkNotNull(viewer, "Viewer must not be null!");
@@ -215,6 +224,7 @@ public final class PacketUtils {
    *     without the option
    * @throws IllegalArgumentException if the byte limit is nonpositive
    * @throws NullPointerException     if {@code player} is null
+   * @since 1.0.0
    */
   public static boolean limitUnsent(final UUID player, final int bytes) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);

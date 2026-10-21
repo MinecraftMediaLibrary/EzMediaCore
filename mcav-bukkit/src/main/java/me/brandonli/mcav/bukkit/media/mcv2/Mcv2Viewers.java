@@ -51,6 +51,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * never verifies successful frame decoding. Register/unregister listeners and retarget the pack on the main thread.
  * Reads may occur from media threads. Registration alone does not offer a pack; the caller sends the request and
  * records it with {@link #requested(UUID)}. Unregistering retains recorded state.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Viewers {
 
@@ -77,6 +79,7 @@ public final class Mcv2Viewers {
    * @param onRefused called with a player whose client just refused the pack or failed to load it, for example to
    *                  tell them why they see the dithered maps
    * @throws NullPointerException if {@code packId} or {@code onRefused} is null
+   * @since 1.0.0
    */
   public Mcv2Viewers(final UUID packId, final Consumer<Player> onRefused) {
     Preconditions.checkNotNull(packId, PACK_ID_NULL_MESSAGE);
@@ -95,6 +98,7 @@ public final class Mcv2Viewers {
    * lose their state. Register before players join: a client learns of the plugin channel as it joins, and its mod
    * reports only once it knows the channel.
    * @throws IllegalStateException if no plugin has been injected
+   * @since 1.0.0
    */
   public synchronized void register() {
     this.unregister();
@@ -110,6 +114,8 @@ public final class Mcv2Viewers {
 
   /**
    * Stops listening.
+   *
+   * @since 1.0.0
    */
   public synchronized void unregister() {
     final Listener events = this.listener;
@@ -127,6 +133,7 @@ public final class Mcv2Viewers {
    *
    * @param newPackId the id of the new pack's request
    * @throws NullPointerException if {@code newPackId} is null
+   * @since 1.0.0
    */
   public void retarget(final UUID newPackId) {
     Preconditions.checkNotNull(newPackId, PACK_ID_NULL_MESSAGE);
@@ -141,6 +148,7 @@ public final class Mcv2Viewers {
    *
    * @param player the player's UUID
    * @throws NullPointerException if {@code player} is null
+   * @since 1.0.0
    */
   public void requested(final UUID player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
@@ -154,6 +162,7 @@ public final class Mcv2Viewers {
    * @param player the player's UUID
    * @return the recorded state, or empty when no state is currently tracked, including after quit or retarget
    * @throws NullPointerException if {@code player} is null
+   * @since 1.0.0
    */
   public Optional<PackState> getState(final UUID player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
@@ -169,6 +178,7 @@ public final class Mcv2Viewers {
    * @param player the player's UUID
    * @return true if the tracked client status is LOADED and no report of the client mod rules decoding out; this is not
    *         a playback acknowledgment
+   * @since 1.0.0
    */
   public boolean isLoaded(final UUID player) {
     final Optional<PackState> state = this.getState(player);
@@ -188,6 +198,7 @@ public final class Mcv2Viewers {
    * @param player the player's UUID
    * @return the session, or 0 while the client has not loaded the pack
    * @throws NullPointerException if {@code player} is null
+   * @since 1.0.0
    */
   public long getSession(final UUID player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
@@ -236,20 +247,41 @@ public final class Mcv2Viewers {
    * Returns the id of the pack followed.
    *
    * @return the id of the pack's request
+   * @since 1.0.0
    */
   public UUID getPackId() {
     return this.packId;
   }
 
-  /** What a player's client reported for the pack. */
+  /**
+   * What a player's client reported for the pack.
+   *
+   * @since 1.0.0
+   */
   public enum PackState {
-    /** The pack was requested and the client has not finished loading it. */
+    /**
+     * The pack was requested and the client has not finished loading it.
+     *
+     * @since 1.0.0
+     */
     REQUESTED,
-    /** The client loaded the pack. */
+    /**
+     * The client loaded the pack.
+     *
+     * @since 1.0.0
+     */
     LOADED,
-    /** The client could not download or apply the pack. */
+    /**
+     * The client could not download or apply the pack.
+     *
+     * @since 1.0.0
+     */
     REFUSED,
-    /** The player declined the pack, and is not asked again while online, whichever pack follows. */
+    /**
+     * The player declined the pack, and is not asked again while online, whichever pack follows.
+     *
+     * @since 1.0.0
+     */
     DECLINED,
   }
 }

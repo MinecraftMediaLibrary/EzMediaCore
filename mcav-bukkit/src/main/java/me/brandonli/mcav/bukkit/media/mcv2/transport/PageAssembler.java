@@ -35,10 +35,16 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
  *
  * <p>The assembler never advances a reference; it only returns frames that are complete and valid. Instances are not
  * thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class PageAssembler {
 
-  /** Frames that may be pending at once. */
+  /**
+   * Frames that may be pending at once.
+   *
+   * @since 1.0.0
+   */
   public static final int MAXIMUM_PENDING = 4;
 
   private final long streamId;
@@ -51,6 +57,7 @@ public final class PageAssembler {
    * @param streamId   the unsigned 32-bit stream id to accept, from 0 through 4,294,967,295; not checked here
    * @param symbolBits the negotiated width, 6 bits per symbol
    * @throws IllegalArgumentException if the symbol width is not 6
+   * @since 1.0.0
    */
   public PageAssembler(final long streamId, final int symbolBits) {
     Preconditions.checkArgument(symbolBits == MapAlphabet.SYMBOL_BITS, "Symbol width %s is unsupported!", symbolBits);
@@ -70,6 +77,7 @@ public final class PageAssembler {
    * @throws Mcv2Exception        if the page is invalid, belongs to another stream, contradicts the other pages of its frame,
    *                              or completes a frame that is not valid
    * @throws NullPointerException if the symbol array is null
+   * @since 1.0.0
    */
   public Optional<byte[]> push(final byte[] symbols) {
     final TransportPage page = TransportPages.readPage(symbols);
@@ -137,6 +145,7 @@ public final class PageAssembler {
    * Returns the number of frames waiting for pages.
    *
    * @return the pending frame count
+   * @since 1.0.0
    */
   public int getPendingCount() {
     return this.pending.size();

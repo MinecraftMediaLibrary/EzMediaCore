@@ -30,6 +30,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * Determines the address players use to reach the Minecraft server, for example to build the URL of a resource
  * pack the server hosts itself.
+ *
+ * @since 1.0.0
  */
 public final class ServerAddress {
 
@@ -51,6 +53,7 @@ public final class ServerAddress {
    *
    * @return the public address of the server, or {@code localhost} if it cannot be determined right now, see
    *     {@link #isFallbackAddress(String)}
+   * @since 1.0.0
    */
   public static String getPublicIpAddress() {
     return getPublicIpAddress(NetworkUtils.DEFAULT_ADDRESS_SERVICE);
@@ -103,6 +106,7 @@ public final class ServerAddress {
    * @param address the address to check
    * @return true if the address is the fallback address {@code localhost}
    * @throws NullPointerException if the address is null
+   * @since 1.0.0
    */
   public static boolean isFallbackAddress(final String address) {
     Preconditions.checkNotNull(address, "Address must not be null!");

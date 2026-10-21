@@ -27,6 +27,8 @@ import me.brandonli.mcav.media.player.attachable.DimensionAttachableCallback;
  *
  * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
  * required fields are checked by {@link #build()}, which may be called again to create another configuration.
+ *
+ * @since 1.0.0
  */
 public interface MapConfigurationBuilder {
   /**
@@ -39,6 +41,7 @@ public interface MapConfigurationBuilder {
    *
    * @param shouldResize true to resize frames and images, false to show them at their original size
    * @return this builder
+   * @since 1.0.0
    */
   MapConfigurationBuilder resize(final boolean shouldResize);
 
@@ -48,6 +51,7 @@ public interface MapConfigurationBuilder {
    * @param viewers the UUIDs of the viewers
    * @return this builder
    * @throws NullPointerException if the viewers are null
+   * @since 1.0.0
    */
   MapConfigurationBuilder viewers(final Collection<UUID> viewers);
 
@@ -56,6 +60,7 @@ public interface MapConfigurationBuilder {
    *
    * @param map the id of the first map, which must be non-negative
    * @return this builder
+   * @since 1.0.0
    */
   MapConfigurationBuilder map(final int map);
 
@@ -64,6 +69,7 @@ public interface MapConfigurationBuilder {
    *
    * @param mapBlockWidth the number of maps horizontally, which must be positive
    * @return this builder
+   * @since 1.0.0
    */
   MapConfigurationBuilder mapBlockWidth(final int mapBlockWidth);
 
@@ -72,6 +78,7 @@ public interface MapConfigurationBuilder {
    *
    * @param mapBlockHeight the number of maps vertically, which must be positive
    * @return this builder
+   * @since 1.0.0
    */
   MapConfigurationBuilder mapBlockHeight(final int mapBlockHeight);
 
@@ -80,6 +87,7 @@ public interface MapConfigurationBuilder {
    *
    * @param mapWidthResolution the target width in pixels, which must not be negative; 0 selects the default
    * @return this builder
+   * @since 1.0.0
    */
   MapConfigurationBuilder mapWidthResolution(final int mapWidthResolution);
 
@@ -88,6 +96,7 @@ public interface MapConfigurationBuilder {
    *
    * @param mapHeightResolution the target height in pixels, which must not be negative; 0 selects the default
    * @return this builder
+   * @since 1.0.0
    */
   MapConfigurationBuilder mapHeightResolution(final int mapHeightResolution);
 
@@ -98,6 +107,7 @@ public interface MapConfigurationBuilder {
    * @throws IllegalArgumentException if the first map id is negative, a grid dimension is nonpositive,
    *                                  a requested resolution is negative, or a default resolution would overflow an integer
    * @throws NullPointerException     if the viewers were not set
+   * @since 1.0.0
    */
   MapConfiguration build();
 }

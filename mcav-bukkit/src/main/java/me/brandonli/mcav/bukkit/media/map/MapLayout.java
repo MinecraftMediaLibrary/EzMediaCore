@@ -34,6 +34,8 @@ import org.checkerframework.checker.initialization.qual.UnderInitialization;
  *
  * <p>Odd centering differences use integer division toward zero, so opposite margins or crop amounts may
  * differ by one pixel. Extracted patches own copied color arrays and do not retain the source image array.
+ *
+ * @since 1.0.0
  */
 public final class MapLayout {
 
@@ -42,12 +44,16 @@ public final class MapLayout {
 
   /**
    * The width and height of a single map in pixels.
+   *
+   * @since 1.0.0
    */
   public static final int MAP_SIZE = 128;
 
   /**
    * An estimate of the per-patch overhead of a map data packet in bytes. It covers the packet id, the map id, the
    * scale, the lock flag, the empty decoration list, and the rectangle header.
+   *
+   * @since 1.0.0
    */
   public static final int PATCH_OVERHEAD = 16;
 
@@ -73,6 +79,7 @@ public final class MapLayout {
    * @throws IllegalArgumentException if any argument is out of range, the map count, last map id or the size of the
    *                                  grid in pixels would exceed {@link Integer#MAX_VALUE}, or the image has more
    *                                  than {@link Integer#MAX_VALUE} pixels
+   * @since 1.0.0
    */
   public MapLayout(final int startMapId, final int columns, final int rows, final int imageWidth, final int imageHeight) {
     validateDimensions(startMapId, columns, rows, imageWidth, imageHeight);
@@ -154,6 +161,7 @@ public final class MapLayout {
    * @param index the index of the map, counted row by row from the top left
    * @return the map id
    * @throws IndexOutOfBoundsException if the map index is outside of the grid
+   * @since 1.0.0
    */
   public int getMapId(final int index) {
     Preconditions.checkElementIndex(index, this.regions.length, "Map index");
@@ -167,6 +175,7 @@ public final class MapLayout {
    * @param index the index of the map, counted row by row from the top left
    * @return the covered region, which is empty if the image does not reach this map
    * @throws IndexOutOfBoundsException if the map index is outside of the grid
+   * @since 1.0.0
    */
   public MapRegion getRegion(final int index) {
     Preconditions.checkElementIndex(index, this.regions.length, "Map index");
@@ -183,6 +192,7 @@ public final class MapLayout {
    * @param imageWidth  the width of the image in pixels
    * @param imageHeight the height of the image in pixels
    * @return true if the layout is identical
+   * @since 1.0.0
    */
   public boolean matches(final int startMapId, final int columns, final int rows, final int imageWidth, final int imageHeight) {
     final boolean sameGrid = this.startMapId == startMapId && this.columns == columns && this.rows == rows;
@@ -205,6 +215,7 @@ public final class MapLayout {
    * @throws IllegalArgumentException  if the image size does not match the layout, or the rectangle is empty or
    *                                   not inside the region of the map
    * @throws NullPointerException      if {@code image} is null
+   * @since 1.0.0
    */
   public MapTilePatch extractPatch(final byte[] image, final int index, final int left, final int top, final int width, final int height) {
     Preconditions.checkNotNull(image, IMAGE_NULL_MESSAGE);
@@ -262,6 +273,7 @@ public final class MapLayout {
    * @return the patches for the entire image
    * @throws IllegalArgumentException if the image size does not match the layout
    * @throws NullPointerException     if {@code image} is null
+   * @since 1.0.0
    */
   public List<MapTilePatch> extractAll(final byte[] image) {
     Preconditions.checkNotNull(image, IMAGE_NULL_MESSAGE);
@@ -291,6 +303,7 @@ public final class MapLayout {
    * Returns the number of maps in the grid.
    *
    * @return the number of maps
+   * @since 1.0.0
    */
   public int getMapCount() {
     return this.regions.length;
@@ -300,6 +313,7 @@ public final class MapLayout {
    * Returns the width of the image in pixels.
    *
    * @return the image width
+   * @since 1.0.0
    */
   public int getImageWidth() {
     return this.imageWidth;
@@ -309,6 +323,7 @@ public final class MapLayout {
    * Returns the height of the image in pixels.
    *
    * @return the image height
+   * @since 1.0.0
    */
   public int getImageHeight() {
     return this.imageHeight;

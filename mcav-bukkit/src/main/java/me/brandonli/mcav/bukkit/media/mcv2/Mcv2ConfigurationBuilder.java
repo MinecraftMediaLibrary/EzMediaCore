@@ -33,6 +33,8 @@ import org.bukkit.block.BlockFace;
  * Origin, facing and outline-color setters validate immediately. A zero video dimension selects 128 times the
  * corresponding wall dimension, which {@link #build()} refuses past the codec's 4096-pixel limit: a wall of more than
  * 32 maps on a side needs a smaller video size.
+ *
+ * @since 1.0.0
  */
 public interface Mcv2ConfigurationBuilder {
   /**
@@ -41,6 +43,7 @@ public interface Mcv2ConfigurationBuilder {
    * @param viewers the UUIDs of the viewers
    * @return this builder
    * @throws NullPointerException if {@code viewers} is null
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder viewers(final Collection<UUID> viewers);
 
@@ -53,6 +56,7 @@ public interface Mcv2ConfigurationBuilder {
    * @return this builder
    * @throws IllegalArgumentException if the origin has no world
    * @throws NullPointerException     if {@code origin} is null
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder origin(final Location origin);
 
@@ -63,6 +67,7 @@ public interface Mcv2ConfigurationBuilder {
    * @return this builder
    * @throws IllegalArgumentException if the direction is not horizontal and cardinal
    * @throws NullPointerException     if {@code facing} is null
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder facing(final BlockFace facing);
 
@@ -71,6 +76,7 @@ public interface Mcv2ConfigurationBuilder {
    *
    * @param map the first map id, not negative
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder map(final int map);
 
@@ -79,6 +85,7 @@ public interface Mcv2ConfigurationBuilder {
    *
    * @param columns 1 to {@link Mcv2Configuration#MAXIMUM_SIDE}
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder columns(final int columns);
 
@@ -87,6 +94,7 @@ public interface Mcv2ConfigurationBuilder {
    *
    * @param rows 1 to {@link Mcv2Configuration#MAXIMUM_SIDE}
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder rows(final int rows);
 
@@ -98,6 +106,7 @@ public interface Mcv2ConfigurationBuilder {
    * @param height 1 to 4096 pixels, or 0 for the wall's native height, 128 pixels a map, which a wall of more than 32
    *               rows takes past 4096
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder video(final int width, final int height);
 
@@ -106,6 +115,7 @@ public interface Mcv2ConfigurationBuilder {
    *
    * @param pageMap the first page map id, not negative
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder pageMap(final int pageMap);
 
@@ -116,6 +126,7 @@ public interface Mcv2ConfigurationBuilder {
    * @param pageSlots 1 to {@link Mcv2Configuration#MAXIMUM_PAGE_SLOTS} and at most the wall's maps, or 0 for the
    *                  default: {@value Mcv2Configuration#MAXIMUM_PAGE_SLOTS}, or the wall's maps when it has fewer
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder pageSlots(final int pageSlots);
 
@@ -124,6 +135,7 @@ public interface Mcv2ConfigurationBuilder {
    *
    * @param streamId 0 to {@value Mcv2Configuration#MAXIMUM_STREAM_ID}: an anchor carries it in two six-bit symbols
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder streamId(final long streamId);
 
@@ -132,6 +144,7 @@ public interface Mcv2ConfigurationBuilder {
    *
    * @param firstFrameId an unsigned 32-bit value
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder firstFrameId(final long firstFrameId);
 
@@ -141,6 +154,7 @@ public interface Mcv2ConfigurationBuilder {
    * @param maximumFrameRate a finite rate from 0 through {@value Mcv2Configuration#MAXIMUM_FRAME_RATE} frames per
    *                         second; 0 accepts every source frame
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder maximumFrameRate(final double maximumFrameRate);
 
@@ -151,6 +165,7 @@ public interface Mcv2ConfigurationBuilder {
    * @param settings the settings
    * @return this builder
    * @throws NullPointerException if {@code settings} is null
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder settings(final Settings settings);
 
@@ -162,6 +177,7 @@ public interface Mcv2ConfigurationBuilder {
    * @return this builder
    * @throws IllegalArgumentException if the color is black
    * @throws NullPointerException     if {@code outlineColor} is null
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder outlineColor(final NamedTextColor outlineColor);
 
@@ -172,6 +188,7 @@ public interface Mcv2ConfigurationBuilder {
    * @param backlogLimit the nonnegative threshold in estimated map-update bytes, including patch overhead;
    *                     zero allows a new frame only once the tracked backlog has drained
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder backlogLimit(final long backlogLimit);
 
@@ -181,6 +198,7 @@ public interface Mcv2ConfigurationBuilder {
    *
    * @param unsentLimit the cap in bytes, or 0 to leave the system's own, for example with no backlog limit either
    * @return this builder
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder unsentLimit(final int unsentLimit);
 
@@ -191,6 +209,7 @@ public interface Mcv2ConfigurationBuilder {
    * @param encoderPool the budget
    * @return this builder
    * @throws NullPointerException if {@code encoderPool} is null
+   * @since 1.0.0
    */
   Mcv2ConfigurationBuilder encoderPool(final Pool encoderPool);
 
@@ -201,6 +220,7 @@ public interface Mcv2ConfigurationBuilder {
    * @throws NullPointerException     if the viewers, the origin or the facing were not set
    * @throws IllegalArgumentException if a value is out of range, or the video, at the wall's native size where none was
    *                                  set, is larger than 4096 pixels
+   * @since 1.0.0
    */
   Mcv2Configuration build();
 }

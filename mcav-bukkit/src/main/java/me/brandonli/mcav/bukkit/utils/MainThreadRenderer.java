@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
  * on the main thread, for example in {@code onDisable}, so the original state is restored right away.
  *
  * @param <FrameType> the type of frame that is applied on the main thread
+ * @since 1.0.0
  */
 public abstract class MainThreadRenderer<FrameType> {
 
@@ -61,6 +62,8 @@ public abstract class MainThreadRenderer<FrameType> {
 
   /**
    * Constructs a new renderer. Nothing is scheduled until {@link #startRendering()} is called.
+   *
+   * @since 1.0.0
    */
   protected MainThreadRenderer() {
     this.pendingFrame = new AtomicReference<>();
@@ -70,6 +73,7 @@ public abstract class MainThreadRenderer<FrameType> {
    * Applies a frame. This method is always called on the main thread, at most once per server tick.
    *
    * @param frame the frame to apply
+   * @since 1.0.0
    */
   protected abstract void apply(final FrameType frame);
 
@@ -77,6 +81,8 @@ public abstract class MainThreadRenderer<FrameType> {
    * Called on the main thread once per server tick while the renderer is running, right after the pending frame,
    * if there was one, was applied. Subclasses can override this method for work that does not depend on new
    * frames, such as updating viewers who just started watching. Does nothing by default.
+   *
+   * @since 1.0.0
    */
   protected void onTick() {}
 
@@ -85,6 +91,7 @@ public abstract class MainThreadRenderer<FrameType> {
    * running has no effect. May be called from any thread.
    * @throws IllegalStateException        if no plugin has been injected
    * @throws IllegalPluginAccessException if the injected plugin cannot schedule tasks
+   * @since 1.0.0
    */
   protected synchronized void startRendering() {
     if (this.task != null) {
@@ -102,6 +109,7 @@ public abstract class MainThreadRenderer<FrameType> {
    *
    * @param initialize the main-thread display initialization, which may leave an existing display in place
    * @throws NullPointerException if {@code initialize} is null
+   * @since 1.0.0
    */
   protected final void showDisplay(final Runnable initialize) {
     Preconditions.checkNotNull(initialize, "Initialization must not be null!");
@@ -132,6 +140,7 @@ public abstract class MainThreadRenderer<FrameType> {
    *
    * @param remove the main-thread display removal, which may do nothing for a hidden display
    * @throws NullPointerException if {@code remove} is null
+   * @since 1.0.0
    */
   protected final void hideDisplay(final Runnable remove) {
     Preconditions.checkNotNull(remove, "Removal must not be null!");
@@ -160,6 +169,7 @@ public abstract class MainThreadRenderer<FrameType> {
    *
    * @param frame the frame to apply
    * @throws NullPointerException if {@code frame} is null
+   * @since 1.0.0
    */
   protected void submit(final FrameType frame) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");
@@ -178,6 +188,8 @@ public abstract class MainThreadRenderer<FrameType> {
 
   /**
    * Stops applying frames and discards the pending frame, if any. May be called from any thread.
+   *
+   * @since 1.0.0
    */
   protected synchronized void stopRendering() {
     final BukkitTask currentTask = this.task;
@@ -202,6 +214,7 @@ public abstract class MainThreadRenderer<FrameType> {
    * @param task the task to run
    * @throws IllegalStateException if called off the main thread before a plugin has been injected
    * @throws NullPointerException  if {@code task} is null
+   * @since 1.0.0
    */
   public static void runOnMainThread(final Runnable task) {
     Preconditions.checkNotNull(task, "Task must not be null!");

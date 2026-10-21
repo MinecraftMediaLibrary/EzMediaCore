@@ -27,6 +27,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>Instances are immutable. Two pages are equal when every header field and every payload byte is equal, which is
  * what the assembler uses to accept an identical duplicate and reject a conflicting one.
+ *
+ * @since 1.0.0
  */
 public final class TransportPage {
 
@@ -78,6 +80,7 @@ public final class TransportPage {
    * Returns the stream id.
    *
    * @return the unsigned 32-bit stream id
+   * @since 1.0.0
    */
   public long getStreamId() {
     return this.streamId;
@@ -87,6 +90,7 @@ public final class TransportPage {
    * Returns the id of the frame this page belongs to.
    *
    * @return the unsigned 32-bit frame id
+   * @since 1.0.0
    */
   public long getFrameId() {
     return this.frameId;
@@ -96,6 +100,7 @@ public final class TransportPage {
    * Returns the zero-based number of this page inside its frame.
    *
    * @return the page number
+   * @since 1.0.0
    */
   public int getNumber() {
     return this.number;
@@ -105,6 +110,7 @@ public final class TransportPage {
    * Returns the number of pages of the frame.
    *
    * @return the page count
+   * @since 1.0.0
    */
   public int getCount() {
     return this.count;
@@ -114,6 +120,7 @@ public final class TransportPage {
    * Returns the reference id of the frame.
    *
    * @return the unsigned 32-bit reference id
+   * @since 1.0.0
    */
   public long getReferenceId() {
     return this.referenceId;
@@ -123,6 +130,7 @@ public final class TransportPage {
    * Returns the length of the complete frame.
    *
    * @return the frame length in bytes
+   * @since 1.0.0
    */
   public int getFrameBytes() {
     return this.frameBytes;
@@ -132,6 +140,7 @@ public final class TransportPage {
    * Returns the page flags: 1 for a keyframe, 0 for a P frame.
    *
    * @return the flags
+   * @since 1.0.0
    */
   public int getFlags() {
     return this.flags;
@@ -141,6 +150,7 @@ public final class TransportPage {
    * Returns the number of useful bits per symbol.
    *
    * @return 6
+   * @since 1.0.0
    */
   public int getSymbolBits() {
     return this.symbolBits;
@@ -150,6 +160,7 @@ public final class TransportPage {
    * Returns a copy of this page's share of the frame bytes.
    *
    * @return the payload
+   * @since 1.0.0
    */
   public byte[] getPayload() {
     return this.payload.clone();
@@ -160,6 +171,7 @@ public final class TransportPage {
    *
    * @param other the object to compare with
    * @return whether every part matches
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -188,6 +200,7 @@ public final class TransportPage {
    * Returns a hash code built from the frame id, the page number and the payload bytes.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -199,6 +212,7 @@ public final class TransportPage {
    * Returns a debugging representation with every header field and the payload length.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

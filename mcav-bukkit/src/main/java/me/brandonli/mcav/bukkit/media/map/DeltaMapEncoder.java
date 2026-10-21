@@ -51,6 +51,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * sent eventually so the picture never drifts away from the source.
  *
  * <p>The encoder is not thread-safe; callers must synchronize access themselves.
+ *
+ * @since 1.0.0
  */
 public final class DeltaMapEncoder {
 
@@ -62,6 +64,8 @@ public final class DeltaMapEncoder {
    * <p>Earlier versions used a default of 2 MiB per frame. The lower default keeps the connections of the viewers
    * responsive, but a scene cut on a large wall now takes a few more frames to appear completely. Pass a larger
    * budget to the constructor of {@code CompressedMapResult} to get the old behavior back.
+   *
+   * @since 1.0.0
    */
   public static final int DEFAULT_MAXIMUM_BYTES_PER_FRAME = 128 * 1024;
 
@@ -91,6 +95,7 @@ public final class DeltaMapEncoder {
    *                             even if it alone exceeds the budget
    * @throws IllegalArgumentException if the budget is not positive
    * @throws NullPointerException     if {@code layout} is null
+   * @since 1.0.0
    */
   public DeltaMapEncoder(final MapLayout layout, final int maximumBytesPerFrame) {
     Preconditions.checkNotNull(layout, "Layout must not be null!");
@@ -114,6 +119,7 @@ public final class DeltaMapEncoder {
    * @return the patches to send, or an empty list if nothing visible changed
    * @throws IllegalArgumentException if the image size does not match the layout
    * @throws NullPointerException     if {@code image} is null
+   * @since 1.0.0
    */
   public List<MapTilePatch> encode(final byte[] image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
@@ -188,6 +194,7 @@ public final class DeltaMapEncoder {
    * that start watching while the stream is running, so they can follow the deltas of the following frames.
    *
    * @return one patch for every map that has been sent at least once
+   * @since 1.0.0
    */
   public List<MapTilePatch> snapshot() {
     final int mapCount = this.layout.getMapCount();
@@ -225,6 +232,8 @@ public final class DeltaMapEncoder {
    * Forgets previously returned patches and all waiting/noise counters. Subsequent frames rebuild the complete
    * visible picture within the ordinary-update budget, which may require more than one frame. No packets are sent
    * by this method. {@link #snapshot()} is empty until another frame is encoded.
+   *
+   * @since 1.0.0
    */
   public void reset() {
     Arrays.fill(this.synced, false);
@@ -530,6 +539,7 @@ public final class DeltaMapEncoder {
    * Returns the layout this encoder was created for.
    *
    * @return the layout
+   * @since 1.0.0
    */
   public MapLayout getLayout() {
     return this.layout;

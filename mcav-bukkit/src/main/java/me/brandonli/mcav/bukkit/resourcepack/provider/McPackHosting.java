@@ -63,6 +63,8 @@ import org.slf4j.LoggerFactory;
  * <p>The first successful start fixes this instance's URL. Rebuilding the file afterward does not upload it
  * again through this instance; create another hosting instance for changed content. Shutdown does not clear that
  * URL or the cache. The cache lock serializes upload/cache decisions across instances in this class loader.
+ *
+ * @since 1.0.0
  */
 public class McPackHosting implements WebsiteHosting {
 
@@ -98,6 +100,7 @@ public class McPackHosting implements WebsiteHosting {
    *
    * @param zip the path to the resource pack zip to upload
    * @throws NullPointerException if the zip path is null
+   * @since 1.0.0
    */
   public McPackHosting(final Path zip) {
     this(zip, UPLOAD_URI, DOWNLOAD_URL_FORMAT);
@@ -124,6 +127,7 @@ public class McPackHosting implements WebsiteHosting {
    *
    * @return the URL of the resource pack
    * @throws IllegalStateException if the pack has not been uploaded yet
+   * @since 1.0.0
    */
   @Override
   public String getRawUrl() {
@@ -141,6 +145,7 @@ public class McPackHosting implements WebsiteHosting {
    * logged and the uploaded pack is used anyway.
    *
    * @throws McPacksException if the pack cannot be read or the upload fails
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -201,6 +206,8 @@ public class McPackHosting implements WebsiteHosting {
 
   /**
    * Does nothing, because the pack stays available on mc-packs.net after it was uploaded.
+   *
+   * @since 1.0.0
    */
   @Override
   public void shutdown() {
@@ -343,6 +350,7 @@ public class McPackHosting implements WebsiteHosting {
    * Returns the resource pack zip that is uploaded to mc-packs.net.
    *
    * @return the path to the resource pack zip
+   * @since 1.0.0
    */
   @Override
   public Path getZip() {

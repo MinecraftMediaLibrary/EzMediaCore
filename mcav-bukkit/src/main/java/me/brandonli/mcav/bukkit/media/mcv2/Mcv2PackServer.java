@@ -98,6 +98,8 @@ import org.slf4j.LoggerFactory;
  * instances, generated packs, listeners and leases, but does not release the caller's results or screen entities.
  * Stop and release those results before closing their leases or shutting down this server. Offered/refused
  * callbacks run with player events or offers on the main thread and should return promptly.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2PackServer {
 
@@ -205,6 +207,7 @@ public final class Mcv2PackServer {
    * @param onRefused called with a player whose client declined the pack or failed to load it, who keeps the dithered
    *                  maps
    * @throws NullPointerException if any argument is null
+   * @since 1.0.0
    */
   public Mcv2PackServer(
     final Path folder,
@@ -258,6 +261,8 @@ public final class Mcv2PackServer {
   /**
    * Starts listening to the players' pack status, and to players who join or change world, and deletes the packs an
    * earlier run left in the folder.
+   *
+   * @since 1.0.0
    */
   public synchronized void start() {
     this.viewers.register();
@@ -286,6 +291,7 @@ public final class Mcv2PackServer {
    * @throws IllegalArgumentException if the outline color differs from active screens, or the page-map range
    *                                  cannot accommodate every pack slot without overflowing or overlapping the wall
    * @throws NullPointerException     if {@code requested} is null
+   * @since 1.0.0
    */
   public synchronized Lease open(final Mcv2Configuration requested) {
     Preconditions.checkNotNull(requested, CONFIGURATION_NULL_MESSAGE);
@@ -692,6 +698,8 @@ public final class Mcv2PackServer {
    *
    * <p>Hosting cleanup runs on the writer executor and is awaited for a bounded time. If interrupted, the
    * interrupt flag is restored; this method does not guarantee all background cleanup has finished before return.
+   *
+   * @since 1.0.0
    */
   public synchronized void shutdown() {
     if (this.stopped) {
@@ -763,6 +771,7 @@ public final class Mcv2PackServer {
    * Returns who loaded the pack, which every screen of the server shares: a new pack starts with nobody.
    *
    * @return the viewers
+   * @since 1.0.0
    */
   public Mcv2Viewers getViewers() {
     return this.viewers;
@@ -814,6 +823,8 @@ public final class Mcv2PackServer {
    * for gets one, which may change the pack once, and stepping back to the size it left last changes nothing, unless
    * a new screen took that spare: a screen of that size takes it at once, as the pack has its size, and a screen of
    * another size only in a full pack.
+   *
+   * @since 1.0.0
    */
   public final class Lease implements Mcv2Result.Resizer {
 
@@ -850,6 +861,7 @@ public final class Mcv2PackServer {
      * @return its channel, not opened yet; one whose viewers all see the dithered maps if no slot is free
      * @throws IllegalStateException if the lease was closed
      * @throws NullPointerException  if {@code resized} is null
+     * @since 1.0.0
      */
     @Override
     public Mcv2Channel resize(final Mcv2Configuration resized) {
@@ -911,6 +923,8 @@ public final class Mcv2PackServer {
      *
      * <p>Closing is idempotent and releases only slot ownership. Release the associated result or channel
      * first; closing the lease does not stop encoding or remove entities.
+     *
+     * @since 1.0.0
      */
     public void close() {
       synchronized (Mcv2PackServer.this) {
@@ -935,6 +949,7 @@ public final class Mcv2PackServer {
      * first frame gets.
      *
      * @return the configuration to create the screen's result or channel with
+     * @since 1.0.0
      */
     public Mcv2Configuration getConfiguration() {
       return this.configuration;

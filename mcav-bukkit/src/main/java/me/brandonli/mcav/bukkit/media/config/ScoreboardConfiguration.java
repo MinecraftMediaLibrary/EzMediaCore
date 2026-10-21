@@ -29,11 +29,15 @@ import me.brandonli.mcav.bukkit.media.result.Characters;
  *
  * <p>The viewers collection is not copied, so a concurrent collection can be passed. The renderer checks membership each server tick,
  * shows the board to new or returning online viewers, and restores removed viewers who still see its board.
+ *
+ * @since 1.0.0
  */
 public final class ScoreboardConfiguration {
 
   /**
    * The maximum number of lines the sidebar can show.
+   *
+   * @since 1.0.0
    */
   public static final int MAXIMUM_LINES = 15;
 
@@ -53,6 +57,7 @@ public final class ScoreboardConfiguration {
    * Creates a new builder for a scoreboard configuration.
    *
    * @return a new builder
+   * @since 1.0.0
    */
   public static ScoreboardConfigurationBuilder builder() {
     return new DefaultScoreboardConfigurationBuilder();
@@ -63,6 +68,7 @@ public final class ScoreboardConfiguration {
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
    *         concurrent collection if another thread changes membership during rendering
+   * @since 1.0.0
    */
   public Collection<UUID> getViewers() {
     return this.viewers;
@@ -73,6 +79,7 @@ public final class ScoreboardConfiguration {
    *
    * @return the pixel text
    * @see Characters
+   * @since 1.0.0
    */
   public String getCharacter() {
     return this.character;
@@ -82,6 +89,7 @@ public final class ScoreboardConfiguration {
    * Returns the height of the image in lines.
    *
    * @return the number of lines, at most {@link #MAXIMUM_LINES}
+   * @since 1.0.0
    */
   public int getLines() {
     return this.lines;
@@ -91,6 +99,7 @@ public final class ScoreboardConfiguration {
    * Returns the width of the image in characters.
    *
    * @return the width in characters
+   * @since 1.0.0
    */
   public int getWidth() {
     return this.width;

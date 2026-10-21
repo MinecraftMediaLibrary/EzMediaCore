@@ -93,6 +93,8 @@ import org.slf4j.LoggerFactory;
  * channel screen and fallback result. The pack tracker, fallback algorithm and encoder pool remain caller-owned.
  * Serialize applyFilter calls; copied RGB/pixel data is handed to workers, so callers may reuse or close an input
  * buffer after the call returns. Do not mutate it during conversion.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Result implements FunctionalVideoFilter {
 
@@ -203,6 +205,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * @param viewers           who has the pack loaded
    * @param fallbackAlgorithm how the video is dithered for viewers without the pack, or null to show them nothing
    * @throws NullPointerException if configuration or viewers is null
+   * @since 1.0.0
    */
   public Mcv2Result(final Mcv2Configuration configuration, final Mcv2Viewers viewers, final @Nullable DitherAlgorithm fallbackAlgorithm) {
     this(configuration, new Mcv2Channel(configuration, viewers), fallbackAlgorithm);
@@ -317,6 +320,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * @param sizes   the smaller sizes, largest first, each a width and a height
    * @param resizer offers a size's pack and creates its channel
    * @throws NullPointerException if {@code sizes} or {@code resizer} is null
+   * @since 1.0.0
    */
   public void setSmallerSizes(final List<int[]> sizes, final Resizer resizer) {
     Preconditions.checkNotNull(sizes, "Sizes must not be null!");
@@ -330,6 +334,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * Returns the rung of the ladder the screen is on.
    *
    * @return the rung, or empty before the result is started
+   * @since 1.0.0
    */
   public Optional<Mcv2Pacer.Rung> getRung() {
     synchronized (this.lock) {
@@ -340,6 +345,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
   /**
    * Spawns the screen's page frames and starts the encoder. Call on the main thread.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -387,6 +394,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * @return false when rate limiting skips the frame before conversion, otherwise true because it may
    *         have been resized; this does not report encoding, sending or client decoding success
    * @throws NullPointerException if {@code data} or {@code metadata} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
@@ -817,6 +825,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    *
    * <p>Worker joins are bounded; a worker that does not respond to interruption may outlive this call.
    * Fallback executor shutdown does not await termination. Release does not close the shared encoder pool or pack tracker.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {
@@ -862,6 +872,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * Returns what the result has done so far.
    *
    * @return the statistics, updated as frames are sent
+   * @since 1.0.0
    */
   public Statistics getStatistics() {
     return this.statistics;
@@ -871,6 +882,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * Returns the channel that delivers the frames.
    *
    * @return the channel
+   * @since 1.0.0
    */
   public Mcv2Channel getChannel() {
     return this.screen.channel();
@@ -881,6 +893,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * down to.
    *
    * @return the configuration
+   * @since 1.0.0
    */
   public Mcv2Configuration getConfiguration() {
     return this.screen.configuration();
@@ -894,6 +907,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    *
    * @param listener called with every step, on the thread that caused it
    * @throws NullPointerException if {@code listener} is null
+   * @since 1.0.0
    */
   public void setPacingListener(final Consumer<Mcv2Pacer.Change> listener) {
     Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
@@ -912,6 +926,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    *
    * @param listener called with every frame sent, on the thread that sends the frames, which it should not hold up
    * @throws NullPointerException if {@code listener} is null
+   * @since 1.0.0
    */
   public void setFrameListener(final Consumer<byte[]> listener) {
     Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
@@ -924,6 +939,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   /**
    * What a screen's owner does to show the video at another size: the pack decodes one video size, so a smaller video
    * needs its pack offered to the viewers, and a channel of its own.
+   *
+   * @since 1.0.0
    */
   @FunctionalInterface
   public interface Resizer {
@@ -933,6 +950,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
      *
      * @param configuration the screen at the new size
      * @return the channel that sends the video at that size
+     * @since 1.0.0
      */
     Mcv2Channel resize(Mcv2Configuration configuration);
   }
@@ -987,6 +1005,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    *
    * <p>Each getter is synchronized, but several getter calls are not one atomic snapshot. Counts describe
    * frames accepted by the channel, not multiplied by recipients or acknowledged by clients.
+   *
+   * @since 1.0.0
    */
   public static final class Statistics {
 
@@ -1020,6 +1040,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
      * Returns the number of frames sent.
      *
      * @return the frames
+     * @since 1.0.0
      */
     public synchronized long getFrames() {
       return this.frames;
@@ -1029,6 +1050,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
      * Returns the number of keyframes sent.
      *
      * @return the keyframes
+     * @since 1.0.0
      */
     public synchronized long getKeyframes() {
       return this.keyframes;
@@ -1038,6 +1060,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
      * Returns the number of frames not sent because they had more pages than the screen has page slots.
      *
      * @return the dropped frames
+     * @since 1.0.0
      */
     public synchronized long getDropped() {
       return this.dropped;
@@ -1047,6 +1070,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
      * Returns the MCV2 bytes of the frames sent.
      *
      * @return the frame bytes
+     * @since 1.0.0
      */
     public synchronized long getBytes() {
       return this.bytes;
@@ -1057,6 +1081,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
      * Anchors, packet overhead and actual recipient counts are excluded.
      *
      * @return the map bytes per viewer
+     * @since 1.0.0
      */
     public synchronized long getMapBytes() {
       return this.mapBytes;
@@ -1066,6 +1091,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
      * Returns the time spent encoding the frames sent.
      *
      * @return the encode time in nanoseconds
+     * @since 1.0.0
      */
     public synchronized long getNanoseconds() {
       return this.nanoseconds;

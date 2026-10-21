@@ -24,6 +24,8 @@ import me.brandonli.mcav.bukkit.BukkitException;
  * Thrown when the dedicated resource pack HTTP server cannot be started, usually because its port is in use.
  *
  * <p>A plugin can catch it, report the port, and disable itself or choose another port.
+ *
+ * @since 1.0.0
  */
 public final class HttpServerException extends BukkitException {
 

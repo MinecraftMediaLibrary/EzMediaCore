@@ -43,6 +43,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>Initialize and stop this module on the server's main thread. The injected plugin remains caller-owned.
  * The module does not track or release players, holograms, image displays or hosted resource packs;
  * release those resources before disabling the plugin.
+ *
+ * @since 1.0.0
  */
 public final class BukkitModule implements MCAVModule {
 
@@ -59,6 +61,7 @@ public final class BukkitModule implements MCAVModule {
    * @param plugin the plugin instance
    * @throws UnsupportedServerVersionException if the server runs an unsupported Minecraft version
    * @throws NullPointerException              if the plugin is null
+   * @since 1.0.0
    */
   public void inject(final Plugin plugin) {
     Preconditions.checkNotNull(plugin, "Plugin must not be null!");
@@ -75,6 +78,7 @@ public final class BukkitModule implements MCAVModule {
    *
    * @return the plugin instance
    * @throws IllegalStateException if no plugin has been injected yet
+   * @since 1.0.0
    */
   public static Plugin getPlugin() {
     final Plugin plugin = injectedPlugin;
@@ -90,6 +94,8 @@ public final class BukkitModule implements MCAVModule {
    * it was stopped. Does nothing before the first injection, because {@link #inject(Plugin)} starts the module
    * once the plugin is known, and does nothing while the injected plugin is disabled, because a disabled plugin
    * cannot register listeners.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -107,6 +113,8 @@ public final class BukkitModule implements MCAVModule {
    * <p>The plugin and the packet listener are shared by everything that loaded MCAV's classes from one class loader, so
    * this stops them for every MCAV instance there, not only for the one released. One instance per plugin, as
    * {@code MCAV.api()} asks for, never notices.
+   *
+   * @since 1.0.0
    */
   @Override
   public void stop() {
@@ -121,6 +129,7 @@ public final class BukkitModule implements MCAVModule {
    * Returns the name of the module, which is {@code bukkit}.
    *
    * @return the name of the module
+   * @since 1.0.0
    */
   @Override
   public String getModuleName() {

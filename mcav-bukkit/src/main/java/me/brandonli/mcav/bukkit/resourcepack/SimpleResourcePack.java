@@ -64,6 +64,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * zip time, so keep those files available and stable until writing finishes. {@link #data(String, byte[])} copies
  * its bytes immediately. The builder owns no open file between operations, may produce multiple archives and
  * does not delete source files. A later registration of the same sound key replaces the earlier one.
+ *
+ * @since 1.0.0
  */
 public final class SimpleResourcePack {
 
@@ -117,6 +119,7 @@ public final class SimpleResourcePack {
    * Creates a new, empty resource pack builder.
    *
    * @return a new {@code SimpleResourcePack}
+   * @since 1.0.0
    */
   public static SimpleResourcePack pack() {
     return new SimpleResourcePack();
@@ -139,6 +142,7 @@ public final class SimpleResourcePack {
    * @throws IllegalArgumentException if the key is invalid, contains a prohibited path segment, or the source
    *                                  is not a regular file; audio encoding itself is not checked
    * @throws NullPointerException     if {@code key} or {@code path} is null
+   * @since 1.0.0
    */
   public void sound(final String key, final Path path) {
     Preconditions.checkNotNull(key);
@@ -173,6 +177,7 @@ public final class SimpleResourcePack {
    * @param file the file to add
    * @throws IllegalArgumentException if the location is invalid or reserved, or the file does not exist
    * @throws NullPointerException     if {@code path} or {@code file} is null
+   * @since 1.0.0
    */
   public void external(final String path, final Path file) {
     Preconditions.checkNotNull(path);
@@ -195,6 +200,7 @@ public final class SimpleResourcePack {
    * @param content the content of the file, which is copied
    * @throws IllegalArgumentException if the location is invalid or reserved
    * @throws NullPointerException     if {@code path} or {@code content} is null
+   * @since 1.0.0
    */
   public void data(final String path, final byte[] content) {
     Preconditions.checkNotNull(path);
@@ -232,6 +238,7 @@ public final class SimpleResourcePack {
    * @param description the description shown in the resource pack menu
    * @throws IllegalArgumentException if the format is not positive
    * @throws NullPointerException     if {@code description} is null
+   * @since 1.0.0
    */
   public void meta(final int format, final String description) {
     Preconditions.checkArgument(format > 0, "Pack format must be positive!");
@@ -252,6 +259,7 @@ public final class SimpleResourcePack {
    * @throws IllegalArgumentException if the destination is a root directory
    * @throws UncheckedIOException     if the pack could not be written
    * @throws NullPointerException     if {@code destination} is null
+   * @since 1.0.0
    */
   public void zip(final Path destination) {
     Preconditions.checkNotNull(destination);

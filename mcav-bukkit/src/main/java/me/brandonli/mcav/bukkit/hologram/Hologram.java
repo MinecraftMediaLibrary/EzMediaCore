@@ -41,12 +41,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>The standard progress bar counts scheduler ticks independently of the media player. Seeking, pausing
  * or changing playback speed does not update its clock; recreate/restart it as appropriate for the application.
+ *
+ * @since 1.0.0
  */
 public interface Hologram {
   /**
    * Creates a hologram that shows the title, the uploader, the upload date, and a progress bar of the video.
    *
    * @return a new hologram
+   * @since 1.0.0
    */
   static Hologram basic() {
     return new StandardVideoHologram();
@@ -60,18 +63,22 @@ public interface Hologram {
    * @param dump     the metadata of the video, as parsed by yt-dlp
    * @throws NullPointerException     if the location or metadata is null
    * @throws IllegalArgumentException if the location has no world
+   * @since 1.0.0
    */
   void spawn(final Location location, final UrlParseDump dump);
 
   /**
    * Starts the progress bar. Has no effect before {@link #spawn(Location, UrlParseDump)} was called.
    * @throws IllegalStateException if a display is present but no plugin has been injected into BukkitModule
+   * @since 1.0.0
    */
   void start();
 
   /**
    * Removes the hologram from the world and stops the progress bar. Calling this method on a hologram that was
    * never spawned has no effect.
+   *
+   * @since 1.0.0
    */
   void kill();
 
@@ -79,6 +86,7 @@ public interface Hologram {
    * Returns the display entity of this hologram.
    *
    * @return the display entity, or empty if the hologram is not spawned
+   * @since 1.0.0
    */
   Optional<TextDisplay> getDisplay();
 
@@ -87,6 +95,7 @@ public interface Hologram {
    * A non-null replacement becomes owned by this hologram and is removed by {@link #kill()}.
    *
    * @param display the display entity, or null to detach the hologram from its entity
+   * @since 1.0.0
    */
   void setDisplay(@Nullable TextDisplay display);
 }

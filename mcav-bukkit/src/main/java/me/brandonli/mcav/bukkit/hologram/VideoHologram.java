@@ -24,6 +24,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * The base class of holograms that are backed by a single text display entity. It owns the entity and removes it
  * when the hologram is killed.
+ *
+ * @since 1.0.0
  */
 public abstract class VideoHologram implements Hologram {
 
@@ -33,6 +35,8 @@ public abstract class VideoHologram implements Hologram {
 
   /**
    * Removes the display entity from the world.
+   *
+   * @since 1.0.0
    */
   @Override
   public void kill() {
@@ -49,6 +53,7 @@ public abstract class VideoHologram implements Hologram {
    * Returns the display entity of this hologram.
    *
    * @return the display entity, or empty if the hologram is not spawned
+   * @since 1.0.0
    */
   @Override
   public Optional<TextDisplay> getDisplay() {
@@ -60,6 +65,7 @@ public abstract class VideoHologram implements Hologram {
    * A non-null replacement becomes owned by this hologram and is removed by {@link #kill()}.
    *
    * @param display the display entity, or null to detach the hologram from its entity
+   * @since 1.0.0
    */
   @Override
   public void setDisplay(final @Nullable TextDisplay display) {

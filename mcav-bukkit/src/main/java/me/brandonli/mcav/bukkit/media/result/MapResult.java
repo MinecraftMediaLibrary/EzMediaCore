@@ -42,6 +42,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  * Input buffers remain caller-owned and are consumed synchronously, even when converted display data is applied
  * on a later server tick. Serialize frame delivery with lifecycle operations unless this class explicitly provides
  * locking, and never mutate an input buffer concurrently with conversion.
+ *
+ * @since 1.0.0
  */
 public class MapResult implements DitherResultStep {
 
@@ -52,6 +54,7 @@ public class MapResult implements DitherResultStep {
    *
    * @param configuration the configuration describing the map grid and the viewers
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   public MapResult(final MapConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
@@ -66,6 +69,7 @@ public class MapResult implements DitherResultStep {
    * @param samples   the frame, which is resized in place if resizing is configured
    * @param algorithm the dithering algorithm that converts the frame into map colors
    * @throws NullPointerException if {@code samples} or {@code algorithm} is null
+   * @since 1.0.0
    */
   @Override
   public void process(final ImageBuffer samples, final DitherAlgorithm algorithm) {
@@ -126,12 +130,16 @@ public class MapResult implements DitherResultStep {
 
   /**
    * Does nothing, because every frame is sent completely and nothing needs to be prepared.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {}
 
   /**
    * Clears the maps of every viewer.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

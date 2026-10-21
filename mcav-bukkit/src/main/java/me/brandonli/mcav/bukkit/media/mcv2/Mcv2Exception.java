@@ -29,6 +29,8 @@ import me.brandonli.mcav.bukkit.BukkitException;
  * <p>This is the only exception the MCV2 parsers and decoders throw for bad input. They treat every byte as hostile:
  * malformed non-null byte input is reported by this exception rather than an out-of-bounds read.
  * API preconditions such as non-null arguments and valid worker lifecycles throw the JDK's exceptions instead.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Exception extends BukkitException {
 
@@ -39,6 +41,7 @@ public final class Mcv2Exception extends BukkitException {
    * Constructs a new exception.
    *
    * @param message the detail message
+   * @since 1.0.0
    */
   public Mcv2Exception(final String message) {
     super(message);
@@ -49,6 +52,7 @@ public final class Mcv2Exception extends BukkitException {
    *
    * @param message the detail message
    * @param cause   the failure that caused this exception
+   * @since 1.0.0
    */
   public Mcv2Exception(final String message, final Throwable cause) {
     super(message, cause);

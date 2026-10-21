@@ -50,6 +50,8 @@ import org.slf4j.LoggerFactory;
  * <p>The caller retains ownership of the source file. Start and shutdown are synchronized and support reuse.
  * The hosting instance registers a connection initializer but does not own the Minecraft listener. Shutdown
  * removes that registration; already-installed handlers on existing connections retain their behavior.
+ *
+ * @since 1.0.0
  */
 public final class NettyHosting implements InjectorHosting {
 
@@ -83,6 +85,7 @@ public final class NettyHosting implements InjectorHosting {
    *
    * @param zip the path to the resource pack zip to serve
    * @throws NullPointerException if {@code zip} is null
+   * @since 1.0.0
    */
   public NettyHosting(final Path zip) {
     Preconditions.checkNotNull(zip, "Resource pack path must not be null!");
@@ -110,6 +113,7 @@ public final class NettyHosting implements InjectorHosting {
    * <p>The first address lookup may block. Obtaining a URL does not start hosting or verify external reachability.
    *
    * @return the URL of the resource pack, in the format {@code http://<address>:<port>/mcav/resourcepack_<instance>.zip}
+   * @since 1.0.0
    */
   @Override
   public String getRawUrl() {
@@ -143,6 +147,7 @@ public final class NettyHosting implements InjectorHosting {
    * starts; a later download attempts to read it again and reports a failure to that HTTP client if necessary.
    *
    * @throws InjectorException if the path is not a regular file, including on a repeated start
+   * @since 1.0.0
    */
   @Override
   public synchronized void start() {
@@ -178,6 +183,8 @@ public final class NettyHosting implements InjectorHosting {
 
   /**
    * Stops answering HTTP requests for new connections. Connections that are already open are not affected.
+   *
+   * @since 1.0.0
    */
   @Override
   public synchronized void shutdown() {
@@ -196,6 +203,7 @@ public final class NettyHosting implements InjectorHosting {
    * Returns the resource pack zip that is served. The file is read again whenever it changed.
    *
    * @return the path to the resource pack zip
+   * @since 1.0.0
    */
   @Override
   public Path getZip() {

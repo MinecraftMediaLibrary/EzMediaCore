@@ -42,6 +42,8 @@ import java.util.UUID;
  *
  * <p>This configuration does not create map items, reserve map ids or place item frames. The caller supplies
  * the display surfaces and ensures the consecutive ids belong to this screen. Resizing is disabled by default.
+ *
+ * @since 1.0.0
  */
 public final class MapConfiguration {
 
@@ -75,6 +77,7 @@ public final class MapConfiguration {
    * Creates a new builder for a map configuration.
    *
    * @return a new builder
+   * @since 1.0.0
    */
   public static MapConfigurationBuilder builder() {
     return new DefaultMapConfigurationBuilder();
@@ -84,6 +87,7 @@ public final class MapConfiguration {
    * Checks whether frames should be resized to the configured resolution before they are displayed.
    *
    * @return true if frames should be resized, false otherwise
+   * @since 1.0.0
    */
   public boolean shouldResize() {
     return this.shouldResize;
@@ -94,6 +98,7 @@ public final class MapConfiguration {
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
    *         concurrent collection if another thread changes membership during rendering
+   * @since 1.0.0
    */
   public Collection<UUID> getViewers() {
     return this.viewers;
@@ -103,6 +108,7 @@ public final class MapConfiguration {
    * Returns the id of the top left map of the screen.
    *
    * @return the id of the first map
+   * @since 1.0.0
    */
   public int getMap() {
     return this.map;
@@ -112,6 +118,7 @@ public final class MapConfiguration {
    * Returns the width of the screen in maps.
    *
    * @return the number of maps horizontally
+   * @since 1.0.0
    */
   public int getMapBlockWidth() {
     return this.mapBlockWidth;
@@ -121,6 +128,7 @@ public final class MapConfiguration {
    * Returns the height of the screen in maps.
    *
    * @return the number of maps vertically
+   * @since 1.0.0
    */
   public int getMapBlockHeight() {
     return this.mapBlockHeight;
@@ -131,6 +139,7 @@ public final class MapConfiguration {
    * width of the screen.
    *
    * @return the target width in pixels
+   * @since 1.0.0
    */
   public int getMapWidthResolution() {
     return this.mapWidthResolution;
@@ -141,6 +150,7 @@ public final class MapConfiguration {
    * height of the screen.
    *
    * @return the target height in pixels
+   * @since 1.0.0
    */
   public int getMapHeightResolution() {
     return this.mapHeightResolution;

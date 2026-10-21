@@ -57,6 +57,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * may resize the caller-owned image synchronously; the scheduled task retains only converted frame data. At most
  * the latest submitted frame is applied per tick, so intermediate frames may be dropped. Do not concurrently
  * write to the same input buffer. Hiding clears pending work; the renderer can subsequently be shown again.
+ *
+ * @since 1.0.0
  */
 public final class EntityRenderer extends MainThreadRenderer<Component> {
 
@@ -73,6 +75,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    *
    * @param configuration the configuration describing the viewers, position, and size of the entity image
    * @throws NullPointerException if the configuration is null
+   * @since 1.0.0
    */
   public EntityRenderer(final EntityConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
@@ -86,6 +89,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    *
    * @throws IllegalStateException if no plugin was injected, or if initialization runs on the calling thread
    *         and the configured position no longer has a world
+   * @since 1.0.0
    */
   public void show() {
     this.showDisplay(this::spawnEntity);
@@ -97,6 +101,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    * @param image the image to render, which is resized to the entity dimensions in place
    * @throws NullPointerException  if the image is null
    * @throws IllegalStateException if the image has been released
+   * @since 1.0.0
    */
   public void render(final ImageBuffer image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
@@ -115,6 +120,8 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
   /**
    * Removes the text display. May be called from any thread, but call it on the main thread during shutdown,
    * because a disabled plugin cannot schedule the removal anymore.
+   *
+   * @since 1.0.0
    */
   public void hide() {
     this.hideDisplay(this::removeEntity);

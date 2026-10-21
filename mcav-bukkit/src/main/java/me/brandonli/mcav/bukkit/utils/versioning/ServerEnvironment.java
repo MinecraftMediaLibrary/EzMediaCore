@@ -26,11 +26,15 @@ import org.bukkit.Bukkit;
  * <p>The module is compiled against the internals of exactly one Minecraft version, so running it on any other
  * version would fail in unpredictable ways, often long after startup. This class lets the module detect that
  * situation up front and fail with a clear message instead.
+ *
+ * @since 1.0.0
  */
 public final class ServerEnvironment {
 
   /**
    * The only Minecraft version supported by the Bukkit module.
+   *
+   * @since 1.0.0
    */
   public static final String SUPPORTED_MINECRAFT_VERSION = "26.3";
 
@@ -44,6 +48,7 @@ public final class ServerEnvironment {
    * Returns the Minecraft version of the running server, such as {@code 26.3}.
    *
    * @return the Minecraft version of the server
+   * @since 1.0.0
    */
   public static String getMinecraftVersion() {
     return Bukkit.getMinecraftVersion();
@@ -54,6 +59,7 @@ public final class ServerEnvironment {
    * {@code 26.3.1}, are supported as well.
    *
    * @return true if the server version is supported, false otherwise
+   * @since 1.0.0
    */
   public static boolean isSupported() {
     final String version = getMinecraftVersion();
@@ -69,6 +75,7 @@ public final class ServerEnvironment {
    * @param version the Minecraft version to check, such as {@code 26.3.1}
    * @return true if the version is supported, false otherwise
    * @throws NullPointerException if {@code version} is null
+   * @since 1.0.0
    */
   public static boolean isSupported(final String version) {
     Preconditions.checkNotNull(version, "Version must not be null!");
@@ -82,6 +89,7 @@ public final class ServerEnvironment {
    * Ensures that the running server is supported.
    *
    * @throws UnsupportedServerVersionException if the server version is not supported
+   * @since 1.0.0
    */
   public static void checkSupported() {
     final String version = getMinecraftVersion();

@@ -20,14 +20,30 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 import com.google.common.base.Preconditions;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** Validates and decodes MCV2 version 3. Parsed frames own their bytes and are immutable. */
+/**
+ * Validates and decodes MCV2 version 3. Parsed frames own their bytes and are immutable.
+ *
+ * @since 1.0.0
+ */
 public final class Mcv2Decoder {
 
-  /** Fixed frame header size in bytes. */
+  /**
+   * Fixed frame header size in bytes.
+   *
+   * @since 1.0.0
+   */
   public static final int HEADER_BYTES = 20;
-  /** Largest accepted frame length in bytes. */
+  /**
+   * Largest accepted frame length in bytes.
+   *
+   * @since 1.0.0
+   */
   public static final int MAXIMUM_FRAME_BYTES = 131071;
-  /** Largest width or height in pixels. */
+  /**
+   * Largest width or height in pixels.
+   *
+   * @since 1.0.0
+   */
   public static final int MAXIMUM_DIMENSION = 4096;
   static final int MAGIC = 0x3256434D;
   static final int VERSION = 3;
@@ -54,11 +70,23 @@ public final class Mcv2Decoder {
   private static final int MAGIC_OFFSET = 0;
   private static final int VERSION_OFFSET = 4;
   static final int DIMENSIONS_OFFSET = 8;
-  /** Header byte offset of the frame id. */
+  /**
+   * Header byte offset of the frame id.
+   *
+   * @since 1.0.0
+   */
   public static final int FRAME_ID_OFFSET = 12;
-  /** Header byte offset of the reference id. */
+  /**
+   * Header byte offset of the reference id.
+   *
+   * @since 1.0.0
+   */
   public static final int REFERENCE_ID_OFFSET = 16;
-  /** Largest unsigned 32-bit value. */
+  /**
+   * Largest unsigned 32-bit value.
+   *
+   * @since 1.0.0
+   */
   public static final long MAXIMUM_UNSIGNED_INT = 0xFFFFFFFFL;
 
   private static final long LEGACY_MAGIC = 0x3156434D;
@@ -142,6 +170,7 @@ public final class Mcv2Decoder {
    * @return immutable validated frame
    * @throws NullPointerException if bytes is null
    * @throws Mcv2Exception        if any version 3 validation rule fails, including unsupported older versions
+   * @since 1.0.0
    */
   public static Frame parse(final byte[] bytes) {
     Preconditions.checkNotNull(bytes, "Frame bytes must not be null!");
@@ -212,6 +241,7 @@ public final class Mcv2Decoder {
    * @return newly allocated RGB24 picture
    * @throws NullPointerException if bytes is null
    * @throws Mcv2Exception        if syntax or reference validation fails
+   * @since 1.0.0
    */
   public static byte[] decode(final byte[] bytes, final byte @Nullable [] reference, final long referenceId) {
     return decode(parse(bytes), reference, referenceId);
@@ -226,6 +256,7 @@ public final class Mcv2Decoder {
    * @return newly allocated RGB24 picture
    * @throws NullPointerException if frame is null
    * @throws Mcv2Exception        if the required reference is missing or has the wrong id or byte length
+   * @since 1.0.0
    */
   public static byte[] decode(final Frame frame, final byte @Nullable [] reference, final long referenceId) {
     final byte[] output = new byte[frame.width * frame.height * CHANNELS];
@@ -243,6 +274,7 @@ public final class Mcv2Decoder {
    * @throws NullPointerException     if frame or output is null
    * @throws IllegalArgumentException if output has the wrong length
    * @throws Mcv2Exception            if the required reference is missing or has the wrong id or byte length
+   * @since 1.0.0
    */
   public static void decode(final Frame frame, final byte @Nullable [] reference, final long referenceId, final byte[] output) {
     final byte[] prediction = reference(frame, reference, referenceId);
@@ -317,6 +349,7 @@ public final class Mcv2Decoder {
    * @param arrayOffset first byte offset
    * @return unsigned value
    * @throws IndexOutOfBoundsException if either byte lies outside data
+   * @since 1.0.0
    */
   public static int u16(final byte[] data, final int arrayOffset) {
     return (data[arrayOffset] & BYTE_MASK) | ((data[arrayOffset + SECOND_BYTE_OFFSET] & BYTE_MASK) << SECOND_BYTE_SHIFT);
@@ -329,6 +362,7 @@ public final class Mcv2Decoder {
    * @param arrayOffset first byte offset
    * @return unsigned value
    * @throws IndexOutOfBoundsException if any byte lies outside data
+   * @since 1.0.0
    */
   public static long u32(final byte[] data, final int arrayOffset) {
     return (
@@ -346,6 +380,7 @@ public final class Mcv2Decoder {
    * @param arrayOffset first byte offset
    * @param value       value to write
    * @throws IndexOutOfBoundsException if either byte lies outside data
+   * @since 1.0.0
    */
   public static void putU16(final byte[] data, final int arrayOffset, final int value) {
     data[arrayOffset] = (byte) value;
@@ -359,6 +394,7 @@ public final class Mcv2Decoder {
    * @param arrayOffset first byte offset
    * @param value       value to write
    * @throws IndexOutOfBoundsException if any byte lies outside data
+   * @since 1.0.0
    */
   public static void putU32(final byte[] data, final int arrayOffset, final long value) {
     for (int index = 0; index < Integer.BYTES; index++) {
@@ -401,7 +437,11 @@ public final class Mcv2Decoder {
 
   record Leaf(int left, int top, int size, int mode, int quantizer, int offset) {}
 
-  /** A complete validated frame. Accessors copy mutable data. */
+  /**
+   * A complete validated frame. Accessors copy mutable data.
+   *
+   * @since 1.0.0
+   */
   public static final class Frame {
 
     private final byte[] data;
@@ -442,6 +482,7 @@ public final class Mcv2Decoder {
      * Returns an independent copy of the frame bytes.
      *
      * @return an independent copy of the frame bytes
+     * @since 1.0.0
      */
     public byte[] getData() {
       return this.data.clone();
@@ -451,6 +492,7 @@ public final class Mcv2Decoder {
      * Returns picture width in pixels.
      *
      * @return picture width in pixels
+     * @since 1.0.0
      */
     public int getWidth() {
       return this.width;
@@ -460,6 +502,7 @@ public final class Mcv2Decoder {
      * Returns picture height in pixels.
      *
      * @return picture height in pixels
+     * @since 1.0.0
      */
     public int getHeight() {
       return this.height;
@@ -469,6 +512,7 @@ public final class Mcv2Decoder {
      * Returns unsigned 32-bit frame id.
      *
      * @return unsigned 32-bit frame id
+     * @since 1.0.0
      */
     public long getFrameId() {
       return this.frameId;
@@ -478,6 +522,7 @@ public final class Mcv2Decoder {
      * Returns unsigned 32-bit reference id.
      *
      * @return unsigned 32-bit reference id
+     * @since 1.0.0
      */
     public long getReferenceId() {
       return this.referenceId;
@@ -487,6 +532,7 @@ public final class Mcv2Decoder {
      * Returns whether the picture is independent of any reference.
      *
      * @return whether the picture is independent of any reference
+     * @since 1.0.0
      */
     public boolean isKeyframe() {
       return this.keyframe;

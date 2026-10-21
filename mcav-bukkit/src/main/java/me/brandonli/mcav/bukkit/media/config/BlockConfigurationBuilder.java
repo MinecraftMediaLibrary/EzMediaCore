@@ -26,6 +26,8 @@ import org.bukkit.Location;
  *
  * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
  * required fields are checked by {@link #build()}, which may be called again to create another configuration.
+ *
+ * @since 1.0.0
  */
 public interface BlockConfigurationBuilder {
   /**
@@ -34,6 +36,7 @@ public interface BlockConfigurationBuilder {
    * @param viewers the UUIDs of the viewers
    * @return this builder
    * @throws NullPointerException if the viewers are null
+   * @since 1.0.0
    */
   BlockConfigurationBuilder viewers(final Collection<UUID> viewers);
 
@@ -45,6 +48,7 @@ public interface BlockConfigurationBuilder {
    * @param position the position of the wall, which must have a world
    * @return this builder
    * @throws NullPointerException if the position is null
+   * @since 1.0.0
    */
   BlockConfigurationBuilder position(final Location position);
 
@@ -53,6 +57,7 @@ public interface BlockConfigurationBuilder {
    *
    * @param blockWidth the width in blocks, which must be positive
    * @return this builder
+   * @since 1.0.0
    */
   BlockConfigurationBuilder blockWidth(final int blockWidth);
 
@@ -61,6 +66,7 @@ public interface BlockConfigurationBuilder {
    *
    * @param blockHeight the height in blocks, which must be positive
    * @return this builder
+   * @since 1.0.0
    */
   BlockConfigurationBuilder blockHeight(final int blockHeight);
 
@@ -70,6 +76,7 @@ public interface BlockConfigurationBuilder {
    * @return the block configuration
    * @throws IllegalArgumentException if a size is not positive or the position has no world
    * @throws NullPointerException     if the viewers or the position were not set
+   * @since 1.0.0
    */
   BlockConfiguration build();
 }

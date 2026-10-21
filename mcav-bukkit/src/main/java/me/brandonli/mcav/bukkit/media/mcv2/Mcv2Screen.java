@@ -73,10 +73,16 @@ import org.bukkit.plugin.Plugin;
  * <p>The visible wall and its map items remain caller-owned. This object owns only its hidden page entities
  * and chunk holds. Use build/show/hide/remove on the main thread; do not manipulate or remove entities obtained
  * from {@link #getFrames()} independently. Removal releases chunk holds but does not restore wall map pixels.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Screen {
 
-  /** The prefix of the per-screen team names of the page frames. */
+  /**
+   * The prefix of the per-screen team names of the page frames.
+   *
+   * @since 1.0.0
+   */
   public static final String TEAM = "mcav_mcv2";
 
   private static final String PLAYER_NULL_MESSAGE = "Player must not be null!";
@@ -115,6 +121,7 @@ public final class Mcv2Screen {
    *
    * @param configuration the screen
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   public Mcv2Screen(final Mcv2Configuration configuration) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
@@ -135,6 +142,7 @@ public final class Mcv2Screen {
    *
    * @throws IllegalStateException if the frames were already spawned or a required plugin has not been injected
    * @throws NullPointerException  if the origin no longer resolves to a world
+   * @since 1.0.0
    */
   public void build() {
     Preconditions.checkState(this.frames.isEmpty(), "The page frames already exist!");
@@ -187,6 +195,7 @@ public final class Mcv2Screen {
    * @param player the player
    * @throws IllegalStateException if no plugin has been injected
    * @throws NullPointerException  if {@code player} is null
+   * @since 1.0.0
    */
   public void show(final Player player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
@@ -207,6 +216,7 @@ public final class Mcv2Screen {
    * @param player the player
    * @throws IllegalStateException if no plugin has been injected
    * @throws NullPointerException  if {@code player} is null
+   * @since 1.0.0
    */
   public void hide(final Player player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
@@ -221,6 +231,8 @@ public final class Mcv2Screen {
 
   /**
    * Removes the page frames, and lets their chunks unload. Call on the main thread.
+   *
+   * @since 1.0.0
    */
   public void remove() {
     this.frames.forEach(Entity::remove);
@@ -261,6 +273,7 @@ public final class Mcv2Screen {
    * The anchor row of every wall map.
    *
    * @return one patch per map, row 0 only
+   * @since 1.0.0
    */
   public List<MapTilePatch> anchors() {
     final int columns = this.configuration.getColumns();
@@ -304,6 +317,7 @@ public final class Mcv2Screen {
    * Returns the page frames.
    *
    * @return an unmodifiable list snapshot in wall order, containing live screen-owned entity references
+   * @since 1.0.0
    */
   public List<ItemFrame> getFrames() {
     return List.copyOf(this.frames);

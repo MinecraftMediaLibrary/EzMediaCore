@@ -33,6 +33,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * valid nonempty map region, local coordinates must be nonnegative, dimensions positive, and both local extents at
  * most 128 pixels; source coordinates identify valid pixels in the source image. Obtain validated regions through
  * {@link MapLayout#getRegion(int)} when describing an image layout.
+ *
+ * @since 1.0.0
  */
 public final class MapRegion {
 
@@ -62,6 +64,7 @@ public final class MapRegion {
    * @param sourceX the x coordinate of the image pixel that is drawn at {@code localX}
    * @param sourceY the y coordinate of the image pixel that is drawn at {@code localY}
    * @return the region
+   * @since 1.0.0
    */
   public static MapRegion of(final int localX, final int localY, final int width, final int height, final int sourceX, final int sourceY) {
     return new MapRegion(localX, localY, width, height, sourceX, sourceY);
@@ -71,6 +74,7 @@ public final class MapRegion {
    * Returns the x coordinate of the covered rectangle inside the map.
    *
    * @return the local x coordinate
+   * @since 1.0.0
    */
   public int getLocalX() {
     return this.localX;
@@ -80,6 +84,7 @@ public final class MapRegion {
    * Returns the y coordinate of the covered rectangle inside the map.
    *
    * @return the local y coordinate
+   * @since 1.0.0
    */
   public int getLocalY() {
     return this.localY;
@@ -89,6 +94,7 @@ public final class MapRegion {
    * Returns the width of the covered rectangle.
    *
    * @return the width in pixels, or zero if the map is not covered
+   * @since 1.0.0
    */
   public int getWidth() {
     return this.width;
@@ -98,6 +104,7 @@ public final class MapRegion {
    * Returns the height of the covered rectangle.
    *
    * @return the height in pixels, or zero if the map is not covered
+   * @since 1.0.0
    */
   public int getHeight() {
     return this.height;
@@ -107,6 +114,7 @@ public final class MapRegion {
    * Returns the x coordinate of the image pixel that is drawn at the local x coordinate.
    *
    * @return the source x coordinate
+   * @since 1.0.0
    */
   public int getSourceX() {
     return this.sourceX;
@@ -116,6 +124,7 @@ public final class MapRegion {
    * Returns the y coordinate of the image pixel that is drawn at the local y coordinate.
    *
    * @return the source y coordinate
+   * @since 1.0.0
    */
   public int getSourceY() {
     return this.sourceY;
@@ -125,6 +134,7 @@ public final class MapRegion {
    * Checks whether the image does not cover the map at all.
    *
    * @return true if either stored dimension is zero or negative
+   * @since 1.0.0
    */
   public boolean isEmpty() {
     return this.width <= 0 || this.height <= 0;
@@ -135,6 +145,7 @@ public final class MapRegion {
    *
    * @param other the object to compare with
    * @return whether every part matches
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -160,6 +171,7 @@ public final class MapRegion {
    * Returns a hash code built from every part.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -170,6 +182,7 @@ public final class MapRegion {
    * Returns a debugging representation with every part.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

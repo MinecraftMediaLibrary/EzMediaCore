@@ -69,6 +69,8 @@ import org.slf4j.LoggerFactory;
  * viewer is shown the screen again and starts on a keyframe. The distances are measured on the main thread once a
  * second; a viewer who is near goes out of range only {@value #RANGE_MARGIN} blocks farther, so one at the edge does
  * not come and go.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Channel {
 
@@ -109,6 +111,7 @@ public final class Mcv2Channel {
    * @param configuration the screen
    * @param viewers       who has the pack loaded
    * @throws NullPointerException if configuration or viewers is null
+   * @since 1.0.0
    */
   public Mcv2Channel(final Mcv2Configuration configuration, final Mcv2Viewers viewers) {
     this(configuration, viewers, new Mcv2Screen(configuration));
@@ -136,6 +139,7 @@ public final class Mcv2Channel {
    * still measures them since the dithered maps took the page frames' place. Call on the main thread.
    * @throws IllegalStateException if the screen is already built or no plugin has been injected
    * @throws NullPointerException  if the origin no longer resolves to a world
+   * @since 1.0.0
    */
   public void open() {
     this.screen.build();
@@ -148,6 +152,8 @@ public final class Mcv2Channel {
 
   /**
    * Removes the screen's page frames, and stops measuring the viewers' distances. Call on the main thread.
+   *
+   * @since 1.0.0
    */
   public void close() {
     final BukkitTask task = this.ranging;
@@ -228,6 +234,7 @@ public final class Mcv2Channel {
    *
    * @return the viewers who do not receive frames and should be shown the dithered maps
    * @throws IllegalStateException if showing a new viewer requires scheduling before a plugin has been injected
+   * @since 1.0.0
    */
   public Set<UUID> update() {
     final Set<UUID> selected = new HashSet<>(this.configuration.getViewers());
@@ -357,6 +364,8 @@ public final class Mcv2Channel {
 
   /**
    * Asks for the next frame to be a keyframe.
+   *
+   * @since 1.0.0
    */
   public void requestKeyframe() {
     this.keyframeRequest.request();
@@ -366,6 +375,7 @@ public final class Mcv2Channel {
    * Takes a keyframe request: a viewer was just shown the screen, or a frame could not be sent.
    *
    * @return true if the next frame should be a keyframe
+   * @since 1.0.0
    */
   public boolean takeKeyframeRequest() {
     return this.keyframeRequest.take();
@@ -381,6 +391,7 @@ public final class Mcv2Channel {
    *     case nothing is sent and the next frame is asked to be a keyframe
    * @throws IllegalArgumentException if the bytes are not a valid MCV2 frame
    * @throws NullPointerException     if {@code frame} is null
+   * @since 1.0.0
    */
   public int send(final byte[] frame) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");
@@ -459,6 +470,7 @@ public final class Mcv2Channel {
    * Returns the screen.
    *
    * @return the screen
+   * @since 1.0.0
    */
   public Mcv2Screen getScreen() {
     return this.screen;
@@ -468,6 +480,7 @@ public final class Mcv2Channel {
    * Returns the configuration of the screen the channel sends to: its video size, stream id and viewers.
    *
    * @return the configuration
+   * @since 1.0.0
    */
   public Mcv2Configuration getConfiguration() {
     return this.configuration;
@@ -477,6 +490,7 @@ public final class Mcv2Channel {
    * Returns the viewers that receive frames.
    *
    * @return the viewers shown the screen, as of the last {@link #update()}
+   * @since 1.0.0
    */
   public Set<UUID> getRecipients() {
     return Set.copyOf(this.recipients.keySet());
@@ -486,6 +500,7 @@ public final class Mcv2Channel {
    * Returns the links of the viewers shown the screen: what each was sent, missed and has not yet written.
    *
    * @return the links by viewer, a live view
+   * @since 1.0.0
    */
   public Map<UUID, Mcv2Link> getLinks() {
     return Collections.unmodifiableMap(this.links);

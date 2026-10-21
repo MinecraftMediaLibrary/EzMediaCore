@@ -34,6 +34,8 @@ import org.bukkit.Location;
  *
  * <p>The position is retained by reference. Finish setting it before creating the display and do not
  * mutate it while rendering. {@link #getPosition()} returns that same mutable location.
+ *
+ * @since 1.0.0
  */
 public final class EntityConfiguration {
 
@@ -61,6 +63,7 @@ public final class EntityConfiguration {
    * Creates a new builder for an entity configuration.
    *
    * @return a new builder
+   * @since 1.0.0
    */
   public static EntityConfigurationBuilder builder() {
     return new DefaultEntityConfigurationBuilder();
@@ -71,6 +74,7 @@ public final class EntityConfiguration {
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
    *         concurrent collection if another thread changes membership during rendering
+   * @since 1.0.0
    */
   public Collection<UUID> getViewers() {
     return this.viewers;
@@ -81,6 +85,7 @@ public final class EntityConfiguration {
    *
    * @return the pixel text
    * @see Characters
+   * @since 1.0.0
    */
   public String getCharacter() {
     return this.character;
@@ -90,6 +95,7 @@ public final class EntityConfiguration {
    * Returns the width of the image in characters.
    *
    * @return the width in characters
+   * @since 1.0.0
    */
   public int getEntityWidth() {
     return this.entityWidth;
@@ -99,6 +105,7 @@ public final class EntityConfiguration {
    * Returns the height of the image in lines.
    *
    * @return the height in lines
+   * @since 1.0.0
    */
   public int getEntityHeight() {
     return this.entityHeight;
@@ -108,6 +115,7 @@ public final class EntityConfiguration {
    * Returns the position the entity is spawned at.
    *
    * @return the original location supplied to the builder, without a defensive copy
+   * @since 1.0.0
    */
   public Location getPosition() {
     return this.position;

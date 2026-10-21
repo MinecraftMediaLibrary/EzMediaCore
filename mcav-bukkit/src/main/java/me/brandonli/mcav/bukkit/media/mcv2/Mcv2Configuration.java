@@ -47,16 +47,30 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Use a concurrent viewer collection when membership changes on another thread. The caller owns any explicitly
  * supplied encoder pool; neither the configuration nor a screen closes it. Creating a configuration does not
  * reserve map ids or build the visible wall.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Configuration {
 
-  /** The largest wall side, in maps: an anchor names its column and row with one six-bit symbol each. */
+  /**
+   * The largest wall side, in maps: an anchor names its column and row with one six-bit symbol each.
+   *
+   * @since 1.0.0
+   */
   public static final int MAXIMUM_SIDE = 63;
 
-  /** The most page slots a pack reserves. */
+  /**
+   * The most page slots a pack reserves.
+   *
+   * @since 1.0.0
+   */
   public static final int MAXIMUM_PAGE_SLOTS = 8;
 
-  /** The largest stream id: an anchor carries it in two six-bit symbols. */
+  /**
+   * The largest stream id: an anchor carries it in two six-bit symbols.
+   *
+   * @since 1.0.0
+   */
   public static final long MAXIMUM_STREAM_ID = 4095;
 
   private static final int DEFAULT_PAGE_SLOTS = MAXIMUM_PAGE_SLOTS;
@@ -65,24 +79,38 @@ public final class Mcv2Configuration {
    * The most frames a second a screen shows when none is set: the default live preset keeps up with 1080p video at 30
    * frames a second, but not at 60. A client decodes at most one frame for every frame it draws, so a screen faster
    * than its viewers' clients leaves them waiting for keyframes.
+   *
+   * @since 1.0.0
    */
   public static final double DEFAULT_MAXIMUM_FRAME_RATE = 30;
 
-  /** The highest rate a screen may be given, in frames a second. */
+  /**
+   * The highest rate a screen may be given, in frames a second.
+   *
+   * @since 1.0.0
+   */
   public static final double MAXIMUM_FRAME_RATE = 240;
 
   /**
    * The default backlog threshold: 128 KiB of estimated map-update bytes, including patch overhead and anchors.
    * Its duration and number of buffered frames depend on encoded content and connection speed.
+   *
+   * @since 1.0.0
    */
   public static final long DEFAULT_BACKLOG_LIMIT = 128 * 1024;
 
-  /** The first page map id when none is set. */
+  /**
+   * The first page map id when none is set.
+   *
+   * @since 1.0.0
+   */
   public static final int DEFAULT_PAGE_MAP = 2_000_000_000;
 
   /**
    * The cap on the bytes a viewer's operating system may hold unsent when none is set: 32 KiB, so a slow viewer's video
    * waits where the backlog limit sees it, and a game packet waits behind at most this much of it in the system.
+   *
+   * @since 1.0.0
    */
   public static final int DEFAULT_UNSENT_LIMIT = 32 * 1024;
 
@@ -158,6 +186,7 @@ public final class Mcv2Configuration {
    * Creates a new builder.
    *
    * @return a new builder
+   * @since 1.0.0
    */
   public static Mcv2ConfigurationBuilder builder() {
     return new DefaultMcv2ConfigurationBuilder();
@@ -171,6 +200,7 @@ public final class Mcv2Configuration {
    * Returns the direction the maps' right edge points to, as seen by a viewer in front of the wall.
    *
    * @return the direction columns count along
+   * @since 1.0.0
    */
   public BlockFace getRight() {
     return switch (this.facing) {
@@ -185,6 +215,7 @@ public final class Mcv2Configuration {
    * Returns the anchor's facing code: 0 when the maps' right edge points east, 1 south, 2 west and 3 north.
    *
    * @return the code the shader reads
+   * @since 1.0.0
    */
   public int getFacingCode() {
     return switch (this.getRight()) {
@@ -206,6 +237,7 @@ public final class Mcv2Configuration {
    * @param height the video height, 1 to 4096
    * @return the copy
    * @throws IllegalArgumentException if the size is out of range
+   * @since 1.0.0
    */
   public Mcv2Configuration withVideo(final int width, final int height) {
     Preconditions.checkArgument(width >= 1 && height >= 1, "Video size must be positive!");
@@ -222,6 +254,7 @@ public final class Mcv2Configuration {
    * @param firstFrameId the id of the screen's first frame, an unsigned 32-bit value
    * @return the copy
    * @throws IllegalArgumentException if a value is out of range, or a page map is a map of the wall
+   * @since 1.0.0
    */
   public Mcv2Configuration withSlot(final long streamId, final int pageMap, final long firstFrameId) {
     return this.toBuilder().streamId(streamId).pageMap(pageMap).firstFrameId(firstFrameId).build();
@@ -257,6 +290,7 @@ public final class Mcv2Configuration {
    * Returns the encoder budget the screen encodes in: the one it was given, or the server's shared budget.
    *
    * @return the budget
+   * @since 1.0.0
    */
   public Pool getEncoderPool() {
     final Pool pool = this.encoderPool;
@@ -267,6 +301,7 @@ public final class Mcv2Configuration {
    * Returns the players who watch the screen.
    *
    * @return the UUIDs of the viewers, not copied
+   * @since 1.0.0
    */
   public Collection<UUID> getViewers() {
     return this.viewers;
@@ -276,6 +311,7 @@ public final class Mcv2Configuration {
    * Returns the block the top-left frame of the wall hangs in.
    *
    * @return a copy of the location
+   * @since 1.0.0
    */
   public Location getOrigin() {
     return this.origin.clone();
@@ -285,6 +321,7 @@ public final class Mcv2Configuration {
    * Returns the direction the frames of the wall face, towards the viewers.
    *
    * @return north, south, east or west
+   * @since 1.0.0
    */
   public BlockFace getFacing() {
     return this.facing;
@@ -294,6 +331,7 @@ public final class Mcv2Configuration {
    * Returns the id of the top-left map of the wall.
    *
    * @return the first map id
+   * @since 1.0.0
    */
   public int getMap() {
     return this.map;
@@ -303,6 +341,7 @@ public final class Mcv2Configuration {
    * Returns the width of the wall in maps.
    *
    * @return the columns
+   * @since 1.0.0
    */
   public int getColumns() {
     return this.columns;
@@ -312,6 +351,7 @@ public final class Mcv2Configuration {
    * Returns the height of the wall in maps.
    *
    * @return the rows
+   * @since 1.0.0
    */
   public int getRows() {
     return this.rows;
@@ -321,6 +361,7 @@ public final class Mcv2Configuration {
    * Returns the width of the encoded video; defaults to the wall's native width, 128 pixels per map.
    *
    * @return the width in pixels
+   * @since 1.0.0
    */
   public int getVideoWidth() {
     return this.videoWidth;
@@ -330,6 +371,7 @@ public final class Mcv2Configuration {
    * Returns the height of the encoded video; defaults to the wall's native height, 128 pixels per map.
    *
    * @return the height in pixels
+   * @since 1.0.0
    */
   public int getVideoHeight() {
     return this.videoHeight;
@@ -339,6 +381,7 @@ public final class Mcv2Configuration {
    * Returns the id of the map that carries the first page of every frame; page p is on map {@code getPageMap() + p}.
    *
    * @return the first page map id
+   * @since 1.0.0
    */
   public int getPageMap() {
     return this.pageMap;
@@ -349,6 +392,7 @@ public final class Mcv2Configuration {
    * number of maps of a smaller wall, because behind every map of the wall hangs one page's frame.
    *
    * @return the page slots
+   * @since 1.0.0
    */
   public int getPageSlots() {
     return this.pageSlots;
@@ -358,6 +402,7 @@ public final class Mcv2Configuration {
    * Returns the stream id every page carries; the pack decodes only its own stream.
    *
    * @return the configured stream id, from 0 through {@value #MAXIMUM_STREAM_ID}
+   * @since 1.0.0
    */
   public long getStreamId() {
     return this.streamId;
@@ -367,6 +412,7 @@ public final class Mcv2Configuration {
    * Returns the encoder profile.
    *
    * @return the settings
+   * @since 1.0.0
    */
   public Settings getSettings() {
     return this.settings;
@@ -379,6 +425,7 @@ public final class Mcv2Configuration {
    * of zero means "no outline" to the client.
    *
    * @return the colour
+   * @since 1.0.0
    */
   public NamedTextColor getOutlineColor() {
     return this.outlineColor;
@@ -391,6 +438,7 @@ public final class Mcv2Configuration {
    * game packets.
    *
    * @return the limit in bytes
+   * @since 1.0.0
    */
   public long getBacklogLimit() {
     return this.backlogLimit;
@@ -401,6 +449,7 @@ public final class Mcv2Configuration {
    * pack slot of an earlier one is newer to the clients than anything the earlier one sent.
    *
    * @return an unsigned 32-bit value
+   * @since 1.0.0
    */
   public long getFirstFrameId() {
     return this.firstFrameId;
@@ -410,6 +459,7 @@ public final class Mcv2Configuration {
    * Returns the most frames a second the screen shows; a faster source is thinned to it.
    *
    * @return the rate, at most {@value #MAXIMUM_FRAME_RATE}, or 0 for every frame the source gives
+   * @since 1.0.0
    */
   public double getMaximumFrameRate() {
     return this.maximumFrameRate;
@@ -420,6 +470,7 @@ public final class Mcv2Configuration {
    * it starts receiving the screen (on Linux, where Paper uses the epoll transport).
    *
    * @return the cap in bytes, or 0 to leave the system's own
+   * @since 1.0.0
    */
   public int getUnsentLimit() {
     return this.unsentLimit;

@@ -30,6 +30,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>This receiver retains only the immediately preceding decoded picture. A stream referencing an older
  * keyframe needs a caller-managed reference strategy with {@link Mcv2Decoder}, even if that keyframe was received.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Receiver {
 
@@ -43,6 +45,8 @@ public final class Mcv2Receiver {
 
   /**
    * Constructs a receiver that holds no frame yet, so it accepts a keyframe first.
+   *
+   * @since 1.0.0
    */
   public Mcv2Receiver() {}
 
@@ -55,6 +59,7 @@ public final class Mcv2Receiver {
    * @throws Mcv2Exception        if the frame is invalid, not newer than the last one, or predicts from a frame this receiver
    *                              does not hold; the state is unchanged then
    * @throws NullPointerException if the frame bytes are null
+   * @since 1.0.0
    */
   public byte[] accept(final byte[] data) {
     final Frame frame = Mcv2Decoder.parse(data);
@@ -79,6 +84,7 @@ public final class Mcv2Receiver {
    * Returns the id of the last committed frame.
    *
    * @return the frame id, or -1 before the first frame
+   * @since 1.0.0
    */
   public long getFrameId() {
     return this.frameId;

@@ -117,6 +117,8 @@ import org.slf4j.LoggerFactory;
  * The version 3 live encoder. Each instance encodes one stream on a caller-owned pool.
  * Calls to begin and calls to finish must each be serial; one begin may overlap the preceding finish.
  * Settings changes and keyframe requests may come from another thread.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2 {
 
@@ -243,13 +245,25 @@ public final class Mcv2 {
 
   // Pixel kernels and native-library binding.
 
-  /** The system property that turns the native kernels on ({@code auto}) or off ({@code off}) over the configuration. */
+  /**
+   * The system property that turns the native kernels on ({@code auto}) or off ({@code off}) over the configuration.
+   *
+   * @since 1.0.0
+   */
   public static final String NATIVE_PROPERTY = "mcv2.native";
 
-  /** Uses the native kernels where a library loads: the default. */
+  /**
+   * Uses the native kernels where a library loads: the default.
+   *
+   * @since 1.0.0
+   */
   public static final String NATIVE_AUTO = "auto";
 
-  /** Always runs the Java kernels. */
+  /**
+   * Always runs the Java kernels.
+   *
+   * @since 1.0.0
+   */
   public static final String NATIVE_OFF = "off";
 
   private static final String NATIVE_RESOURCES = "/mcav/mcv2/natives/";
@@ -265,6 +279,7 @@ public final class Mcv2 {
    * @param verification whether finish checks every reconstructed pixel with Mcv2Decoder
    * @throws NullPointerException     if settings, pool or verification is null
    * @throws IllegalArgumentException if threads is less than one
+   * @since 1.0.0
    */
   public Mcv2(final Settings settings, final ForkJoinPool pool, final int threads, final Verification verification) {
     this.settings = Preconditions.checkNotNull(settings, SETTINGS_NULL_MESSAGE);
@@ -276,6 +291,8 @@ public final class Mcv2 {
 
   /**
    * Requests an independent picture on the next begin call.
+   *
+   * @since 1.0.0
    */
   public void requestKeyframe() {
     this.keyframeRequested.set(true);
@@ -286,6 +303,7 @@ public final class Mcv2 {
    *
    * @param next the new settings
    * @throws NullPointerException if next is null
+   * @since 1.0.0
    */
   public void switchTo(final Settings next) {
     this.settings = Preconditions.checkNotNull(next, SETTINGS_NULL_MESSAGE);
@@ -295,6 +313,7 @@ public final class Mcv2 {
    * Copies the latest reconstruction, including a frame still awaiting finish.
    *
    * @return row-major RGB24 reference, or empty before the first begin
+   * @since 1.0.0
    */
   public Optional<byte[]> getReference() {
     final byte @Nullable [] previous = this.reference;
@@ -312,6 +331,7 @@ public final class Mcv2 {
    * @throws NullPointerException     if {@code sourcePixels} is null
    * @throws IllegalArgumentException if dimensions, input length or frame id are invalid
    * @throws IllegalStateException    if the encoder stopped or pending frames prevent this operation
+   * @since 1.0.0
    */
   public byte[] encode(final byte[] sourcePixels, final int width, final int height, final long frameId) {
     return this.finish(this.begin(sourcePixels, width, height, frameId)).getData();
@@ -330,6 +350,7 @@ public final class Mcv2 {
    * @throws NullPointerException     if {@code sourcePixels} is null
    * @throws IllegalArgumentException if dimensions, input length or frame id are invalid
    * @throws IllegalStateException    if the encoder stopped or pending frames prevent this operation
+   * @since 1.0.0
    */
   public Pending begin(final byte[] sourcePixels, final int width, final int height, final long frameId) {
     Preconditions.checkState(!this.failed, STOPPED);
@@ -438,6 +459,7 @@ public final class Mcv2 {
    * @throws NullPointerException     if pending is null
    * @throws IllegalArgumentException if another encoder owns pending
    * @throws IllegalStateException    if order is wrong, pending is finished, or verification fails
+   * @since 1.0.0
    */
   @SuppressWarnings("ReferenceEquality") // the pending frame must be the very frame this encoder created first
   public Encoded finish(final Pending pending) {
@@ -479,6 +501,7 @@ public final class Mcv2 {
    *               execution); created if missing
    * @param mode   {@code auto} or {@code off}; the system property {@value #NATIVE_PROPERTY} wins over it
    * @throws IllegalArgumentException if the mode is neither
+   * @since 1.0.0
    */
   public static void installNatives(final Path folder, final String mode) {
     Natives.install(folder, mode);
@@ -489,6 +512,7 @@ public final class Mcv2 {
    * {@code native avx2 (linux-x86_64)} or {@code Java, turned off by mcv2.native=off}.
    *
    * @return the description, as logged
+   * @since 1.0.0
    */
   public static String describeNatives() {
     return Natives.resolved().description();
@@ -1121,6 +1145,7 @@ public final class Mcv2 {
    *
    * @param nanoseconds nonnegative budget, or zero for unlimited time
    * @throws IllegalArgumentException if the budget is negative
+   * @since 1.0.0
    */
   public void setFrameBudget(final long nanoseconds) {
     Preconditions.checkArgument(nanoseconds >= 0, "The frame budget must not be negative!");
@@ -1135,6 +1160,7 @@ public final class Mcv2 {
    *
    * @param bytes nonnegative desired limit, or zero for the format maximum
    * @throws IllegalArgumentException if bytes is negative
+   * @since 1.0.0
    */
   public void setFrameLimit(final int bytes) {
     Preconditions.checkArgument(bytes >= 0, "The frame limit must not be negative!");
@@ -1146,6 +1172,7 @@ public final class Mcv2 {
    * Returns the settings used by the next frame.
    *
    * @return current settings
+   * @since 1.0.0
    */
   public Settings getSettings() {
     return this.settings;
@@ -1155,6 +1182,7 @@ public final class Mcv2 {
    * Returns the last completed frame's measurements.
    *
    * @return statistics, or empty before the first finish
+   * @since 1.0.0
    */
   public Optional<Statistics> getStatistics() {
     return Optional.ofNullable(this.statistics);
@@ -1186,16 +1214,22 @@ public final class Mcv2 {
    * Controls the live search without changing the version 3 syntax.
    *
    * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   public static final class Settings {
 
     /**
      * Normal live thresholds with lambda 72.
+     *
+     * @since 1.0.0
      */
     public static final Settings DEFAULT = of(72, false);
 
     /**
      * Fast live thresholds with lambda 55.
+     *
+     * @since 1.0.0
      */
     public static final Settings FAST = of(55, true);
 
@@ -1214,6 +1248,7 @@ public final class Mcv2 {
      * @param fast   whether the search uses the fast thresholds
      * @return the settings
      * @throws IllegalArgumentException if {@code lambda} is negative or not finite
+     * @since 1.0.0
      */
     public static Settings of(final double lambda, final boolean fast) {
       Preconditions.checkArgument(lambda >= 0 && Double.isFinite(lambda), "Lambda must be finite and non-negative!");
@@ -1227,6 +1262,7 @@ public final class Mcv2 {
      * @param value finite, nonnegative lambda
      * @return the copied settings
      * @throws IllegalArgumentException if value is negative or nonfinite
+     * @since 1.0.0
      */
     public Settings withLambda(final double value) {
       return of(value, this.fast);
@@ -1236,6 +1272,7 @@ public final class Mcv2 {
      * Returns the cost of a coded bit relative to distortion.
      *
      * @return the finite, non-negative cost of a coded bit relative to distortion
+     * @since 1.0.0
      */
     public double getLambda() {
       return this.lambda;
@@ -1245,6 +1282,7 @@ public final class Mcv2 {
      * Returns whether the search uses the fast thresholds.
      *
      * @return whether the search uses the fast thresholds
+     * @since 1.0.0
      */
     public boolean isFast() {
       return this.fast;
@@ -1255,6 +1293,7 @@ public final class Mcv2 {
      *
      * @param other the object to compare with
      * @return whether every part matches
+     * @since 1.0.0
      */
     @Override
     public boolean equals(final @Nullable Object other) {
@@ -1273,6 +1312,7 @@ public final class Mcv2 {
      * Returns a hash code built from every part.
      *
      * @return the hash code
+     * @since 1.0.0
      */
     @Override
     public int hashCode() {
@@ -1283,6 +1323,7 @@ public final class Mcv2 {
      * Returns a debugging representation with every part.
      *
      * @return the representation
+     * @since 1.0.0
      */
     @Override
     public String toString() {
@@ -1294,6 +1335,8 @@ public final class Mcv2 {
    * Measurements of the most recently finished frame.
    *
    * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   public static final class Statistics {
 
@@ -1320,6 +1363,7 @@ public final class Mcv2 {
      * @param nanoseconds the elapsed search and writing time
      * @param lambda      the effective lambda, including motion adjustment and any size retries
      * @return the statistics
+     * @since 1.0.0
      */
     public static Statistics of(final int bytes, final boolean keyframe, final int leaves, final long nanoseconds, final double lambda) {
       return new Statistics(bytes, keyframe, leaves, nanoseconds, lambda);
@@ -1329,6 +1373,7 @@ public final class Mcv2 {
      * Returns the encoded frame length.
      *
      * @return the encoded frame length
+     * @since 1.0.0
      */
     public int getBytes() {
       return this.bytes;
@@ -1338,6 +1383,7 @@ public final class Mcv2 {
      * Returns whether the frame decodes independently.
      *
      * @return whether the frame decodes independently
+     * @since 1.0.0
      */
     public boolean isKeyframe() {
       return this.keyframe;
@@ -1347,6 +1393,7 @@ public final class Mcv2 {
      * Returns the number of chosen leaves, including absent roots.
      *
      * @return the number of chosen leaves, including absent roots
+     * @since 1.0.0
      */
     public int getLeaves() {
       return this.leaves;
@@ -1356,6 +1403,7 @@ public final class Mcv2 {
      * Returns the elapsed search and writing time in nanoseconds.
      *
      * @return the elapsed search and writing time
+     * @since 1.0.0
      */
     public long getNanoseconds() {
       return this.nanoseconds;
@@ -1365,6 +1413,7 @@ public final class Mcv2 {
      * Returns the effective lambda, including motion adjustment and any size retries.
      *
      * @return the effective lambda, including motion adjustment and any size retries
+     * @since 1.0.0
      */
     public double getLambda() {
       return this.lambda;
@@ -1375,6 +1424,7 @@ public final class Mcv2 {
      *
      * @param other the object to compare with
      * @return whether every part matches
+     * @since 1.0.0
      */
     @Override
     public boolean equals(final @Nullable Object other) {
@@ -1399,6 +1449,7 @@ public final class Mcv2 {
      * Returns a hash code built from every part.
      *
      * @return the hash code
+     * @since 1.0.0
      */
     @Override
     public int hashCode() {
@@ -1409,6 +1460,7 @@ public final class Mcv2 {
      * Returns a debugging representation with every part.
      *
      * @return the representation
+     * @since 1.0.0
      */
     @Override
     public String toString() {
@@ -1424,6 +1476,8 @@ public final class Mcv2 {
 
   /**
    * A finished frame whose bytes and measurements are ready for transmission.
+   *
+   * @since 1.0.0
    */
   public static final class Encoded {
 
@@ -1442,6 +1496,7 @@ public final class Mcv2 {
      * @param statistics the measurements of the frame
      * @return the finished frame
      * @throws NullPointerException if an argument is null
+     * @since 1.0.0
      */
     public static Encoded of(final byte[] data, final Statistics statistics) {
       Preconditions.checkNotNull(data, "Data must not be null!");
@@ -1454,6 +1509,7 @@ public final class Mcv2 {
      * Returns the encoded bytes, whose ownership transfers to the caller.
      *
      * @return the complete version 3 frame
+     * @since 1.0.0
      */
     public byte[] getData() {
       return this.data;
@@ -1463,6 +1519,7 @@ public final class Mcv2 {
      * Returns the measurements of this frame.
      *
      * @return the frame statistics
+     * @since 1.0.0
      */
     public Statistics getStatistics() {
       return this.statistics;
@@ -1473,6 +1530,7 @@ public final class Mcv2 {
      *
      * @param other the object to compare with
      * @return whether every part matches
+     * @since 1.0.0
      */
     @Override
     public boolean equals(final @Nullable Object other) {
@@ -1491,6 +1549,7 @@ public final class Mcv2 {
      * Returns a hash code built from every part.
      *
      * @return the hash code
+     * @since 1.0.0
      */
     @Override
     public int hashCode() {
@@ -1502,6 +1561,7 @@ public final class Mcv2 {
      * Returns a debugging representation with the frame length and the measurements.
      *
      * @return the representation
+     * @since 1.0.0
      */
     @Override
     public String toString() {
@@ -1511,6 +1571,8 @@ public final class Mcv2 {
 
   /**
    * A searched frame awaiting ordered verification by its owning encoder.
+   *
+   * @since 1.0.0
    */
   public static final class Pending {
 
@@ -1551,6 +1613,7 @@ public final class Mcv2 {
      * Reports whether this pending frame decodes independently.
      *
      * @return whether the frame is a keyframe
+     * @since 1.0.0
      */
     public boolean isKeyframe() {
       return this.keyframe;
@@ -3700,11 +3763,15 @@ public final class Mcv2 {
 
   /**
    * A shared, bounded CPU budget for encoders and synchronous encoding jobs.
+   *
+   * @since 1.0.0
    */
   public static final class Pool implements AutoCloseable {
 
     /**
      * Maximum worker count.
+     *
+     * @since 1.0.0
      */
     public static final int MAXIMUM_THREADS = 256;
 
@@ -3738,6 +3805,7 @@ public final class Mcv2 {
      *
      * @param threads worker count, 1 through MAXIMUM_THREADS
      * @throws IllegalArgumentException if threads is outside that range
+     * @since 1.0.0
      */
     public Pool(final int threads) {
       Preconditions.checkArgument(
@@ -3771,6 +3839,7 @@ public final class Mcv2 {
      * Returns the lazily created application-wide pool.
      *
      * @return the current shared pool
+     * @since 1.0.0
      */
     public static synchronized Pool shared() {
       final Pool current = shared;
@@ -3799,6 +3868,7 @@ public final class Mcv2 {
      *
      * @param threads worker count, or zero to use the processor-based default
      * @throws IllegalArgumentException if threads is negative or exceeds MAXIMUM_THREADS
+     * @since 1.0.0
      */
     public static synchronized void setSharedThreads(final int threads) {
       Preconditions.checkArgument(
@@ -3820,6 +3890,7 @@ public final class Mcv2 {
      * @param verification whether finish verifies reconstruction
      * @return a new stream encoder
      * @throws NullPointerException if settings or verification is null
+     * @since 1.0.0
      */
     public Mcv2 encoder(final Settings settings, final Verification verification) {
       return new Mcv2(settings, this.pool, this.threads, verification);
@@ -3834,6 +3905,7 @@ public final class Mcv2 {
      * @throws NullPointerException if task is null
      * @throws Mcv2Exception        if the job throws a checked exception, or the calling thread is interrupted before or
      *                              while awaiting the job, which cancels the job and leaves the thread interrupted
+     * @since 1.0.0
      */
     public <ResultType> ResultType run(final Callable<ResultType> task) {
       Preconditions.checkNotNull(task, "Task must not be null!");
@@ -3881,6 +3953,8 @@ public final class Mcv2 {
 
     /**
      * Stops this pool and requests cancellation of its outstanding jobs.
+     *
+     * @since 1.0.0
      */
     @Override
     public void close() {
@@ -3891,6 +3965,7 @@ public final class Mcv2 {
      * Returns this pool's concurrency limit.
      *
      * @return configured workers
+     * @since 1.0.0
      */
     public int getThreads() {
       return this.threads;

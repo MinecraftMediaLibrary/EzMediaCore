@@ -77,6 +77,8 @@ import org.slf4j.LoggerFactory;
  * <p>Processing, start and release are serialized by an internal lock. The result owns any dithering pool it
  * creates, but does not own the supplied algorithm. Release waits for the current process call to leave the lock;
  * start permits reuse, with a new encoder created on the next frame.
+ *
+ * @since 1.0.0
  */
 public class CompressedMapResult implements DitherResultStep {
 
@@ -104,6 +106,7 @@ public class CompressedMapResult implements DitherResultStep {
    *
    * @param configuration the configuration describing the map grid and the viewers
    * @throws NullPointerException if the configuration is null
+   * @since 1.0.0
    */
   public CompressedMapResult(final MapConfiguration configuration) {
     this(configuration, DeltaMapEncoder.DEFAULT_MAXIMUM_BYTES_PER_FRAME);
@@ -118,6 +121,7 @@ public class CompressedMapResult implements DitherResultStep {
    *                             snapshots are additional. Lower values spread motion and scene cuts over more frames
    * @throws IllegalArgumentException if the budget is not positive
    * @throws NullPointerException     if {@code configuration} is null
+   * @since 1.0.0
    */
   public CompressedMapResult(final MapConfiguration configuration, final int maximumBytesPerFrame) {
     Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
@@ -138,6 +142,7 @@ public class CompressedMapResult implements DitherResultStep {
    * @param samples   the frame, which is resized in place if resizing is configured
    * @param algorithm the dithering algorithm; a {@link ParallelDitherAlgorithm} runs on dedicated daemon threads
    * @throws NullPointerException if {@code samples} or {@code algorithm} is null
+   * @since 1.0.0
    */
   @Override
   public void process(final ImageBuffer samples, final DitherAlgorithm algorithm) {
@@ -361,6 +366,8 @@ public class CompressedMapResult implements DitherResultStep {
    * that frame coalesce. The encoder's delta history and the coverage used for resize cleanup are retained.
    * This request sends no packets itself, shares the processing lock, and does not resume a released result.
    * The snapshot is additional to the ordinary delta byte budget.
+   *
+   * @since 1.0.0
    */
   public void refresh() {
     this.lock.lock();
@@ -375,6 +382,8 @@ public class CompressedMapResult implements DitherResultStep {
    * Accepts frames again. The encoder itself is created lazily when the first frame arrives, because the frame size
    * is unknown until then; this only undoes a previous {@link #release()}, so the same result can show a second
    * video, the way every other result of this module can.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -389,6 +398,8 @@ public class CompressedMapResult implements DitherResultStep {
   /**
    * Stops processing frames, shuts down the dithering threads, and clears the maps of every viewer. Frames that
    * arrive after this method was called are ignored.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

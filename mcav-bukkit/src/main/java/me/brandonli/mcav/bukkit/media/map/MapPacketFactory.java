@@ -43,6 +43,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * of a bundle together, so the call's patches are applied in order within one client tick. Larger calls are split
  * into consecutive bundles; atomicity across those bundles is not guaranteed. Delta updates may also represent
  * only part of a source frame when their encoder applies a byte budget. Every method may be called from any thread.
+ *
+ * @since 1.0.0
  */
 public final class MapPacketFactory {
 
@@ -64,6 +66,7 @@ public final class MapPacketFactory {
    * @param viewers the UUIDs of the players to send the patches to
    * @param patches the patches to send
    * @throws NullPointerException if {@code viewers} or {@code patches} is null
+   * @since 1.0.0
    */
   public static void send(final Collection<UUID> viewers, final List<MapTilePatch> patches) {
     Preconditions.checkNotNull(viewers, VIEWERS_NULL_MESSAGE);
@@ -85,6 +88,7 @@ public final class MapPacketFactory {
    * @param patches the patches
    * @return the bundles, none for no patches
    * @throws NullPointerException if {@code patches} is null
+   * @since 1.0.0
    */
   public static List<Bundle> bundles(final List<MapTilePatch> patches) {
     Preconditions.checkNotNull(patches, PATCHES_NULL_MESSAGE);
@@ -117,6 +121,7 @@ public final class MapPacketFactory {
    * @param count      the number of maps with consecutive ids to clear
    * @throws IllegalArgumentException if the first map id or count is negative, or the last id overflows an integer
    * @throws NullPointerException     if {@code viewers} is null
+   * @since 1.0.0
    */
   public static void clear(final Collection<UUID> viewers, final int startMapId, final int count) {
     Preconditions.checkNotNull(viewers, VIEWERS_NULL_MESSAGE);
@@ -158,6 +163,8 @@ public final class MapPacketFactory {
    *
    * <p>The bundle retains the packet without copying; it does not validate either part. Instances never change, and
    * the packet is shared rather than copied.
+   *
+   * @since 1.0.0
    */
   public static final class Bundle {
 
@@ -175,6 +182,7 @@ public final class MapPacketFactory {
      * @param packet the bundle
      * @param bytes  the sum of its patches' {@link MapTilePatch#getEncodedSize()}
      * @return the bundle
+     * @since 1.0.0
      */
     public static Bundle of(final ClientboundBundlePacket packet, final long bytes) {
       return new Bundle(packet, bytes);
@@ -190,6 +198,7 @@ public final class MapPacketFactory {
      * @param viewer  the UUID of the player
      * @param written run once, on the player's connection thread or on this one
      * @throws NullPointerException if the viewer or callback is null
+     * @since 1.0.0
      */
     public void send(final UUID viewer, final Runnable written) {
       Preconditions.checkNotNull(written, "Callback must not be null!");
@@ -203,6 +212,7 @@ public final class MapPacketFactory {
      * Returns the bundle packet.
      *
      * @return the bundle
+     * @since 1.0.0
      */
     public ClientboundBundlePacket getPacket() {
       return this.packet;
@@ -212,6 +222,7 @@ public final class MapPacketFactory {
      * Returns the estimated size of the bundle in bytes.
      *
      * @return the sum of its patches' {@link MapTilePatch#getEncodedSize()}
+     * @since 1.0.0
      */
     public long getBytes() {
       return this.bytes;
@@ -222,6 +233,7 @@ public final class MapPacketFactory {
      *
      * @param other the object to compare with
      * @return whether every part matches
+     * @since 1.0.0
      */
     @Override
     public boolean equals(final @Nullable Object other) {
@@ -240,6 +252,7 @@ public final class MapPacketFactory {
      * Returns a hash code built from every part.
      *
      * @return the hash code
+     * @since 1.0.0
      */
     @Override
     public int hashCode() {
@@ -250,6 +263,7 @@ public final class MapPacketFactory {
      * Returns a debugging representation with every part.
      *
      * @return the representation
+     * @since 1.0.0
      */
     @Override
     public String toString() {

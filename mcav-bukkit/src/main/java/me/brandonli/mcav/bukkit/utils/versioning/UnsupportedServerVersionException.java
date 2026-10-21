@@ -25,6 +25,8 @@ import me.brandonli.mcav.bukkit.BukkitException;
  * {@link ServerEnvironment#SUPPORTED_MINECRAFT_VERSION} for the supported version.
  *
  * <p>Plugins catch it to disable themselves cleanly.
+ *
+ * @since 1.0.0
  */
 public final class UnsupportedServerVersionException extends BukkitException {
 

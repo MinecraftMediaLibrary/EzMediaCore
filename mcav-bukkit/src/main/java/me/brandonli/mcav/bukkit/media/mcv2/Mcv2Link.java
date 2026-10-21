@@ -30,10 +30,16 @@ import java.util.concurrent.atomic.AtomicLong;
  * decodable keyframe and keeps displaying its previous picture meanwhile.
  *
  * <p>Offers come from the thread that sends frames, one at a time; writes complete on the connection's thread.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Link {
 
-  /** How many times the backlog limit a keyframe may still go out over. */
+  /**
+   * How many times the backlog limit a keyframe may still go out over.
+   *
+   * @since 1.0.0
+   */
   public static final int KEYFRAME_ALLOWANCE = 2;
 
   private static final long NONE = -1;
@@ -58,6 +64,7 @@ public final class Mcv2Link {
    * @param limit the nonnegative backlog threshold in estimated bytes before accepting another frame;
    *              zero admits a frame only when the tracked backlog is zero
    * @throws IllegalArgumentException if the limit is negative
+   * @since 1.0.0
    */
   public Mcv2Link(final long limit) {
     Preconditions.checkArgument(limit >= 0, "Backlog limit must not be negative!");
@@ -72,6 +79,7 @@ public final class Mcv2Link {
    * @param referenceId the id of the frame a P frame predicts from
    * @return true if the viewer holds what the frame needs
    * @throws NullPointerException if kind is null
+   * @since 1.0.0
    */
   public synchronized boolean canDecode(final Mcv2FrameKind kind, final long referenceId) {
     Preconditions.checkNotNull(kind, KIND_NULL_MESSAGE);
@@ -93,6 +101,7 @@ public final class Mcv2Link {
    * @return true if the frame is to be sent to the viewer
    * @throws NullPointerException     if kind is null
    * @throws IllegalArgumentException if frameId is outside unsigned 32-bit range or bytes is negative
+   * @since 1.0.0
    */
   public synchronized boolean offer(final long frameId, final long referenceId, final Mcv2FrameKind kind, final long bytes) {
     Preconditions.checkNotNull(kind, KIND_NULL_MESSAGE);
@@ -129,6 +138,7 @@ public final class Mcv2Link {
    * a frame's charge. Nonnegative amounts and balanced accounting are caller preconditions, not checked here.
    *
    * @param bytes the bytes {@link #offer} added for the frame
+   * @since 1.0.0
    */
   public void written(final long bytes) {
     this.backlog.addAndGet(-bytes);
@@ -138,6 +148,7 @@ public final class Mcv2Link {
    * Returns the video bytes handed to the viewer's connection and not yet written.
    *
    * @return the backlog
+   * @since 1.0.0
    */
   public long getBacklog() {
     return this.backlog.get();
@@ -147,6 +158,7 @@ public final class Mcv2Link {
    * Returns how many frames the viewer was sent.
    *
    * @return the frames sent
+   * @since 1.0.0
    */
   public synchronized long getSent() {
     return this.sent;
@@ -156,6 +168,7 @@ public final class Mcv2Link {
    * Returns how many frames the viewer missed because its connection was over the backlog limit.
    *
    * @return the frames missed for the backlog
+   * @since 1.0.0
    */
   public synchronized long getBehind() {
     return this.behind;
@@ -165,6 +178,7 @@ public final class Mcv2Link {
    * Returns how many frames the viewer missed because it did not hold their reference, after missing one before.
    *
    * @return the frames missed for their reference
+   * @since 1.0.0
    */
   public synchronized long getUndecodable() {
     return this.undecodable;

@@ -33,6 +33,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>Instances are immutable after construction, but the color array is not copied for performance reasons.
  * Callers must not modify the array after passing it to {@link #of(int, int, int, int, int, byte[])}.
+ *
+ * @since 1.0.0
  */
 public final class MapTilePatch {
 
@@ -65,6 +67,7 @@ public final class MapTilePatch {
    * @throws IllegalArgumentException if the map id is negative, the rectangle is empty or outside the map,
    *                                  or the color array has the wrong size
    * @throws NullPointerException     if {@code colors} is null
+   * @since 1.0.0
    */
   public static MapTilePatch of(final int mapId, final int left, final int top, final int width, final int height, final byte[] colors) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
@@ -86,6 +89,7 @@ public final class MapTilePatch {
    * Returns the id of the map this patch updates.
    *
    * @return the map id
+   * @since 1.0.0
    */
   public int getMapId() {
     return this.mapId;
@@ -95,6 +99,7 @@ public final class MapTilePatch {
    * Returns the x coordinate of the top left corner of the rectangle inside the map.
    *
    * @return the x coordinate, from 0 to 127
+   * @since 1.0.0
    */
   public int getX() {
     return this.left;
@@ -104,6 +109,7 @@ public final class MapTilePatch {
    * Returns the y coordinate of the top left corner of the rectangle inside the map.
    *
    * @return the y coordinate, from 0 to 127
+   * @since 1.0.0
    */
   public int getY() {
     return this.top;
@@ -113,6 +119,7 @@ public final class MapTilePatch {
    * Returns the width of the rectangle.
    *
    * @return the width in pixels
+   * @since 1.0.0
    */
   public int getWidth() {
     return this.width;
@@ -122,6 +129,7 @@ public final class MapTilePatch {
    * Returns the height of the rectangle.
    *
    * @return the height in pixels
+   * @since 1.0.0
    */
   public int getHeight() {
     return this.height;
@@ -132,6 +140,7 @@ public final class MapTilePatch {
    * not be modified.
    *
    * @return the colors of the rectangle
+   * @since 1.0.0
    */
   public byte[] getColors() {
     return this.colors;
@@ -141,6 +150,7 @@ public final class MapTilePatch {
    * Returns the approximate number of bytes this patch occupies on the network, including the packet overhead.
    *
    * @return the size of the patch in bytes
+   * @since 1.0.0
    */
   public int getEncodedSize() {
     return this.colors.length + MapLayout.PATCH_OVERHEAD;
@@ -151,6 +161,7 @@ public final class MapTilePatch {
    *
    * @param other the object to compare with
    * @return whether every part matches
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -176,6 +187,7 @@ public final class MapTilePatch {
    * Returns a hash code built from every part.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -187,6 +199,7 @@ public final class MapTilePatch {
    * Returns a debugging representation with the map id and the rectangle.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

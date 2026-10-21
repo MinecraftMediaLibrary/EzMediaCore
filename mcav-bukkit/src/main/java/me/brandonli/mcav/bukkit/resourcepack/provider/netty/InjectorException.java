@@ -26,6 +26,8 @@ import me.brandonli.mcav.bukkit.BukkitException;
  *
  * <p>A plugin can write the pack before starting the hosting again, or catch it together with its other startup
  * failures and disable itself cleanly.
+ *
+ * @since 1.0.0
  */
 public final class InjectorException extends BukkitException {
 

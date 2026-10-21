@@ -26,6 +26,8 @@ import org.bukkit.Location;
  *
  * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
  * required fields are checked by {@link #build()}, which may be called again to create another configuration.
+ *
+ * @since 1.0.0
  */
 public interface EntityConfigurationBuilder {
   /**
@@ -34,6 +36,7 @@ public interface EntityConfigurationBuilder {
    * @param viewers the UUIDs of the viewers
    * @return this builder
    * @throws NullPointerException if the viewers are null
+   * @since 1.0.0
    */
   EntityConfigurationBuilder viewers(final Collection<UUID> viewers);
 
@@ -46,6 +49,7 @@ public interface EntityConfigurationBuilder {
    * @param character the pixel text, usually a single character such as {@code █}
    * @return this builder
    * @throws NullPointerException if the character is null
+   * @since 1.0.0
    */
   EntityConfigurationBuilder character(final String character);
 
@@ -54,6 +58,7 @@ public interface EntityConfigurationBuilder {
    *
    * @param entityWidth the width in characters, which must be positive
    * @return this builder
+   * @since 1.0.0
    */
   EntityConfigurationBuilder entityWidth(final int entityWidth);
 
@@ -62,6 +67,7 @@ public interface EntityConfigurationBuilder {
    *
    * @param entityHeight the height in lines, which must be positive
    * @return this builder
+   * @since 1.0.0
    */
   EntityConfigurationBuilder entityHeight(final int entityHeight);
 
@@ -73,6 +79,7 @@ public interface EntityConfigurationBuilder {
    * @param position the position of the entity, which must have a world
    * @return this builder
    * @throws NullPointerException if the position is null
+   * @since 1.0.0
    */
   EntityConfigurationBuilder position(final Location position);
 
@@ -83,6 +90,7 @@ public interface EntityConfigurationBuilder {
    * @throws IllegalArgumentException if a size is not positive, the character is empty, or the position has no
    *                                  world
    * @throws NullPointerException     if the viewers, the character, or the position were not set
+   * @since 1.0.0
    */
   EntityConfiguration build();
 }

@@ -58,18 +58,30 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>Writing performs synchronous resource reads and archive creation. Run it off the main thread with stable
  * configuration inputs, and keep the resulting file available for the chosen hosting strategy.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Pack {
 
-  /** The resource pack format of Minecraft 26.3. */
+  /**
+   * The resource pack format of Minecraft 26.3.
+   *
+   * @since 1.0.0
+   */
   public static final int PACK_FORMAT = 97;
 
-  /** The gpu-codec commit recorded in the pack manifest. */
+  /**
+   * The gpu-codec commit recorded in the pack manifest.
+   *
+   * @since 1.0.0
+   */
   public static final String CODEC_COMMIT = "85445433aeb9f8a35a5ce528d47d8829976d1401";
 
   /**
    * The most screens one pack decodes: each costs the client its decode passes on every frame the chain runs, and its
    * page slots a band of the top of the window.
+   *
+   * @since 1.0.0
    */
   public static final int MAXIMUM_SCREENS = 8;
 
@@ -197,6 +209,7 @@ public final class Mcv2Pack {
    * @param archivePath   where the pack is written, atomically
    * @throws UncheckedIOException if the pack cannot be written
    * @throws NullPointerException if {@code configuration}, {@code debugView} or {@code archivePath} is null
+   * @since 1.0.0
    */
   public static void write(final Mcv2Configuration configuration, final DebugView debugView, final Path archivePath) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
@@ -216,6 +229,7 @@ public final class Mcv2Pack {
    *                                  id, or their outline colours differ
    * @throws UncheckedIOException     if the pack cannot be written
    * @throws NullPointerException     if {@code screens}, {@code debugView} or {@code archivePath} is null
+   * @since 1.0.0
    */
   public static void write(final List<Mcv2Configuration> screens, final DebugView debugView, final Path archivePath) {
     Preconditions.checkNotNull(screens, "Screens must not be null!");

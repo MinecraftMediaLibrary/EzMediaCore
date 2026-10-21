@@ -64,6 +64,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>If another plugin replaces a viewer's scoreboard, cleanup leaves that replacement in place. While the
  * viewer remains tracked, ticks do not reclaim the sidebar from the replacing plugin.
+ *
+ * @since 1.0.0
  */
 public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
 
@@ -82,6 +84,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
    *
    * @param configuration the configuration describing the viewers and the size of the scoreboard image
    * @throws NullPointerException if the configuration is null
+   * @since 1.0.0
    */
   public ScoreboardRenderer(final ScoreboardConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
@@ -96,6 +99,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
   /**
    * Creates the scoreboard and shows it to every online viewer. May be called from any thread.
    * @throws IllegalStateException if no plugin was injected
+   * @since 1.0.0
    */
   public void show() {
     this.showDisplay(this::createScoreboard);
@@ -107,6 +111,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
    * @param image the image to render, which is resized to the scoreboard dimensions in place
    * @throws NullPointerException  if the image is null
    * @throws IllegalStateException if the image has been released
+   * @since 1.0.0
    */
   public void render(final ImageBuffer image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
@@ -130,6 +135,8 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
   /**
    * Removes the scoreboard and restores the previous scoreboard of every viewer. May be called from any thread,
    * but call it on the main thread during shutdown, because a disabled plugin cannot schedule the restore anymore.
+   *
+   * @since 1.0.0
    */
   public void hide() {
     this.hideDisplay(this::removeScoreboard);

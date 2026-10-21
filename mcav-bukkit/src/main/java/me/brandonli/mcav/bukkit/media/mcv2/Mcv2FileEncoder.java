@@ -53,6 +53,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * synchronously, and waits for encoding tasks in the supplied budget. It does not dispatch the entire operation
  * off the calling thread. The caller owns the output stream and pool; the frame reader is closed after validated
  * arguments enter the encode operation, including on encoding or I/O failure.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2FileEncoder {
 
@@ -85,6 +87,7 @@ public final class Mcv2FileEncoder {
    * @throws ArithmeticException        if the RGB allocation size overflows an int
    * @throws RejectedExecutionException if the budget rejects the encoding task
    * @throws NullPointerException       if {@code frames}, {@code settings}, {@code budget}, {@code output} or {@code progress} is null
+   * @since 1.0.0
    */
   public static Result encode(
     final FrameReader frames,
@@ -156,6 +159,7 @@ public final class Mcv2FileEncoder {
    * @throws Mcv2Exception            if the file cannot be opened
    * @throws IllegalArgumentException if either dimension is nonpositive
    * @throws NullPointerException     if {@code video} is null
+   * @since 1.0.0
    */
   public static FrameReader ffmpeg(final Path video, final int width, final int height) {
     Preconditions.checkNotNull(video, "Video must not be null!");
@@ -200,7 +204,11 @@ public final class Mcv2FileEncoder {
     }
   }
 
-  /** The frames of a video, one after another, as RGB bytes of one size. */
+  /**
+   * The frames of a video, one after another, as RGB bytes of one size.
+   *
+   * @since 1.0.0
+   */
   public interface FrameReader extends AutoCloseable {
     /**
      * Reads the next frame.
@@ -208,6 +216,7 @@ public final class Mcv2FileEncoder {
      * @param pictureBytes where the frame's pixels go, three bytes per pixel, row by row
      * @return false once the video has no more frames
      * @throws Mcv2Exception if the video cannot be read
+     * @since 1.0.0
      */
     boolean read(byte[] pictureBytes);
 
@@ -215,6 +224,7 @@ public final class Mcv2FileEncoder {
      * Releases the video.
      *
      * @throws Mcv2Exception if the video cannot be released
+     * @since 1.0.0
      */
     @Override
     void close();
@@ -224,6 +234,8 @@ public final class Mcv2FileEncoder {
    * What an encode did.
    *
    * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   public static final class Result {
 
@@ -247,6 +259,7 @@ public final class Mcv2FileEncoder {
      * @param bytes       the MCV2 frame bytes, excluding each four-byte length prefix
      * @param nanoseconds the time the encodes took, waiting for the budget's threads included
      * @return the result
+     * @since 1.0.0
      */
     public static Result of(final long frames, final long keyframes, final long bytes, final long nanoseconds) {
       return new Result(frames, keyframes, bytes, nanoseconds);
@@ -256,6 +269,7 @@ public final class Mcv2FileEncoder {
      * Returns the mean time a frame took.
      *
      * @return milliseconds per frame, 0 without frames
+     * @since 1.0.0
      */
     public double millisecondsPerFrame() {
       return this.frames == 0 ? 0 : this.nanoseconds / NANOSECONDS_PER_MILLISECOND / this.frames;
@@ -265,6 +279,7 @@ public final class Mcv2FileEncoder {
      * Returns the number of frames encoded.
      *
      * @return the frames encoded
+     * @since 1.0.0
      */
     public long getFrames() {
       return this.frames;
@@ -274,6 +289,7 @@ public final class Mcv2FileEncoder {
      * Returns how many of the frames were keyframes.
      *
      * @return how many of them were keyframes
+     * @since 1.0.0
      */
     public long getKeyframes() {
       return this.keyframes;
@@ -283,6 +299,7 @@ public final class Mcv2FileEncoder {
      * Returns the MCV2 frame bytes, excluding each four-byte length prefix.
      *
      * @return the MCV2 frame bytes, excluding each four-byte length prefix
+     * @since 1.0.0
      */
     public long getBytes() {
       return this.bytes;
@@ -292,6 +309,7 @@ public final class Mcv2FileEncoder {
      * Returns the time the encodes took in nanoseconds.
      *
      * @return the time the encodes took, waiting for the budget's threads included
+     * @since 1.0.0
      */
     public long getNanoseconds() {
       return this.nanoseconds;
@@ -302,6 +320,7 @@ public final class Mcv2FileEncoder {
      *
      * @param other the object to compare with
      * @return whether every part matches
+     * @since 1.0.0
      */
     @Override
     public boolean equals(final @Nullable Object other) {
@@ -325,6 +344,7 @@ public final class Mcv2FileEncoder {
      * Returns a hash code built from every part.
      *
      * @return the hash code
+     * @since 1.0.0
      */
     @Override
     public int hashCode() {
@@ -335,6 +355,7 @@ public final class Mcv2FileEncoder {
      * Returns a debugging representation with every part.
      *
      * @return the representation
+     * @since 1.0.0
      */
     @Override
     public String toString() {

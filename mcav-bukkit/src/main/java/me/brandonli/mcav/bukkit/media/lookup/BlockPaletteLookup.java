@@ -47,6 +47,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>The palette is loaded lazily the first time it is needed, which takes a moment because the color lookup
  * tables have to be built. Call {@link #initialize()} during startup to do that work ahead of time. All methods are
  * thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class BlockPaletteLookup {
 
@@ -67,6 +69,8 @@ public final class BlockPaletteLookup {
   /**
    * Loads the block palette and builds all lookup tables. Calling this method is optional, but it avoids a delay
    * the first time a block display is used.
+   *
+   * @since 1.0.0
    */
   public static void initialize() {
     Holder.initialize();
@@ -78,6 +82,7 @@ public final class BlockPaletteLookup {
    * @param color the RGB color, which should be one of the colors produced by {@link #getDither()}; the
    *              alpha channel is ignored
    * @return the block with the given average color, or {@link Material#AIR} if no block has that color
+   * @since 1.0.0
    */
   public static Material getMaterial(final int color) {
     final int rgb = color & RGB_MASK;
@@ -96,6 +101,7 @@ public final class BlockPaletteLookup {
    * @param color the RGB color, which should be one of the colors produced by {@link #getDither()}; the
    *              alpha channel is ignored
    * @return the block data with the given average color, or air if no block has that color
+   * @since 1.0.0
    */
   public static BlockData getBlockData(final int color) {
     final int rgb = color & RGB_MASK;
@@ -114,6 +120,7 @@ public final class BlockPaletteLookup {
    * use independently owned input buffers for concurrent calls.
    *
    * @return the dithering algorithm for the block palette
+   * @since 1.0.0
    */
   public static FilterLiteDither getDither() {
     return Holder.DITHERING;

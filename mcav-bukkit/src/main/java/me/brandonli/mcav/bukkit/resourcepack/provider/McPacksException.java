@@ -25,6 +25,8 @@ import me.brandonli.mcav.bukkit.BukkitException;
  *
  * <p>The upload depends on the network and on a remote service, so trying again later may succeed; a plugin can also
  * catch it and fall back to another hosting.
+ *
+ * @since 1.0.0
  */
 public final class McPacksException extends BukkitException {
 

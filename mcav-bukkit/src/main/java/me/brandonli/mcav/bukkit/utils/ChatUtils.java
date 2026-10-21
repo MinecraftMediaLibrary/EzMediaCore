@@ -31,6 +31,8 @@ import org.bukkit.craftbukkit.util.CraftChatMessage;
  * <p>Text is built with legacy section sign color codes, because they are the most compact way to describe a
  * color per character. A hex color is written as {@code §x§r§r§g§g§b§b}, and a color code is only emitted when
  * the color differs from the previous character, which keeps the text as short as possible.
+ *
+ * @since 1.0.0
  */
 public final class ChatUtils {
 
@@ -63,6 +65,7 @@ public final class ChatUtils {
    * @param index a non-negative index
    * @return an invisible string that is unique for every index
    * @throws IllegalArgumentException if the index is negative
+   * @since 1.0.0
    */
   public static String getUniqueString(final int index) {
     Preconditions.checkArgument(index >= 0, "Index must be non-negative!");
@@ -91,6 +94,7 @@ public final class ChatUtils {
    * @return the row as text with legacy section sign color codes
    * @throws IllegalArgumentException if width is nonpositive or the requested zero-based row is outside the data
    * @throws NullPointerException     if {@code data} or {@code character} is null
+   * @since 1.0.0
    */
   public static String createRawLine(final int[] data, final String character, final int width, final int row) {
     Preconditions.checkNotNull(data, PIXELS_NULL_MESSAGE);
@@ -118,6 +122,7 @@ public final class ChatUtils {
    * @return a chat component showing the image
    * @throws IllegalArgumentException if either dimension is nonpositive or the image requires more pixels than supplied
    * @throws NullPointerException     if {@code data} or {@code character} is null
+   * @since 1.0.0
    */
   public static Component createChatComponent(final int[] data, final String character, final int width, final int height) {
     Preconditions.checkNotNull(data, PIXELS_NULL_MESSAGE);
@@ -170,6 +175,7 @@ public final class ChatUtils {
    *
    * @param viewers the UUIDs of the players to clear the chat for
    * @throws NullPointerException if {@code viewers} is null
+   * @since 1.0.0
    */
   public static void clearChat(final Collection<UUID> viewers) {
     Preconditions.checkNotNull(viewers, "Viewers must not be null!");

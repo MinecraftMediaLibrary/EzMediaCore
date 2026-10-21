@@ -30,6 +30,8 @@ import me.brandonli.mcav.bukkit.media.result.Characters;
  *
  * <p>The viewers collection is not copied. It is read for every frame, so a concurrent collection can be passed
  * to add or remove viewers while media is playing.
+ *
+ * @since 1.0.0
  */
 public final class ChatConfiguration {
 
@@ -49,6 +51,7 @@ public final class ChatConfiguration {
    * Creates a new builder for a chat configuration.
    *
    * @return a new builder
+   * @since 1.0.0
    */
   public static ChatConfigurationBuilder builder() {
     return new DefaultChatConfigurationBuilder();
@@ -59,6 +62,7 @@ public final class ChatConfiguration {
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
    *         concurrent collection if another thread changes membership during rendering
+   * @since 1.0.0
    */
   public Collection<UUID> getViewers() {
     return this.viewers;
@@ -69,6 +73,7 @@ public final class ChatConfiguration {
    *
    * @return the pixel text
    * @see Characters
+   * @since 1.0.0
    */
   public String getCharacter() {
     return this.character;
@@ -78,6 +83,7 @@ public final class ChatConfiguration {
    * Returns the width of the image in characters.
    *
    * @return the width in characters
+   * @since 1.0.0
    */
   public int getChatWidth() {
     return this.chatWidth;
@@ -87,6 +93,7 @@ public final class ChatConfiguration {
    * Returns the height of the image in lines.
    *
    * @return the height in lines
+   * @since 1.0.0
    */
   public int getChatHeight() {
     return this.chatHeight;

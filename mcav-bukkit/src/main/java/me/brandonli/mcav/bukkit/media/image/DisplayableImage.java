@@ -46,6 +46,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  * <p>Calls may originate on a worker thread, but serialize display and release operations for a given instance.
  * For block, entity and scoreboard displays, release on the server main thread during plugin shutdown so cleanup
  * does not depend on a disabled plugin scheduling another task. Instances can display another image after release.
+ *
+ * @since 1.0.0
  */
 public interface DisplayableImage {
   /**
@@ -54,6 +56,7 @@ public interface DisplayableImage {
    * @param image the non-null, open caller-owned image, which may be resized in place; do not share it with
    *              another writer during this call
    * @throws NullPointerException if the image is null
+   * @since 1.0.0
    */
   void displayImage(final ImageBuffer image);
 
@@ -61,6 +64,8 @@ public interface DisplayableImage {
    * Releases the current display: removes its entity, restores saved block/scoreboard state, or clears maps/chat.
    * May be called from any thread while the plugin is enabled; use the main thread during plugin shutdown.
    * Buffers passed to {@link #displayImage(ImageBuffer)} and caller-supplied dithering algorithms remain caller-owned.
+   *
+   * @since 1.0.0
    */
   void release();
 
@@ -73,6 +78,7 @@ public interface DisplayableImage {
    * @param algorithm     the dithering algorithm used to reduce images to the map palette
    * @return the map display
    * @throws NullPointerException if {@code configuration} or {@code algorithm} is null
+   * @since 1.0.0
    */
   static DisplayableImage map(final MapConfiguration configuration, final DitherAlgorithm algorithm) {
     Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
@@ -87,6 +93,7 @@ public interface DisplayableImage {
    * @param configuration the chat configuration
    * @return the chat display
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   static DisplayableImage chat(final ChatConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Chat configuration must not be null!");
@@ -100,6 +107,7 @@ public interface DisplayableImage {
    * @param configuration the entity configuration
    * @return the entity display
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   static DisplayableImage entity(final EntityConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Entity configuration must not be null!");
@@ -113,6 +121,7 @@ public interface DisplayableImage {
    * @param configuration the scoreboard configuration
    * @return the scoreboard display
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   static DisplayableImage scoreboard(final ScoreboardConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Scoreboard configuration must not be null!");
@@ -126,6 +135,7 @@ public interface DisplayableImage {
    * @param configuration the block configuration
    * @return the block display
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   static DisplayableImage block(final BlockConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Block configuration must not be null!");
