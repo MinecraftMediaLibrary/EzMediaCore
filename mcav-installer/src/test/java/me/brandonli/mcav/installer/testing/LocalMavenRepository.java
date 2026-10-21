@@ -50,7 +50,7 @@ public final class LocalMavenRepository {
   }
 
   /**
-   * Gets the URL of the repository for the resolver.
+   * Returns the URL of the repository for the resolver.
    *
    * @return the {@code file:} URL of the directory
    */
@@ -61,7 +61,7 @@ public final class LocalMavenRepository {
   }
 
   /**
-   * Gets the name of the resource every jar of an artifact contains.
+   * Returns the name of the resource every jar of an artifact contains.
    *
    * @param artifactId the artifact id
    * @return the resource name
@@ -126,7 +126,7 @@ public final class LocalMavenRepository {
   }
 
   /**
-   * Gets the directory of one version of an artifact.
+   * Returns the directory of one version of an artifact.
    *
    * @param groupId    the group id
    * @param artifactId the artifact id
@@ -210,7 +210,7 @@ public final class LocalMavenRepository {
   }
 
   /**
-   * Gets the SHA-1 checksum file of a published file.
+   * Returns the SHA-1 checksum file of a published file.
    *
    * @param file the published file
    * @return the checksum file next to it

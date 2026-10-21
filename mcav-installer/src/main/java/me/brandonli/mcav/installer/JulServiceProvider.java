@@ -51,7 +51,7 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
   }
 
   /**
-   * Gets the factory of loggers, each of which writes to the {@code java.util.logging} logger of its name.
+   * Returns the factory of loggers, each of which writes to the {@code java.util.logging} logger of its name.
    *
    * @return the factory
    */
@@ -61,7 +61,7 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
   }
 
   /**
-   * Gets SLF4J's basic factory of markers; {@code java.util.logging} has no markers, so they are dropped.
+   * Returns SLF4J's basic factory of markers; {@code java.util.logging} has no markers, so they are dropped.
    *
    * @return the factory
    */
@@ -71,7 +71,7 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
   }
 
   /**
-   * Gets an adapter that keeps no context, as {@code java.util.logging} has none.
+   * Returns an adapter that keeps no context, as {@code java.util.logging} has none.
    *
    * @return the adapter
    */
@@ -81,7 +81,7 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
   }
 
   /**
-   * Gets the version of the SLF4J API this provider is written against.
+   * Returns the version of the SLF4J API this provider is written against.
    *
    * @return {@value #API_VERSION}
    */

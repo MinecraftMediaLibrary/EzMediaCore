@@ -76,7 +76,7 @@ public enum Artifact {
   }
 
   /**
-   * Gets the Maven artifact id of the module.
+   * Returns the Maven artifact id of the module.
    *
    * @return the artifact id, such as {@code mcav-common}
    */

@@ -78,7 +78,7 @@ abstract class URLClassLoaderInjector {
   abstract void addURL(final URL url);
 
   /**
-   * Gets the class loader jars are added to.
+   * Returns the class loader jars are added to.
    *
    * @return the class loader
    */

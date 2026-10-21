@@ -328,7 +328,7 @@ final class InstallationManager implements AutoCloseable {
   }
 
   /**
-   * Gets the path a jar is copied to: {@code <target>/<groupId>/<artifactId>/<fileName>}. Visible for testing.
+   * Returns the path a jar is copied to: {@code <target>/<groupId>/<artifactId>/<fileName>}. Visible for testing.
    *
    * @param target     the folder of the installed artifact
    * @param groupId    the group id of the jar

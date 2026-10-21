@@ -75,7 +75,7 @@ public final class MCAVInstaller {
   }
 
   /**
-   * Gets the folder the jars are copied into.
+   * Returns the folder the jars are copied into.
    *
    * @return the folder
    */
@@ -84,7 +84,7 @@ public final class MCAVInstaller {
   }
 
   /**
-   * Gets the class loader the jars are added to.
+   * Returns the class loader the jars are added to.
    *
    * @return the class loader
    */

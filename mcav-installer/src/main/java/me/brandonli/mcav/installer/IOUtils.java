@@ -29,7 +29,7 @@ final class IOUtils {
   }
 
   /**
-   * Gets the file name of a path.
+   * Returns the file name of a path.
    *
    * @param file the path
    * @return the last element of the path
