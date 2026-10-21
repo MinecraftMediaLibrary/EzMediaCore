@@ -111,26 +111,31 @@ final class DiscordPlayerImplTest {
   private static void assertFrameHolds(final ByteBuffer frame, final byte before, final int split, final byte after) {
     assertNotNull(frame);
     final byte[] bytes = contentOf(frame);
-    assertEquals(before, bytes[0]);
-    assertEquals(before, bytes[split - 1]);
-    assertEquals(after, bytes[split]);
-    assertEquals(after, bytes[FRAME_BYTES - 1]);
+    final byte first = bytes[0];
+    final byte lastBeforeSplit = bytes[split - 1];
+    final byte firstAfterSplit = bytes[split];
+    final byte last = bytes[FRAME_BYTES - 1];
+    assertEquals(before, first);
+    assertEquals(before, lastBeforeSplit);
+    assertEquals(after, firstAfterSplit);
+    assertEquals(after, last);
   }
 
   @Test
-  void aFrameHoldsTwentyMillisecondsOfStereoSixteenBitAudio() {
-    assertEquals(FRAME_BYTES, DiscordPlayerImpl.FRAME_BYTES);
+  void shouldHoldTwentyMillisecondsOfStereoSixteenBitAudioInAFrame() {
+    final int frameBytes = DiscordPlayerImpl.FRAME_BYTES;
+    assertEquals(FRAME_BYTES, frameBytes);
   }
 
   @Test
-  void factoryCreatesTheDefaultPlayerAndRejectsNull() {
+  void shouldCreateTheDefaultPlayerAndRejectNull() {
     final DiscordPlayer player = DiscordPlayer.voice(this.jda);
     assertInstanceOf(DiscordPlayerImpl.class, player);
     assertThrows(NullPointerException.class, () -> DiscordPlayer.voice(null));
   }
 
   @Test
-  void startsEmptyAndSendsPcmRatherThanOpus() {
+  void shouldStartEmptyAndSendPcmRatherThanOpus() {
     final DiscordPlayerImpl player = this.createPlayer();
     final boolean canProvide = player.canProvide();
     final ByteBuffer frame = player.provide20MsAudio();
@@ -143,7 +148,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void convertsLittleEndianSamplesToBigEndianFrames() {
+  void shouldConvertLittleEndianSamplesToBigEndianFrames() {
     final DiscordPlayerImpl player = this.createPlayer();
     final ByteBuffer samples = ByteBuffer.allocate(FRAME_BYTES);
     samples.order(ByteOrder.LITTLE_ENDIAN);
@@ -169,7 +174,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void treatsSamplesAsLittleEndianWhateverOrderTheBufferReports() {
+  void shouldTreatSamplesAsLittleEndianWhateverOrderTheBufferReports() {
     final DiscordPlayerImpl player = this.createPlayer();
     final ByteBuffer samples = ByteBuffer.allocate(FRAME_BYTES);
     samples.order(ByteOrder.LITTLE_ENDIAN);
@@ -195,7 +200,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void setPlayingStripsSurroundingWhitespace() {
+  void shouldStripSurroundingWhitespaceFromTheTitle() {
     final DiscordPlayerImpl player = this.createPlayer();
     player.setPlaying("  \t Song \n");
     final String name = this.shownActivityName();
@@ -203,7 +208,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void setPlayingShowsUnknownTitleForBlankTitles() {
+  void shouldShowUnknownTitleForBlankTitles() {
     final DiscordPlayerImpl player = this.createPlayer();
     final List<String> blanks = List.of("", "   ", "\n\t");
     for (final String blank : blanks) {
@@ -214,17 +219,18 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void keepsTitlesOfExactlyTheMaximumLength() {
+  void shouldKeepTitlesOfExactlyTheMaximumLength() {
     final DiscordPlayerImpl player = this.createPlayer();
     final String title = "a".repeat(128);
     player.setPlaying("  " + title + "  ");
     final String name = this.shownActivityName();
+    final int maximumLength = Activity.MAX_ACTIVITY_NAME_LENGTH;
     assertEquals(title, name);
-    assertEquals(128, Activity.MAX_ACTIVITY_NAME_LENGTH);
+    assertEquals(128, maximumLength);
   }
 
   @Test
-  void cutsTitlesLongerThanTheMaximumLengthAndEndsThemWithAnEllipsis() {
+  void shouldCutTitlesLongerThanTheMaximumLengthAndEndThemWithAnEllipsis() {
     final DiscordPlayerImpl player = this.createPlayer();
     final StringBuilder builder = new StringBuilder();
     for (int index = 0; index < 300; index++) {
@@ -247,7 +253,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void cutsLongTitlesWithoutSplittingAnEmoji() {
+  void shouldCutLongTitlesWithoutSplittingAnEmoji() {
     final DiscordPlayerImpl player = this.createPlayer();
     final String emoji = "😀";
     final String tail = "b".repeat(10);
@@ -265,7 +271,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void collectsPartialInputUntilAFrameIsComplete() {
+  void shouldCollectPartialInputUntilAFrameIsComplete() {
     final DiscordPlayerImpl player = this.createPlayer();
     final ByteBuffer first = filledBuffer(1000, (byte) 1);
     player.applyFilter(first, this.metadata);
@@ -291,7 +297,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void splitsLargeInputIntoSeveralFrames() {
+  void shouldSplitLargeInputIntoSeveralFrames() {
     final DiscordPlayerImpl player = this.createPlayer();
     final ByteBuffer samples = filledBuffer(FRAME_BYTES * 3 + 10, (byte) 7);
     player.applyFilter(samples, this.metadata);
@@ -308,7 +314,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void dropsTheOldestFramesWhenThreeSecondsAreQueued() {
+  void shouldDropTheOldestFramesWhenThreeSecondsAreQueued() {
     final DiscordPlayerImpl player = this.createPlayer();
     for (int index = 0; index < MAX_FRAMES + 2; index++) {
       final ByteBuffer frame = filledBuffer(FRAME_BYTES, (byte) index);
@@ -326,7 +332,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void flushDropsQueuedFramesAndThePartialFrame() {
+  void shouldDropQueuedFramesAndThePartialFrameOnFlush() {
     final DiscordPlayerImpl player = this.createPlayer();
     final ByteBuffer frames = filledBuffer(FRAME_BYTES * 2 + 500, (byte) 5);
     player.applyFilter(frames, this.metadata);
@@ -351,7 +357,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void acceptsEmptyInput() {
+  void shouldAcceptEmptyInput() {
     final DiscordPlayerImpl player = this.createPlayer();
     final ByteBuffer empty = ByteBuffer.allocate(0);
     final boolean changed = player.applyFilter(empty, this.metadata);
@@ -361,7 +367,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void rejectsNullSamplesAndMetadata() {
+  void shouldRejectNullSamplesAndMetadata() {
     final DiscordPlayerImpl player = this.createPlayer();
     final ByteBuffer samples = ByteBuffer.allocate(FRAME_BYTES);
     assertThrows(NullPointerException.class, () -> player.applyFilter(null, this.metadata));
@@ -412,7 +418,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void queuesEveryFrameFromConcurrentProducers() throws Exception {
+  void shouldQueueEveryFrameFromConcurrentProducers() throws Exception {
     final DiscordPlayerImpl player = this.createPlayer();
     this.produceConcurrently(player);
     final long queued = player.getQueuedMillis();
@@ -425,7 +431,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void setPlayingShowsTheTitleAsTheActivityOfTheBot() {
+  void shouldShowTheTitleAsTheActivityOfTheBot() {
     final DiscordPlayerImpl player = this.createPlayer();
     player.setPlaying("Never Gonna Give You Up");
     final ArgumentCaptor<Activity> captor = ArgumentCaptor.forClass(Activity.class);
@@ -445,7 +451,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void setCurrentMediaShowsTheTitleOfTheDump() {
+  void shouldShowTheTitleOfTheDump() {
     final DiscordPlayerImpl player = this.createPlayer();
     final UrlParseDump dump = UrlParseDump.of("Some Video");
     player.setCurrentMedia(dump);
@@ -457,7 +463,7 @@ final class DiscordPlayerImplTest {
   }
 
   @Test
-  void setCurrentMediaFallsBackForMissingOrBlankTitles() {
+  void shouldShowUnknownTitleForMissingOrBlankTitlesOfTheDump() {
     final DiscordPlayerImpl player = this.createPlayer();
     final UrlParseDump missing = GsonProvider.getSimple().fromJson("{}", UrlParseDump.class);
     final UrlParseDump blank = UrlParseDump.of("   ");

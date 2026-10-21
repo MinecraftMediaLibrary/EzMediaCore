@@ -31,20 +31,23 @@ import org.w3c.dom.Document;
 final class PublishedDependenciesTest {
 
   @Test
-  void publishesTheDependencyVersionsUsedByTheLibrary() throws Exception {
+  void shouldPublishTheDependencyVersionsUsedByTheLibrary() throws Exception {
     final Document document = publishedPom();
     assertPublishedVersion(document, JsonFactory.class, "com.fasterxml.jackson.core", "jackson-core");
     assertPublishedVersion(document, ObjectMapper.class, "com.fasterxml.jackson.core", "jackson-databind");
   }
 
   @Test
-  void importsTheJacksonBillOfMaterials() throws Exception {
+  void shouldImportTheJacksonBillOfMaterials() throws Exception {
     final Document document = publishedPom();
     final String dependency =
       "/project/dependencyManagement/dependencies/dependency[groupId='com.fasterxml.jackson' and artifactId='jackson-bom']";
-    assertEquals("pom", value(document, dependency + "/type"));
-    assertEquals("import", value(document, dependency + "/scope"));
-    assertEquals(ObjectMapper.class.getPackage().getImplementationVersion(), value(document, dependency + "/version"));
+    final String type = value(document, dependency + "/type");
+    final String scope = value(document, dependency + "/scope");
+    final String version = value(document, dependency + "/version");
+    assertEquals("pom", type);
+    assertEquals("import", scope);
+    assertEquals(ObjectMapper.class.getPackage().getImplementationVersion(), version);
   }
 
   private static Document publishedPom() throws Exception {
@@ -58,8 +61,10 @@ final class PublishedDependenciesTest {
     final String version = type.getPackage().getImplementationVersion();
     assertNotNull(version, "the resolved library declares its implementation version");
     final String dependency = "/project/dependencies/dependency[groupId='%s' and artifactId='%s']".formatted(group, artifact);
-    assertEquals(version, value(document, dependency + "/version"), "Maven consumers need the resolved version of " + artifact);
-    assertEquals("runtime", value(document, dependency + "/scope"));
+    final String publishedVersion = value(document, dependency + "/version");
+    final String scope = value(document, dependency + "/scope");
+    assertEquals(version, publishedVersion, "Maven consumers need the resolved version of " + artifact);
+    assertEquals("runtime", scope);
   }
 
   private static String value(final Document document, final String expression) throws Exception {

@@ -31,14 +31,14 @@ import org.mockito.Mockito;
 final class JDAModuleTest {
 
   @Test
-  void isNamedJda() {
+  void shouldBeNamedJda() {
     final JDAModule module = new JDAModule();
     final String name = module.getModuleName();
     assertEquals("jda", name);
   }
 
   @Test
-  void startsAndStopsWithoutHoldingResources() {
+  void shouldStartAndStopWithoutHoldingResources() {
     final JDAModule module = new JDAModule();
     try (final MockedStatic<JDABuilder> builders = Mockito.mockStatic(JDABuilder.class)) {
       assertDoesNotThrow(module::start);
