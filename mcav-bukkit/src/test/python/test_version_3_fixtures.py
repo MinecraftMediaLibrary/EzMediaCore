@@ -121,7 +121,7 @@ class FixtureToolTest(unittest.TestCase):
                 mcv2_tools.fixtures_conformance(root)
 
             warnings = messages.getvalue()
-            self.assertIn('skip non-v3 stream:', warnings)
+            self.assertIn('old.mcs, which is not MCV2 version 3.', warnings)
 
             digests = (output / 'digests.json').read_text()
             self.assertEqual(old_digests, digests)

@@ -60,7 +60,8 @@ def bd_rate(reference_points, test):
     low = max(reference_qualities.min(), test_qualities.min())
     high = min(reference_qualities.max(), test_qualities.max())
     if high <= low:
-        raise ValueError("the curves share no quality range")
+        message: str = "The curves share no quality range!"
+        raise ValueError(message)
     reference_fit = numpy.polyfit(reference_qualities, reference_rates, 3)
     test_fit = numpy.polyfit(test_qualities, test_rates, 3)
     reference_area = numpy.polyval(numpy.polyint(reference_fit), high) - numpy.polyval(
@@ -91,7 +92,8 @@ def bd_rate_main():
     reference_points = bd_rate_points(arguments.reference, arguments.rate, arguments.metric)
     test = bd_rate_points(arguments.test, arguments.rate, arguments.metric)
     if len(reference_points) < 4 or len(test) < 4:
-        sys.exit("each curve needs at least four points")
+        message: str = "Each curve needs at least four points!"
+        sys.exit(message)
     delta, low, high = bd_rate(reference_points, test)
     print(
         json.dumps(
@@ -200,7 +202,8 @@ def codec_curves_run(command):
     started = time.perf_counter()
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
-        raise RuntimeError(f"{command[0]} failed: {result.stderr[-2000:]}")
+        message: str = f"Command {command[0]} failed!\n{result.stderr[-2000:]}"
+        raise RuntimeError(message)
     return (result, time.perf_counter() - started)
 
 
@@ -258,7 +261,8 @@ def codec_curves_point(arguments, codec, quality, folder):
     frame_bytes = arguments.width * arguments.height * 3
     decoded_frames, remainder = divmod(os.path.getsize(decoded), frame_bytes)
     if remainder or decoded_frames != arguments.frames:
-        raise RuntimeError(f"{codec} {quality}: decoded {decoded_frames} frames, expected {arguments.frames}")
+        message: str = f"Codec {codec} at quality {quality} decoded {decoded_frames} frames instead of {arguments.frames} frames!"
+        raise RuntimeError(message)
     score = [
         arguments.ffmpeg,
         "-hide_banner",
@@ -278,7 +282,8 @@ def codec_curves_point(arguments, codec, quality, folder):
     vmaf = json.loads(Path(log).read_text())
     frames = [frame["metrics"]["vmaf"] for frame in vmaf["frames"]]
     if len(frames) != arguments.frames:
-        raise RuntimeError(f"{codec} {quality}: libvmaf scored {len(frames)} frames")
+        message: str = f"Codec {codec} at quality {quality} got {len(frames)} libvmaf scores for {arguments.frames} frames!"
+        raise RuntimeError(message)
     container_bytes = os.path.getsize(encoded)
     seconds = arguments.frames / arguments.fps
     version = codec_curves_VERSION_PATTERNS[codec]
@@ -328,11 +333,13 @@ def codec_curves_resume(out, name, identity):
     measured = json.loads(Path(out).read_text()) if os.path.exists(out) else {"sources": {}, "codecs": []}
     if "points" in measured:
         if "codecs" in measured:
-            raise ValueError("%s holds both points and codecs; resolve the two datasets first" % out)
+            message: str = f"Dataset {out} holds both points and codecs; resolve the two datasets first!"
+            raise ValueError(message)
         measured["codecs"] = measured.pop("points")
     previous = measured["sources"].get(name)
     if previous is not None and any(previous.get(key) != value for key, value in identity.items()):
-        raise ValueError("%s already has measurements of other content; use another --name" % name)
+        message: str = f"Name {name} already has measurements of other content; use another --name!"
+        raise ValueError(message)
     measured["sources"][name] = identity
     return measured
 
@@ -445,10 +452,9 @@ def counter_video_main():
         or width < counter_video_BLOCK * (counter_video_BITS + len(counter_video_SYNC))
         or height < counter_video_BLOCK
     ):
-        sys.exit(
-            "the clip must have a frame at least %d pixels wide and %d high"
-            % (counter_video_BLOCK * (counter_video_BITS + len(counter_video_SYNC)), counter_video_BLOCK)
-        )
+        minimum_width: int = counter_video_BLOCK * (counter_video_BITS + len(counter_video_SYNC))
+        message: str = f"The clip must have a frame at least {minimum_width} pixels wide and {counter_video_BLOCK} pixels high!"
+        sys.exit(message)
     frames = int(arguments.seconds * arguments.fps)
     raw = arguments.out.endswith(".rgb")
     encoder = (
@@ -911,9 +917,11 @@ def edge_streams_generate(output, seed=edge_streams_DEFAULT_SEED):
             parse_frame(bytes.fromhex(case["frame"]))
         except ValueError as error:
             if case["reason"] not in str(error):
-                raise ValueError(f"{name}: expected {case['reason']!r}, got {str(error)!r}") from error
+                message: str = f"Fixture {name} must be rejected for {case['reason']!r}, but it was rejected for {str(error)!r} instead!"
+                raise ValueError(message) from error
         else:
-            raise ValueError(f"{name}: rejected fixture was accepted")
+            message: str = f"Rejected fixture {name} was accepted!"
+            raise ValueError(message)
     output.joinpath("rejected.json").write_text(json.dumps(rejected, indent=1) + "\n")
     print(
         json.dumps(
@@ -942,11 +950,13 @@ def archive_frames(data):
     offset = 0
     while offset < len(data):
         if offset + 4 > len(data):
-            raise ValueError("truncated archive length")
+            message: str = "The archive has a truncated frame length!"
+            raise ValueError(message)
         length = struct.unpack_from("<I", data, offset)[0]
         offset += 4
         if offset + length > len(data):
-            raise ValueError("truncated archive frame")
+            message: str = "The archive has a truncated frame!"
+            raise ValueError(message)
         yield data[offset : offset + length]
         offset += length
 
@@ -973,9 +983,10 @@ def fixtures_version_3_stream(path):
     data = path.read_bytes()
     kept = list(archive_frames(data))
     if not kept:
-        raise ValueError(f"{path}: empty archive")
+        message: str = f"Archive {path} is empty!"
+        raise ValueError(message)
     if kept[0][:5] != b"MCV2\x03":
-        print(f"skip non-v3 stream: {path}", file=sys.stderr)
+        print(f"Skipping stream {path}, which is not MCV2 version 3.", file=sys.stderr)
         return None
     return (data, kept)
 
@@ -991,12 +1002,11 @@ def fixtures_conformance(root):
             continue
         data, kept = result
         if len(data) > fixtures_PREFIX_LIMIT or not parse_frame(kept[0]).keyframe:
-            raise ValueError(
-                f"{stream}: conformance must start with a keyframe and fit within {fixtures_PREFIX_LIMIT} bytes"
-            )
+            message: str = f"Conformance stream {stream} must start with a keyframe and fit within {fixtures_PREFIX_LIMIT} bytes!"
+            raise ValueError(message)
         table[stream.name] = dict(frames=len(kept), bytes=len(data), sha256_per_frame=fixtures_digests(data))
         updated = True
-        print(f"{stream.name}: {len(kept)} v3 frames checked", file=sys.stderr)
+        print(f"Checked {len(kept)} v3 frames of {stream.name}.", file=sys.stderr)
     if updated:
         fixtures_write_json(path, table)
 
@@ -1058,8 +1068,8 @@ def fixtures_encoder(root):
             continue
         decoded = fixtures_digests(result[0])
         checked += 1
-        print(f"{stream.name}: {len(decoded)} golden v3 frames decoded", file=sys.stderr)
-    print(f"encoder: {checked} committed v3 golden streams checked; files unchanged", file=sys.stderr)
+        print(f"Decoded {len(decoded)} golden v3 frames of {stream.name}.", file=sys.stderr)
+    print(f"Checked {checked} committed v3 golden encoder streams; the files are unchanged.", file=sys.stderr)
 
 
 def fixtures_main():
@@ -1092,7 +1102,8 @@ def differential_mutant(original, randomizer):
     mutated = [bytearray(frame) for frame in original]
     nonempty = [index for index, frame in enumerate(mutated) if frame]
     if not nonempty:
-        raise ValueError("mutation requires a nonempty frame")
+        message: str = "A mutation needs a nonempty frame!"
+        raise ValueError(message)
     if randomizer.random() < 0.15:
         victim = randomizer.choice(nonempty)
         mutated[victim] = mutated[victim][: randomizer.randrange(len(mutated[victim]))]
@@ -1124,12 +1135,14 @@ def differential_build_archives(arguments):
     }
     corpus = sorted(arguments.corpus.glob("*.mcs"))
     if arguments.conformance and (not corpus):
-        raise ValueError(f"no committed conformance archives in {arguments.corpus}")
+        message: str = f"Corpus {arguments.corpus} has no committed conformance archives!"
+        raise ValueError(message)
     for index in range(arguments.conformance):
         path = corpus[index % len(corpus)]
         chunks = list(read_archive(path))
         if not chunks:
-            raise ValueError(f"empty conformance archive: {path}")
+            message: str = f"Conformance archive {path} is empty!"
+            raise ValueError(message)
         archives[f"conformance-{index:04d}-{path.stem}"] = chunks
     for name, chunks in list(archives.items()):
         for index in range(arguments.mutants):
@@ -1188,7 +1201,8 @@ def differential_run(arguments):
         path, *tokens = line.split(" ")
         name = Path(path).stem
         if name in actual:
-            raise ValueError(f"duplicate Java output for {name}")
+            message: str = f"Java printed the output of {name} twice!"
+            raise ValueError(message)
         actual[name] = tokens
     counts, disagreements = differential_compare(expected, actual)
     summary = dict(seed=arguments.seed, counts=counts, disagreements=disagreements)
@@ -1220,7 +1234,8 @@ def differential_main():
         min(arguments.streams, arguments.conformance, arguments.mutants) < 0
         or arguments.streams + arguments.conformance == 0
     ):
-        parser.error("archive counts must be nonnegative and at least one archive is required")
+        message: str = "Archive counts must be nonnegative, and at least one archive is required!"
+        parser.error(message)
     sys.exit(differential_run(arguments))
 
 
@@ -1862,7 +1877,8 @@ def shader_timing_main():
     parser.add_argument("--spirv", metavar="CLASSPATH", help=SPIRV_HELP)
     arguments = parser.parse_args()
     if arguments.rounds < 2 or arguments.repeats < 1 or arguments.slots < 1:
-        parser.error("need at least two rounds, one repeat and one page slot")
+        message: str = "The run needs at least two rounds, one repeat and one page slot!"
+        parser.error(message)
     if arguments.pack:
         shader_check_PACK = arguments.pack
     import moderngl
@@ -1969,7 +1985,8 @@ def strip_check_page_symbols(screen, slot, rows):
 
 def strip_check_read_strip_page(symbols):
     if len(symbols) < strip_check_HEADER_SYMBOLS:
-        raise ValueError("truncated strip page header")
+        message: str = "The strip page header is truncated!"
+        raise ValueError(message)
     bits = (
         (symbols[:strip_check_HEADER_SYMBOLS, None] >> numpy.arange(SYMBOL_BITS) & 1)
         .astype(numpy.uint8)
@@ -2016,7 +2033,8 @@ def strip_check_main():
     total_slots = arguments.total_slots if arguments.total_slots is not None else arguments.slots
     captures = sorted(arguments.captures.glob("*.png"))
     if not captures:
-        parser.error("%s holds no PNG screenshots" % arguments.captures)
+        message: str = f"Folder {arguments.captures} holds no PNG screenshots!"
+        parser.error(message)
     valid, invalid, frames = (Counter(), Counter(), set())
     descriptors, decisions, failures, counts = (0, Counter(), [], [])
     squared = 0

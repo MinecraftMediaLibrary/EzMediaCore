@@ -113,7 +113,7 @@ class DifferentialTest(unittest.TestCase):
         tokens = mcv2_tools.differential_reference_tokens([first, b'MCV1', skipped, recovery])
         self.assertEqual([hashlib.sha256(b'\1\2\3').hexdigest(), 'reject', 'reject', hashlib.sha256(b'\4\5\6').hexdigest()], tokens)
 
-        with patch.object(mcv2_tools.Decoder, 'accept', side_effect=RuntimeError('bug')):
+        with patch.object(mcv2_tools.Decoder, 'accept', side_effect=RuntimeError('The decoder has a bug!')):
             with self.assertRaisesRegex(RuntimeError, 'bug'):
                 mcv2_tools.differential_reference_tokens([first])
 

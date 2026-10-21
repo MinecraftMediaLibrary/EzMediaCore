@@ -130,16 +130,14 @@ class ChartCommandTest(unittest.TestCase):
             import matplotlib
             from matplotlib import font_manager
         except ImportError:
-            self.skipTest(
-                "Chart pixels require matplotlib 3.11.2 and the resolved Liberation Sans font; matplotlib is unavailable"
-            )
+            message: str = "Matplotlib is missing, but the chart pixels need matplotlib 3.11.2 and the Liberation Sans font!"
+            self.skipTest(message)
         font_path = font_manager.findfont(font_manager.FontProperties(family=mcv2_tools.charts_FONT))
         font = font_manager.FontProperties(fname=font_path).get_name()
         if matplotlib.__version__ != "3.11.2" or font != "Liberation Sans":
-            self.skipTest(
-                f"Chart pixels require matplotlib 3.11.2 and the resolved Liberation Sans font; "
-                f"found matplotlib {matplotlib.__version__} and {font}"
-            )
+            version: str = matplotlib.__version__
+            message: str = f"Found matplotlib {version} and font {font}, but the chart pixels need matplotlib 3.11.2 and Liberation Sans!"
+            self.skipTest(message)
         from PIL import Image
 
         root = Path(__file__).resolve().parents[4]
