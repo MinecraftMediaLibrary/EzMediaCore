@@ -69,6 +69,9 @@ final class ServerPackHostingTest {
 
   private static final String MESSAGE = "Message!";
 
+  private static final String SERVER_THREAD_PREFIX = "mcav-pack-http";
+  private static final long THREAD_EXIT_TIMEOUT_MILLISECONDS = 10_000L;
+
   @TempDir
   private Path directory;
 
@@ -188,7 +191,7 @@ final class ServerPackHostingTest {
     final List<String> names = new ArrayList<>();
     for (final Thread thread : threads) {
       final String name = thread.getName();
-      final boolean serverThread = name.startsWith("mcav-pack-http");
+      final boolean serverThread = name.startsWith(SERVER_THREAD_PREFIX);
       final boolean running = thread.isAlive();
       if (serverThread && running) {
         names.add(name);
@@ -198,14 +201,27 @@ final class ServerPackHostingTest {
     return names;
   }
 
+  // netty completes the termination future just before its threads end
+  private void awaitServerThreadExits() throws InterruptedException {
+    final Map<Thread, StackTraceElement[]> stackTraces = Thread.getAllStackTraces();
+    final Set<Thread> threads = stackTraces.keySet();
+    for (final Thread thread : threads) {
+      final String name = thread.getName();
+      if (name.startsWith(SERVER_THREAD_PREFIX)) {
+        thread.join(THREAD_EXIT_TIMEOUT_MILLISECONDS);
+      }
+    }
+  }
+
   @Test
-  void shouldReleaseItsThreadsWhenItStopsAndWhenItCannotStart() throws IOException {
+  void shouldReleaseItsThreadsWhenItStopsAndWhenItCannotStart() throws IOException, InterruptedException {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
     final ServerPackHosting hosting = new ServerPackHosting(this.zip, LOOPBACK_ADDRESS, PORT, server);
 
     hosting.start();
     final List<String> whileRunning = this.runningServerThreadNames();
     hosting.shutdown();
+    this.awaitServerThreadExits();
     final List<String> afterShutdown = this.runningServerThreadNames();
     final boolean startedThreads = whileRunning.isEmpty();
     final List<String> noThreads = List.of();
@@ -222,6 +238,7 @@ final class ServerPackHostingTest {
 
       assertThrows(HttpServerException.class, blocked::start);
 
+      this.awaitServerThreadExits();
       final List<String> afterFailedStart = this.runningServerThreadNames();
 
       assertEquals(noThreads, afterFailedStart, "a start that fails releases its threads as well");
