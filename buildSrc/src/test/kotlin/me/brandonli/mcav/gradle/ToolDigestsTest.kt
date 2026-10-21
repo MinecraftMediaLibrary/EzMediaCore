@@ -23,6 +23,7 @@ import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.HexFormat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
@@ -55,5 +56,17 @@ class ToolDigestsTest {
         val expected: String = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(contents))
         val longDigest: String = ToolDigests.sha256(file)
         assertEquals(expected, longDigest)
+    }
+
+    @Test
+    fun shouldCloseTheFileOnceItIsDigested(): Unit {
+        OpenFiles.assumeListable()
+
+        val file: File = this.directory.resolve(CONTENTS_FILE).toFile()
+        file.writeText("abc")
+        ToolDigests.sha256(file)
+
+        val open: Boolean = OpenFiles.isOpen(file)
+        assertFalse(open)
     }
 }

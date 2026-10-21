@@ -172,6 +172,20 @@ class BuildMcv2NativesTest {
     }
 
     @Test
+    fun shouldCloseEverySourceAndLibraryDirectoryOnceItIsListed(): Unit {
+        OpenFiles.assumeListable()
+
+        val task: RecordingBuild = this.compiler(TEST_VERSION)
+        this.buildWithWorkers(task)
+
+        val sources: File = task.sourcesDirectory.get().asFile
+        val output: File = task.outputDirectory.get().asFile
+        val directories: List<File> = output.walkTopDown().filter { it.isDirectory }.toList() + sources
+        val open: List<File> = directories.filter(OpenFiles::isOpen)
+        assertEquals(listOf<File>(), open)
+    }
+
+    @Test
     fun shouldCompileAsManyObjectsAtOnceAsItHasProcesses(): Unit {
         val bothStarted: CountDownLatch = CountDownLatch(2)
         val running: AtomicInteger = AtomicInteger()

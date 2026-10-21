@@ -53,6 +53,18 @@ class DownloadToolArchiveTest {
         const val INSTALLED_EXECUTABLE: String = "installed/tool/bin/tool"
         const val MISSING_EXECUTABLE_PATH: String = "missing"
         const val SEVEN_ZIP_ARCHIVE: String = "tool.7z"
+        const val XZ_ARCHIVE_FILE: String = "tool.tar.xz"
+        const val UNPACKED_TAR_FILE: String = "archive.tar"
+
+        const val GZIP_EXTENSION: String = "tar.gz"
+        const val XZ_EXTENSION: String = "tar.xz"
+
+        const val GZIP_ARCHIVE: String =
+            "H4sIAAAAAAACA+3NQQqCQAAF0Fl3Cm/gWInn0ZpAkAQbo+M3tQnaF0Hvbf7nb36e56kexnOdSwmfEYuubZ9ZvGeM2/2rP/Ym7romVDF8wXrJ/VLuw3+6pmU8" +
+            "jelYpVs6rLkfprQJAAAAAAAAAAAA/Lw7jjgM0wAoAAA="
+        const val XZ_ARCHIVE: String =
+            "/Td6WFoAAATm1rRGAgAhARYAAAB0L+Wj4Cf/AHNdADob7NgvJU6bwGN6v5a3JejC7neVC0X31phps0q2DkY/2CgXahtiZSmSEfj8sTJH859ZU5IrKQ3BNzSN" +
+            "n9Lgm5Pjp01y3THUEfiMj5qL+5NnvL7IiCthCBuqOOi+oVXsi4XON87LGOIoT5AAvVZcrNZukgAAAEjvLyQMjRxeAAGPAYBQAADrwzaQscRn+wIAAAAABFla"
 
         const val EXECUTABLE_CONTENT: String = "verified executable\n"
 
@@ -185,16 +197,24 @@ class DownloadToolArchiveTest {
     @Test
     fun shouldExtractGzipAndXzArchivesWithoutAnExternalUnpacker(): Unit {
         val archives: Map<String, String> = mapOf(
-            "tar.gz" to "H4sIAAAAAAACA+3NQQqCQAAF0Fl3Cm/gWInn0ZpAkAQbo+M3tQnaF0Hvbf7nb36e56kexnOdSwmfEYuubZ9ZvGeM2/2rP/Ym7romVDF8wXrJ/VLu" +
-                "w3+6pmU8jelYpVs6rLkfprQJAAAAAAAAAAAA/Lw7jjgM0wAoAAA=",
-            "tar.xz" to "/Td6WFoAAATm1rRGAgAhARYAAAB0L+Wj4Cf/AHNdADob7NgvJU6bwGN6v5a3JejC7neVC0X31phps0q2DkY/2CgXahtiZSmSEfj8sTJH859ZU5Ir" +
-                "KQ3BNzSNn9Lgm5Pjp01y3THUEfiMj5qL+5NnvL7IiCthCBuqOOi+oVXsi4XON87LGOIoT5AAvVZcrNZukgAAAEjvLyQMjRxeAAGPAYBQAADrwzaQscRn+wIA" +
-                "AAAABFla"
+            GZIP_EXTENSION to GZIP_ARCHIVE,
+            XZ_EXTENSION to XZ_ARCHIVE
         )
         val installed: Map<String, Pair<String, Boolean>> =
             archives.mapValues { (extension, encoded) -> this.installArchive(extension, encoded) }
         val expected: Map<String, Pair<String, Boolean>> = archives.mapValues { EXECUTABLE_CONTENT to true }
         assertEquals(expected, installed)
+    }
+
+    @Test
+    fun shouldCloseTheXzArchiveAndTheTarItUnpacksOnceTheToolIsInstalled(): Unit {
+        OpenFiles.assumeListable()
+
+        val task: DownloadToolArchive = this.installEncodedArchive(XZ_EXTENSION, XZ_ARCHIVE)
+        val temporary: File = task.temporaryDir
+        val files: List<File> = listOf(temporary.resolve(XZ_ARCHIVE_FILE), temporary.resolve(UNPACKED_TAR_FILE))
+        val open: List<File> = files.filter(OpenFiles::isOpen)
+        assertEquals(listOf<File>(), open)
     }
 
     private fun zippedTool(): RecordedDownloadToolArchive {
@@ -225,6 +245,13 @@ class DownloadToolArchiveTest {
     }
 
     private fun installArchive(extension: String, encoded: String): Pair<String, Boolean> {
+        this.installEncodedArchive(extension, encoded)
+
+        val tool: File = this.directory.resolve("installed-$extension/tool/bin/tool").toFile()
+        return tool.readText() to tool.canExecute()
+    }
+
+    private fun installEncodedArchive(extension: String, encoded: String): DownloadToolArchive {
         val archive: File = this.directory.resolve("tool.$extension").toFile()
         val bytes: ByteArray = Base64.getDecoder().decode(encoded)
         archive.writeBytes(bytes)
@@ -235,8 +262,7 @@ class DownloadToolArchiveTest {
         val task: DownloadToolArchive = this.registerTask(project, archive, installation)
         task.install()
 
-        val tool: File = this.directory.resolve("installed-$extension/tool/bin/tool").toFile()
-        return tool.readText() to tool.canExecute()
+        return task
     }
 
     abstract class RecordedDownloadToolArchive : DownloadToolArchive() {

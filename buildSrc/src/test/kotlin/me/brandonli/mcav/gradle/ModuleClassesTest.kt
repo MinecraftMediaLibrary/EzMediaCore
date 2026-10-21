@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.FileCollection
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
@@ -100,6 +101,17 @@ class ModuleClassesTest {
         val jar: File = this.jar(COMMON_JAR, MCAV_CLASS, "com/google/common/base/Preconditions")
         val available: Set<String> = ModuleClasses.available(listOf(classes, jar, this.folder.resolve(MISSING_JAR).toFile()))
         assertEquals(setOf("me/brandonli/mcav/vm/VMPlayer", MCAV_CLASS), available)
+    }
+
+    @Test
+    fun shouldCloseTheJarOnceItsClassesAreRead(): Unit {
+        OpenFiles.assumeListable()
+
+        val jar: File = this.jar(COMMON_JAR, MCAV_CLASS)
+        ModuleClasses.available(listOf(jar))
+
+        val open: Boolean = OpenFiles.isOpen(jar)
+        assertFalse(open)
     }
 
     @Test

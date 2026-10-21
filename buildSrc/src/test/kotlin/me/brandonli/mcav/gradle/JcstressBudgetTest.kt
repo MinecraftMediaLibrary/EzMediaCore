@@ -24,6 +24,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.gradle.api.GradleException
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -95,6 +96,18 @@ class JcstressBudgetTest {
 
         val count: Int = JcstressBudget.countTests(jar, null)
         assertEquals(0, count)
+    }
+
+    @Test
+    fun shouldCloseTheJarOnceItsTestsAreCounted(): Unit {
+        OpenFiles.assumeListable()
+
+        val jar: File = this.directory.resolve(EMPTY_JAR).toFile()
+        this.writeJar(jar, OTHER_ENTRY, "")
+        JcstressBudget.countTests(jar, null)
+
+        val open: Boolean = OpenFiles.isOpen(jar)
+        assertFalse(open)
     }
 
     private fun writeJar(jar: File, entry: String, content: String): Unit {
