@@ -199,7 +199,7 @@ final class VirtualizeCommandTest {
   }
 
   private void assertArguments(final String commandLine, final String... expected) {
-    final VmConfiguration configuration = VirtualizeCommand.parseOptions(commandLine, this.imageFolder);
+    final VmConfiguration configuration = VirtualizeCommand.parseOptions(commandLine, this.imageFolder).build();
     final List<String> arguments = configuration.getArguments();
     final List<String> expectedArguments = List.of(expected);
     assertEquals(expectedArguments, arguments);
@@ -495,7 +495,7 @@ final class VirtualizeCommandTest {
 
   @Test
   void treatsAnOptionFollowedByAnotherOptionAsTwoFlags() {
-    final VmConfiguration configuration = VirtualizeCommand.parseOptions("-no-reboot -snapshot", this.imageFolder);
+    final VmConfiguration configuration = VirtualizeCommand.parseOptions("-no-reboot -snapshot", this.imageFolder).build();
     final boolean noReboot = configuration.has("no-reboot");
     final boolean snapshot = configuration.has("snapshot");
     assertTrue(noReboot);
@@ -809,8 +809,12 @@ final class VirtualizeCommandTest {
     );
     assertEquals("The QEMU option -m 64G asks for more memory than a machine may have on this server, 4096 MiB", failure.getMessage());
     assertThrows(IllegalArgumentException.class, () -> VirtualizeCommand.parseOptions("-m size=5G,slots=2", this.imageFolder, limit));
-    assertEquals(Optional.of("4G"), VirtualizeCommand.parseOptions("-m 4G", this.imageFolder, limit).find("m"));
-    assertEquals(List.of(), VirtualizeCommand.parseOptions("", this.imageFolder, limit).getArguments(), "QEMU's default of 128 MiB");
+    assertEquals(Optional.of("4G"), VirtualizeCommand.parseOptions("-m 4G", this.imageFolder, limit).build().find("m"));
+    assertEquals(
+      List.of(),
+      VirtualizeCommand.parseOptions("", this.imageFolder, limit).build().getArguments(),
+      "QEMU's default of 128 MiB"
+    );
   }
 
   @Test

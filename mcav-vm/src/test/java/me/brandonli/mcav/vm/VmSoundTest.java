@@ -105,12 +105,8 @@ final class VmSoundTest {
   }
 
   private VmConfiguration floppy(final Path image) {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.memory(16);
     final String drive = "file=%s,format=raw,if=floppy".formatted(image);
-    configuration.option("drive", drive);
-    configuration.boot("a");
-    return configuration;
+    return VmConfiguration.builder().memory(16).option("drive", drive).boot("a").build();
   }
 
   private void waitUntil(final String description, final long timeoutSeconds, final BooleanSupplier condition) {

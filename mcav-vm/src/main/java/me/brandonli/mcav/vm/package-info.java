@@ -24,10 +24,10 @@
  * {@link me.brandonli.mcav.vm.VmModule} only checks its availability and does not install or run it.
  * The player owns its QEMU process and local VNC connections, and reserves their display/audio options.
  *
- * <p>Configuration objects are mutable and not thread-safe; finish them before starting the player.
- * Settings are immutable. Video and audio pipelines run on background threads. Pause suppresses output
- * while the guest continues running. Release each player to terminate its owned resources; module shutdown
- * does not release players, and attached filters retain their separate lifetimes.
+ * <p>Configurations and settings are immutable; configuration builders are not thread-safe. Video and audio
+ * pipelines run on background threads. Pause suppresses output while the guest continues running. Release each
+ * player to terminate its owned resources; module shutdown does not release players, and attached filters retain
+ * their separate lifetimes.
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.

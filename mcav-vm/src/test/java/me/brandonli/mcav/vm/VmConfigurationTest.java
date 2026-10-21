@@ -20,6 +20,7 @@ package me.brandonli.mcav.vm;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
+import me.brandonli.mcav.vm.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -40,14 +42,16 @@ final class VmConfigurationTest {
   private static final String DEVICE_OPTION = "device";
   private static final String DRIVE_OPTION = "drive";
   private static final String SNAPSHOT_FLAG = "snapshot";
+  private static final String KVM_FLAG = "enable-kvm";
 
   private static final String MEMORY_ARGUMENT = "-m";
   private static final String CORES_ARGUMENT = "-smp";
   private static final String DRIVE_ARGUMENT = "-drive";
 
-  private static final String ARGUMENT_SEPARATOR = " ";
-
   private static final String GIGABYTES = "G";
+
+  private static final int MEMORY_MEGABYTES = 64;
+  private static final int OTHER_MEMORY_MEGABYTES = 128;
 
   private static final String CDROM_IMAGE = "alpine.iso";
   private static final String FIRST_DISK = "disk.qcow2";
@@ -56,43 +60,59 @@ final class VmConfigurationTest {
   private static final String TABLET_DEVICE = "usb-tablet";
   private static final String NETWORK_DEVICE = "virtio-net-pci";
   private static final String DISK_DRIVE = "file=disk.qcow2";
+  private static final String OTHER_DRIVE = "file=data.qcow2";
 
   @Test
   void shouldStartEmpty() {
-    final VmConfiguration configuration = VmConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder().build();
     final List<String> arguments = configuration.getArguments();
     final String[] array = configuration.buildArguments();
     final String text = configuration.toString();
     final boolean argumentsIsEmpty = arguments.isEmpty();
     assertTrue(argumentsIsEmpty);
     assertEquals(0, array.length);
-    assertEquals("", text);
+    assertEquals("VmConfiguration{options={}, repeatable=[], flags=[]}", text);
   }
 
   @Test
-  void shouldCreateANewConfigurationEveryTime() {
-    final VmConfiguration first = VmConfiguration.builder();
-    final VmConfiguration second = VmConfiguration.builder();
+  void shouldCreateANewBuilderEveryTime() {
+    final VmConfigurationBuilder first = VmConfiguration.builder();
+    final VmConfigurationBuilder second = VmConfiguration.builder();
     first.memory(256);
-    final boolean secondHasMemory = second.has(MEMORY_OPTION);
+    final VmConfiguration configuration = second.build();
+    final boolean hasMemory = configuration.has(MEMORY_OPTION);
     assertNotSame(first, second);
-    assertFalse(secondHasMemory);
+    assertFalse(hasMemory);
+  }
+
+  @Test
+  void shouldKeepItsOptionsWhenTheBuilderChangesAfterwards() {
+    final VmConfigurationBuilder builder = VmConfiguration.builder();
+    builder.memory(MEMORY_MEGABYTES);
+    final VmConfiguration configuration = builder.build();
+    builder.memory(OTHER_MEMORY_MEGABYTES);
+    builder.drive(DISK_DRIVE);
+    builder.flag(SNAPSHOT_FLAG);
+    final List<String> arguments = configuration.getArguments();
+    final List<String> expected = List.of(MEMORY_ARGUMENT, "64M");
+    assertEquals(expected, arguments);
   }
 
   @Test
   void shouldRenderEveryTypedOptionAsAQemuArgument() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.memory(2048);
-    configuration.cores(4);
-    configuration.cdrom(CDROM_IMAGE);
-    configuration.hda(FIRST_DISK);
-    configuration.hdb(SECOND_DISK);
-    configuration.boot("d");
-    configuration.network("user,model=virtio-net-pci");
-    configuration.cpu("max");
-    configuration.machine("q35");
-    configuration.accelerator("tcg");
-    configuration.vga("virtio");
+    final VmConfiguration configuration = VmConfiguration.builder()
+      .memory(2048)
+      .cores(4)
+      .cdrom(CDROM_IMAGE)
+      .hda(FIRST_DISK)
+      .hdb(SECOND_DISK)
+      .boot("d")
+      .network("user,model=virtio-net-pci")
+      .cpu("max")
+      .machine("q35")
+      .accelerator("tcg")
+      .vga("virtio")
+      .build();
 
     final List<String> arguments = configuration.getArguments();
 
@@ -129,8 +149,7 @@ final class VmConfigurationTest {
 
   @Test
   void shouldSetMemoryWithAUnit() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.memory(2, GIGABYTES);
+    final VmConfiguration configuration = VmConfiguration.builder().memory(2, GIGABYTES).build();
     final Optional<String> memory = configuration.find(MEMORY_OPTION);
     final Optional<String> expected = Optional.of("2G");
     assertEquals(expected, memory);
@@ -138,10 +157,7 @@ final class VmConfigurationTest {
 
   @Test
   void shouldReplaceOptionsButKeepTheirFirstPosition() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.memory(512);
-    configuration.cores(1);
-    configuration.memory(1024);
+    final VmConfiguration configuration = VmConfiguration.builder().memory(512).cores(1).memory(1024).build();
     final List<String> arguments = configuration.getArguments();
     final List<String> expectedArguments = List.of(MEMORY_ARGUMENT, "1024M", CORES_ARGUMENT, "1");
     assertEquals(expectedArguments, arguments);
@@ -149,15 +165,16 @@ final class VmConfigurationTest {
 
   @Test
   void shouldOrderOptionsBeforeRepeatableOptionsBeforeFlags() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.flag("enable-kvm");
-    configuration.drive("file=a.qcow2,format=qcow2");
-    configuration.device("virtio-rng-pci");
-    configuration.drive("file=b.qcow2,format=qcow2");
-    configuration.repeatable("object", "rng-random,id=rng0");
-    configuration.option("name", "test");
-    configuration.flag(SNAPSHOT_FLAG);
-    configuration.flag("enable-kvm");
+    final VmConfiguration configuration = VmConfiguration.builder()
+      .flag(KVM_FLAG)
+      .drive("file=a.qcow2,format=qcow2")
+      .device("virtio-rng-pci")
+      .drive("file=b.qcow2,format=qcow2")
+      .repeatable("object", "rng-random,id=rng0")
+      .option("name", "test")
+      .flag(SNAPSHOT_FLAG)
+      .flag(KVM_FLAG)
+      .build();
 
     final List<String> arguments = configuration.getArguments();
     final List<String> expected = this.orderedArguments();
@@ -166,10 +183,6 @@ final class VmConfigurationTest {
     final String[] array = configuration.buildArguments();
     final String[] expectedArray = expected.toArray(new String[0]);
     assertArrayEquals(expectedArray, array);
-
-    final String text = configuration.toString();
-    final String expectedText = String.join(ARGUMENT_SEPARATOR, expected);
-    assertEquals(expectedText, text);
   }
 
   private List<String> orderedArguments() {
@@ -191,10 +204,7 @@ final class VmConfigurationTest {
 
   @Test
   void shouldAnswerWhichOptionsAndFlagsAreSet() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.cdrom(CDROM_IMAGE);
-    configuration.flag(SNAPSHOT_FLAG);
-    configuration.device(TABLET_DEVICE);
+    final VmConfiguration configuration = VmConfiguration.builder().cdrom(CDROM_IMAGE).flag(SNAPSHOT_FLAG).device(TABLET_DEVICE).build();
     final boolean hasCdrom = configuration.has(CDROM_OPTION);
     final boolean hasSnapshot = configuration.has(SNAPSHOT_FLAG);
     final boolean hasDevice = configuration.has(DEVICE_OPTION);
@@ -215,11 +225,12 @@ final class VmConfigurationTest {
 
   @Test
   void shouldListTheValuesOfRepeatableOptions() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.device(TABLET_DEVICE);
-    configuration.drive(DISK_DRIVE);
-    configuration.device(NETWORK_DEVICE);
-    configuration.option(DEVICE_OPTION, "not-repeatable");
+    final VmConfiguration configuration = VmConfiguration.builder()
+      .device(TABLET_DEVICE)
+      .drive(DISK_DRIVE)
+      .device(NETWORK_DEVICE)
+      .option(DEVICE_OPTION, "not-repeatable")
+      .build();
     final List<String> devices = configuration.getAll(DEVICE_OPTION);
     final List<String> drives = configuration.getAll(DRIVE_OPTION);
     final List<String> none = configuration.getAll("chardev");
@@ -238,11 +249,12 @@ final class VmConfigurationTest {
 
   @Test
   void shouldRemoveEveryValueOfARepeatableOption() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.device(TABLET_DEVICE);
-    configuration.drive(DISK_DRIVE);
-    configuration.device(NETWORK_DEVICE);
-    configuration.remove(DEVICE_OPTION);
+    final VmConfiguration configuration = VmConfiguration.builder()
+      .device(TABLET_DEVICE)
+      .drive(DISK_DRIVE)
+      .device(NETWORK_DEVICE)
+      .remove(DEVICE_OPTION)
+      .build();
     final boolean hasDevice = configuration.has(DEVICE_OPTION);
     final boolean hasDrive = configuration.has(DRIVE_OPTION);
     final List<String> arguments = configuration.getArguments();
@@ -254,17 +266,18 @@ final class VmConfigurationTest {
 
   @Test
   void shouldRemoveOptionsAndFlags() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.cdrom(CDROM_IMAGE);
-    configuration.flag(SNAPSHOT_FLAG);
-    configuration.cores(2);
-    final VmConfiguration result = configuration.remove(CDROM_OPTION);
-    configuration.remove(SNAPSHOT_FLAG);
-    configuration.remove("not-set");
+    final VmConfigurationBuilder builder = VmConfiguration.builder();
+    builder.cdrom(CDROM_IMAGE);
+    builder.flag(SNAPSHOT_FLAG);
+    builder.cores(2);
+    final VmConfigurationBuilder result = builder.remove(CDROM_OPTION);
+    builder.remove(SNAPSHOT_FLAG);
+    builder.remove("not-set");
+    final VmConfiguration configuration = builder.build();
     final boolean hasCdrom = configuration.has(CDROM_OPTION);
     final boolean hasSnapshot = configuration.has(SNAPSHOT_FLAG);
     final List<String> arguments = configuration.getArguments();
-    assertSame(configuration, result);
+    assertSame(builder, result);
     assertFalse(hasCdrom);
     assertFalse(hasSnapshot);
 
@@ -274,8 +287,8 @@ final class VmConfigurationTest {
 
   @Test
   void shouldReturnItselfFromEverySetter() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    final List<UnaryOperator<VmConfiguration>> setters = List.of(
+    final VmConfigurationBuilder builder = VmConfiguration.builder();
+    final List<UnaryOperator<VmConfigurationBuilder>> setters = List.of(
       candidate -> candidate.memory(1),
       candidate -> candidate.memory(1, GIGABYTES),
       candidate -> candidate.cores(1),
@@ -294,16 +307,15 @@ final class VmConfigurationTest {
       candidate -> candidate.repeatable("a", "b"),
       candidate -> candidate.flag("a")
     );
-    for (final UnaryOperator<VmConfiguration> setter : setters) {
-      final VmConfiguration result = setter.apply(configuration);
-      assertSame(configuration, result);
+    for (final UnaryOperator<VmConfigurationBuilder> setter : setters) {
+      final VmConfigurationBuilder result = setter.apply(builder);
+      assertSame(builder, result);
     }
   }
 
   @Test
   void shouldReturnArgumentsThatCannotBeModified() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.memory(64);
+    final VmConfiguration configuration = VmConfiguration.builder().memory(MEMORY_MEGABYTES).build();
     final List<String> arguments = configuration.getArguments();
     assertThrows(UnsupportedOperationException.class, arguments::clear);
 
@@ -316,23 +328,24 @@ final class VmConfigurationTest {
 
   @Test
   void shouldRejectInvalidTypedOptions() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    assertThrows(IllegalArgumentException.class, () -> configuration.memory(0));
-    assertThrows(IllegalArgumentException.class, () -> configuration.memory(0, GIGABYTES));
-    assertThrows(NullPointerException.class, () -> configuration.memory(1, null));
-    assertThrows(IllegalArgumentException.class, () -> configuration.cores(0));
-    assertThrows(NullPointerException.class, () -> configuration.cdrom(null));
-    assertThrows(NullPointerException.class, () -> configuration.hda(null));
-    assertThrows(NullPointerException.class, () -> configuration.hdb(null));
-    assertThrows(NullPointerException.class, () -> configuration.boot(null));
-    assertThrows(NullPointerException.class, () -> configuration.network(null));
-    assertThrows(NullPointerException.class, () -> configuration.cpu(null));
-    assertThrows(NullPointerException.class, () -> configuration.machine(null));
-    assertThrows(NullPointerException.class, () -> configuration.accelerator(null));
-    assertThrows(NullPointerException.class, () -> configuration.vga(null));
-    assertThrows(NullPointerException.class, () -> configuration.drive(null));
-    assertThrows(NullPointerException.class, () -> configuration.device(null));
+    final VmConfigurationBuilder builder = VmConfiguration.builder();
+    assertThrows(IllegalArgumentException.class, () -> builder.memory(0));
+    assertThrows(IllegalArgumentException.class, () -> builder.memory(0, GIGABYTES));
+    assertThrows(NullPointerException.class, () -> builder.memory(1, null));
+    assertThrows(IllegalArgumentException.class, () -> builder.cores(0));
+    assertThrows(NullPointerException.class, () -> builder.cdrom(null));
+    assertThrows(NullPointerException.class, () -> builder.hda(null));
+    assertThrows(NullPointerException.class, () -> builder.hdb(null));
+    assertThrows(NullPointerException.class, () -> builder.boot(null));
+    assertThrows(NullPointerException.class, () -> builder.network(null));
+    assertThrows(NullPointerException.class, () -> builder.cpu(null));
+    assertThrows(NullPointerException.class, () -> builder.machine(null));
+    assertThrows(NullPointerException.class, () -> builder.accelerator(null));
+    assertThrows(NullPointerException.class, () -> builder.vga(null));
+    assertThrows(NullPointerException.class, () -> builder.drive(null));
+    assertThrows(NullPointerException.class, () -> builder.device(null));
 
+    final VmConfiguration configuration = builder.build();
     final List<String> arguments = configuration.getArguments();
     final boolean argumentsIsEmpty = arguments.isEmpty();
     assertTrue(argumentsIsEmpty);
@@ -340,21 +353,59 @@ final class VmConfigurationTest {
 
   @Test
   void shouldRejectInvalidGenericOptionsAndKeys() {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    assertThrows(NullPointerException.class, () -> configuration.option(null, "value"));
-    assertThrows(NullPointerException.class, () -> configuration.option("key", null));
-    assertThrows(IllegalArgumentException.class, () -> configuration.option(" ", "value"));
-    assertThrows(NullPointerException.class, () -> configuration.repeatable(null, "value"));
-    assertThrows(NullPointerException.class, () -> configuration.repeatable("key", null));
-    assertThrows(IllegalArgumentException.class, () -> configuration.repeatable("", "value"));
-    assertThrows(NullPointerException.class, () -> configuration.flag(null));
-    assertThrows(IllegalArgumentException.class, () -> configuration.flag(" "));
-    assertThrows(NullPointerException.class, () -> configuration.remove(null));
+    final VmConfigurationBuilder builder = VmConfiguration.builder();
+    assertThrows(NullPointerException.class, () -> builder.option(null, "value"));
+    assertThrows(NullPointerException.class, () -> builder.option("key", null));
+    assertThrows(IllegalArgumentException.class, () -> builder.option(" ", "value"));
+    assertThrows(NullPointerException.class, () -> builder.repeatable(null, "value"));
+    assertThrows(NullPointerException.class, () -> builder.repeatable("key", null));
+    assertThrows(IllegalArgumentException.class, () -> builder.repeatable("", "value"));
+    assertThrows(NullPointerException.class, () -> builder.flag(null));
+    assertThrows(IllegalArgumentException.class, () -> builder.flag(" "));
+    assertThrows(NullPointerException.class, () -> builder.remove(null));
+
+    final VmConfiguration configuration = builder.build();
     assertThrows(NullPointerException.class, () -> configuration.has(null));
     assertThrows(NullPointerException.class, () -> configuration.find(null));
 
     final List<String> arguments = configuration.getArguments();
     final boolean argumentsIsEmpty = arguments.isEmpty();
     assertTrue(argumentsIsEmpty);
+  }
+
+  @Test
+  void shouldBeEqualToAConfigurationWithTheSameOptions() {
+    final VmConfiguration configuration = this.configuration(MEMORY_MEGABYTES, DISK_DRIVE, SNAPSHOT_FLAG);
+    final VmConfiguration equal = this.configuration(MEMORY_MEGABYTES, DISK_DRIVE, SNAPSHOT_FLAG);
+    final VmConfiguration otherMemory = this.configuration(OTHER_MEMORY_MEGABYTES, DISK_DRIVE, SNAPSHOT_FLAG);
+    final VmConfiguration otherDrive = this.configuration(MEMORY_MEGABYTES, OTHER_DRIVE, SNAPSHOT_FLAG);
+    final VmConfiguration otherFlag = this.configuration(MEMORY_MEGABYTES, DISK_DRIVE, KVM_FLAG);
+    EqualityAssertions.assertEqualityContract(configuration, equal, otherMemory, otherDrive, otherFlag);
+  }
+
+  private VmConfiguration configuration(final int memoryMegabytes, final String drive, final String flag) {
+    return VmConfiguration.builder().memory(memoryMegabytes).drive(drive).flag(flag).build();
+  }
+
+  @Test
+  void shouldGiveConfigurationsThatDifferInOneOptionDifferentHashCodes() {
+    final VmConfiguration configuration = this.configuration(MEMORY_MEGABYTES, DISK_DRIVE, SNAPSHOT_FLAG);
+    final VmConfiguration otherMemory = this.configuration(OTHER_MEMORY_MEGABYTES, DISK_DRIVE, SNAPSHOT_FLAG);
+    final VmConfiguration otherDrive = this.configuration(MEMORY_MEGABYTES, OTHER_DRIVE, SNAPSHOT_FLAG);
+    final VmConfiguration otherFlag = this.configuration(MEMORY_MEGABYTES, DISK_DRIVE, KVM_FLAG);
+    final int hash = configuration.hashCode();
+    final int memoryHash = otherMemory.hashCode();
+    final int driveHash = otherDrive.hashCode();
+    final int flagHash = otherFlag.hashCode();
+    assertNotEquals(hash, memoryHash);
+    assertNotEquals(hash, driveHash);
+    assertNotEquals(hash, flagHash);
+  }
+
+  @Test
+  void shouldDescribeItsOptionsRepeatableOptionsAndFlags() {
+    final VmConfiguration configuration = this.configuration(MEMORY_MEGABYTES, DISK_DRIVE, SNAPSHOT_FLAG);
+    final String text = configuration.toString();
+    assertEquals("VmConfiguration{options={m=64M}, repeatable=[-drive, file=disk.qcow2], flags=[snapshot]}", text);
   }
 }

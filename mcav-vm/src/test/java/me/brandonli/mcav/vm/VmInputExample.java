@@ -107,10 +107,7 @@ public final class VmInputExample {
   }
 
   private static void startMachine(final VmPlayer player, final String iso) {
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.cdrom(iso);
-    configuration.memory(2048);
-    configuration.cores(2);
+    final VmConfiguration configuration = VmConfiguration.builder().cdrom(iso).memory(2048).cores(2).build();
     final VmSettings settings = VmSettings.of(WIDTH, HEIGHT, 30);
     player.start(settings, VmPlayer.Architecture.X86_64, configuration);
   }

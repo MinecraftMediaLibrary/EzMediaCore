@@ -206,7 +206,7 @@ final class QemuVmPlayerTest {
 
   private boolean startDefaultMachine(final VmPlayer player) {
     final VmSettings settings = VmSettings.of(PORT, WIDTH, HEIGHT, FRAME_RATE);
-    final VmConfiguration configuration = VmConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder().build();
     return player.start(settings, VmPlayer.Architecture.X86_64, configuration);
   }
 
@@ -386,8 +386,7 @@ final class QemuVmPlayerTest {
     this.stubConnectingStream();
     final QemuVmPlayer player = this.player();
     final VmSettings settings = VmSettings.of(PORT, WIDTH, HEIGHT, FRAME_RATE);
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.memory(128);
+    final VmConfiguration configuration = VmConfiguration.builder().memory(128).build();
 
     final boolean started = player.start(settings, VmPlayer.Architecture.AARCH64, configuration);
 
@@ -460,7 +459,7 @@ final class QemuVmPlayerTest {
   void shouldRefuseToStartTwiceOrAfterRelease() {
     final QemuVmPlayer player = this.startedPlayer();
     final VmSettings settings = VmSettings.of(PORT + 1, WIDTH, HEIGHT, FRAME_RATE);
-    final VmConfiguration configuration = VmConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder().build();
     final boolean startedAgain = player.start(settings, VmPlayer.Architecture.X86_64, configuration);
     assertFalse(startedAgain);
 
@@ -480,7 +479,7 @@ final class QemuVmPlayerTest {
     this.useFinderWithoutQemu();
     final QemuVmPlayer player = this.player();
     final VmSettings settings = VmSettings.of(PORT, WIDTH, HEIGHT, FRAME_RATE);
-    final VmConfiguration configuration = VmConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder().build();
 
     final ExecutableNotInPathException exception = assertThrows(ExecutableNotInPathException.class, () ->
       player.start(settings, VmPlayer.Architecture.RISCV64, configuration)
@@ -971,7 +970,7 @@ final class QemuVmPlayerTest {
   void shouldRejectNullArguments() {
     final QemuVmPlayer player = this.player();
     final VmSettings settings = VmSettings.of(PORT, WIDTH, HEIGHT, FRAME_RATE);
-    final VmConfiguration configuration = VmConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder().build();
     assertThrows(NullPointerException.class, () -> player.start(null, VmPlayer.Architecture.X86_64, configuration));
     assertThrows(NullPointerException.class, () -> player.start(settings, null, configuration));
     assertThrows(NullPointerException.class, () -> player.start(settings, VmPlayer.Architecture.X86_64, null));
@@ -993,7 +992,7 @@ final class QemuVmPlayerTest {
       .start();
     final VmPlayer player = this.player();
     final VmSettings settings = VmSettings.of(PORT, WIDTH, HEIGHT, FRAME_RATE);
-    final VmConfiguration configuration = VmConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder().build();
     try {
       final CompletableFuture<Boolean> first = player.startAsync(settings, VmPlayer.Architecture.X86_64, configuration);
       final boolean started = first.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -1103,8 +1102,7 @@ final class QemuVmPlayerTest {
   private void startTinyMachine(final VmPlayer player) {
     final int port = FreePorts.find();
     final VmSettings settings = VmSettings.of(port, TINY_WIDTH, TINY_HEIGHT, 10);
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.memory(64);
+    final VmConfiguration configuration = VmConfiguration.builder().memory(64).build();
     final boolean started = player.start(settings, VmPlayer.Architecture.X86_64, configuration);
     assertTrue(started);
   }

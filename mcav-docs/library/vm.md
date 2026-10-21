@@ -26,12 +26,12 @@ dependencies {
   }
 ```
 
-The QEMU command line is built with a `VmConfiguration`, and a `VmSettings` describes how the machine is streamed:
-the size frames are scaled to and the frame rate requested from QEMU. The player adds the display, VNC, and pointer
-options itself, and picks the fastest accelerator of the machine (KVM, WHPX, or HVF), falling back to software
-emulation when the accelerator is unavailable. The VNC display listens on the loopback address and asks for a random
-password the player alone knows; QEMU reads it from a file of a folder only your user can open, which is deleted once
-QEMU started.
+The QEMU command line is an immutable `VmConfiguration`, built with the `VmConfigurationBuilder` that
+`VmConfiguration.builder()` returns, and a `VmSettings` describes how the machine is streamed: the size frames are
+scaled to and the frame rate requested from QEMU. The player adds the display, VNC, and pointer options itself, and
+picks the fastest accelerator of the machine (KVM, WHPX, or HVF), falling back to software emulation when the
+accelerator is unavailable. The VNC display listens on the loopback address and asks for a random password the player
+alone knows; QEMU reads it from a file of a folder only your user can open, which is deleted once QEMU started.
 
 The example boots an ISO image and presses a key in its boot menu. The `display` filter is yours and shows the frames;
 release the returned player to stop the machine. QEMU is a process of its own: a JVM that ends without releasing the
@@ -45,10 +45,8 @@ QEMU whose JVM is gone and logs it; a QEMU of another JVM that still runs is lef
     final VideoPipelineStep pipeline = VideoPipelineStep.of(display);
 
     final String isoPath = isoFile.toString();
-    final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.cdrom(isoPath);
-    configuration.memory(2048);
-    configuration.cores(2);
+    final VmConfigurationBuilder builder = VmConfiguration.builder();
+    final VmConfiguration configuration = builder.cdrom(isoPath).memory(2048).cores(2).build();
 
     final VmSettings settings = VmSettings.of(1024, 768, 30);
     final VmPlayer player = VmPlayer.create();
@@ -68,8 +66,8 @@ add. QEMU's own default network, which `network("user")` gives back, reaches the
 10.0.2.2 is the machine QEMU runs on: the guest reaches every service there that listens only on the loopback address.
 `network("none")` gives the guest no network card at all.
 
-Options that QEMU accepts more than once, such as `-drive` or `-device`, are added with `drive(...)`, `device(...)`, or
-`repeatable(key, value)`; every other option replaces its earlier value. `start` throws an
+Options that QEMU accepts more than once, such as `-drive` or `-device`, are added to the builder with `drive(...)`,
+`device(...)`, or `repeatable(key, value)`; every other option replaces its earlier value. `start` throws an
 `ExecutableNotInPathException` when the QEMU program of the architecture is not installed, and a `PlayerException`
 with the output of QEMU when the machine fails to start.
 

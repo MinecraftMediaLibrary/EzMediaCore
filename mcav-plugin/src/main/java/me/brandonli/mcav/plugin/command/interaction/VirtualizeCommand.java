@@ -49,6 +49,7 @@ import me.brandonli.mcav.utils.immutable.Pair;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 import me.brandonli.mcav.vm.ExecutableNotInPathException;
 import me.brandonli.mcav.vm.VmConfiguration;
+import me.brandonli.mcav.vm.VmConfigurationBuilder;
 import me.brandonli.mcav.vm.VmPlayer;
 import me.brandonli.mcav.vm.VmSettings;
 import net.kyori.adventure.text.Component;
@@ -435,13 +436,13 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VmPlayer
     final Path dataFolder = this.plugin.getDataPath();
     final Path imageFolder = DiskImages.folderOf(dataFolder);
     try {
-      final VmConfiguration configuration = parseOptions(flags, imageFolder, maxMemoryBytes());
+      final VmConfigurationBuilder builder = parseOptions(flags, imageFolder, maxMemoryBytes());
       // without it, the guest gets mcav's network that reaches nothing, as no option of the command chooses one
       final PluginDataConfigurationMapper settings = this.plugin.getConfiguration();
       if (settings.isVmAllowNetwork()) {
-        configuration.network(QEMU_NETWORK);
+        builder.network(QEMU_NETWORK);
       }
-      return configuration;
+      return builder.build();
     } catch (final IllegalArgumentException exception) {
       final String cause = exception.getMessage();
       final String reason = Objects.requireNonNullElse(cause, "The options are not valid");
@@ -458,11 +459,11 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VmPlayer
    *
    * @param commandLine the options
    * @param imageFolder the folder the disk images live in
-   * @return the configuration
+   * @return a builder holding the options
    * @throws IllegalArgumentException if an option is not supported, is given a value it does not take, misses the
    *                                  value it needs, or names a disk image outside the image folder
    */
-  static VmConfiguration parseOptions(final String commandLine, final Path imageFolder) {
+  static VmConfigurationBuilder parseOptions(final String commandLine, final Path imageFolder) {
     return parseOptions(commandLine, imageFolder, Long.MAX_VALUE);
   }
 
@@ -473,11 +474,12 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VmPlayer
    * @param commandLine    the options
    * @param imageFolder    the folder the disk images live in
    * @param maxMemoryBytes the most memory a machine may have, in bytes
-   * @return the configuration
+   * @return a builder holding the options
    * @throws IllegalArgumentException if an option is refused, or the machine would have more memory than allowed
    */
-  static VmConfiguration parseOptions(final String commandLine, final Path imageFolder, final long maxMemoryBytes) {
-    final VmConfiguration configuration = parseAllowedOptions(commandLine, imageFolder);
+  static VmConfigurationBuilder parseOptions(final String commandLine, final Path imageFolder, final long maxMemoryBytes) {
+    final VmConfigurationBuilder builder = parseAllowedOptions(commandLine, imageFolder);
+    final VmConfiguration configuration = builder.build();
     final Optional<String> requestedMemory = configuration.find("m");
     final @Nullable String requestedValue = requestedMemory.orElse(null);
     final String memory = Objects.requireNonNullElse(requestedValue, "128");
@@ -487,7 +489,7 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VmPlayer
         "The QEMU option -m " + memory + " asks for more memory than a machine may have on this server, " + (maxMemoryBytes >> 20) + " MiB"
       );
     }
-    return configuration;
+    return builder;
   }
 
   /**
@@ -511,24 +513,24 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VmPlayer
     return Math.max(MIN_MACHINE_MEMORY_BYTES, totalMemoryBytes / 2);
   }
 
-  private static VmConfiguration parseAllowedOptions(final String commandLine, final Path imageFolder) {
+  private static VmConfigurationBuilder parseAllowedOptions(final String commandLine, final Path imageFolder) {
     final List<String> tokens = tokenize(commandLine);
-    final VmConfiguration configuration = VmConfiguration.builder();
+    final VmConfigurationBuilder builder = VmConfiguration.builder();
     final int count = tokens.size();
     int index = 0;
     while (index < count) {
-      index = addOption(configuration, tokens, index, imageFolder);
+      index = addOption(builder, tokens, index, imageFolder);
     }
-    return configuration;
+    return builder;
   }
 
   /**
-   * Adds the option at an index to the configuration, with the token after it as its value unless that token is an
+   * Adds the option at an index to the builder, with the token after it as its value unless that token is an
    * option too. Words that are not options are skipped.
    *
    * @return the index of the token after the option and its value
    */
-  private static int addOption(final VmConfiguration configuration, final List<String> tokens, final int index, final Path imageFolder) {
+  private static int addOption(final VmConfigurationBuilder builder, final List<String> tokens, final int index, final Path imageFolder) {
     final String token = tokens.get(index);
     final int next = index + 1;
     if (!token.startsWith("-")) {
@@ -540,7 +542,7 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VmPlayer
     final boolean hasValue = next < count && isValue(tokens, next);
     if (!hasValue) {
       requireFlagOption(name);
-      configuration.flag(name);
+      builder.flag(name);
       return next;
     }
 
@@ -548,9 +550,9 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VmPlayer
     final String value = checkedValue(name, rawValue, imageFolder);
     final boolean repeatable = REPEATABLE_OPTIONS.contains(name);
     if (repeatable) {
-      configuration.repeatable(name, value);
+      builder.repeatable(name, value);
     } else {
-      configuration.option(name, value);
+      builder.option(name, value);
     }
     return next + 1;
   }

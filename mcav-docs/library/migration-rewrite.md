@@ -226,6 +226,10 @@ Replace `VMPlayer.vm()` with `VmPlayer.create()` and `VNCPlayer.vm()` with `VncP
 `VNCSource.vnc()` with `VncSource.builder()` and declare builder variables as `VncSourceBuilder`, rather than
 `VNCSourceImpl.Builder`. Custom players must implement `isPlaying`; the VM player also exposes an audio callback.
 
+`VMConfiguration.builder()` returned the configuration itself; `VmConfiguration.builder()` now returns a
+`VmConfigurationBuilder` that holds the setters. Declare builder variables as `VmConfigurationBuilder` and call its
+`build()` for the immutable `VmConfiguration` that `VmPlayer.start` takes.
+
 Types of `mcav-vm` and `mcav-vnc` whose names held an upper-case acronym now case it as a word, and implementation
 classes are named for how they work:
 
@@ -243,10 +247,10 @@ classes are named for how they work:
 | `VNCSourceImpl` | `DefaultVncSource` |
 
 `ExecutableFinder.find` now returns an `Optional<Path>` rather than a string; handle a missing executable before
-using its path. `VMConfiguration.audio`, `diskSize`, `display`, `graphics` and `kvm` are removed. Use the current
-configuration methods, such as `drive` and `accelerator`, for the QEMU command needed by the application. Create disk
-images separately. The player controls its own display and audio options; consult the [VM chapter](vm.md) before
-adding raw options.
+using its path. `VMConfiguration.audio`, `diskSize`, `display`, `graphics` and `kvm` are removed. Use the builder
+methods, such as `drive` and `accelerator`, for the QEMU command needed by the application. Create disk images
+separately. The player controls its own display and audio options; consult the [VM chapter](vm.md) before adding raw
+options.
 
 ## Maven installer failures
 

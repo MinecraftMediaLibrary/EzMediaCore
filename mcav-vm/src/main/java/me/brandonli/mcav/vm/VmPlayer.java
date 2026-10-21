@@ -49,9 +49,8 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
  *   final VmPlayer player = VmPlayer.create();
  *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
  *   video.attach(pipeline);
- *   final VmConfiguration configuration = VmConfiguration.builder();
- *   configuration.cdrom("alpine.iso");
- *   configuration.memory(1024);
+ *   final VmConfigurationBuilder builder = VmConfiguration.builder();
+ *   final VmConfiguration configuration = builder.cdrom("alpine.iso").memory(1024).build();
  *   final VmSettings settings = VmSettings.of(1024, 768, 30);
  *   player.start(settings, VmPlayer.Architecture.X86_64, configuration);
  * </code></pre>
@@ -74,7 +73,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    *
    * @param settings      the non-null output dimensions, requested frame rate and local VNC port
    * @param architecture  the non-null guest architecture, which picks the QEMU program
-   * @param configuration the non-null QEMU options; do not mutate them while this player uses them
+   * @param configuration the non-null QEMU options
    * @return true if the machine started, false if the player is already running or released
    * @throws ExecutableNotInPathException                   if the QEMU program is not installed
    * @throws me.brandonli.mcav.media.player.PlayerException if reserved display/audio options are configured, the port cannot be bound, QEMU

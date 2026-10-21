@@ -102,7 +102,7 @@ final class VmProcessPortProbeTest {
 
   private VmProcess createProcess() {
     final VmSettings display = VmSettings.of(5905, 320, 240, 15);
-    final VmConfiguration configuration = VmConfiguration.builder();
+    final VmConfiguration configuration = VmConfiguration.builder().build();
     final Path executable = Path.of(UNUSED_EXECUTABLE);
     final Path kvm = Path.of(UNUSED_KVM_DEVICE);
     final VmProcess.Launcher launcher = _ -> {
