@@ -98,6 +98,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration memory(final int memoryMegabytes) {
     Preconditions.checkArgument(memoryMegabytes > 0, MEMORY_NOT_POSITIVE_MESSAGE, memoryMegabytes);
+
     return this.option(MEMORY_OPTION, memoryMegabytes + MEGABYTES_SUFFIX);
   }
 
@@ -114,6 +115,7 @@ public final class VmConfiguration {
   public VmConfiguration memory(final int amount, final String unit) {
     Preconditions.checkArgument(amount > 0, MEMORY_NOT_POSITIVE_MESSAGE, amount);
     Preconditions.checkNotNull(unit, "Unit must not be null!");
+
     return this.option(MEMORY_OPTION, amount + unit);
   }
 
@@ -126,6 +128,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration cores(final int cores) {
     Preconditions.checkArgument(cores > 0, "Cores %s must be positive!", cores);
+
     final String value = String.valueOf(cores);
     return this.option("smp", value);
   }
@@ -139,6 +142,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration cdrom(final String isoPath) {
     Preconditions.checkNotNull(isoPath, "ISO path must not be null!");
+
     return this.option("cdrom", isoPath);
   }
 
@@ -151,6 +155,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration hda(final String hdaPath) {
     Preconditions.checkNotNull(hdaPath, DISK_PATH_NULL_MESSAGE);
+
     return this.option("hda", hdaPath);
   }
 
@@ -163,6 +168,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration hdb(final String hdbPath) {
     Preconditions.checkNotNull(hdbPath, DISK_PATH_NULL_MESSAGE);
+
     return this.option("hdb", hdbPath);
   }
 
@@ -175,6 +181,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration boot(final String bootOrder) {
     Preconditions.checkNotNull(bootOrder, "Boot order must not be null!");
+
     return this.option("boot", bootOrder);
   }
 
@@ -187,6 +194,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration network(final String networkConfiguration) {
     Preconditions.checkNotNull(networkConfiguration, "Network configuration must not be null!");
+
     return this.option("nic", networkConfiguration);
   }
 
@@ -199,6 +207,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration cpu(final String model) {
     Preconditions.checkNotNull(model, "CPU model must not be null!");
+
     return this.option("cpu", model);
   }
 
@@ -211,6 +220,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration machine(final String machineType) {
     Preconditions.checkNotNull(machineType, "Machine type must not be null!");
+
     return this.option("machine", machineType);
   }
 
@@ -224,6 +234,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration accelerator(final String accelerator) {
     Preconditions.checkNotNull(accelerator, "Accelerator must not be null!");
+
     return this.option("accel", accelerator);
   }
 
@@ -236,6 +247,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration vga(final String adapter) {
     Preconditions.checkNotNull(adapter, "Adapter must not be null!");
+
     return this.option("vga", adapter);
   }
 
@@ -248,6 +260,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration drive(final String drive) {
     Preconditions.checkNotNull(drive, "Drive must not be null!");
+
     return this.repeatable("drive", drive);
   }
 
@@ -260,6 +273,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration device(final String device) {
     Preconditions.checkNotNull(device, "Device must not be null!");
+
     return this.repeatable("device", device);
   }
 
@@ -276,6 +290,7 @@ public final class VmConfiguration {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
     Preconditions.checkNotNull(value, VALUE_NULL_MESSAGE);
     Preconditions.checkArgument(!key.isBlank(), KEY_BLANK_MESSAGE);
+
     this.options.put(key, value);
     return this;
   }
@@ -293,6 +308,7 @@ public final class VmConfiguration {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
     Preconditions.checkNotNull(value, VALUE_NULL_MESSAGE);
     Preconditions.checkArgument(!key.isBlank(), KEY_BLANK_MESSAGE);
+
     this.repeatable.add(OPTION_PREFIX + key);
     this.repeatable.add(value);
     return this;
@@ -309,6 +325,7 @@ public final class VmConfiguration {
   public VmConfiguration flag(final String flag) {
     Preconditions.checkNotNull(flag, "Flag must not be null!");
     Preconditions.checkArgument(!flag.isBlank(), "Flag must not be blank!");
+
     this.flags.add(flag);
     return this;
   }
@@ -322,6 +339,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration remove(final String key) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
+
     this.options.remove(key);
     this.flags.remove(key);
 
@@ -350,42 +368,9 @@ public final class VmConfiguration {
    */
   public boolean has(final String key) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
+
     final List<String> values = this.getAll(key);
     return this.options.containsKey(key) || this.flags.contains(key) || !values.isEmpty();
-  }
-
-  /**
-   * Returns the values of a repeatable option, such as every {@code -device}.
-   *
-   * @param key the option name without the leading dash
-   * @return an unmodifiable snapshot in insertion order, empty if no repeatable values exist; singleton
-   *         options and flags are not included
-   * @throws NullPointerException if {@code key} is null
-   */
-  public List<String> getAll(final String key) {
-    Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
-    final String argument = OPTION_PREFIX + key;
-    final List<String> values = new ArrayList<>();
-    for (int index = 0; index < this.repeatable.size(); index += REPEATABLE_ENTRY_SIZE) {
-      final String name = this.repeatable.get(index);
-      if (name.equals(argument)) {
-        final String value = this.repeatable.get(index + 1);
-        values.add(value);
-      }
-    }
-    return List.copyOf(values);
-  }
-
-  /**
-   * Returns the value of an option. Repeatable options are read with {@link #getAll(String)}.
-   *
-   * @param key the option name without the leading dash
-   * @return the value, or null if the option is not set
-   * @throws NullPointerException if {@code key} is null
-   */
-  public @Nullable String get(final String key) {
-    Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
-    return this.options.get(key);
   }
 
   /**
@@ -398,17 +383,70 @@ public final class VmConfiguration {
   List<String> valuesOf(final Set<String> keys) {
     final List<String> values = new ArrayList<>();
     for (final Map.Entry<String, String> entry : this.options.entrySet()) {
-      if (keys.contains(entry.getKey())) {
-        values.add(entry.getValue());
+      final String key = entry.getKey();
+      if (keys.contains(key)) {
+        final String value = entry.getValue();
+        values.add(value);
       }
     }
+
     for (int index = 0; index < this.repeatable.size(); index += REPEATABLE_ENTRY_SIZE) {
       final String name = this.repeatable.get(index);
-      if (keys.contains(name.substring(OPTION_PREFIX.length()))) {
-        values.add(this.repeatable.get(index + 1));
+      final String key = name.substring(OPTION_PREFIX.length());
+      if (keys.contains(key)) {
+        final String value = this.repeatable.get(index + 1);
+        values.add(value);
       }
     }
+
     return values;
+  }
+
+  /**
+   * Returns the command-line arguments as an array.
+   *
+   * @return a new array snapshot; changes to the array do not affect this configuration
+   */
+  public String[] buildArguments() {
+    final List<String> arguments = this.getArguments();
+    return arguments.toArray(new String[0]);
+  }
+
+  /**
+   * Returns the values of a repeatable option, such as every {@code -device}.
+   *
+   * @param key the option name without the leading dash
+   * @return an unmodifiable snapshot in insertion order, empty if no repeatable values exist; singleton
+   *         options and flags are not included
+   * @throws NullPointerException if {@code key} is null
+   */
+  public List<String> getAll(final String key) {
+    Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
+
+    final String argument = OPTION_PREFIX + key;
+    final List<String> values = new ArrayList<>();
+    for (int index = 0; index < this.repeatable.size(); index += REPEATABLE_ENTRY_SIZE) {
+      final String name = this.repeatable.get(index);
+      if (name.equals(argument)) {
+        final String value = this.repeatable.get(index + 1);
+        values.add(value);
+      }
+    }
+
+    return List.copyOf(values);
+  }
+
+  /**
+   * Returns the value of an option. Repeatable options are read with {@link #getAll(String)}.
+   *
+   * @param key the option name without the leading dash
+   * @return the value, or null if the option is not set
+   * @throws NullPointerException if {@code key} is null
+   */
+  public @Nullable String get(final String key) {
+    Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
+
+    return this.options.get(key);
   }
 
   /**
@@ -430,17 +468,8 @@ public final class VmConfiguration {
     for (final String flag : this.flags) {
       arguments.add(OPTION_PREFIX + flag);
     }
-    return List.copyOf(arguments);
-  }
 
-  /**
-   * Returns the command-line arguments as an array.
-   *
-   * @return a new array snapshot; changes to the array do not affect this configuration
-   */
-  public String[] buildArguments() {
-    final List<String> arguments = this.getArguments();
-    return arguments.toArray(new String[0]);
+    return List.copyOf(arguments);
   }
 
   /**

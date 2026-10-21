@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.utils.os.Os;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.MockSettings;
@@ -45,6 +46,17 @@ final class VmProcessPortProbeTest {
   private static final String UNUSED_EXECUTABLE = "unused-qemu";
   private static final String UNUSED_KVM_DEVICE = "unused-kvm";
 
+  private AtomicBoolean reuseAtBind;
+  private AtomicBoolean reachedBind;
+  private IOException stopped;
+
+  @BeforeEach
+  void setUp() {
+    this.reuseAtBind = new AtomicBoolean(true);
+    this.reachedBind = new AtomicBoolean();
+    this.stopped = new IOException("stop at the port-probe boundary!");
+  }
+
   @Test
   void shouldDisableAddressReuseBeforeProbingEvenWhenTheSocketInitiallyEnablesIt() throws IOException {
     // ServerSocket's API explicitly leaves the initial SO_REUSEADDR setting undefined. Model its allowed true case.
@@ -52,53 +64,52 @@ final class VmProcessPortProbeTest {
       delegate.setReuseAddress(true);
       final boolean reuseEnabled = delegate.getReuseAddress();
       assertTrue(reuseEnabled);
-      final AtomicBoolean reuseAtBind = new AtomicBoolean(true);
-      final AtomicBoolean reachedBind = new AtomicBoolean();
-      final IOException stopped = new IOException("stop at the port-probe boundary!");
+
       final MockSettings settings = withSettings();
       settings.defaultAnswer(AdditionalAnswers.delegatesTo(delegate));
       try (
-        final MockedConstruction<ServerSocket> sockets = mockConstruction(ServerSocket.class, settings, (socket, _) -> {
-          doAnswer(_ -> {
-            reuseAtBind.set(delegate.getReuseAddress());
-            reachedBind.set(true);
-            throw stopped;
-          })
-            .when(socket)
-            .bind(any(SocketAddress.class));
-        })
+        final MockedConstruction<ServerSocket> sockets = mockConstruction(ServerSocket.class, settings, (socket, _) ->
+          this.stopAtBind(socket, delegate)
+        )
       ) {
-        final VmSettings display = VmSettings.of(5905, 320, 240, 15);
-        final VmConfiguration configuration = VmConfiguration.builder();
-        final Path executable = Path.of(UNUSED_EXECUTABLE);
-        final Path kvm = Path.of(UNUSED_KVM_DEVICE);
-        final VmProcess.Launcher launcher = _ -> {
-          throw new AssertionError("QEMU must not launch after the port probe fails!");
-        };
-        final VmProcess process = new VmProcess(
-          display,
-          VmPlayer.Architecture.X86_64,
-          executable,
-          configuration,
-          launcher,
-          Os.LINUX,
-          kvm,
-          1,
-          () -> {
-            throw new AssertionError("no password is written after the port probe fails!");
-          }
-        );
+        final VmProcess process = this.createProcess();
         final PlayerException failure = assertThrows(PlayerException.class, process::start);
         final List<ServerSocket> constructed = sockets.constructed();
         final boolean noSocketConstructed = constructed.isEmpty();
         final Throwable cause = failure.getCause();
-        final boolean bound = reachedBind.get();
-        final boolean reusedAtBind = reuseAtBind.get();
+        final boolean bound = this.reachedBind.get();
+        final boolean reusedAtBind = this.reuseAtBind.get();
         assertFalse(noSocketConstructed);
-        assertSame(stopped, cause);
+        assertSame(this.stopped, cause);
         assertTrue(bound);
         assertFalse(reusedAtBind, "the preflight must test a non-reusable bind regardless of the OS default");
       }
     }
+  }
+
+  private void stopAtBind(final ServerSocket socket, final ServerSocket delegate) throws IOException {
+    doAnswer(_ -> this.recordBind(delegate))
+      .when(socket)
+      .bind(any(SocketAddress.class));
+  }
+
+  private Object recordBind(final ServerSocket delegate) throws IOException {
+    final boolean reuse = delegate.getReuseAddress();
+    this.reuseAtBind.set(reuse);
+    this.reachedBind.set(true);
+    throw this.stopped;
+  }
+
+  private VmProcess createProcess() {
+    final VmSettings display = VmSettings.of(5905, 320, 240, 15);
+    final VmConfiguration configuration = VmConfiguration.builder();
+    final Path executable = Path.of(UNUSED_EXECUTABLE);
+    final Path kvm = Path.of(UNUSED_KVM_DEVICE);
+    final VmProcess.Launcher launcher = _ -> {
+      throw new AssertionError("QEMU must not launch after the port probe fails!");
+    };
+    return new VmProcess(display, VmPlayer.Architecture.X86_64, executable, configuration, launcher, Os.LINUX, kvm, 1, () -> {
+      throw new AssertionError("no password is written after the port probe fails!");
+    });
   }
 }

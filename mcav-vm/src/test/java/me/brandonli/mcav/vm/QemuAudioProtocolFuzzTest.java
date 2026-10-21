@@ -52,6 +52,7 @@ final class QemuAudioProtocolFuzzTest {
       if (authenticates) {
         QemuAudioProtocol.answerChallenge(input, output, PASSWORD);
       }
+
       QemuAudioProtocol.readSecurityResult(input);
       QemuAudioProtocol.readServerInitialization(input);
       while (true) {

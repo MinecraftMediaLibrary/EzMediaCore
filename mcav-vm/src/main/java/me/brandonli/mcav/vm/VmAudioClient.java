@@ -55,6 +55,7 @@ final class VmAudioClient implements Closeable {
   private final DataInputStream input;
   private final Sink sink;
   private final BiConsumer<String, Throwable> failures;
+
   private volatile Thread reader;
   private volatile boolean closed;
 
@@ -64,13 +65,6 @@ final class VmAudioClient implements Closeable {
     this.sink = sink;
     this.failures = failures;
     this.reader = new Thread(UNSTARTED_READER_NAME);
-  }
-
-  private void startReading() {
-    final Thread thread = new Thread(this::read, READER_THREAD_NAME);
-    thread.setDaemon(true);
-    this.reader = thread;
-    thread.start();
   }
 
   /**
@@ -90,6 +84,28 @@ final class VmAudioClient implements Closeable {
     final BiConsumer<String, Throwable> failures
   ) throws IOException {
     final Socket socket = new Socket();
+    final CompletableFuture<Void> deadline = scheduleHandshakeDeadline(socket);
+    try {
+      socket.connect(address, HANDSHAKE_TIMEOUT_MILLISECONDS);
+
+      final InputStream rawInput = socket.getInputStream();
+      final DataInputStream input = new DataInputStream(new BufferedInputStream(rawInput));
+      final OutputStream rawOutput = socket.getOutputStream();
+      final DataOutputStream output = new DataOutputStream(new BufferedOutputStream(rawOutput));
+      handshake(input, output, password);
+      deadline.cancel(false);
+
+      final VmAudioClient client = new VmAudioClient(socket, input, sink, failures);
+      client.startReading();
+
+      return client;
+    } catch (final IOException exception) {
+      closeQuietly(socket);
+      throw exception;
+    }
+  }
+
+  private static CompletableFuture<Void> scheduleHandshakeDeadline(final Socket socket) {
     // the read timeout only limits a pause, so a server that trickles its handshake is cut off once it took too long;
     // a deadline cancelled in time never runs, and one that runs gets a thread of its own, as the common pool of the
     // server may be busy with the tasks of other plugins for longer than the deadline
@@ -98,22 +114,7 @@ final class VmAudioClient implements Closeable {
       TimeUnit.MILLISECONDS,
       VmAudioClient::onOwnThread
     );
-    final CompletableFuture<Void> deadline = CompletableFuture.runAsync(() -> closeQuietly(socket), later);
-    try {
-      socket.connect(address, HANDSHAKE_TIMEOUT_MILLISECONDS);
-      final InputStream rawInput = socket.getInputStream();
-      final DataInputStream input = new DataInputStream(new BufferedInputStream(rawInput));
-      final OutputStream rawOutput = socket.getOutputStream();
-      final DataOutputStream output = new DataOutputStream(new BufferedOutputStream(rawOutput));
-      handshake(input, output, password);
-      deadline.cancel(false);
-      final VmAudioClient client = new VmAudioClient(socket, input, sink, failures);
-      client.startReading();
-      return client;
-    } catch (final IOException exception) {
-      closeQuietly(socket);
-      throw exception;
-    }
+    return CompletableFuture.runAsync(() -> closeQuietly(socket), later);
   }
 
   /**
@@ -129,19 +130,30 @@ final class VmAudioClient implements Closeable {
     QemuAudioProtocol.readVersion(input);
     QemuAudioProtocol.writeVersion(output);
     output.flush();
+
     final boolean authenticate = QemuAudioProtocol.negotiateSecurity(input, output, password);
     output.flush();
+
     if (authenticate) {
       QemuAudioProtocol.answerChallenge(input, output, password);
       output.flush();
     }
+
     QemuAudioProtocol.readSecurityResult(input);
     QemuAudioProtocol.writeClientInitialization(output);
     output.flush();
+
     QemuAudioProtocol.readServerInitialization(input);
     QemuAudioProtocol.writeSetEncodings(output);
     QemuAudioProtocol.writeEnableAudio(output, AudioFilter.CHANNELS, AudioFilter.SAMPLE_RATE);
     output.flush();
+  }
+
+  private void startReading() {
+    final Thread thread = new Thread(this::read, READER_THREAD_NAME);
+    thread.setDaemon(true);
+    this.reader = thread;
+    thread.start();
   }
 
   private void read() {
@@ -149,13 +161,7 @@ final class VmAudioClient implements Closeable {
     try {
       while (true) {
         final QemuAudioProtocol.Message message = QemuAudioProtocol.readMessage(this.input, AudioFilter.FRAME_SIZE, size -> buffer);
-        final QemuAudioProtocol.Kind kind = message.getKind();
-        if (kind == QemuAudioProtocol.Kind.DATA) {
-          this.sink.accept(message.getSamples(), message.getLength());
-        } else if (kind == QemuAudioProtocol.Kind.END) {
-          // QEMU sends nothing until the guest plays again, so the sink keeps the time of the pause itself
-          this.sink.quiet();
-        }
+        this.deliver(message);
       }
     } catch (final IOException | RuntimeException exception) {
       if (!this.closed) {
@@ -165,23 +171,16 @@ final class VmAudioClient implements Closeable {
     }
   }
 
-  /**
-   * Gets the thread that reads the connection, so tests can check how it runs.
-   *
-   * @return the reader thread
-   */
-  @VisibleForTesting
-  Thread getReader() {
-    return this.reader;
-  }
-
-  /**
-   * Checks whether the reader thread still runs.
-   *
-   * @return true while samples can arrive
-   */
-  boolean isAlive() {
-    return this.reader.isAlive();
+  private void deliver(final QemuAudioProtocol.Message message) {
+    final QemuAudioProtocol.Kind kind = message.getKind();
+    if (kind == QemuAudioProtocol.Kind.DATA) {
+      final byte[] samples = message.getSamples();
+      final int length = message.getLength();
+      this.sink.accept(samples, length);
+    } else if (kind == QemuAudioProtocol.Kind.END) {
+      // QEMU sends nothing until the guest plays again, so the sink keeps the time of the pause itself
+      this.sink.quiet();
+    }
   }
 
   /**
@@ -206,9 +205,11 @@ final class VmAudioClient implements Closeable {
    */
   static void join(final Thread thread) {
     final Thread caller = Thread.currentThread();
-    if (thread.equals(caller)) {
+    final boolean ownThread = thread.equals(caller);
+    if (ownThread) {
       return;
     }
+
     try {
       thread.join(HANDSHAKE_TIMEOUT_MILLISECONDS);
     } catch (final InterruptedException exception) {
@@ -227,6 +228,25 @@ final class VmAudioClient implements Closeable {
     } catch (final IOException exception) {
       // the connection is gone either way
     }
+  }
+
+  /**
+   * Gets the thread that reads the connection, so tests can check how it runs.
+   *
+   * @return the reader thread
+   */
+  @VisibleForTesting
+  Thread getReader() {
+    return this.reader;
+  }
+
+  /**
+   * Checks whether the reader thread still runs.
+   *
+   * @return true while samples can arrive
+   */
+  boolean isAlive() {
+    return this.reader.isAlive();
   }
 
   /**

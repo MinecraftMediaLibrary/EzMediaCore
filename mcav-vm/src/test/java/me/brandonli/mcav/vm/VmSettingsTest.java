@@ -66,6 +66,7 @@ final class VmSettingsTest {
     final boolean vncRange = port >= VmProcess.FIRST_VNC_PORT && port <= MAXIMUM_PORT;
     assertTrue(vncRange, () -> "port %s".formatted(port));
     assertEquals(320, width);
+
     final InetAddress loopback = InetAddress.ofLiteral("127.0.0.1");
     try (final ServerSocket socket = new ServerSocket(port, 1, loopback)) {
       final int bound = socket.getLocalPort();

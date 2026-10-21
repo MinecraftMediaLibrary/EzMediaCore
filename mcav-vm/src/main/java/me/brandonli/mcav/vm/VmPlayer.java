@@ -108,6 +108,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
     Preconditions.checkNotNull(architecture, "Architecture must not be null!");
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
     Preconditions.checkNotNull(executor, "Executor must not be null!");
+
     return CompletableFuture.supplyAsync(() -> this.start(settings, architecture, configuration), executor);
   }
 

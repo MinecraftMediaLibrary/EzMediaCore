@@ -19,6 +19,7 @@ package me.brandonli.mcav.vm;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
+import com.google.common.util.concurrent.Uninterruptibles;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,6 +29,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,6 +44,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
@@ -49,6 +52,7 @@ import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
+import org.checkerframework.checker.initialization.qual.UnderInitialization;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +99,8 @@ final class VmProcess {
   private static final String PASSWORD_FILE = "password";
   private static final String SECRET_FOLDER_PREFIX = "mcav-vm-";
   private static final Path TEMPORARY_FOLDER = Path.of(System.getProperty("java.io.tmpdir"));
-  private static final boolean POSIX = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+  private static final String POSIX_ATTRIBUTE_VIEW = "posix";
+  private static final boolean POSIX;
   private static final FileAttribute<Set<PosixFilePermission>> OWNER_ONLY = PosixFilePermissions.asFileAttribute(
     PosixFilePermissions.fromString("rwx------")
   );
@@ -157,6 +162,12 @@ final class VmProcess {
   private static final int OUTPUT_TAIL_LINES = 40;
   private static final int OUTPUT_LINE_CHARACTERS = 4096;
 
+  static {
+    final FileSystem fileSystem = FileSystems.getDefault();
+    final Set<String> views = fileSystem.supportedFileAttributeViews();
+    POSIX = views.contains(POSIX_ATTRIBUTE_VIEW);
+  }
+
   private final VmSettings settings;
   private final VmPlayer.Architecture architecture;
   private final Path executable;
@@ -172,35 +183,6 @@ final class VmProcess {
 
   private volatile @Nullable Process process;
   private volatile @Nullable Thread drainThread;
-
-  /**
-   * Creates a QEMU process for the current operating system that has not started yet.
-   *
-   * @param settings      the display settings
-   * @param architecture  the guest architecture, which decides whether the machine has sound
-   * @param executable    the QEMU program
-   * @param configuration the QEMU options
-   * @return the process
-   */
-  static VmProcess create(
-    final VmSettings settings,
-    final VmPlayer.Architecture architecture,
-    final Path executable,
-    final VmConfiguration configuration
-  ) {
-    final Os currentOs = OsUtils.getOs();
-    return new VmProcess(
-      settings,
-      architecture,
-      executable,
-      configuration,
-      new RecordingLauncher(QemuProcessRecords.ofUser()),
-      currentOs,
-      KVM_DEVICE,
-      START_TIMEOUT_MILLISECONDS,
-      () -> createSecretFolder(TEMPORARY_FOLDER, POSIX)
-    );
-  }
 
   /**
    * Constructs a process with its environment replaced, so tests can run without QEMU.
@@ -265,16 +247,50 @@ final class VmProcess {
     this.startTimeoutNanoseconds = TimeUnit.MILLISECONDS.toNanos(startTimeoutMilliseconds);
     this.nanosecondClock = nanosecondClock;
     this.secretFolder = secretFolder;
-    this.password = createPassword();
+    this.password = this.createPassword();
     this.outputTail = new ArrayDeque<>();
   }
 
-  private static String createPassword() {
+  /**
+   * Creates a QEMU process for the current operating system that has not started yet.
+   *
+   * @param settings      the display settings
+   * @param architecture  the guest architecture, which decides whether the machine has sound
+   * @param executable    the QEMU program
+   * @param configuration the QEMU options
+   * @return the process
+   */
+  static VmProcess create(
+    final VmSettings settings,
+    final VmPlayer.Architecture architecture,
+    final Path executable,
+    final VmConfiguration configuration
+  ) {
+    final Os currentOs = OsUtils.getOs();
+    final QemuProcessRecords records = QemuProcessRecords.ofUser();
+    final Launcher launcher = new RecordingLauncher(records);
+    return new VmProcess(
+      settings,
+      architecture,
+      executable,
+      configuration,
+      launcher,
+      currentOs,
+      KVM_DEVICE,
+      START_TIMEOUT_MILLISECONDS,
+      () -> createSecretFolder(TEMPORARY_FOLDER, POSIX)
+    );
+  }
+
+  private String createPassword(@UnderInitialization VmProcess this) {
+    final int characterCount = PASSWORD_CHARACTERS.length();
     final StringBuilder password = new StringBuilder(PASSWORD_LENGTH);
     for (int index = 0; index < PASSWORD_LENGTH; index++) {
-      final int character = RANDOM.nextInt(PASSWORD_CHARACTERS.length());
-      password.append(PASSWORD_CHARACTERS.charAt(character));
+      final int position = RANDOM.nextInt(characterCount);
+      final char character = PASSWORD_CHARACTERS.charAt(position);
+      password.append(character);
     }
+
     return password.toString();
   }
 
@@ -292,22 +308,8 @@ final class VmProcess {
     if (posix) {
       return Files.createTempDirectory(parent, SECRET_FOLDER_PREFIX, OWNER_ONLY);
     }
+
     return Files.createTempDirectory(parent, SECRET_FOLDER_PREFIX);
-  }
-
-  /**
-   * Gets the password of the display, which a VNC client of the machine must send.
-   *
-   * @return the password, eight letters and digits
-   */
-  String getPassword() {
-    return this.password;
-  }
-
-  private static Process startProcess(final List<String> command) throws IOException {
-    final ProcessBuilder builder = new ProcessBuilder(command);
-    builder.redirectErrorStream(true);
-    return builder.start();
   }
 
   /**
@@ -318,11 +320,13 @@ final class VmProcess {
   void start() {
     checkModuleOptions(this.configuration);
     this.ensurePortIsFree();
+
     final Path folder = this.writePassword();
+    final Path passwordFile = folder.resolve(PASSWORD_FILE);
     try {
-      this.launchMachine(folder.resolve(PASSWORD_FILE));
+      this.launchMachine(passwordFile);
     } finally {
-      deleteSecret(folder);
+      this.deleteSecret(folder);
     }
   }
 
@@ -334,7 +338,8 @@ final class VmProcess {
     }
 
     final String accelerator = detectAccelerator(this.os, this.kvmDevice);
-    if (accelerator.equals(SOFTWARE_ACCELERATOR)) {
+    final boolean software = accelerator.equals(SOFTWARE_ACCELERATOR);
+    if (software) {
       this.launch(SOFTWARE_ACCELERATOR, passwordFile);
       return;
     }
@@ -354,6 +359,7 @@ final class VmProcess {
       final Path file = folder.resolve(PASSWORD_FILE);
       // QEMU reads the whole file as the password, so it has no line break
       Files.writeString(file, this.password, StandardCharsets.US_ASCII, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+
       return folder;
     } catch (final IOException exception) {
       final String reason = exception.getMessage();
@@ -362,9 +368,10 @@ final class VmProcess {
     }
   }
 
-  private static void deleteSecret(final Path folder) {
+  private void deleteSecret(final Path folder) {
+    final Path file = folder.resolve(PASSWORD_FILE);
     try {
-      Files.deleteIfExists(folder.resolve(PASSWORD_FILE));
+      Files.deleteIfExists(file);
       Files.deleteIfExists(folder);
     } catch (final IOException exception) {
       LOGGER.warn("The password folder {} of the virtual machine could not be deleted.", folder, exception);
@@ -407,6 +414,7 @@ final class VmProcess {
         throw new PlayerException(message);
       }
     }
+
     for (final String machine : machineValues(configuration)) {
       if (machine.contains(SPEAKER_PROPERTY)) {
         final String message = "PC speaker is routed by MCAV itself, so pcspk-audiodev must be removed from -machine!";
@@ -421,7 +429,9 @@ final class VmProcess {
    * @return true if the machine plays into the audio backend of mcav
    */
   boolean hasAudio() {
-    return this.architecture == VmPlayer.Architecture.X86_64 && isPcMachine(machineType(this.configuration));
+    final String type = machineType(this.configuration);
+    final boolean pcMachine = isPcMachine(type);
+    return this.architecture == VmPlayer.Architecture.X86_64 && pcMachine;
   }
 
   /**
@@ -435,17 +445,25 @@ final class VmProcess {
   static String machineType(final VmConfiguration configuration) {
     String type = "";
     for (final String machine : machineValues(configuration)) {
-      boolean first = true;
-      for (final String part : PROPERTY_SPLITTER.split(machine)) {
-        if (part.startsWith(TYPE_PROPERTY)) {
-          type = part.substring(TYPE_PROPERTY.length());
-        } else if (first && !part.isEmpty() && !part.contains(PROPERTY_ASSIGNMENT)) {
-          type = part;
-        }
-        first = false;
-      }
+      type = mergeMachineType(type, machine);
     }
+
     return type.toLowerCase(Locale.ROOT);
+  }
+
+  private static String mergeMachineType(final String earlierType, final String machine) {
+    String type = earlierType;
+    boolean first = true;
+    for (final String part : PROPERTY_SPLITTER.split(machine)) {
+      if (part.startsWith(TYPE_PROPERTY)) {
+        type = part.substring(TYPE_PROPERTY.length());
+      } else if (first && !part.isEmpty() && !part.contains(PROPERTY_ASSIGNMENT)) {
+        type = part;
+      }
+      first = false;
+    }
+
+    return type;
   }
 
   /**
@@ -469,10 +487,6 @@ final class VmProcess {
   @VisibleForTesting
   static boolean isPcMachine(final String type) {
     return type.isEmpty() || type.equals(PC_MACHINE) || type.equals(Q35_MACHINE) || type.startsWith(PC_VERSION_PREFIX);
-  }
-
-  private static boolean isQ35(final String type) {
-    return type.equals(Q35_MACHINE) || type.startsWith(Q35_VERSION_PREFIX);
   }
 
   private void ensurePortIsFree() {
@@ -509,18 +523,21 @@ final class VmProcess {
     final String rendered = String.join(ARGUMENT_SEPARATOR, command);
     LOGGER.debug("QEMU is started with the command line {}.", rendered);
 
-    final Process started;
+    final Process started = this.startQemu(command);
+    this.process = started;
+
+    this.startDraining(started);
+    this.waitForDisplay(started);
+  }
+
+  private Process startQemu(final List<String> command) {
     try {
-      started = this.launcher.launch(command);
+      return this.launcher.launch(command);
     } catch (final IOException exception) {
       final String reason = exception.getMessage();
       final String message = "QEMU could not be started because of \"%s\"!".formatted(reason);
       throw new PlayerException(message, exception);
     }
-    this.process = started;
-
-    this.startDraining(started);
-    this.waitForDisplay(started);
   }
 
   /**
@@ -555,13 +572,17 @@ final class VmProcess {
     command.add(program);
     final List<String> arguments = this.configuration.getArguments();
     command.addAll(arguments);
-    if (this.hasAudio()) {
-      routeSpeaker(command);
+
+    final boolean audio = this.hasAudio();
+    if (audio) {
+      this.routeSpeaker(command);
     }
+
     if (accelerator != null) {
       command.add("-accel");
       command.add(accelerator);
     }
+
     this.addDefaultOptions(command, passwordFile);
     return command;
   }
@@ -572,7 +593,7 @@ final class VmProcess {
    *
    * @param command the command line so far, with the options of the configuration
    */
-  private static void routeSpeaker(final List<String> command) {
+  private void routeSpeaker(final List<String> command) {
     command.add("-machine");
     command.add(SPEAKER_PROPERTY + PROPERTY_ASSIGNMENT + AUDIO_ID);
   }
@@ -585,11 +606,22 @@ final class VmProcess {
    */
   private void addDefaultOptions(final List<String> command, final Path passwordFile) {
     this.addUnlessConfigured(command, "vga", "-vga", "std");
+    this.addNoHostWindow(command);
+    this.addRestrictedNetwork(command);
+    this.addPasswordSecret(command, passwordFile);
+    this.addVncDisplay(command);
+    this.addUsbTablet(command);
+  }
+
+  private void addNoHostWindow(final List<String> command) {
     final boolean hasDisplay = DISPLAY_OPTIONS.stream().anyMatch(this.configuration::has);
     if (!hasDisplay) {
       command.add("-display");
       command.add("none");
     }
+  }
+
+  private void addRestrictedNetwork(final List<String> command) {
     // QEMU's own default network lets the guest reach every service of the host's loopback address (10.0.2.2 inside
     // the guest), so a machine that chose no network gets one that reaches neither the host nor the internet
     final boolean hasNetwork = NETWORK_OPTIONS.stream().anyMatch(this.configuration::has);
@@ -597,24 +629,32 @@ final class VmProcess {
       command.add("-nic");
       command.add(RESTRICTED_NETWORK);
     }
-    final int port = this.settings.getPort();
-    final int display = port - FIRST_VNC_PORT;
+  }
+
+  private void addPasswordSecret(final List<String> command, final Path passwordFile) {
     // QEMU splits its option values at commas, so a comma of the path is written twice
-    final String secretFile = passwordFile.toString().replace(PROPERTY_SEPARATOR, ESCAPED_PROPERTY_SEPARATOR);
+    final String path = passwordFile.toString();
+    final String secretFile = path.replace(PROPERTY_SEPARATOR, ESCAPED_PROPERTY_SEPARATOR);
     final String secret = "secret,id=%s,file=%s".formatted(PASSWORD_ID, secretFile);
     command.add("-object");
     command.add(secret);
+  }
+
+  private void addVncDisplay(final List<String> command) {
+    final int port = this.settings.getPort();
+    final int display = port - FIRST_VNC_PORT;
     final String vnc = "%s:%s,share=force-shared,password-secret=%s".formatted(LOCALHOST, display, PASSWORD_ID);
-    if (this.hasAudio()) {
-      this.addAudio(command);
-      final String vncWithAudio = "%s,audiodev=%s".formatted(vnc, AUDIO_ID);
-      command.add(VNC_OPTION);
-      command.add(vncWithAudio);
-    } else {
+    final boolean audio = this.hasAudio();
+    if (!audio) {
       command.add(VNC_OPTION);
       command.add(vnc);
+      return;
     }
-    this.addUsbTablet(command);
+
+    this.addAudio(command);
+    final String vncWithAudio = "%s,audiodev=%s".formatted(vnc, AUDIO_ID);
+    command.add(VNC_OPTION);
+    command.add(vncWithAudio);
   }
 
   /**
@@ -627,13 +667,21 @@ final class VmProcess {
     final String backend = "none,id=%s,out.frequency=%s".formatted(AUDIO_ID, AudioFilter.SAMPLE_RATE);
     command.add("-audiodev");
     command.add(backend);
-    final String card = isQ35(machineType(this.configuration)) ? ICH9_SOUND_CARD : SOUND_CARD;
+
+    final String type = machineType(this.configuration);
+    final boolean q35 = this.isQ35(type);
+    final String card = q35 ? ICH9_SOUND_CARD : SOUND_CARD;
     final String soundCard = "%s,id=%s".formatted(card, SOUND_CARD_ID);
     command.add(DEVICE_OPTION);
     command.add(soundCard);
+
     final String output = "hda-output,bus=%s.0,audiodev=%s".formatted(SOUND_CARD_ID, AUDIO_ID);
     command.add(DEVICE_OPTION);
     command.add(output);
+  }
+
+  private boolean isQ35(final String type) {
+    return type.equals(Q35_MACHINE) || type.startsWith(Q35_VERSION_PREFIX);
   }
 
   /**
@@ -643,35 +691,39 @@ final class VmProcess {
    */
   private void addUsbTablet(final List<String> command) {
     final boolean legacyTablet = this.configuration.has("usbdevice");
-    boolean controllerChosen = this.configuration.has("usb");
-    boolean usbOff = false;
-    for (final String machine : machineValues(this.configuration)) {
-      for (final String part : PROPERTY_SPLITTER.split(machine)) {
-        if (part.startsWith("usb=")) {
-          controllerChosen = true;
-          usbOff = part.equals("usb=off");
-        }
-      }
-    }
+    final Optional<String> usbProperty = this.findLastUsbProperty();
+    final boolean controllerChosen = this.configuration.has("usb") || usbProperty.isPresent();
+    final boolean usbOff = usbProperty.equals(Optional.of("usb=off"));
     final List<String> devices = this.configuration.getAll("device");
-    final boolean tabletAdded = hasTablet(devices);
+    final boolean tabletAdded = this.hasTablet(devices);
 
     if (!legacyTablet && !controllerChosen) {
       command.add("-usb");
     }
+
     if (!legacyTablet && !usbOff && !tabletAdded) {
       command.add(DEVICE_OPTION);
       command.add(TABLET_DEVICE);
     }
   }
 
-  private static boolean hasTablet(final List<String> devices) {
+  private Optional<String> findLastUsbProperty() {
+    final List<String> machines = machineValues(this.configuration);
+    return machines
+      .stream()
+      .flatMap(PROPERTY_SPLITTER::splitToStream)
+      .filter(part -> part.startsWith("usb="))
+      .reduce((earlier, later) -> later);
+  }
+
+  private boolean hasTablet(final List<String> devices) {
     for (final String device : devices) {
       final boolean tablet = device.equals(TABLET_DEVICE) || device.startsWith(TABLET_DEVICE + PROPERTY_SEPARATOR);
       if (tablet) {
         return true;
       }
     }
+
     return false;
   }
 
@@ -727,7 +779,7 @@ final class VmProcess {
     for (int index = 0; index < count; index++) {
       final char character = characters[index];
       if (character == LINE_FEED) {
-        trimLine(line);
+        this.trimLine(line);
         final String complete = line.toString();
         this.remember(complete);
         line.setLength(0);
@@ -735,7 +787,8 @@ final class VmProcess {
         line.append(character);
       }
     }
-    trimLine(line);
+
+    this.trimLine(line);
   }
 
   /**
@@ -744,7 +797,7 @@ final class VmProcess {
    *
    * @param line the line being collected
    */
-  private static void trimLine(final StringBuilder line) {
+  private void trimLine(final StringBuilder line) {
     final int excess = line.length() - OUTPUT_LINE_CHARACTERS;
     if (excess > 0) {
       line.delete(0, excess);
@@ -752,22 +805,17 @@ final class VmProcess {
   }
 
   private void remember(final String line) {
-    if (line.isBlank()) {
+    final boolean blank = line.isBlank();
+    if (blank) {
       return;
     }
+
     LOGGER.debug("QEMU printed \"{}\".", line);
     synchronized (this.outputTail) {
       this.outputTail.addLast(line);
       while (this.outputTail.size() > OUTPUT_TAIL_LINES) {
         this.outputTail.removeFirst();
       }
-    }
-  }
-
-  private String getOutputTail() {
-    final String separator = System.lineSeparator();
-    synchronized (this.outputTail) {
-      return String.join(separator, this.outputTail);
     }
   }
 
@@ -778,7 +826,7 @@ final class VmProcess {
 
     while (this.nanosecondClock.getAsLong() - start < this.startTimeoutNanoseconds) {
       this.checkAlive(started);
-      final boolean reachable = isReachable(address);
+      final boolean reachable = this.isReachable(address);
       if (reachable) {
         // QEMU exits at once when it cannot open its display, so a moment later it must still run, or the
         // listener belongs to another program
@@ -791,6 +839,7 @@ final class VmProcess {
 
     final String output = this.getOutputTail();
     this.shutdown();
+
     final String message = "QEMU display on port %s did not become reachable, and QEMU printed \"%s\"!".formatted(port, output);
     throw new PlayerException(message);
   }
@@ -805,34 +854,19 @@ final class VmProcess {
     this.awaitOutput();
     final String output = this.getOutputTail();
     this.process = null;
+
     final String message = "QEMU exited with code %s, printing \"%s\"!".formatted(exitCode, output);
     throw new PlayerException(message);
   }
 
   private void awaitOutput() {
     final Thread drain = Objects.requireNonNull(this.drainThread, "Output of QEMU must be drained while QEMU runs!");
-    final long timeoutNanoseconds = TimeUnit.MILLISECONDS.toNanos(OUTPUT_TIMEOUT_MILLISECONDS);
-    final long deadline = System.nanoTime() + timeoutNanoseconds;
-    boolean interrupted = Thread.interrupted();
-    try {
-      while (drain.isAlive()) {
-        final long remaining = deadline - System.nanoTime();
-        if (remaining <= 0) {
-          drain.interrupt();
-          LOGGER.warn("QEMU output reader did not stop within {} ms.", OUTPUT_TIMEOUT_MILLISECONDS);
-          return;
-        }
-        try {
-          TimeUnit.NANOSECONDS.timedJoin(drain, remaining);
-        } catch (final InterruptedException exception) {
-          interrupted = true;
-        }
-      }
-    } finally {
-      if (interrupted) {
-        final Thread current = Thread.currentThread();
-        current.interrupt();
-      }
+    Uninterruptibles.joinUninterruptibly(drain, OUTPUT_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+
+    final boolean alive = drain.isAlive();
+    if (alive) {
+      drain.interrupt();
+      LOGGER.warn("QEMU output reader did not stop within {} ms.", OUTPUT_TIMEOUT_MILLISECONDS);
     }
   }
 
@@ -846,17 +880,26 @@ final class VmProcess {
       final Thread current = Thread.currentThread();
       current.interrupt();
       this.shutdown();
+
       final String message = "Waiting for QEMU was interrupted!";
       throw new PlayerException(message, exception);
     }
   }
 
-  private static boolean isReachable(final InetSocketAddress address) {
+  private boolean isReachable(final InetSocketAddress address) {
     try (final Socket socket = new Socket()) {
       socket.connect(address, CONNECT_TIMEOUT_MILLISECONDS);
+
       return true;
     } catch (final IOException exception) {
       return false;
+    }
+  }
+
+  private String getOutputTail() {
+    final String separator = System.lineSeparator();
+    synchronized (this.outputTail) {
+      return String.join(separator, this.outputTail);
     }
   }
 
@@ -881,34 +924,39 @@ final class VmProcess {
       return;
     }
 
-    boolean interrupted = Thread.interrupted();
+    current.destroy();
+
+    final boolean exited = this.awaitGracefulExit(current);
+    if (!exited) {
+      current.destroyForcibly();
+      this.awaitForcedExit(current);
+    }
+
+    this.awaitOutput();
+
+    final boolean alive = current.isAlive();
+    if (alive) {
+      LOGGER.warn("QEMU is still alive after its forced termination.");
+      return;
+    }
+
+    this.process = null;
+    this.launcher.ended(current);
+  }
+
+  private boolean awaitGracefulExit(final Process current) {
+    final Thread thread = Thread.currentThread();
+    final boolean interrupted = thread.isInterrupted();
+    if (interrupted) {
+      return false;
+    }
+
     try {
-      current.destroy();
-      boolean exited = false;
-      if (!interrupted) {
-        try {
-          exited = current.waitFor(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (final InterruptedException exception) {
-          interrupted = true;
-        }
-      }
-      if (!exited) {
-        current.destroyForcibly();
-        awaitForcedExit(current);
-      }
-      this.awaitOutput();
-      final boolean alive = current.isAlive();
-      if (!alive) {
-        this.process = null;
-        this.launcher.ended(current);
-      } else {
-        LOGGER.warn("QEMU is still alive after its forced termination.");
-      }
-    } finally {
-      if (interrupted) {
-        final Thread thread = Thread.currentThread();
-        thread.interrupt();
-      }
+      return current.waitFor(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    } catch (final InterruptedException exception) {
+      thread.interrupt();
+
+      return false;
     }
   }
 
@@ -917,28 +965,33 @@ final class VmProcess {
    *
    * @param current the process whose termination was requested
    */
-  private static void awaitForcedExit(final Process current) {
+  private void awaitForcedExit(final Process current) {
     final long timeoutNanoseconds = TimeUnit.SECONDS.toNanos(STOP_TIMEOUT_SECONDS);
     final long deadline = System.nanoTime() + timeoutNanoseconds;
     boolean interrupted = Thread.interrupted();
-    try {
-      while (current.isAlive()) {
-        final long remaining = deadline - System.nanoTime();
-        if (remaining <= 0) {
-          return;
-        }
-        try {
-          current.waitFor(remaining, TimeUnit.NANOSECONDS);
-        } catch (final InterruptedException exception) {
-          interrupted = true;
-        }
+    long remaining = deadline - System.nanoTime();
+    while (current.isAlive() && remaining > 0) {
+      try {
+        current.waitFor(remaining, TimeUnit.NANOSECONDS);
+      } catch (final InterruptedException exception) {
+        interrupted = true;
       }
-    } finally {
-      if (interrupted) {
-        final Thread thread = Thread.currentThread();
-        thread.interrupt();
-      }
+      remaining = deadline - System.nanoTime();
     }
+
+    if (interrupted) {
+      final Thread thread = Thread.currentThread();
+      thread.interrupt();
+    }
+  }
+
+  /**
+   * Gets the password of the display, which a VNC client of the machine must send.
+   *
+   * @return the password, eight letters and digits
+   */
+  String getPassword() {
+    return this.password;
   }
 
   /**
@@ -969,10 +1022,17 @@ final class VmProcess {
 
     @Override
     public Process launch(final List<String> command) throws IOException {
-      final Process started = startProcess(command);
+      final Process started = this.startProcess(command);
       final ProcessHandle handle = started.toHandle();
       this.records.add(handle);
+
       return started;
+    }
+
+    private Process startProcess(final List<String> command) throws IOException {
+      final ProcessBuilder builder = new ProcessBuilder(command);
+      builder.redirectErrorStream(true);
+      return builder.start();
     }
 
     @Override

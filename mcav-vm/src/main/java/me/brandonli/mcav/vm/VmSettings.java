@@ -77,6 +77,7 @@ public final class VmSettings {
     );
     Preconditions.checkArgument(width > 0 && height > 0, "Frame size %sx%s must be positive!", width, height);
     Preconditions.checkArgument(targetFrameRate > 0, "Frame rate %s must be positive!", targetFrameRate);
+
     return new VmSettings(port, width, height, targetFrameRate);
   }
 
@@ -121,9 +122,11 @@ public final class VmSettings {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final VmSettings settings)) {
       return false;
     }
+
     return (
       this.port == settings.port &&
       this.width == settings.width &&

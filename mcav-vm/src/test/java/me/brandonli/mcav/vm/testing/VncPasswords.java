@@ -57,11 +57,13 @@ public final class VncPasswords {
     final ByteArrayOutputStream sent = new ByteArrayOutputStream();
     final VncSession session = new VncSession(configuration, input, sent);
     session.setProtocolVersion(new ProtocolVersion(3, 8));
+    final VncAuthenticationHandler handler = new VncAuthenticationHandler();
     try {
-      new VncAuthenticationHandler().authenticate(session);
+      handler.authenticate(session);
     } catch (final VncException exception) {
       throw new IOException(exception);
     }
+
     final byte[] bytes = sent.toByteArray();
     return Arrays.copyOfRange(bytes, CHOSEN_TYPE_BYTES, bytes.length);
   }

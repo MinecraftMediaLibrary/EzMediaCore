@@ -84,13 +84,17 @@ final class VmModuleTest {
 
   @Test
   void shouldStopTheQemuOfAKilledServerWhenStarted() throws IOException, InterruptedException {
-    final String java = ProcessHandle.current().info().command().orElseThrow();
+    final String java = this.javaCommand();
     final Path sleeper = this.directory.resolve(SLEEPER_SOURCE);
     Files.writeString(sleeper, "class Sleep { public static void main(String[] a) throws Exception { Thread.sleep(300_000L); } }");
     final Process qemu = new ProcessBuilder(java, sleeper.toString()).start();
     try {
-      final Instant started = qemu.toHandle().info().startInstant().orElseThrow();
-      final Path record = this.directory.resolve(RECORDS_FOLDER).resolve(qemu.pid() + RECORD_SUFFIX);
+      final ProcessHandle handle = qemu.toHandle();
+      final ProcessHandle.Info information = handle.info();
+      final Optional<Instant> start = information.startInstant();
+      final Instant started = start.orElseThrow();
+      final Path folder = this.directory.resolve(RECORDS_FOLDER);
+      final Path record = folder.resolve(qemu.pid() + RECORD_SUFFIX);
       Files.createDirectories(record.getParent());
       Files.writeString(record, "%s\n%s\n%s\n".formatted(started, Long.MAX_VALUE, started));
       final Path empty = this.directory.resolve(EMPTY_FOLDER);
@@ -106,6 +110,13 @@ final class VmModuleTest {
     } finally {
       qemu.destroyForcibly();
     }
+  }
+
+  private String javaCommand() {
+    final ProcessHandle current = ProcessHandle.current();
+    final ProcessHandle.Info information = current.info();
+    final Optional<String> command = information.command();
+    return command.orElseThrow();
   }
 
   @Test
@@ -129,6 +140,7 @@ final class VmModuleTest {
     final Optional<Path> qemu = finder.find(command);
     final boolean present = qemu.isPresent();
     assertEquals(present, installed);
+
     module.stop();
   }
 

@@ -198,14 +198,17 @@ public final class FakeProcess extends Process {
     if (this.interruptsWaits) {
       throw new InterruptedException("interrupted on purpose!");
     }
+
     if (this.interruptsFirstWait) {
       this.interruptsFirstWait = false;
       throw new InterruptedException("the first wait is interrupted on purpose!");
     }
+
     final int codeOnWait = this.exitCodeOnWait;
     if (codeOnWait >= 0) {
       this.exit(codeOnWait);
     }
+
     final long requested = unit.toMillis(timeout);
     final long wait = Math.min(requested, LONGEST_WAIT_MILLISECONDS);
     return this.exited.await(wait, TimeUnit.MILLISECONDS);
@@ -216,6 +219,7 @@ public final class FakeProcess extends Process {
     if (this.exited.getCount() > 0) {
       throw new IllegalThreadStateException("process has not exited!");
     }
+
     return this.exitCode;
   }
 
@@ -243,6 +247,7 @@ public final class FakeProcess extends Process {
       termination.setDaemon(true);
       termination.start();
     }
+
     return this;
   }
 

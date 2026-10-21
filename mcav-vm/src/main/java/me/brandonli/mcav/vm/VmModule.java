@@ -45,13 +45,16 @@ public final class VmModule implements MCAVModule {
 
   private final ExecutableFinder finder;
   private final QemuProcessRecords records;
+
   private volatile boolean qemuInstalled;
 
   /**
    * Constructs the module. The module loader creates it for you.
    */
   public VmModule() {
-    this(new ExecutableFinder(), QemuProcessRecords.ofUser());
+    final ExecutableFinder finder = new ExecutableFinder();
+    final QemuProcessRecords records = QemuProcessRecords.ofUser();
+    this(finder, records);
   }
 
   /**
@@ -77,15 +80,19 @@ public final class VmModule implements MCAVModule {
   @Override
   public void start() {
     this.records.reap();
+
     final String command = VmPlayer.Architecture.X86_64.getCommand();
     final Optional<Path> qemu = this.finder.find(command);
     this.qemuInstalled = qemu.isPresent();
-    if (qemu.isPresent()) {
-      final Path path = qemu.get();
-      LOGGER.info("QEMU for x86-64 guests is available at {}.", path);
-    } else {
+
+    final boolean missing = qemu.isEmpty();
+    if (missing) {
       LOGGER.warn("QEMU program {} is not on the PATH or in the usual install folders, so virtual machines cannot be started.", command);
+      return;
     }
+
+    final Path path = qemu.orElseThrow();
+    LOGGER.info("QEMU for x86-64 guests is available at {}.", path);
   }
 
   /**

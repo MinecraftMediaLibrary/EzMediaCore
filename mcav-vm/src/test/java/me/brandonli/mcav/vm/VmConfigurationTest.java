@@ -96,11 +96,11 @@ final class VmConfigurationTest {
 
     final List<String> arguments = configuration.getArguments();
 
-    final List<String> expected = typedArguments();
+    final List<String> expected = this.typedArguments();
     assertEquals(expected, arguments);
   }
 
-  private static List<String> typedArguments() {
+  private List<String> typedArguments() {
     return List.of(
       MEMORY_ARGUMENT,
       "2048M",
@@ -159,18 +159,19 @@ final class VmConfigurationTest {
     configuration.flag("enable-kvm");
 
     final List<String> arguments = configuration.getArguments();
-    final List<String> expected = orderedArguments();
+    final List<String> expected = this.orderedArguments();
     assertEquals(expected, arguments);
 
     final String[] array = configuration.buildArguments();
     final String[] expectedArray = expected.toArray(new String[0]);
     assertArrayEquals(expectedArray, array);
+
     final String text = configuration.toString();
     final String expectedText = String.join(ARGUMENT_SEPARATOR, expected);
     assertEquals(expectedText, text);
   }
 
-  private static List<String> orderedArguments() {
+  private List<String> orderedArguments() {
     return List.of(
       "-name",
       "test",
@@ -262,6 +263,7 @@ final class VmConfigurationTest {
     assertSame(configuration, result);
     assertFalse(hasCdrom);
     assertFalse(hasSnapshot);
+
     final List<String> expectedArguments = List.of(CORES_ARGUMENT, "2");
     assertEquals(expectedArguments, arguments);
   }
@@ -300,6 +302,7 @@ final class VmConfigurationTest {
     configuration.memory(64);
     final List<String> arguments = configuration.getArguments();
     assertThrows(UnsupportedOperationException.class, arguments::clear);
+
     final String[] array = configuration.buildArguments();
     array[0] = "-changed";
     final List<String> again = configuration.getArguments();
@@ -325,6 +328,7 @@ final class VmConfigurationTest {
     assertThrows(NullPointerException.class, () -> configuration.vga(null));
     assertThrows(NullPointerException.class, () -> configuration.drive(null));
     assertThrows(NullPointerException.class, () -> configuration.device(null));
+
     final List<String> arguments = configuration.getArguments();
     final boolean argumentsIsEmpty = arguments.isEmpty();
     assertTrue(argumentsIsEmpty);
@@ -344,6 +348,7 @@ final class VmConfigurationTest {
     assertThrows(NullPointerException.class, () -> configuration.remove(null));
     assertThrows(NullPointerException.class, () -> configuration.has(null));
     assertThrows(NullPointerException.class, () -> configuration.get(null));
+
     final List<String> arguments = configuration.getArguments();
     final boolean argumentsIsEmpty = arguments.isEmpty();
     assertTrue(argumentsIsEmpty);

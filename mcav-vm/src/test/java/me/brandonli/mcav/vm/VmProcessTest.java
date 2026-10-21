@@ -50,6 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.LongSupplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.utils.os.Os;
@@ -64,6 +65,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
 /**
  * Tests {@link VmProcess} with {@link FakeProcess} instances in place of QEMU and a local socket in place of its
@@ -210,7 +212,7 @@ final class VmProcessTest {
     return new VmSettings(this.port, WIDTH, HEIGHT, FRAME_RATE);
   }
 
-  private static VmSettings unreachableSettings() {
+  private VmSettings unreachableSettings() {
     final int unusedPort = FreePorts.find();
     return new VmSettings(unusedPort, WIDTH, HEIGHT, FRAME_RATE);
   }
@@ -219,6 +221,7 @@ final class VmProcessTest {
     for (final Object result : results) {
       this.outcomes.addLast(result);
     }
+
     final VmProcess.Launcher launcher = command -> {
       this.commands.add(command);
       final Object next = this.outcomes.removeFirst();
@@ -251,6 +254,17 @@ final class VmProcessTest {
     return this.process(settings, configuration, os, results);
   }
 
+  private List<String> command(final String... arguments) {
+    final List<String> command = new ArrayList<>();
+    final String program = QEMU.toString();
+    command.add(program);
+    final List<String> given = List.of(arguments);
+    command.addAll(given);
+    final List<String> defaultOptions = this.defaults();
+    command.addAll(defaultOptions);
+    return command;
+  }
+
   private List<String> defaults() {
     final int display = this.port - VmProcess.FIRST_VNC_PORT;
     return List.of(
@@ -268,17 +282,6 @@ final class VmProcessTest {
       DEVICE_ARGUMENT,
       TABLET_DEVICE
     );
-  }
-
-  private List<String> command(final String... arguments) {
-    final List<String> command = new ArrayList<>();
-    final String program = QEMU.toString();
-    command.add(program);
-    final List<String> given = List.of(arguments);
-    command.addAll(given);
-    final List<String> defaultOptions = this.defaults();
-    command.addAll(defaultOptions);
-    return command;
   }
 
   private List<String> commandWithoutAccelerator(final VmSettings settings, final VmConfiguration configuration) {
@@ -325,8 +328,10 @@ final class VmProcessTest {
     final List<String> expected = this.command("-m", "64M", ACCELERATOR_ARGUMENT, WINDOWS_ACCELERATOR);
     assertFalse(aliveBefore);
     assertTrue(alive);
+
     final List<List<String>> expectedCommands = List.of(expected);
     assertEquals(expectedCommands, this.commands);
+
     process.shutdown();
     final boolean aliveAfter = process.isAlive();
     final int destroyCalls = qemu.getDestroyCalls();
@@ -354,6 +359,7 @@ final class VmProcessTest {
     final List<String> first = this.command(ACCELERATOR_ARGUMENT, WINDOWS_ACCELERATOR);
     final List<String> second = this.command(ACCELERATOR_ARGUMENT, SOFTWARE_ACCELERATOR);
     assertTrue(alive);
+
     final List<List<String>> expectedCommands = List.of(first, second);
     assertEquals(expectedCommands, this.commands);
   }
@@ -440,6 +446,7 @@ final class VmProcessTest {
       this::secretFolder
     );
     assertThrows(PlayerException.class, process::start);
+
     final boolean alive = process.isAlive();
     assertFalse(alive, "an expired startup must terminate QEMU even if its display is reachable");
   }
@@ -485,6 +492,7 @@ final class VmProcessTest {
     configuration.accelerator(KVM_ACCELERATOR);
     final VmProcess process = this.process(settings, configuration, Os.WINDOWS, failed);
     assertThrows(PlayerException.class, process::start);
+
     final List<String> expected = this.command(ACCELERATOR_ARGUMENT, KVM_ACCELERATOR);
     final List<List<String>> expectedCommands = List.of(expected);
     assertEquals(expectedCommands, this.commands);
@@ -539,9 +547,12 @@ final class VmProcessTest {
       final int secretCount = secrets.size();
       assertTrue(protectedByPassword, vnc);
       assertEquals(1, secretCount);
+
       final String password = secrets.getFirst();
-      final boolean wellFormed = PASSWORD_PATTERN.matcher(password).matches();
+      final Matcher matcher = PASSWORD_PATTERN.matcher(password);
+      final boolean wellFormed = matcher.matches();
       assertTrue(wellFormed, password);
+
       final String secret = command.get(command.indexOf(OBJECT_ARGUMENT) + 1);
       final Path file = Path.of(secret.substring(SECRET_OBJECT_PREFIX.length()));
       final boolean leftOnDisk = Files.exists(file);
@@ -557,8 +568,10 @@ final class VmProcessTest {
     final VmProcess second = this.reachable(Os.LINUX);
     final String firstPassword = first.getPassword();
     final String secondPassword = second.getPassword();
-    final boolean firstWellFormed = PASSWORD_PATTERN.matcher(firstPassword).matches();
-    final boolean secondWellFormed = PASSWORD_PATTERN.matcher(secondPassword).matches();
+    final Matcher firstMatcher = PASSWORD_PATTERN.matcher(firstPassword);
+    final Matcher secondMatcher = PASSWORD_PATTERN.matcher(secondPassword);
+    final boolean firstWellFormed = firstMatcher.matches();
+    final boolean secondWellFormed = secondMatcher.matches();
     final boolean samePassword = firstPassword.equals(secondPassword);
     assertTrue(firstWellFormed, firstPassword);
     assertTrue(secondWellFormed, secondPassword);
@@ -571,15 +584,19 @@ final class VmProcessTest {
     try (final FileSystem zipped = FileSystems.newFileSystem(this.directory.resolve(ZIP_FILE), posixZip)) {
       // Windows' own file system has no POSIX permissions (VmProcess asks for them only where it has), so there the
       // POSIX branch makes its folder in the zip file system, which has them
-      final boolean posixHere = this.directory.getFileSystem().supportedFileAttributeViews().contains("posix");
+      final FileSystem fileSystem = this.directory.getFileSystem();
+      final Set<String> views = fileSystem.supportedFileAttributeViews();
+      final boolean posixHere = views.contains("posix");
       final Path posix = VmProcess.createSecretFolder(posixHere ? this.directory : zipped.getPath(ZIP_ROOT), true);
       final String permissions = PosixFilePermissions.toString(Files.getPosixFilePermissions(posix));
       assertEquals("rwx------", permissions);
+
       final Path windows = VmProcess.createSecretFolder(this.directory, false);
       final boolean windowsFolderMade = Files.isDirectory(windows);
       final boolean sameFolder = posix.equals(windows);
       assertTrue(windowsFolderMade);
       assertFalse(sameFolder, "a folder of its own for every start");
+
       final Path zippedFolder = VmProcess.createSecretFolder(zipped.getPath(ZIP_ROOT), true);
       final String zippedPermissions = PosixFilePermissions.toString(Files.getPosixFilePermissions(zippedFolder));
       assertEquals("rwx------", zippedPermissions);
@@ -646,7 +663,9 @@ final class VmProcessTest {
     process.shutdown();
     final List<String> command = this.commands.getFirst();
     final String secret = command.get(command.indexOf(OBJECT_ARGUMENT) + 1);
-    final String expected = SECRET_OBJECT_PREFIX + this.directory.resolve(ESCAPED_COMMA_FOLDER).resolve(PASSWORD_FILE);
+    final Path escapedFolder = this.directory.resolve(ESCAPED_COMMA_FOLDER);
+    final Path secretFile = escapedFolder.resolve(PASSWORD_FILE);
+    final String expected = SECRET_OBJECT_PREFIX + secretFile;
     assertEquals(expected, secret);
   }
 
@@ -680,6 +699,7 @@ final class VmProcessTest {
   void shouldDeleteThePasswordOfAFailedStart() {
     final VmProcess process = this.reachable(Os.LINUX, new IOException("no QEMU!"));
     assertThrows(PlayerException.class, process::start);
+
     final Path folder = this.directory.resolve(SECRET_FOLDER);
     final boolean folderLeft = Files.exists(folder);
     assertFalse(folderLeft, "the password and its folder are gone");
@@ -726,6 +746,7 @@ final class VmProcessTest {
     final int network = command.indexOf(NETWORK_ARGUMENT);
     final boolean hasNetwork = network > 0;
     assertTrue(hasNetwork, () -> "a -nic option in %s".formatted(command));
+
     final String networkValue = command.get(network + 1);
     final int lastNetwork = command.lastIndexOf(NETWORK_ARGUMENT);
     assertEquals(RESTRICTED_NETWORK, networkValue);
@@ -837,18 +858,24 @@ final class VmProcessTest {
     final List<String> command = this.x86Command(q35);
     final boolean keepsTheMachine = command.containsAll(List.of(MACHINE_ARGUMENT, "q35,accel=tcg"));
     assertTrue(keepsTheMachine, command::toString);
+
     final int speaker = command.indexOf(SPEAKER_ROUTE);
     final String speakerOption = command.get(speaker - 1);
     assertEquals(MACHINE_ARGUMENT, speakerOption, command::toString);
+
     final boolean ich9Card = command.contains(ICH9_SOUND_CARD);
     assertTrue(ich9Card, command::toString);
+
     final VmConfiguration typed = VmConfiguration.builder();
     typed.machine("type=pc-q35-8.2,usb=on");
-    final boolean typedIch9Card = this.x86Command(typed).contains(ICH9_SOUND_CARD);
+    final List<String> typedCommand = this.x86Command(typed);
+    final boolean typedIch9Card = typedCommand.contains(ICH9_SOUND_CARD);
     assertTrue(typedIch9Card);
+
     final VmConfiguration i440fx = VmConfiguration.builder();
     i440fx.machine("pc-i440fx-8.2");
-    final boolean i440fxCard = this.x86Command(i440fx).contains(HDA_SOUND_CARD);
+    final List<String> i440fxCommand = this.x86Command(i440fx);
+    final boolean i440fxCard = i440fxCommand.contains(HDA_SOUND_CARD);
     assertTrue(i440fxCard);
   }
 
@@ -861,10 +888,13 @@ final class VmProcessTest {
     final boolean display = command.contains("127.0.0.1:3,share=force-shared,password-secret=mcav-vnc-password");
     assertFalse(audioDevice, command::toString);
     assertTrue(display, command::toString);
+
     final VmConfiguration twice = VmConfiguration.builder();
     twice.machine("type=pc,type=microvm,usb=off");
-    final boolean twiceAudioDevice = this.x86Command(twice).contains(AUDIO_DEVICE_ARGUMENT);
+    final List<String> twiceCommand = this.x86Command(twice);
+    final boolean twiceAudioDevice = twiceCommand.contains(AUDIO_DEVICE_ARGUMENT);
     assertFalse(twiceAudioDevice);
+
     final List<String> arm = this.commandWithoutAccelerator(this.reachableSettings(), VmConfiguration.builder());
     final boolean armAudioDevice = arm.contains(AUDIO_DEVICE_ARGUMENT);
     assertFalse(armAudioDevice);
@@ -877,11 +907,14 @@ final class VmProcessTest {
     final List<String> command = this.x86Command(legacy);
     final boolean ich9Card = command.contains(ICH9_SOUND_CARD);
     assertTrue(ich9Card, command::toString);
+
     final boolean speakerRouted = command.contains(SPEAKER_ROUTE);
     assertTrue(speakerRouted, command::toString);
+
     final VmConfiguration routed = VmConfiguration.builder();
     routed.option(SHORT_MACHINE_OPTION, ROUTED_PC_MACHINE);
     assertThrows(PlayerException.class, () -> VmProcess.checkModuleOptions(routed));
+
     final VmConfiguration repeated = VmConfiguration.builder();
     repeated.repeatable(MACHINE_OPTION, "pcspk-audiodev=snd0");
     assertThrows(PlayerException.class, () -> VmProcess.checkModuleOptions(repeated));
@@ -896,6 +929,7 @@ final class VmProcessTest {
     final String speakerOption = command.get(command.indexOf(SPEAKER_ROUTE) - 1);
     assertTrue(keepsTheName, command::toString);
     assertEquals(MACHINE_ARGUMENT, speakerOption, command::toString);
+
     final VmConfiguration followed = VmConfiguration.builder();
     followed.machine(Q35_MACHINE);
     followed.option(NAME_OPTION, SHORT_MACHINE_ARGUMENT);
@@ -912,42 +946,51 @@ final class VmProcessTest {
     final VmConfiguration none = VmConfiguration.builder();
     final String noneType = VmProcess.machineType(none);
     assertEquals("", noneType);
+
     final VmConfiguration named = VmConfiguration.builder();
     named.machine("Q35,usb=on");
     final String namedType = VmProcess.machineType(named);
     assertEquals(Q35_MACHINE, namedType);
+
     final VmConfiguration typed = VmConfiguration.builder();
     typed.machine("usb=on,type=PC");
     final String typedType = VmProcess.machineType(typed);
     assertEquals("pc", typedType);
+
     final VmConfiguration properties = VmConfiguration.builder();
     properties.machine("accel=kvm");
     final String propertiesType = VmProcess.machineType(properties);
     assertEquals("", propertiesType);
+
     final VmConfiguration last = VmConfiguration.builder();
     last.machine("pc,type=q35");
     final String lastType = VmProcess.machineType(last);
     assertEquals(Q35_MACHINE, lastType);
+
     final VmConfiguration both = VmConfiguration.builder();
     both.machine("pc");
     both.option(SHORT_MACHINE_OPTION, MICROVM_MACHINE);
     both.repeatable(MACHINE_OPTION, USB_ON);
     final String bothType = VmProcess.machineType(both);
     assertEquals(MICROVM_MACHINE, bothType);
+
     final VmConfiguration aliases = VmConfiguration.builder();
     aliases.option(SHORT_MACHINE_OPTION, Q35_MACHINE);
     aliases.machine(MICROVM_MACHINE);
     final String aliasesType = VmProcess.machineType(aliases);
     assertEquals(MICROVM_MACHINE, aliasesType);
+
     final VmConfiguration repeated = VmConfiguration.builder();
     repeated.repeatable(SHORT_MACHINE_OPTION, MICROVM_MACHINE);
     repeated.repeatable(MACHINE_OPTION, Q35_MACHINE);
     final String repeatedType = VmProcess.machineType(repeated);
     assertEquals(Q35_MACHINE, repeatedType);
+
     final VmConfiguration empty = VmConfiguration.builder();
     empty.machine(",usb=on");
     final String emptyType = VmProcess.machineType(empty);
     assertEquals("", emptyType);
+
     for (final String lookalike : List.of(SHORT_MACHINE_ARGUMENT, MACHINE_ARGUMENT)) {
       final VmConfiguration valued = VmConfiguration.builder();
       valued.machine(Q35_MACHINE);
@@ -958,6 +1001,7 @@ final class VmProcessTest {
       final String valuedType = VmProcess.machineType(valued);
       assertEquals(Q35_MACHINE, valuedType, valued::toString);
     }
+
     final boolean defaultIsPc = VmProcess.isPcMachine("");
     final boolean pcIsPc = VmProcess.isPcMachine("pc");
     final boolean q35IsPc = VmProcess.isPcMachine(Q35_MACHINE);
@@ -982,11 +1026,13 @@ final class VmProcessTest {
       final String message = refused.getMessage();
       assertEquals(expected, message);
     }
+
     final VmConfiguration speaker = VmConfiguration.builder();
     speaker.machine(ROUTED_PC_MACHINE);
     final PlayerException refused = assertThrows(PlayerException.class, () -> VmProcess.checkModuleOptions(speaker));
     final String message = refused.getMessage();
     assertEquals("PC speaker is routed by MCAV itself, so pcspk-audiodev must be removed from -machine!", message);
+
     final VmConfiguration fine = VmConfiguration.builder();
     fine.machine(Q35_MACHINE);
     VmProcess.checkModuleOptions(fine);
@@ -1094,6 +1140,7 @@ final class VmProcessTest {
       output.append("\r\n");
       output.append("   \n");
     }
+
     final String text = output.toString();
     final FakeProcess failed = FakeProcess.exited(2, text);
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
@@ -1105,6 +1152,7 @@ final class VmProcessTest {
       final String keptLine = "line-%s".formatted(number);
       kept.add(keptLine);
     }
+
     final String separator = System.lineSeparator();
     final String lines = String.join(separator, kept);
     final String expected = "QEMU exited with code 2, printing \"%s\"!".formatted(lines);
@@ -1162,7 +1210,7 @@ final class VmProcessTest {
   @Test
   void shouldGiveUpWhenTheDisplayNeverOpens() throws IOException {
     final FakeProcess qemu = FakeProcess.running("VNC server running on 127.0.0.1:5999\n");
-    final VmSettings settings = unreachableSettings();
+    final VmSettings settings = this.unreachableSettings();
     final VmConfiguration configuration = VmConfiguration.builder();
     final VmProcess process = this.process(settings, configuration, Os.FREEBSD, qemu);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
@@ -1183,7 +1231,7 @@ final class VmProcessTest {
   void shouldStopWaitingForTheDisplayWhenInterrupted() throws IOException {
     final FakeProcess qemu = FakeProcess.running("");
     qemu.interruptingWaits();
-    final VmSettings settings = unreachableSettings();
+    final VmSettings settings = this.unreachableSettings();
     final VmConfiguration configuration = VmConfiguration.builder();
     final VmProcess process = this.process(settings, configuration, Os.FREEBSD, qemu);
     final PlayerException exception;
@@ -1193,6 +1241,7 @@ final class VmProcessTest {
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted, "the interrupt must be kept for the caller");
     }
+
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
     final boolean alive = qemu.isAlive();
@@ -1218,6 +1267,7 @@ final class VmProcessTest {
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted, "the interrupt must be kept for the caller");
     }
+
     final String message = exception.getMessage();
     final boolean messageStartsWith = message.startsWith("QEMU exited with code 4, printing ");
     assertTrue(messageStartsWith, message);
@@ -1262,6 +1312,7 @@ final class VmProcessTest {
     if (interruptShutdown) {
       qemu.interruptingFirstWait();
     }
+
     try {
       process.shutdown();
       final boolean alive = qemu.isAlive();
@@ -1283,21 +1334,7 @@ final class VmProcessTest {
     final VmProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     final AtomicBoolean interruptedOnce = new AtomicBoolean();
-    Mockito.doAnswer(invocation -> {
-      final int forced = qemu.getForcibleDestroyCalls();
-      if (forced > 0) {
-        final long timeout = invocation.getArgument(0);
-        final TimeUnit unit = invocation.getArgument(1);
-        final long nanoseconds = unit.toNanos(timeout);
-        final long maximum = TimeUnit.SECONDS.toNanos(10);
-        final boolean withinTheDeadline = nanoseconds > 0 && nanoseconds <= maximum;
-        assertTrue(withinTheDeadline, "every forced wait must stay within the total ten-second deadline");
-        if (interruptedOnce.compareAndSet(false, true)) {
-          throw new InterruptedException("interrupt while forced exit is pending!");
-        }
-      }
-      return invocation.callRealMethod();
-    })
+    Mockito.doAnswer(invocation -> this.waitWithinTheForcedDeadline(qemu, interruptedOnce, invocation))
       .when(qemu)
       .waitFor(ArgumentMatchers.anyLong(), ArgumentMatchers.any(TimeUnit.class));
     try {
@@ -1306,12 +1343,35 @@ final class VmProcessTest {
       final boolean caught = interruptedOnce.get();
       assertFalse(alive);
       assertTrue(caught);
+
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted, "the forced-exit phase must preserve its own interruption");
     } finally {
       Thread.interrupted();
       qemu.exit(KILLED_EXIT_CODE);
     }
+  }
+
+  private Object waitWithinTheForcedDeadline(final FakeProcess qemu, final AtomicBoolean interruptedOnce, final InvocationOnMock invocation)
+    throws Throwable {
+    final int forced = qemu.getForcibleDestroyCalls();
+    if (forced == 0) {
+      return invocation.callRealMethod();
+    }
+
+    final long timeout = invocation.getArgument(0);
+    final TimeUnit unit = invocation.getArgument(1);
+    final long nanoseconds = unit.toNanos(timeout);
+    final long maximum = TimeUnit.SECONDS.toNanos(10);
+    final boolean withinTheDeadline = nanoseconds > 0 && nanoseconds <= maximum;
+    assertTrue(withinTheDeadline, "every forced wait must stay within the total ten-second deadline");
+
+    final boolean firstForcedWait = interruptedOnce.compareAndSet(false, true);
+    if (firstForcedWait) {
+      throw new InterruptedException("interrupt while forced exit is pending!");
+    }
+
+    return invocation.callRealMethod();
   }
 
   @Test
@@ -1329,6 +1389,7 @@ final class VmProcessTest {
       stopping.join(12_000L);
       final boolean stillWaiting = stopping.isAlive();
       assertFalse(stillWaiting, "forced termination has a ten-second deadline even when the child refuses to exit");
+
       final boolean retained = process.isAlive();
       assertTrue(retained, "a live child remains owned after the deadline so shutdown can be retried");
     } finally {
@@ -1337,6 +1398,7 @@ final class VmProcessTest {
       stopping.join(2_000L);
       process.shutdown();
     }
+
     final int attempts = qemu.getDestroyCalls();
     assertEquals(2, attempts, "the second cleanup still owns the process");
   }
@@ -1352,19 +1414,13 @@ final class VmProcessTest {
     stopping.setDaemon(true);
     try {
       stopping.start();
-      final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMED_JOIN_DEADLINE_SECONDS);
-      boolean joined = false;
-      while (System.nanoTime() < deadline && stopping.isAlive()) {
-        if (stopping.getState() == Thread.State.TIMED_WAITING) {
-          joined = true;
-          break;
-        }
-        Thread.sleep(POLL_PAUSE_MILLISECONDS);
-      }
+      final boolean joined = this.awaitTimedWaiting(stopping);
       assertTrue(joined, "shutdown must block in a timed join instead of spinning on reader liveness");
+
       stopping.join(4_000L);
       final boolean alive = stopping.isAlive();
       assertFalse(alive, "an unfinished reader cannot extend the two-second output deadline indefinitely");
+
       final boolean interrupted = output.interruptedRead.await(1, TimeUnit.SECONDS);
       assertTrue(interrupted, "a reader that outlives the deadline receives an interrupt");
     } finally {
@@ -1373,6 +1429,19 @@ final class VmProcessTest {
       stopping.join(SHUTDOWN_JOIN_MILLISECONDS);
       process.shutdown();
     }
+  }
+
+  private boolean awaitTimedWaiting(final Thread stopping) throws InterruptedException {
+    final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMED_JOIN_DEADLINE_SECONDS);
+    while (System.nanoTime() < deadline && stopping.isAlive()) {
+      final Thread.State state = stopping.getState();
+      if (state == Thread.State.TIMED_WAITING) {
+        return true;
+      }
+      Thread.sleep(POLL_PAUSE_MILLISECONDS);
+    }
+
+    return false;
   }
 
   @Test
@@ -1399,11 +1468,12 @@ final class VmProcessTest {
     stopping.setDaemon(true);
     try {
       stopping.start();
-      awaitOutputJoin(stopping);
+      this.awaitOutputJoin(stopping);
       stopping.interrupt();
-      awaitOutputJoin(stopping);
+      this.awaitOutputJoin(stopping);
       final long pendingReturns = returned.getCount();
       assertEquals(1, pendingReturns, "interruption must not abandon the live output reader");
+
       finish.countDown();
       stopping.join(SHUTDOWN_JOIN_MILLISECONDS);
       final boolean stoppingAlive = stopping.isAlive();
@@ -1422,23 +1492,35 @@ final class VmProcessTest {
     }
   }
 
-  private static void awaitOutputJoin(final Thread stopping) throws InterruptedException {
+  private void awaitOutputJoin(final Thread stopping) throws InterruptedException {
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMED_JOIN_DEADLINE_SECONDS);
     while (System.nanoTime() < deadline && stopping.isAlive()) {
-      final Thread.State state = stopping.getState();
-      if (state == Thread.State.TIMED_WAITING && !stopping.isInterrupted()) {
-        final StackTraceElement[] stack = stopping.getStackTrace();
-        for (final StackTraceElement frame : stack) {
-          final String owner = frame.getClassName();
-          final String method = frame.getMethodName();
-          if (owner.equals(VmProcess.class.getName()) && method.equals(OUTPUT_JOIN_METHOD)) {
-            return;
-          }
-        }
+      final boolean joining = this.isInOutputJoin(stopping);
+      if (joining) {
+        return;
       }
       Thread.sleep(POLL_PAUSE_MILLISECONDS);
     }
+
     fail("Shutdown must be waiting inside the timed join of awaitOutput!");
+  }
+
+  private boolean isInOutputJoin(final Thread stopping) {
+    final Thread.State state = stopping.getState();
+    if (state != Thread.State.TIMED_WAITING || stopping.isInterrupted()) {
+      return false;
+    }
+
+    final StackTraceElement[] stack = stopping.getStackTrace();
+    for (final StackTraceElement frame : stack) {
+      final String owner = frame.getClassName();
+      final String method = frame.getMethodName();
+      if (owner.equals(VmProcess.class.getName()) && method.equals(OUTPUT_JOIN_METHOD)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   @Test
@@ -1593,7 +1675,7 @@ final class VmProcessTest {
     final VmProcess process = this.reachable(Os.FREEBSD, qemu);
     try {
       process.start();
-      final List<Thread> drains = awaitDrainThreads();
+      final List<Thread> drains = this.awaitDrainThreads();
       for (final Thread thread : drains) {
         final boolean isDaemon = thread.isDaemon();
         final String name = thread.getName();
@@ -1610,12 +1692,12 @@ final class VmProcessTest {
    *
    * @return the live drain threads
    */
-  private static List<Thread> awaitDrainThreads() {
+  private List<Thread> awaitDrainThreads() {
     final long timeoutNanoseconds = TimeUnit.SECONDS.toNanos(10);
     final long pauseNanoseconds = TimeUnit.MILLISECONDS.toNanos(5);
     final long deadline = System.nanoTime() + timeoutNanoseconds;
     while (true) {
-      final List<Thread> found = drainThreads();
+      final List<Thread> found = this.drainThreads();
       final boolean empty = found.isEmpty();
       if (!empty) {
         return found;
@@ -1628,7 +1710,7 @@ final class VmProcessTest {
     }
   }
 
-  private static List<Thread> drainThreads() {
+  private List<Thread> drainThreads() {
     final Map<Thread, StackTraceElement[]> stackTraces = Thread.getAllStackTraces();
     final Set<Thread> threads = stackTraces.keySet();
     final List<Thread> running = new ArrayList<>();
@@ -1640,6 +1722,7 @@ final class VmProcessTest {
         running.add(thread);
       }
     }
+
     return running;
   }
 
@@ -1647,7 +1730,7 @@ final class VmProcessTest {
   void shouldKeepTheInterruptOfTheThreadThatWaitedForTheDisplay() throws IOException {
     final FakeProcess qemu = FakeProcess.running("");
     qemu.interruptingFirstWait();
-    final VmSettings settings = unreachableSettings();
+    final VmSettings settings = this.unreachableSettings();
     final VmConfiguration configuration = VmConfiguration.builder();
     final VmProcess process = this.process(settings, configuration, Os.FREEBSD, qemu);
     final PlayerException exception;
@@ -1657,6 +1740,7 @@ final class VmProcessTest {
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted, "the interrupt of the waiting thread must reach the caller");
     }
+
     final String message = exception.getMessage();
     assertEquals("Waiting for QEMU was interrupted!", message);
   }
@@ -1733,9 +1817,11 @@ final class VmProcessTest {
           current.interrupt();
         }
       }
+
       if (this.position >= this.content.length) {
         return -1;
       }
+
       final int count = Math.min(length, this.content.length - this.position);
       System.arraycopy(this.content, this.position, buffer, offset, count);
       this.position += count;
@@ -1760,6 +1846,7 @@ final class VmProcessTest {
       if (this.position >= this.content.length) {
         return -1;
       }
+
       final int value = this.content[this.position] & BYTE_MASK;
       this.position++;
       return value;
@@ -1771,6 +1858,7 @@ final class VmProcessTest {
       if (value < 0) {
         return -1;
       }
+
       buffer[offset] = (byte) value;
       return 1;
     }
@@ -1798,6 +1886,7 @@ final class VmProcessTest {
       if (this.delivered) {
         throw new IOException("Stream closed!");
       }
+
       this.delivered = true;
       System.arraycopy(this.content, 0, buffer, offset, this.content.length);
       return this.content.length;

@@ -24,6 +24,7 @@ import java.net.ProtocolException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.function.IntFunction;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -150,13 +151,19 @@ final class QemuAudioProtocol {
   static void readVersion(final DataInput input) throws IOException {
     final byte[] bytes = new byte[VERSION_BYTES];
     input.readFully(bytes);
+
     final String version = new String(bytes, StandardCharsets.US_ASCII);
-    if (!SERVER_VERSION.matcher(version).matches()) {
+    final Matcher matcher = SERVER_VERSION.matcher(version);
+    final boolean rfb = matcher.matches();
+    if (!rfb) {
       final String message = "VNC server does not speak RFB!";
       throw new ProtocolException(message);
     }
-    final int major = Integer.parseInt(version.substring(MAJOR_VERSION_START, MAJOR_VERSION_END));
-    final int minor = Integer.parseInt(version.substring(MINOR_VERSION_START, MINOR_VERSION_END));
+
+    final String majorText = version.substring(MAJOR_VERSION_START, MAJOR_VERSION_END);
+    final int major = Integer.parseInt(majorText);
+    final String minorText = version.substring(MINOR_VERSION_START, MINOR_VERSION_END);
+    final int minor = Integer.parseInt(minorText);
     if (major < MINIMUM_MAJOR_VERSION || (major == MINIMUM_MAJOR_VERSION && minor < MINIMUM_MINOR_VERSION)) {
       final String message = "VNC server speaks RFB %s.%s instead of RFB 3.8 or later!".formatted(major, minor);
       throw new ProtocolException(message);
@@ -170,7 +177,8 @@ final class QemuAudioProtocol {
    * @throws IOException if the stream fails
    */
   static void writeVersion(final DataOutput output) throws IOException {
-    output.write(VERSION.getBytes(StandardCharsets.US_ASCII));
+    final byte[] version = VERSION.getBytes(StandardCharsets.US_ASCII);
+    output.write(version);
   }
 
   /**
@@ -191,6 +199,7 @@ final class QemuAudioProtocol {
       final String message = REFUSED_MESSAGE.formatted(reason);
       throw new ProtocolException(message);
     }
+
     boolean withoutAuthentication = false;
     boolean withPassword = false;
     for (int index = 0; index < count; index++) {
@@ -198,12 +207,16 @@ final class QemuAudioProtocol {
       withoutAuthentication = withoutAuthentication || type == SECURITY_NONE;
       withPassword = withPassword || type == SECURITY_VNC;
     }
+
     final boolean authenticate = withPassword && !password.isEmpty();
     if (!authenticate && !withoutAuthentication) {
       final String message = "VNC server asks for authentication, which the audio connection does not do!";
       throw new ProtocolException(message);
     }
-    output.writeByte(authenticate ? SECURITY_VNC : SECURITY_NONE);
+
+    final int securityType = authenticate ? SECURITY_VNC : SECURITY_NONE;
+    output.writeByte(securityType);
+
     return authenticate;
   }
 
@@ -218,6 +231,7 @@ final class QemuAudioProtocol {
   static void answerChallenge(final DataInput input, final DataOutput output, final String password) throws IOException {
     final byte[] challenge = new byte[CHALLENGE_BYTES];
     input.readFully(challenge);
+
     final byte[] response = respond(challenge, password);
     output.write(response);
   }
@@ -232,25 +246,43 @@ final class QemuAudioProtocol {
    * @throws IOException if DES is missing from the Java runtime
    */
   static byte[] respond(final byte[] challenge, final String password) throws IOException {
-    final byte[] characters = password.getBytes(StandardCharsets.ISO_8859_1);
-    final byte[] key = new byte[KEY_BYTES];
-    final int length = Math.min(KEY_BYTES, characters.length);
-    for (int index = 0; index < length; index++) {
-      key[index] = (byte) (Integer.reverse(characters[index] & BYTE_MASK) >>> REVERSED_BYTE_SHIFT);
-    }
-    final byte[] response = new byte[challenge.length];
+    final byte[] key = deriveKey(password);
     try {
-      final Cipher cipher = Cipher.getInstance(CIPHER);
-      final SecretKeySpec secret = new SecretKeySpec(key, KEY_ALGORITHM);
-      final IvParameterSpec zeros = new IvParameterSpec(new byte[DES_BLOCK_BYTES]);
-      for (int block = 0; block < challenge.length; block += DES_BLOCK_BYTES) {
-        cipher.init(Cipher.ENCRYPT_MODE, secret, zeros);
-        cipher.doFinal(challenge, block, DES_BLOCK_BYTES, response, block);
-      }
+      return encrypt(challenge, key);
     } catch (final GeneralSecurityException exception) {
       final String message = "Java runtime cannot answer the password challenge of the VNC server!";
       throw new IOException(message, exception);
     }
+  }
+
+  private static byte[] deriveKey(final String password) {
+    final byte[] characters = password.getBytes(StandardCharsets.ISO_8859_1);
+    final byte[] key = new byte[KEY_BYTES];
+    final int length = Math.min(KEY_BYTES, characters.length);
+    for (int index = 0; index < length; index++) {
+      key[index] = reverseBits(characters[index]);
+    }
+
+    return key;
+  }
+
+  private static byte reverseBits(final byte character) {
+    final int unsigned = character & BYTE_MASK;
+    final int reversed = Integer.reverse(unsigned);
+    return (byte) (reversed >>> REVERSED_BYTE_SHIFT);
+  }
+
+  private static byte[] encrypt(final byte[] challenge, final byte[] key) throws GeneralSecurityException {
+    final Cipher cipher = Cipher.getInstance(CIPHER);
+    final SecretKeySpec secret = new SecretKeySpec(key, KEY_ALGORITHM);
+    final byte[] zeroVector = new byte[DES_BLOCK_BYTES];
+    final IvParameterSpec zeros = new IvParameterSpec(zeroVector);
+    final byte[] response = new byte[challenge.length];
+    for (int block = 0; block < challenge.length; block += DES_BLOCK_BYTES) {
+      cipher.init(Cipher.ENCRYPT_MODE, secret, zeros);
+      cipher.doFinal(challenge, block, DES_BLOCK_BYTES, response, block);
+    }
+
     return response;
   }
 
@@ -318,6 +350,7 @@ final class QemuAudioProtocol {
     output.writeByte(FORMAT_S16);
     output.writeByte(channels);
     output.writeInt(sampleRate);
+
     output.writeByte(CLIENT_QEMU);
     output.writeByte(QEMU_AUDIO);
     output.writeShort(CLIENT_AUDIO_ENABLE);
@@ -336,26 +369,9 @@ final class QemuAudioProtocol {
     final int type = input.readUnsignedByte();
     return switch (type) {
       case SERVER_UPDATE -> readUpdate(input);
-      case SERVER_COLOUR_MAP -> {
-        skipFully(input, COLOUR_MAP_PADDING_BYTES + FIRST_COLOUR_BYTES);
-        final int colours = input.readUnsignedShort();
-        skipFully(input, (long) colours * COLOUR_BYTES);
-        yield Message.IGNORED;
-      }
+      case SERVER_COLOUR_MAP -> readColourMap(input);
       case SERVER_BELL -> Message.IGNORED;
-      case SERVER_CUT_TEXT -> {
-        skipFully(input, CUT_TEXT_PADDING_BYTES);
-        final long length = Integer.toUnsignedLong(input.readInt());
-        if (length > MAXIMUM_CUT_TEXT_BYTES) {
-          final String message = "VNC server sent %s bytes of clipboard text, more than the %s bytes allowed!".formatted(
-            length,
-            MAXIMUM_CUT_TEXT_BYTES
-          );
-          throw new ProtocolException(message);
-        }
-        skipFully(input, length);
-        yield Message.IGNORED;
-      }
+      case SERVER_CUT_TEXT -> readCutText(input);
       case SERVER_QEMU -> readQemu(input, frameSize, buffers);
       default -> {
         final String message = "VNC server sent message type %s, which the audio connection does not expect!".formatted(type);
@@ -366,11 +382,13 @@ final class QemuAudioProtocol {
 
   private static Message readUpdate(final DataInput input) throws IOException {
     skipFully(input, UPDATE_PADDING_BYTES);
+
     final int rectangles = input.readUnsignedShort();
     if (rectangles > MAXIMUM_RECTANGLES) {
       final String message = "VNC server announced %s rectangles, more than the %s allowed!".formatted(rectangles, MAXIMUM_RECTANGLES);
       throw new ProtocolException(message);
     }
+
     for (int index = 0; index < rectangles; index++) {
       skipFully(input, RECTANGLE_BYTES);
       final int encoding = input.readInt();
@@ -379,7 +397,35 @@ final class QemuAudioProtocol {
         throw new ProtocolException(message);
       }
     }
+
     return rectangles == 0 ? Message.IGNORED : Message.ACKNOWLEDGED;
+  }
+
+  private static Message readColourMap(final DataInput input) throws IOException {
+    skipFully(input, COLOUR_MAP_PADDING_BYTES + FIRST_COLOUR_BYTES);
+
+    final int colours = input.readUnsignedShort();
+    final long colourBytes = (long) colours * COLOUR_BYTES;
+    skipFully(input, colourBytes);
+
+    return Message.IGNORED;
+  }
+
+  private static Message readCutText(final DataInput input) throws IOException {
+    skipFully(input, CUT_TEXT_PADDING_BYTES);
+
+    final long length = readUnsignedInt(input);
+    if (length > MAXIMUM_CUT_TEXT_BYTES) {
+      final String message = "VNC server sent %s bytes of clipboard text, more than the %s bytes allowed!".formatted(
+        length,
+        MAXIMUM_CUT_TEXT_BYTES
+      );
+      throw new ProtocolException(message);
+    }
+
+    skipFully(input, length);
+
+    return Message.IGNORED;
   }
 
   private static Message readQemu(final DataInput input, final int frameSize, final IntFunction<byte[]> buffers) throws IOException {
@@ -388,24 +434,12 @@ final class QemuAudioProtocol {
       final String message = "VNC server sent QEMU message %s instead of audio!".formatted(submessage);
       throw new ProtocolException(message);
     }
+
     final int operation = input.readUnsignedShort();
     return switch (operation) {
       case AUDIO_END -> Message.END;
       case AUDIO_BEGIN -> Message.BEGIN;
-      case AUDIO_DATA -> {
-        final long length = Integer.toUnsignedLong(input.readInt());
-        if (length > MAXIMUM_AUDIO_BYTES || length % frameSize != 0) {
-          final String message = "VNC server sent %s bytes of audio, not whole frames of at most %s bytes!".formatted(
-            length,
-            MAXIMUM_AUDIO_BYTES
-          );
-          throw new ProtocolException(message);
-        }
-        final int size = (int) length;
-        final byte[] buffer = buffers.apply(size);
-        input.readFully(buffer, 0, size);
-        yield Message.data(buffer, size);
-      }
+      case AUDIO_DATA -> readAudioData(input, frameSize, buffers);
       default -> {
         final String message = "VNC server sent audio operation %s, which the audio connection does not know!".formatted(operation);
         throw new ProtocolException(message);
@@ -413,15 +447,39 @@ final class QemuAudioProtocol {
     };
   }
 
+  private static Message readAudioData(final DataInput input, final int frameSize, final IntFunction<byte[]> buffers) throws IOException {
+    final long length = readUnsignedInt(input);
+    if (length > MAXIMUM_AUDIO_BYTES || length % frameSize != 0) {
+      final String message = "VNC server sent %s bytes of audio, not whole frames of at most %s bytes!".formatted(
+        length,
+        MAXIMUM_AUDIO_BYTES
+      );
+      throw new ProtocolException(message);
+    }
+
+    final int size = (int) length;
+    final byte[] buffer = buffers.apply(size);
+    input.readFully(buffer, 0, size);
+
+    return Message.data(buffer, size);
+  }
+
   private static String readText(final DataInput input) throws IOException {
-    final long length = Integer.toUnsignedLong(input.readInt());
+    final long length = readUnsignedInt(input);
     if (length > MAXIMUM_TEXT_BYTES) {
       final String message = "VNC server sent a text of %s bytes, more than the %s bytes allowed!".formatted(length, MAXIMUM_TEXT_BYTES);
       throw new ProtocolException(message);
     }
+
     final byte[] bytes = new byte[(int) length];
     input.readFully(bytes);
+
     return new String(bytes, StandardCharsets.UTF_8);
+  }
+
+  private static long readUnsignedInt(final DataInput input) throws IOException {
+    final int value = input.readInt();
+    return Integer.toUnsignedLong(value);
   }
 
   /**
@@ -432,7 +490,8 @@ final class QemuAudioProtocol {
    * @throws IOException if the stream ends or fails
    */
   private static void skipFully(final DataInput input, final long count) throws IOException {
-    final byte[] scratch = new byte[(int) Math.min(count, SKIP_BUFFER_BYTES)];
+    final int scratchBytes = (int) Math.min(count, SKIP_BUFFER_BYTES);
+    final byte[] scratch = new byte[scratchBytes];
     long left = count;
     while (left > 0) {
       final int chunk = (int) Math.min(left, scratch.length);

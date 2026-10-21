@@ -71,7 +71,7 @@ final class QemuAudioProtocolPropertyTest {
   ) throws IOException {
     final byte[] stream = QemuAudioProtocolTest.bytes(output -> {
       for (final Sent message : messages) {
-        write(output, message);
+        this.write(output, message);
       }
     });
     final DataInputStream input = new DataInputStream(new Trickle(stream, new Random(cuts)));
@@ -84,11 +84,12 @@ final class QemuAudioProtocolPropertyTest {
       assertEquals(expectedKind, kind);
       assertArrayEquals(expectedSamples, samples);
     }
+
     final int next = input.read();
     assertEquals(-1, next, "nothing is left over");
   }
 
-  private static void write(final DataOutputStream output, final Sent message) throws IOException {
+  private void write(final DataOutputStream output, final Sent message) throws IOException {
     switch (message.kind()) {
       case DATA -> QemuAudioProtocolTest.writeData(output, message.samples());
       case BEGIN -> output.write(new byte[] { (byte) 255, 1, 0, 1 });
@@ -153,6 +154,7 @@ final class QemuAudioProtocolPropertyTest {
       if (length == 0) {
         return 0;
       }
+
       final int piece = 1 + this.random.nextInt(Math.min(length, 7));
       return this.bytes.read(buffer, offset, piece);
     }

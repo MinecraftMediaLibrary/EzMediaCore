@@ -137,31 +137,194 @@ final class ExecutableFinderTest {
     return writeProgram(parent, fileName);
   }
 
-  private static Path writeProgram(final Path parent, final String fileName) throws IOException {
+  private Path writeProgram(final Path parent, final String fileName) throws IOException {
     Files.createDirectories(parent);
     final Path program = parent.resolve(fileName);
     Files.writeString(program, "program");
-    makeExecutable(program);
+    this.makeExecutable(program);
     return program;
   }
 
-  private static void makeExecutable(final Path program) {
+  private void makeExecutable(final Path program) {
     final File file = program.toFile();
     final boolean madeExecutable = file.setExecutable(true);
     assertTrue(madeExecutable, program::toString);
   }
 
-  private static void writeLines(final Path file, final String... lines) throws IOException {
+  private void writeLines(final Path file, final String... lines) throws IOException {
     final List<String> content = List.of(lines);
     Files.write(file, content);
   }
 
-  private static Path workingDirectory() {
+  private Path workingDirectory() {
     final Path relative = Path.of("");
     return relative.toAbsolutePath();
   }
 
-  private static void denyExecution(final Path file) throws IOException {
+  private Path emptyRoot() {
+    return this.directory.resolve(EMPTY_ROOT_FOLDER);
+  }
+
+  private ExecutableFinder finder(final Os os, final String path) {
+    final Map<String, String> environment = Map.of(PATH_VARIABLE, path);
+    final Path root = this.emptyRoot();
+    return new ExecutableFinder(os, environment, root);
+  }
+
+  private ExecutableFinder finderWithoutPath(final Os os) {
+    final Map<String, String> environment = Map.of();
+    final Path root = this.emptyRoot();
+    return new ExecutableFinder(os, environment, root);
+  }
+
+  private String pathOf(final Path... folders) {
+    final StringBuilder builder = new StringBuilder();
+    for (final Path folder : folders) {
+      if (!builder.isEmpty()) {
+        builder.append(File.pathSeparator);
+      }
+      final String text = folder.toString();
+      builder.append(text);
+    }
+
+    return builder.toString();
+  }
+
+  private Optional<Path> absolute(final Path program) {
+    final Path absolutePath = program.toAbsolutePath();
+    return Optional.of(absolutePath);
+  }
+
+  @Test
+  void shouldFindProgramsInThePathDirectories() throws IOException {
+    final Path first = this.directory.resolve(FIRST_FOLDER);
+    Files.createDirectories(first);
+    final Path program = this.createProgram(SECOND_FOLDER, X86_64_COMMAND);
+    final Path second = program.getParent();
+    final String path = this.pathOf(first, second);
+    final ExecutableFinder finder = this.finder(Os.LINUX, path);
+    final Optional<Path> found = finder.find(X86_64_COMMAND);
+    final Optional<Path> expected = this.absolute(program);
+    assertEquals(expected, found);
+  }
+
+  @Test
+  void shouldPreferTheFirstPathDirectory() throws IOException {
+    final Path early = this.createProgram(EARLY_FOLDER, TOOL);
+    final Path late = this.createProgram(LATE_FOLDER, TOOL);
+    final Path earlyFolder = early.getParent();
+    final Path lateFolder = late.getParent();
+    final String path = this.pathOf(earlyFolder, lateFolder);
+    final ExecutableFinder finder = this.finder(Os.LINUX, path);
+    final Optional<Path> found = finder.find(TOOL);
+    final Optional<Path> expected = this.absolute(early);
+    assertEquals(expected, found);
+  }
+
+  @Test
+  void shouldAddTheExecutableExtensionsOnWindows() throws IOException {
+    final Path executable = this.createProgram(EXECUTABLE_FOLDER, QEMU_EXECUTABLE);
+    final Path batch = this.createProgram(BATCH_FOLDER, BATCH_FILE);
+    final Path command = this.createProgram(COMMAND_FOLDER, COMMAND_FILE);
+    final Path executableFolder = executable.getParent();
+    final Path batchFolder = batch.getParent();
+    final Path commandFolder = command.getParent();
+    final String path = this.pathOf(executableFolder, batchFolder, commandFolder);
+    final ExecutableFinder windows = this.finder(Os.WINDOWS, path);
+    final ExecutableFinder linux = this.finder(Os.LINUX, path);
+    final Optional<Path> windowsExecutable = windows.find(QEMU);
+    final Optional<Path> windowsBatch = windows.find(BATCH_NAME);
+    final Optional<Path> windowsCommand = windows.find(COMMAND_NAME);
+    final Optional<Path> linuxExecutable = linux.find(QEMU);
+    final Optional<Path> expectedExecutable = this.absolute(executable);
+    final Optional<Path> expectedBatch = this.absolute(batch);
+    final Optional<Path> expectedCommand = this.absolute(command);
+    final boolean linuxExecutableIsEmpty = linuxExecutable.isEmpty();
+    assertEquals(expectedExecutable, windowsExecutable);
+    assertEquals(expectedBatch, windowsBatch);
+    assertEquals(expectedCommand, windowsCommand);
+    assertTrue(linuxExecutableIsEmpty);
+  }
+
+  @Test
+  void shouldPreferTheExtensionsInTheOrderWindowsRunsThem() throws IOException {
+    final Path com = this.createProgram(BOTH_FOLDER, TOOL_COM_PROGRAM);
+    this.createProgram(BOTH_FOLDER, TOOL_EXECUTABLE);
+    final Path folder = com.getParent();
+    final String path = this.pathOf(folder);
+    final ExecutableFinder windows = this.finder(Os.WINDOWS, path);
+    final Optional<Path> found = windows.find(TOOL);
+    final Optional<Path> expected = this.absolute(com);
+    assertEquals(expected, found);
+  }
+
+  @Test
+  void shouldFindOnlyFilesWithAnExecutableExtensionOnWindows() throws IOException {
+    final Path bare = this.createProgram(PLANTED_FOLDER, QEMU);
+    this.createProgram(PLANTED_FOLDER, QEMU_TEXT_FILE);
+    final Path named = this.createProgram(PLANTED_FOLDER, UPPER_CASE_EXECUTABLE);
+    final Path folder = bare.getParent();
+    final String path = this.pathOf(folder);
+    final ExecutableFinder windows = this.finder(Os.WINDOWS, path);
+    final Optional<Path> bareName = windows.find(QEMU);
+    final Optional<Path> fullName = windows.find(UPPER_CASE_EXECUTABLE);
+    final boolean bareIsEmpty = bareName.isEmpty();
+    final Optional<Path> expectedFull = this.absolute(named);
+    assertTrue(bareIsEmpty, bareName::toString);
+    assertEquals(expectedFull, fullName);
+  }
+
+  @Test
+  void shouldReadThePathVariableRegardlessOfItsCase() throws IOException {
+    final Path program = this.createProgram(MIXED_FOLDER, TOOL_EXECUTABLE);
+    final Path folder = program.getParent();
+    final String path = this.pathOf(folder);
+    final Map<String, String> environment = Map.of(HOME_VARIABLE, HOME_FOLDER, "Path", path);
+    final Path root = this.emptyRoot();
+    final ExecutableFinder finder = new ExecutableFinder(Os.WINDOWS, environment, root);
+    final Optional<Path> found = finder.find(TOOL);
+    final Optional<Path> expected = this.absolute(program);
+    assertEquals(expected, found);
+  }
+
+  @Test
+  void shouldFindNothingWithoutAPathVariable() {
+    final Map<String, String> environment = Map.of(HOME_VARIABLE, HOME_FOLDER);
+    final Path root = this.emptyRoot();
+    final ExecutableFinder finder = new ExecutableFinder(Os.LINUX, environment, root);
+    final Optional<Path> found = finder.find(X86_64_COMMAND);
+    final boolean foundIsEmpty = found.isEmpty();
+    assertTrue(foundIsEmpty);
+  }
+
+  @Test
+  void shouldSkipBlankAndBrokenPathEntries() throws IOException {
+    final Path program = this.createProgram(VALID_FOLDER, TOOL);
+    final Path folder = program.getParent();
+    final String validFolder = folder.toString();
+    final String path = String.join(File.pathSeparator, "", "  ", BROKEN_FOLDER, validFolder);
+    final ExecutableFinder finder = this.finder(Os.LINUX, path);
+    final Optional<Path> found = finder.find(TOOL);
+    final Optional<Path> expected = this.absolute(program);
+    assertEquals(expected, found);
+  }
+
+  @Test
+  void shouldIgnoreFilesThatMayNotBeExecuted() throws IOException {
+    final Path program = this.createProgram(PLAIN_FOLDER, NOTES_FILE);
+    this.denyExecution(program);
+    final boolean executable = Files.isExecutable(program);
+    assertFalse(executable, "the test needs a file without execute permission");
+
+    final Path folder = program.getParent();
+    final String path = this.pathOf(folder);
+    final ExecutableFinder finder = this.finder(Os.LINUX, path);
+    final Optional<Path> found = finder.find(NOTES_FILE);
+    final boolean foundIsEmpty = found.isEmpty();
+    assertTrue(foundIsEmpty);
+  }
+
+  private void denyExecution(final Path file) throws IOException {
     final PosixFileAttributeView posix = Files.getFileAttributeView(file, PosixFileAttributeView.class);
     if (posix != null) {
       final Set<PosixFilePermission> readWrite = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
@@ -187,173 +350,12 @@ final class ExecutableFinderTest {
     acl.setAcl(entries);
   }
 
-  private Path emptyRoot() {
-    return this.directory.resolve(EMPTY_ROOT_FOLDER);
-  }
-
-  private ExecutableFinder finder(final Os os, final String path) {
-    final Map<String, String> environment = Map.of(PATH_VARIABLE, path);
-    final Path root = this.emptyRoot();
-    return new ExecutableFinder(os, environment, root);
-  }
-
-  private ExecutableFinder finderWithoutPath(final Os os) {
-    final Map<String, String> environment = Map.of();
-    final Path root = this.emptyRoot();
-    return new ExecutableFinder(os, environment, root);
-  }
-
-  private static String pathOf(final Path... folders) {
-    final StringBuilder builder = new StringBuilder();
-    for (final Path folder : folders) {
-      if (!builder.isEmpty()) {
-        builder.append(File.pathSeparator);
-      }
-      final String text = folder.toString();
-      builder.append(text);
-    }
-    return builder.toString();
-  }
-
-  private static Optional<Path> absolute(final Path program) {
-    final Path absolutePath = program.toAbsolutePath();
-    return Optional.of(absolutePath);
-  }
-
-  @Test
-  void shouldFindProgramsInThePathDirectories() throws IOException {
-    final Path first = this.directory.resolve(FIRST_FOLDER);
-    Files.createDirectories(first);
-    final Path program = this.createProgram(SECOND_FOLDER, X86_64_COMMAND);
-    final Path second = program.getParent();
-    final String path = pathOf(first, second);
-    final ExecutableFinder finder = this.finder(Os.LINUX, path);
-    final Optional<Path> found = finder.find(X86_64_COMMAND);
-    final Optional<Path> expected = absolute(program);
-    assertEquals(expected, found);
-  }
-
-  @Test
-  void shouldPreferTheFirstPathDirectory() throws IOException {
-    final Path early = this.createProgram(EARLY_FOLDER, TOOL);
-    final Path late = this.createProgram(LATE_FOLDER, TOOL);
-    final Path earlyFolder = early.getParent();
-    final Path lateFolder = late.getParent();
-    final String path = pathOf(earlyFolder, lateFolder);
-    final ExecutableFinder finder = this.finder(Os.LINUX, path);
-    final Optional<Path> found = finder.find(TOOL);
-    final Optional<Path> expected = absolute(early);
-    assertEquals(expected, found);
-  }
-
-  @Test
-  void shouldAddTheExecutableExtensionsOnWindows() throws IOException {
-    final Path executable = this.createProgram(EXECUTABLE_FOLDER, QEMU_EXECUTABLE);
-    final Path batch = this.createProgram(BATCH_FOLDER, BATCH_FILE);
-    final Path command = this.createProgram(COMMAND_FOLDER, COMMAND_FILE);
-    final Path executableFolder = executable.getParent();
-    final Path batchFolder = batch.getParent();
-    final Path commandFolder = command.getParent();
-    final String path = pathOf(executableFolder, batchFolder, commandFolder);
-    final ExecutableFinder windows = this.finder(Os.WINDOWS, path);
-    final ExecutableFinder linux = this.finder(Os.LINUX, path);
-    final Optional<Path> windowsExecutable = windows.find(QEMU);
-    final Optional<Path> windowsBatch = windows.find(BATCH_NAME);
-    final Optional<Path> windowsCommand = windows.find(COMMAND_NAME);
-    final Optional<Path> linuxExecutable = linux.find(QEMU);
-    final Optional<Path> expectedExecutable = absolute(executable);
-    final Optional<Path> expectedBatch = absolute(batch);
-    final Optional<Path> expectedCommand = absolute(command);
-    final boolean linuxExecutableIsEmpty = linuxExecutable.isEmpty();
-    assertEquals(expectedExecutable, windowsExecutable);
-    assertEquals(expectedBatch, windowsBatch);
-    assertEquals(expectedCommand, windowsCommand);
-    assertTrue(linuxExecutableIsEmpty);
-  }
-
-  @Test
-  void shouldPreferTheExtensionsInTheOrderWindowsRunsThem() throws IOException {
-    final Path com = this.createProgram(BOTH_FOLDER, TOOL_COM_PROGRAM);
-    this.createProgram(BOTH_FOLDER, TOOL_EXECUTABLE);
-    final Path folder = com.getParent();
-    final String path = pathOf(folder);
-    final ExecutableFinder windows = this.finder(Os.WINDOWS, path);
-    final Optional<Path> found = windows.find(TOOL);
-    final Optional<Path> expected = absolute(com);
-    assertEquals(expected, found);
-  }
-
-  @Test
-  void shouldFindOnlyFilesWithAnExecutableExtensionOnWindows() throws IOException {
-    final Path bare = this.createProgram(PLANTED_FOLDER, QEMU);
-    this.createProgram(PLANTED_FOLDER, QEMU_TEXT_FILE);
-    final Path named = this.createProgram(PLANTED_FOLDER, UPPER_CASE_EXECUTABLE);
-    final Path folder = bare.getParent();
-    final String path = pathOf(folder);
-    final ExecutableFinder windows = this.finder(Os.WINDOWS, path);
-    final Optional<Path> bareName = windows.find(QEMU);
-    final Optional<Path> fullName = windows.find(UPPER_CASE_EXECUTABLE);
-    final boolean bareIsEmpty = bareName.isEmpty();
-    final Optional<Path> expectedFull = absolute(named);
-    assertTrue(bareIsEmpty, bareName::toString);
-    assertEquals(expectedFull, fullName);
-  }
-
-  @Test
-  void shouldReadThePathVariableRegardlessOfItsCase() throws IOException {
-    final Path program = this.createProgram(MIXED_FOLDER, TOOL_EXECUTABLE);
-    final Path folder = program.getParent();
-    final String path = pathOf(folder);
-    final Map<String, String> environment = Map.of(HOME_VARIABLE, HOME_FOLDER, "Path", path);
-    final Path root = this.emptyRoot();
-    final ExecutableFinder finder = new ExecutableFinder(Os.WINDOWS, environment, root);
-    final Optional<Path> found = finder.find(TOOL);
-    final Optional<Path> expected = absolute(program);
-    assertEquals(expected, found);
-  }
-
-  @Test
-  void shouldFindNothingWithoutAPathVariable() {
-    final Map<String, String> environment = Map.of(HOME_VARIABLE, HOME_FOLDER);
-    final Path root = this.emptyRoot();
-    final ExecutableFinder finder = new ExecutableFinder(Os.LINUX, environment, root);
-    final Optional<Path> found = finder.find(X86_64_COMMAND);
-    final boolean foundIsEmpty = found.isEmpty();
-    assertTrue(foundIsEmpty);
-  }
-
-  @Test
-  void shouldSkipBlankAndBrokenPathEntries() throws IOException {
-    final Path program = this.createProgram(VALID_FOLDER, TOOL);
-    final Path folder = program.getParent();
-    final String validFolder = folder.toString();
-    final String path = String.join(File.pathSeparator, "", "  ", BROKEN_FOLDER, validFolder);
-    final ExecutableFinder finder = this.finder(Os.LINUX, path);
-    final Optional<Path> found = finder.find(TOOL);
-    final Optional<Path> expected = absolute(program);
-    assertEquals(expected, found);
-  }
-
-  @Test
-  void shouldIgnoreFilesThatMayNotBeExecuted() throws IOException {
-    final Path program = this.createProgram(PLAIN_FOLDER, NOTES_FILE);
-    denyExecution(program);
-    final boolean executable = Files.isExecutable(program);
-    assertFalse(executable, "the test needs a file without execute permission");
-    final Path folder = program.getParent();
-    final String path = pathOf(folder);
-    final ExecutableFinder finder = this.finder(Os.LINUX, path);
-    final Optional<Path> found = finder.find(NOTES_FILE);
-    final boolean foundIsEmpty = found.isEmpty();
-    assertTrue(foundIsEmpty);
-  }
-
   @Test
   void shouldIgnoreDirectoriesWithTheNameOfTheProgram() throws IOException {
     final Path folder = this.directory.resolve(BIN_FOLDER);
     final Path lookalike = folder.resolve(TOOL);
     Files.createDirectories(lookalike);
-    final String path = pathOf(folder);
+    final String path = this.pathOf(folder);
     final ExecutableFinder finder = this.finder(Os.LINUX, path);
     final Optional<Path> found = finder.find(TOOL);
     final boolean foundIsEmpty = found.isEmpty();
@@ -364,13 +366,13 @@ final class ExecutableFinderTest {
   void shouldLookUpNamesWithAFolderInThatFolderAndReturnAbsolutePaths() throws IOException {
     final Path program = this.createProgram(DIRECT_FOLDER, QEMU);
     final String absoluteName = program.toString();
-    final Path workingDirectory = workingDirectory();
+    final Path workingDirectory = this.workingDirectory();
     final Path relativeProgram = workingDirectory.relativize(program);
     final String relativeName = relativeProgram.toString();
     final ExecutableFinder finder = this.finderWithoutPath(Os.LINUX);
     final Optional<Path> fromAbsolute = finder.find(absoluteName);
     final Optional<Path> fromRelative = finder.find(relativeName);
-    final Optional<Path> expected = absolute(program);
+    final Optional<Path> expected = this.absolute(program);
     final Path found = fromRelative.orElseThrow();
     final boolean isAbsolute = found.isAbsolute();
     final boolean sameFile = Files.isSameFile(program, found);
@@ -387,17 +389,17 @@ final class ExecutableFinderTest {
     final String name = withoutExtension.toString();
     final ExecutableFinder finder = this.finderWithoutPath(Os.WINDOWS);
     final Optional<Path> found = finder.find(name);
-    final Optional<Path> expected = absolute(program);
+    final Optional<Path> expected = this.absolute(program);
     assertEquals(expected, found);
   }
 
   @Test
   void shouldNeverSearchTheWorkingDirectory() throws IOException {
-    final Path workingDirectory = workingDirectory();
+    final Path workingDirectory = this.workingDirectory();
     final Path planted = workingDirectory.resolve(PLANTED_EXECUTABLE);
     Files.writeString(planted, "planted");
     try {
-      makeExecutable(planted);
+      this.makeExecutable(planted);
       final ExecutableFinder windows = this.finderWithoutPath(Os.WINDOWS);
       final ExecutableFinder linux = this.finderWithoutPath(Os.LINUX);
       final Optional<Path> onWindows = windows.find(PLANTED_PROGRAM);
@@ -425,8 +427,8 @@ final class ExecutableFinderTest {
     final Optional<Path> listedOnMac = mac.find(AARCH64_COMMAND);
     final Optional<Path> pathsDOnMac = mac.find(IMAGE_COMMAND);
     final Optional<Path> listedOnLinux = linux.find(AARCH64_COMMAND);
-    final Optional<Path> expectedListed = absolute(listed);
-    final Optional<Path> expectedPathsD = absolute(fromPathsD);
+    final Optional<Path> expectedListed = this.absolute(listed);
+    final Optional<Path> expectedPathsD = this.absolute(fromPathsD);
     final boolean linuxIsEmpty = listedOnLinux.isEmpty();
     assertEquals(expectedListed, listedOnMac);
     assertEquals(expectedPathsD, pathsDOnMac);
@@ -445,11 +447,11 @@ final class ExecutableFinderTest {
 
     final String listedName = listedFolder.toString();
     final Path pathsFile = etc.resolve(PATHS_FILE);
-    writeLines(pathsFile, "", listedName, "   ");
+    this.writeLines(pathsFile, "", listedName, "   ");
 
     final String pathsDName = pathsDFolder.toString();
     final Path pathsDFile = pathsD.resolve(QEMU_PATHS_FILE);
-    writeLines(pathsDFile, pathsDName);
+    this.writeLines(pathsDFile, pathsDName);
 
     final Path nested = pathsD.resolve(IGNORED_FOLDER);
     Files.createDirectories(nested);
@@ -469,12 +471,12 @@ final class ExecutableFinderTest {
     final String secondName = secondFolder.toString();
     final Path secondFile = pathsD.resolve(SECOND_PATHS_FILE);
     final Path firstFile = pathsD.resolve(FIRST_PATHS_FILE);
-    writeLines(secondFile, secondName);
-    writeLines(firstFile, firstName);
+    this.writeLines(secondFile, secondName);
+    this.writeLines(firstFile, firstName);
     final Map<String, String> environment = Map.of(PATH_VARIABLE, "");
     final ExecutableFinder mac = new ExecutableFinder(Os.MAC, environment, root);
     final Optional<Path> found = mac.find(TOOL);
-    final Optional<Path> expected = absolute(first);
+    final Optional<Path> expected = this.absolute(first);
     assertEquals(expected, found);
   }
 
@@ -483,15 +485,15 @@ final class ExecutableFinderTest {
     final Path root = this.directory.resolve(MAC_ROOT_FOLDER);
     final Path appleSilicon = root.resolve(HOMEBREW_APPLE_SILICON_FOLDER);
     final Path intel = root.resolve(USR_LOCAL_BIN_FOLDER);
-    final Path arm = writeProgram(appleSilicon, AARCH64_COMMAND);
-    final Path x86 = writeProgram(intel, X86_64_COMMAND);
+    final Path arm = this.writeProgram(appleSilicon, AARCH64_COMMAND);
+    final Path x86 = this.writeProgram(intel, X86_64_COMMAND);
 
     final Map<String, String> environment = Map.of(PATH_VARIABLE, "");
     final ExecutableFinder mac = new ExecutableFinder(Os.MAC, environment, root);
     final Optional<Path> armFound = mac.find(AARCH64_COMMAND);
     final Optional<Path> x86Found = mac.find(X86_64_COMMAND);
-    final Optional<Path> expectedArm = absolute(arm);
-    final Optional<Path> expectedX86 = absolute(x86);
+    final Optional<Path> expectedArm = this.absolute(arm);
+    final Optional<Path> expectedX86 = this.absolute(x86);
     assertEquals(expectedArm, armFound);
     assertEquals(expectedX86, x86Found);
   }
@@ -501,8 +503,8 @@ final class ExecutableFinderTest {
     final Path root = this.directory.resolve(UNIX_ROOT_FOLDER);
     final Path usrBin = root.resolve(USR_BIN_FOLDER);
     final Path usrLocalBin = root.resolve(USR_LOCAL_BIN_FOLDER);
-    final Path system = writeProgram(usrBin, X86_64_COMMAND);
-    final Path local = writeProgram(usrLocalBin, RISCV64_COMMAND);
+    final Path system = this.writeProgram(usrBin, X86_64_COMMAND);
+    final Path local = this.writeProgram(usrLocalBin, RISCV64_COMMAND);
 
     final Map<String, String> environment = Map.of(PATH_VARIABLE, "");
     final ExecutableFinder linux = new ExecutableFinder(Os.LINUX, environment, root);
@@ -511,8 +513,8 @@ final class ExecutableFinderTest {
     final Optional<Path> onLinux = linux.find(X86_64_COMMAND);
     final Optional<Path> localOnFreeBsd = freeBsd.find(RISCV64_COMMAND);
     final Optional<Path> systemOnMac = mac.find(X86_64_COMMAND);
-    final Optional<Path> expectedSystem = absolute(system);
-    final Optional<Path> expectedLocal = absolute(local);
+    final Optional<Path> expectedSystem = this.absolute(system);
+    final Optional<Path> expectedLocal = this.absolute(local);
     final boolean macIsEmpty = systemOnMac.isEmpty();
     assertEquals(expectedSystem, onLinux);
     assertEquals(expectedLocal, localOnFreeBsd);
@@ -523,10 +525,10 @@ final class ExecutableFinderTest {
   void shouldSearchOnlyThePathOnAnUnknownOperatingSystem() throws IOException {
     final Path root = this.directory.resolve(UNKNOWN_ROOT_FOLDER);
     final Path usrBin = root.resolve(USR_BIN_FOLDER);
-    writeProgram(usrBin, X86_64_COMMAND);
+    this.writeProgram(usrBin, X86_64_COMMAND);
     final Path onPath = this.createProgram(ON_PATH_FOLDER, ARM_COMMAND);
     final Path pathFolder = onPath.getParent();
-    final String path = pathOf(pathFolder);
+    final String path = this.pathOf(pathFolder);
 
     final Map<String, String> environment = Map.of(PATH_VARIABLE, path);
     final ExecutableFinder other = new ExecutableFinder(Os.OTHER, environment, root);
@@ -534,7 +536,7 @@ final class ExecutableFinderTest {
     final Optional<Path> inPath = other.find(ARM_COMMAND);
 
     final boolean systemFolderIsEmpty = inSystemFolder.isEmpty();
-    final Optional<Path> expected = absolute(onPath);
+    final Optional<Path> expected = this.absolute(onPath);
     assertTrue(systemFolderIsEmpty, inSystemFolder::toString);
     assertEquals(expected, inPath);
   }
@@ -549,7 +551,7 @@ final class ExecutableFinderTest {
     final Path root = this.emptyRoot();
     final ExecutableFinder windows = new ExecutableFinder(Os.WINDOWS, environment, root);
     final Optional<Path> found = windows.find(X86_64_COMMAND);
-    final Optional<Path> expected = absolute(program);
+    final Optional<Path> expected = this.absolute(program);
     assertEquals(expected, found);
   }
 
@@ -557,7 +559,7 @@ final class ExecutableFinderTest {
   void shouldSearchTheDefaultProgramFilesFolderWithoutItsVariable() throws IOException {
     final Path program = this.createProgram(DEFAULT_PROGRAM_FILES_QEMU_FOLDER, X86_64_EXECUTABLE);
     final Path qemu = program.getParent();
-    final Optional<Path> expected = absolute(program);
+    final Optional<Path> expected = this.absolute(program);
     final ExecutableFinder windows = this.finderWithoutPath(Os.WINDOWS);
     try (final MockedStatic<Path> paths = Mockito.mockStatic(Path.class, Mockito.CALLS_REAL_METHODS)) {
       paths.when(() -> assertNotNull(Path.of(DEFAULT_PROGRAM_FILES, QEMU))).thenReturn(qemu);
@@ -601,6 +603,7 @@ final class ExecutableFinderTest {
   void shouldRejectInvalidNames() {
     final ExecutableFinder finder = this.finderWithoutPath(Os.LINUX);
     assertThrows(NullPointerException.class, () -> finder.find(null));
+
     final IllegalArgumentException blank = assertThrows(IllegalArgumentException.class, () -> finder.find(" "));
     final String message = blank.getMessage();
     assertEquals("Name must not be blank", message);

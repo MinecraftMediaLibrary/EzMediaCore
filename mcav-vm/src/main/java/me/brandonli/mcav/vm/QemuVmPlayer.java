@@ -77,17 +77,6 @@ public final class QemuVmPlayer implements VmPlayer {
   private volatile @Nullable VmAudioClient audioClient;
 
   /**
-   * Creates a player that runs QEMU from the {@code PATH} and streams its display with a new VNC player.
-   *
-   * @return the player
-   */
-  static QemuVmPlayer createDefault() {
-    final VncPlayer vncPlayer = VncPlayer.create();
-    final ExecutableFinder finder = new ExecutableFinder();
-    return new QemuVmPlayer(vncPlayer, finder, VmProcess::create, VmAudioClient::connect);
-  }
-
-  /**
    * Constructs a player from its parts, so tests can replace QEMU and the VNC connection.
    *
    * @param vncPlayer      the player that streams the display of the machine
@@ -114,6 +103,17 @@ public final class QemuVmPlayer implements VmPlayer {
   }
 
   /**
+   * Creates a player that runs QEMU from the {@code PATH} and streams its display with a new VNC player.
+   *
+   * @return the player
+   */
+  static QemuVmPlayer createDefault() {
+    final VncPlayer vncPlayer = VncPlayer.create();
+    final ExecutableFinder finder = new ExecutableFinder();
+    return new QemuVmPlayer(vncPlayer, finder, VmProcess::create, VmAudioClient::connect);
+  }
+
+  /**
    * {@inheritDoc}
    * @throws NullPointerException if {@code settings}, {@code architecture} or {@code configuration} is null
    */
@@ -133,6 +133,7 @@ public final class QemuVmPlayer implements VmPlayer {
 
       this.clearPreviousMachine();
       this.launchMachine(settings, architecture, configuration);
+
       return true;
     } finally {
       this.lock.unlock();
@@ -151,6 +152,7 @@ public final class QemuVmPlayer implements VmPlayer {
     final VmProcess qemu = this.processFactory.create(settings, architecture, executable, configuration);
     // start() can fail after creating a live child. Keep ownership before invoking any process lifecycle code.
     this.process = qemu;
+
     try {
       qemu.start();
       this.connectDisplay(settings, qemu);
@@ -169,6 +171,7 @@ public final class QemuVmPlayer implements VmPlayer {
   private void clearPreviousMachine() {
     this.running.set(false);
     this.shutdownMachine();
+
     if (this.process != null) {
       final String message = "Previous QEMU process is still alive after its shutdown!";
       throw new PlayerException(message);
@@ -178,11 +181,14 @@ public final class QemuVmPlayer implements VmPlayer {
   /** Stops the owned machine, forgetting it only after its process has exited. The caller holds the lock. */
   private void shutdownMachine() {
     this.disconnectAudio();
+
     final VmProcess qemu = this.process;
     if (qemu == null) {
       return;
     }
+
     qemu.shutdown();
+
     final boolean alive = qemu.isAlive();
     if (!alive) {
       this.process = null;
@@ -195,6 +201,7 @@ public final class QemuVmPlayer implements VmPlayer {
       this.shutdownMachine();
     } catch (final RuntimeException | Error cleanupException) {
       ThrowableUtils.throwIfFatal(cleanupException);
+
       final Equivalence<Object> identity = Equivalence.identity();
       final boolean sameFailure = identity.equivalent(failure, cleanupException);
       if (!sameFailure) {
@@ -217,7 +224,7 @@ public final class QemuVmPlayer implements VmPlayer {
   /** Connects the VNC player to the display; launchMachine retains responsibility for failed-start cleanup. */
   private void connectDisplay(final VmSettings settings, final VmProcess qemu) {
     final String password = qemu.getPassword();
-    final VncSource source = createSource(settings, password);
+    final VncSource source = this.createSource(settings, password);
     final boolean connected = this.vncPlayer.start(source);
     if (!connected) {
       final String message = "VNC player could not be started!";
@@ -232,9 +239,11 @@ public final class QemuVmPlayer implements VmPlayer {
    * @param qemu     the started machine
    */
   private void connectAudio(final VmSettings settings, final VmProcess qemu) {
-    if (!qemu.hasAudio()) {
+    final boolean audio = qemu.hasAudio();
+    if (!audio) {
       return;
     }
+
     final DelayedAudioOutput output = DelayedAudioOutput.start(
       "the virtual machine",
       AUDIO_DELAY_MILLISECONDS,
@@ -243,10 +252,13 @@ public final class QemuVmPlayer implements VmPlayer {
       this::report
     );
     this.audioOutput = output;
-    final InetSocketAddress address = new InetSocketAddress(VmProcess.LOOPBACK, settings.getPort());
+
+    final int port = settings.getPort();
+    final InetSocketAddress address = new InetSocketAddress(VmProcess.LOOPBACK, port);
+    final String password = qemu.getPassword();
+    final OutputSink sink = new OutputSink(output);
     try {
-      final String password = qemu.getPassword();
-      this.audioClient = this.audioConnector.connect(address, password, new OutputSink(output), this::report);
+      this.audioClient = this.audioConnector.connect(address, password, sink, this::report);
     } catch (final IOException exception) {
       this.disconnectAudio();
       this.report("The sound of the virtual machine could not be connected, it runs without sound", exception);
@@ -260,6 +272,7 @@ public final class QemuVmPlayer implements VmPlayer {
       client.close();
       this.audioClient = null;
     }
+
     final DelayedAudioOutput output = this.audioOutput;
     if (output != null) {
       output.close();
@@ -275,13 +288,10 @@ public final class QemuVmPlayer implements VmPlayer {
   private Path findExecutable(final Architecture architecture) {
     final String command = architecture.getCommand();
     final Optional<Path> found = this.finder.find(command);
-    if (found.isEmpty()) {
-      throw new ExecutableNotInPathException(command);
-    }
-    return found.get();
+    return found.orElseThrow(() -> new ExecutableNotInPathException(command));
   }
 
-  private static VncSource createSource(final VmSettings settings, final String password) {
+  private VncSource createSource(final VmSettings settings, final String password) {
     final int port = settings.getPort();
     final int width = settings.getWidth();
     final int height = settings.getHeight();
@@ -294,6 +304,44 @@ public final class QemuVmPlayer implements VmPlayer {
     builder.targetFrameRate(frameRate);
     builder.password(password);
     return builder.build();
+  }
+
+  /**
+   * Permanently releases playback, closes owned audio resources and attempts bounded termination of QEMU.
+   * Later calls retry a surviving process without releasing VNC twice. A normal return does not guarantee that
+   * a process which ignored forced termination has exited. Attached filters remain caller-owned; first release
+   * makes further startup attempts return false.
+   *
+   * @return true for the first release, false for subsequent cleanup attempts
+   */
+  @Override
+  public boolean release() {
+    this.lock.lock();
+    try {
+      final boolean first = this.released.compareAndSet(false, true);
+      this.running.set(false);
+
+      if (first) {
+        this.releaseDisplay();
+      }
+
+      // A repeated release still owns cleanup if QEMU survived the preceding bounded termination attempt.
+      this.shutdownMachine();
+
+      return first;
+    } finally {
+      this.lock.unlock();
+    }
+  }
+
+  private void releaseDisplay() {
+    try {
+      this.vncPlayer.release();
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      this.shutdownAfterFailure(exception);
+      throw exception;
+    }
   }
 
   @Override
@@ -311,6 +359,7 @@ public final class QemuVmPlayer implements VmPlayer {
   @Override
   public void sendMouseEvent(final MouseClick type, final int frameX, final int frameY) {
     Preconditions.checkNotNull(type, "Mouse click type must not be null!");
+
     final boolean active = this.isActive();
     if (active) {
       this.vncPlayer.sendMouseEvent(type, frameX, frameY);
@@ -324,6 +373,7 @@ public final class QemuVmPlayer implements VmPlayer {
   @Override
   public void sendKeyEvent(final String text) {
     Preconditions.checkNotNull(text, "Text must not be null!");
+
     final boolean active = this.isActive();
     if (active) {
       this.vncPlayer.sendKeyEvent(text);
@@ -341,11 +391,16 @@ public final class QemuVmPlayer implements VmPlayer {
     // picture and sound change together, so a resume that runs meanwhile cannot leave one of them paused
     synchronized (this.controls) {
       final boolean active = this.isActive();
-      final boolean paused = active && this.vncPlayer.pause();
+      if (!active) {
+        return false;
+      }
+
+      final boolean paused = this.vncPlayer.pause();
       final DelayedAudioOutput output = this.audioOutput;
       if (paused && output != null) {
         output.pause();
       }
+
       return paused;
     }
   }
@@ -359,11 +414,16 @@ public final class QemuVmPlayer implements VmPlayer {
   public boolean resume() {
     synchronized (this.controls) {
       final boolean active = this.isActive();
-      final boolean resumed = active && this.vncPlayer.resume();
+      if (!active) {
+        return false;
+      }
+
+      final boolean resumed = this.vncPlayer.resume();
       final DelayedAudioOutput output = this.audioOutput;
       if (resumed && output != null) {
         output.resume();
       }
+
       return resumed;
     }
   }
@@ -372,37 +432,6 @@ public final class QemuVmPlayer implements VmPlayer {
   public boolean isPlaying() {
     final boolean active = this.isActive();
     return active && this.vncPlayer.isPlaying();
-  }
-
-  /**
-   * Permanently releases playback, closes owned audio resources and attempts bounded termination of QEMU.
-   * Later calls retry a surviving process without releasing VNC twice. A normal return does not guarantee that
-   * a process which ignored forced termination has exited. Attached filters remain caller-owned; first release
-   * makes further startup attempts return false.
-   *
-   * @return true for the first release, false for subsequent cleanup attempts
-   */
-  @Override
-  public boolean release() {
-    this.lock.lock();
-    try {
-      final boolean first = this.released.compareAndSet(false, true);
-      this.running.set(false);
-      try {
-        if (first) {
-          this.vncPlayer.release();
-        }
-      } catch (final RuntimeException | Error exception) {
-        ThrowableUtils.throwIfFatal(exception);
-        this.shutdownAfterFailure(exception);
-        throw exception;
-      }
-      // A repeated release still owns cleanup if QEMU survived the preceding bounded termination attempt.
-      this.shutdownMachine();
-      return first;
-    } finally {
-      this.lock.unlock();
-    }
   }
 
   @Override
@@ -427,6 +456,7 @@ public final class QemuVmPlayer implements VmPlayer {
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
     Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
+
     this.vncPlayer.setExceptionHandler(exceptionHandler);
   }
 
