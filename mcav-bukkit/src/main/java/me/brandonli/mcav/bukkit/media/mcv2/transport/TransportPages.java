@@ -140,7 +140,7 @@ public final class TransportPages {
   /**
    * Packs bytes into symbols, least significant bit first, zero-filling the last symbol.
    *
-   * @param data       the bytes
+   * @param data the bytes
    * @return one symbol per byte of the result
    * @throws NullPointerException if {@code data} is null
    * @since 1.0.0
@@ -275,7 +275,7 @@ public final class TransportPages {
    * The number of useful symbols of a page, derived from its header. A map carries whole rows, so the symbols after
    * this count are padding and not part of the page.
    *
-   * @param symbols    at least the header's symbols
+   * @param symbols at least the header's symbols
    * @return the useful symbol count
    * @throws Mcv2Exception        if the header is truncated, malformed or inconsistent
    * @throws NullPointerException if the symbol array is null
@@ -346,7 +346,7 @@ public final class TransportPages {
    * Validates a page before it is stored, exactly as the reference's {@code read_page}: the symbols must be exactly
    * the page's useful symbols, every symbol inside the alphabet, the padding zero and the CRC correct.
    *
-   * @param symbols    the page's useful symbols
+   * @param symbols the page's useful symbols
    * @return the page
    * @throws Mcv2Exception        if the page is malformed or its CRC does not match
    * @throws NullPointerException if the symbol array is null

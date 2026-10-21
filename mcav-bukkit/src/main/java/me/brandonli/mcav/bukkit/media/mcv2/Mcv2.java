@@ -273,8 +273,8 @@ public final class Mcv2 {
   /**
    * Creates an encoder for one stream on a caller-owned pool.
    *
-   * @param settings initial live search settings
-   * @param pool     worker pool, retained but never shut down by this encoder
+   * @param settings     initial live search settings
+   * @param pool         worker pool, retained but never shut down by this encoder
    * @param threads      maximum concurrent workers, at least one
    * @param verification whether finish checks every reconstructed pixel with Mcv2Decoder
    * @throws NullPointerException     if settings, pool or verification is null

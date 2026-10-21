@@ -98,6 +98,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
 
   /**
    * Creates the scoreboard and shows it to every online viewer. May be called from any thread.
+   *
    * @throws IllegalStateException if no plugin was injected
    * @since 1.0.0
    */

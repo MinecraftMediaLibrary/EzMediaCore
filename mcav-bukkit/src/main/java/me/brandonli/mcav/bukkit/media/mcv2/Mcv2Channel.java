@@ -137,6 +137,7 @@ public final class Mcv2Channel {
   /**
    * Spawns the screen's page frames, and starts measuring how far the viewers are from the wall, unless the channel
    * still measures them since the dithered maps took the page frames' place. Call on the main thread.
+   *
    * @throws IllegalStateException if the screen is already built or no plugin has been injected
    * @throws NullPointerException  if the origin no longer resolves to a world
    * @since 1.0.0
@@ -388,7 +389,7 @@ public final class Mcv2Channel {
    *
    * @param frame the frame
    * @return the number of page-map color bytes per potential recipient, excluding anchors and packet overhead, or -1 if the frame has more pages than the screen has page slots, in which
-   *     case nothing is sent and the next frame is asked to be a keyframe
+   *         case nothing is sent and the next frame is asked to be a keyframe
    * @throws IllegalArgumentException if the bytes are not a valid MCV2 frame
    * @throws NullPointerException     if {@code frame} is null
    * @since 1.0.0

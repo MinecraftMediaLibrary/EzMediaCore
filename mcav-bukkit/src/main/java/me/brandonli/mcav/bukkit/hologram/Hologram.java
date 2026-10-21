@@ -69,6 +69,7 @@ public interface Hologram {
 
   /**
    * Starts the progress bar. Has no effect before {@link #spawn(Location, UrlParseDump)} was called.
+   *
    * @throws IllegalStateException if a display is present but no plugin has been injected into BukkitModule
    * @since 1.0.0
    */

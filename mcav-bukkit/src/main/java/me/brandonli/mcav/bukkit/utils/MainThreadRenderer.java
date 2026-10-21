@@ -89,6 +89,7 @@ public abstract class MainThreadRenderer<FrameType> {
   /**
    * Starts applying submitted frames once per server tick. Calling this method again while the renderer is
    * running has no effect. May be called from any thread.
+   *
    * @throws IllegalStateException        if no plugin has been injected
    * @throws IllegalPluginAccessException if the injected plugin cannot schedule tasks
    * @since 1.0.0

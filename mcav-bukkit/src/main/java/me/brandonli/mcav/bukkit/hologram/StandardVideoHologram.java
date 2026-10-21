@@ -188,6 +188,7 @@ public class StandardVideoHologram extends VideoHologram {
    * Starts the progress bar, which advances every 20 server ticks until the duration of the video is reached or the
    * display is removed. Has no effect before {@link #spawn(Location, UrlParseDump)} was called or while the
    * progress bar is already running.
+   *
    * @throws IllegalStateException if a display is present but no plugin has been injected into BukkitModule
    * @since 1.0.0
    */

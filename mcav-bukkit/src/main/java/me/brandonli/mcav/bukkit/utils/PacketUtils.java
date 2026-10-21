@@ -187,7 +187,7 @@ public final class PacketUtils {
    * @param packet   the packet
    * @param listener called on the player's connection thread when the packet was written, or could not be
    * @return true if the packet was handed to the player's connection, false for a player who is not online or a
-   *     connection not open yet, in which case the listener is never called
+   *         connection not open yet, in which case the listener is never called
    * @throws NullPointerException if {@code viewer}, {@code packet} or {@code listener} is null
    * @since 1.0.0
    */
@@ -221,7 +221,7 @@ public final class PacketUtils {
    * @param player the UUID of the player
    * @param bytes  the most unsent bytes the system may hold, positive
    * @return true if the cap was set; false for a player who is not online, a connection not open yet, or a transport
-   *     without the option
+   *         without the option
    * @throws IllegalArgumentException if the byte limit is nonpositive
    * @throws NullPointerException     if {@code player} is null
    * @since 1.0.0

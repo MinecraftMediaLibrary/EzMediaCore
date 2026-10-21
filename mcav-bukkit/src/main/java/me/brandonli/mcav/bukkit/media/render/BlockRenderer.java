@@ -106,7 +106,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    * rendering frames. May be called from any thread.
    *
    * @throws IllegalStateException if no plugin was injected, or if initialization runs on the calling thread
-   *         and the configured position no longer has a world
+   *                               and the configured position no longer has a world
    * @since 1.0.0
    */
   public void show() {

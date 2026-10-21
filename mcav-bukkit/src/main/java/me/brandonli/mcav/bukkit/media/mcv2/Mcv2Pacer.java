@@ -160,10 +160,10 @@ public final class Mcv2Pacer {
    * <p>Each size array must contain exactly two positive pixel dimensions. Dimensions are copied into
    * immutable rungs, so later changes to the lists or arrays do not change this pacer.
    *
-   * @param sizes    the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
-   *                 can switch to
-   * @param floor    how low the ladder goes: down to the dithered maps, or only to the lowest encoded rung, even when
-   *                 its frames take longer than they have
+   * @param sizes the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
+   *              can switch to
+   * @param floor how low the ladder goes: down to the dithered maps, or only to the lowest encoded rung, even when
+   *              its frames take longer than they have
    * @throws IllegalArgumentException if there is no size, or a size is not positive
    * @throws NullPointerException     if the sizes, one of its arrays or the floor is null
    * @since 1.0.0
@@ -178,11 +178,11 @@ public final class Mcv2Pacer {
    * <p>Each size array must contain exactly two positive pixel dimensions. Dimensions are copied into
    * immutable rungs, so later changes to the lists or arrays do not change this pacer.
    *
-   * @param sizes    the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
-   *                 can switch to
-   * @param presets  how hard the encoder can search, from the preset the screen was asked for down to the fastest
-   * @param floor    how low the ladder goes: down to the dithered maps, or only to the lowest encoded rung, even when
-   *                 its frames take longer than they have
+   * @param sizes   the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
+   *                can switch to
+   * @param presets how hard the encoder can search, from the preset the screen was asked for down to the fastest
+   * @param floor   how low the ladder goes: down to the dithered maps, or only to the lowest encoded rung, even when
+   *                its frames take longer than they have
    * @throws IllegalArgumentException if there is no size or no preset, a size is not positive, or a preset does not
    *                                  cost less than the one before it
    * @throws NullPointerException     if the sizes, one of its arrays, the presets or the floor is null

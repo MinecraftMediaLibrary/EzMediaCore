@@ -97,6 +97,7 @@ public final class Mcv2Viewers {
    * Starts listening to the players' pack status, to the reports of their MCV2 client mod, and to players leaving, who
    * lose their state. Register before players join: a client learns of the plugin channel as it joins, and its mod
    * reports only once it knows the channel.
+   *
    * @throws IllegalStateException if no plugin has been injected
    * @since 1.0.0
    */

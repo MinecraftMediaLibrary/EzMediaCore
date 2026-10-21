@@ -54,7 +54,7 @@ public final class ServerAddress {
    * seconds, so avoid calling this method on the main thread before the address is known.
    *
    * @return the public address of the server, or {@code localhost} if it cannot be determined right now, see
-   *     {@link #isFallbackAddress(String)}
+   *         {@link #isFallbackAddress(String)}
    * @since 1.0.0
    */
   public static String getPublicIpAddress() {
