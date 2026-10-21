@@ -284,7 +284,7 @@ public final class Mcv2Screen {
         symbols[symbolOffset + CHECKSUM_SYMBOL] = (byte) ((column + row + columns + rows + facing + streamLow + streamHigh) %
           MapAlphabet.SIZE);
         final int mapId = this.configuration.getMap() + row * columns + column;
-        patches.add(new MapTilePatch(mapId, 0, 0, MapLayout.MAP_SIZE, ANCHOR_ROWS, MapAlphabet.toMapColors(symbols)));
+        patches.add(MapTilePatch.of(mapId, 0, 0, MapLayout.MAP_SIZE, ANCHOR_ROWS, MapAlphabet.toMapColors(symbols)));
       }
     }
 

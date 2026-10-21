@@ -414,7 +414,7 @@ public final class Mcv2Channel {
       final byte[] mapColors = MapAlphabet.toMapColors(pages.get(page));
       colors += mapColors.length;
       final int rows = mapColors.length / MapLayout.MAP_SIZE;
-      patches.add(new MapTilePatch(this.configuration.getPageMap() + page, 0, 0, MapLayout.MAP_SIZE, rows, mapColors));
+      patches.add(MapTilePatch.of(this.configuration.getPageMap() + page, 0, 0, MapLayout.MAP_SIZE, rows, mapColors));
     }
 
     final Mcv2FrameKind kind = header.isKeyframe() ? Mcv2FrameKind.KEYFRAME : Mcv2FrameKind.PREDICTED;

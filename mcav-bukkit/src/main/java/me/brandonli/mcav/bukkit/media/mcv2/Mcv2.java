@@ -1436,6 +1436,21 @@ public final class Mcv2 {
     }
 
     /**
+     * Returns a finished frame of the given bytes and measurements.
+     *
+     * @param data       the complete version 3 frame, whose ownership transfers to the finished frame
+     * @param statistics the measurements of the frame
+     * @return the finished frame
+     * @throws NullPointerException if an argument is null
+     */
+    public static Encoded of(final byte[] data, final Statistics statistics) {
+      Preconditions.checkNotNull(data, "Data must not be null!");
+      Preconditions.checkNotNull(statistics, "Statistics must not be null!");
+
+      return new Encoded(data, statistics);
+    }
+
+    /**
      * Returns the encoded bytes, whose ownership transfers to the caller.
      *
      * @return the complete version 3 frame
@@ -1451,6 +1466,46 @@ public final class Mcv2 {
      */
     public Statistics getStatistics() {
       return this.statistics;
+    }
+
+    /**
+     * Returns whether {@code other} is a frame with the same bytes and measurements.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Encoded encoded)) {
+        return false;
+      }
+
+      return Arrays.equals(this.data, encoded.data) && this.statistics.equals(encoded.statistics);
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     */
+    @Override
+    public int hashCode() {
+      final int dataHash = Arrays.hashCode(this.data);
+      return Objects.hash(dataHash, this.statistics);
+    }
+
+    /**
+     * Returns a debugging representation with the frame length and the measurements.
+     *
+     * @return the representation
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this).add("dataBytes", this.data.length).add("statistics", this.statistics).toString();
     }
   }
 

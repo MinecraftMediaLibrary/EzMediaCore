@@ -197,4 +197,47 @@ final class Mcv2SettingsTest {
     final String description = statistics.toString();
     assertEquals("Statistics{bytes=1, keyframe=true, leaves=2, nanoseconds=3, lambda=4.0}", description);
   }
+
+  @Test
+  void shouldCompareEncodedFramesByEveryPart() {
+    final Mcv2.Statistics statistics = Mcv2.Statistics.of(1, true, 2, 3, 4);
+    final Mcv2.Statistics otherStatistics = Mcv2.Statistics.of(9, true, 2, 3, 4);
+    final Mcv2.Encoded encoded = Mcv2.Encoded.of(new byte[] { 1 }, statistics);
+    EqualityAssertions.assertEqualityContract(
+      encoded,
+      Mcv2.Encoded.of(new byte[] { 1 }, statistics),
+      Mcv2.Encoded.of(new byte[] { 9 }, statistics),
+      Mcv2.Encoded.of(new byte[] { 1 }, otherStatistics)
+    );
+  }
+
+  @Test
+  void shouldHashEncodedFramesByEveryPart() {
+    final byte[] data = { 1 };
+    final Mcv2.Statistics statistics = Mcv2.Statistics.of(1, true, 2, 3, 4);
+    final Mcv2.Encoded encoded = Mcv2.Encoded.of(data, statistics);
+
+    final int hash = encoded.hashCode();
+    final int dataHash = Arrays.hashCode(data);
+    final int expected = Objects.hash(dataHash, statistics);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldDescribeEncodedFramesWithTheirLengthAndStatistics() {
+    final Mcv2.Statistics statistics = Mcv2.Statistics.of(1, true, 2, 3, 4);
+    final Mcv2.Encoded encoded = Mcv2.Encoded.of(new byte[] { 1 }, statistics);
+
+    final String description = encoded.toString();
+    assertEquals("Encoded{dataBytes=1, statistics=Statistics{bytes=1, keyframe=true, leaves=2, nanoseconds=3, lambda=4.0}}", description);
+  }
+
+  @Test
+  void shouldRefuseEncodedFramesWithoutParts() {
+    final byte[] data = { 1 };
+    final Mcv2.Statistics statistics = Mcv2.Statistics.of(1, true, 2, 3, 4);
+
+    assertThrows(NullPointerException.class, () -> Mcv2.Encoded.of(null, statistics));
+    assertThrows(NullPointerException.class, () -> Mcv2.Encoded.of(data, null));
+  }
 }

@@ -103,7 +103,7 @@ final class MapPacketFactoryPropertyTest {
     final List<MapTilePatch> patches = new ArrayList<>(patchCount);
     for (int index = 0; index < patchCount; index++) {
       final byte color = (byte) index;
-      final MapTilePatch patch = new MapTilePatch(index, index % 128, 0, 1, 1, new byte[] { color });
+      final MapTilePatch patch = MapTilePatch.of(index, index % 128, 0, 1, 1, new byte[] { color });
       patches.add(patch);
     }
 

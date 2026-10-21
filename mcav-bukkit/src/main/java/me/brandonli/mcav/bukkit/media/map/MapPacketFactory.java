@@ -131,7 +131,7 @@ public final class MapPacketFactory {
     final List<MapTilePatch> patches = new ArrayList<>(count);
     for (int offset = 0; offset < count; offset++) {
       final int mapId = startMapId + offset;
-      final MapTilePatch patch = new MapTilePatch(mapId, 0, 0, size, size, transparent);
+      final MapTilePatch patch = MapTilePatch.of(mapId, 0, 0, size, size, transparent);
       patches.add(patch);
     }
 

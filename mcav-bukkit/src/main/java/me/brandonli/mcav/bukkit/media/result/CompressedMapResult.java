@@ -265,7 +265,7 @@ public class CompressedMapResult implements DitherResultStep {
       final int width = right - first;
       final int height = this.clearRunHeight(pixels, left, top, width);
       final byte[] transparent = new byte[width * height];
-      final MapTilePatch clear = new MapTilePatch(mapId, left, top, width, height, transparent);
+      final MapTilePatch clear = MapTilePatch.of(mapId, left, top, width, height, transparent);
       clears.add(clear);
       this.setCoverage(pixels, clear, Coverage.UNCOVERED);
       first = pixels.nextSetBit(0);

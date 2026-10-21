@@ -17,8 +17,11 @@
  */
 package me.brandonli.mcav.bukkit.media.mcv2.transport;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
+import java.util.Arrays;
+import java.util.Objects;
 import me.brandonli.mcav.bukkit.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -58,5 +61,26 @@ final class TransportPageTest {
     final byte[] firstPayload = value.getPayload();
     final byte[] secondPayload = value.getPayload();
     assertNotSame(firstPayload, secondPayload);
+  }
+
+  @Test
+  void shouldHashThePageByItsFramePageNumberAndPayload() {
+    final TransportPage value = this.page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5);
+
+    final int hash = value.hashCode();
+    final byte[] payload = { 5 };
+    final int payloadHash = Arrays.hashCode(payload);
+    final int expected = Objects.hash(2L, 0, payloadHash);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldDescribeEveryHeaderFieldAndThePayloadLength() {
+    final TransportPage value = this.page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5);
+
+    final String description = value.toString();
+    final String expected =
+      "TransportPage{streamId=1, frameId=2, number=0, count=1, referenceId=2, frameBytes=48, flags=1, symbolBits=6, payloadBytes=1}";
+    assertEquals(expected, description);
   }
 }

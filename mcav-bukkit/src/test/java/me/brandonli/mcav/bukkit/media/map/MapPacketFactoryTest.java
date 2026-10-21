@@ -69,8 +69,8 @@ final class MapPacketFactoryTest {
 
   @Test
   void shouldSendThePatchesOfOneCallAsOneBundleToEveryOnlineViewer() {
-    final MapTilePatch first = new MapTilePatch(3, 1, 2, 2, 1, new byte[] { 5, 6 });
-    final MapTilePatch second = new MapTilePatch(4, 0, 0, 1, 1, new byte[] { 7 });
+    final MapTilePatch first = MapTilePatch.of(3, 1, 2, 2, 1, new byte[] { 5, 6 });
+    final MapTilePatch second = MapTilePatch.of(4, 0, 0, 1, 1, new byte[] { 7 });
     final List<MapTilePatch> patches = List.of(first, second);
     final List<UUID> viewers = List.of(FIRST, SECOND, OFFLINE);
     MapPacketFactory.send(viewers, patches);
@@ -95,7 +95,7 @@ final class MapPacketFactoryTest {
   void shouldSplitOnlyWhenUpdatesExceedThe4096PacketProtocolLimit() {
     final List<MapTilePatch> patches = new ArrayList<>();
     for (int mapId = 0; mapId < 4097; mapId++) {
-      final MapTilePatch patch = new MapTilePatch(mapId, 0, 0, 1, 1, new byte[] { 1 });
+      final MapTilePatch patch = MapTilePatch.of(mapId, 0, 0, 1, 1, new byte[] { 1 });
       patches.add(patch);
     }
 
@@ -129,7 +129,7 @@ final class MapPacketFactoryTest {
   void shouldSendOneBundleWhenThePatchCountFillsItExactly() {
     final List<MapTilePatch> patches = new ArrayList<>();
     for (int mapId = 0; mapId < BUNDLE_PACKET_LIMIT; mapId++) {
-      final MapTilePatch patch = new MapTilePatch(mapId, 0, 0, 1, 1, new byte[] { 1 });
+      final MapTilePatch patch = MapTilePatch.of(mapId, 0, 0, 1, 1, new byte[] { 1 });
       patches.add(patch);
     }
 
@@ -147,7 +147,7 @@ final class MapPacketFactoryTest {
 
   @Test
   void shouldSendNothingWithoutPatchesOrViewers() {
-    final MapTilePatch patch = new MapTilePatch(0, 0, 0, 1, 1, new byte[] { 1 });
+    final MapTilePatch patch = MapTilePatch.of(0, 0, 0, 1, 1, new byte[] { 1 });
     final List<MapTilePatch> patches = List.of(patch);
     final List<UUID> viewers = List.of(FIRST);
     final List<MapTilePatch> noPatches = List.of();
@@ -170,8 +170,8 @@ final class MapPacketFactoryTest {
     final Packet<?> bundle = packets.getFirst();
     final List<ClientboundMapItemDataPacket> mapPackets = unbundle(bundle);
     final byte[] transparent = new byte[MAP_SIZE * MAP_SIZE];
-    final MapTilePatch expectedFirst = new MapTilePatch(4, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
-    final MapTilePatch expectedSecond = new MapTilePatch(5, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
+    final MapTilePatch expectedFirst = MapTilePatch.of(4, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
+    final MapTilePatch expectedSecond = MapTilePatch.of(5, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
     final ClientboundMapItemDataPacket first = mapPackets.get(0);
     final ClientboundMapItemDataPacket second = mapPackets.get(1);
     final int mapPacketCount = mapPackets.size();
@@ -223,8 +223,8 @@ final class MapPacketFactoryTest {
     final List<ClientboundMapItemDataPacket> first = unbundle(packets.getFirst());
     final List<ClientboundMapItemDataPacket> last = unbundle(packets.getLast());
     final byte[] transparent = new byte[MAP_SIZE * MAP_SIZE];
-    final MapTilePatch firstExpected = new MapTilePatch(0, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
-    final MapTilePatch lastExpected = new MapTilePatch(Integer.MAX_VALUE, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
+    final MapTilePatch firstExpected = MapTilePatch.of(0, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
+    final MapTilePatch lastExpected = MapTilePatch.of(Integer.MAX_VALUE, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
     assertMapPacket(first.getFirst(), firstExpected);
     assertMapPacket(last.getFirst(), lastExpected);
   }

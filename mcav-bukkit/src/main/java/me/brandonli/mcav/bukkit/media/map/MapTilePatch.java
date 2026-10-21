@@ -17,7 +17,11 @@
  */
 package me.brandonli.mcav.bukkit.media.map;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import java.util.Arrays;
+import java.util.Objects;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * A rectangular update of the colors of a single map.
@@ -28,7 +32,7 @@ import com.google.common.base.Preconditions;
  * {@code (x + column, y + row)} is found at index {@code row * width + column}.
  *
  * <p>Instances are immutable after construction, but the color array is not copied for performance reasons.
- * Callers must not modify the array after passing it to the constructor.
+ * Callers must not modify the array after passing it to {@link #of(int, int, int, int, int, byte[])}.
  */
 public final class MapTilePatch {
 
@@ -39,8 +43,17 @@ public final class MapTilePatch {
   private final int height;
   private final byte[] colors;
 
+  private MapTilePatch(final int mapId, final int left, final int top, final int width, final int height, final byte[] colors) {
+    this.mapId = mapId;
+    this.left = left;
+    this.top = top;
+    this.width = width;
+    this.height = height;
+    this.colors = colors;
+  }
+
   /**
-   * Constructs a new patch.
+   * Returns a patch of the given rectangle and colors.
    *
    * @param mapId  the nonnegative id of the map to update
    * @param left   the x coordinate of the top left corner of the rectangle, from 0 to 127
@@ -48,11 +61,12 @@ public final class MapTilePatch {
    * @param width  the positive width in pixels, with the rectangle ending at or before coordinate 128
    * @param height the positive height in pixels, with the rectangle ending at or before coordinate 128
    * @param colors the map palette indices of the rectangle, exactly {@code width * height} bytes long
+   * @return the patch
    * @throws IllegalArgumentException if the map id is negative, the rectangle is empty or outside the map,
    *                                  or the color array has the wrong size
    * @throws NullPointerException     if {@code colors} is null
    */
-  public MapTilePatch(final int mapId, final int left, final int top, final int width, final int height, final byte[] colors) {
+  public static MapTilePatch of(final int mapId, final int left, final int top, final int width, final int height, final byte[] colors) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
     Preconditions.checkArgument(mapId >= 0, "Map id must be non-negative!");
 
@@ -65,12 +79,7 @@ public final class MapTilePatch {
     final int expectedLength = width * height;
     Preconditions.checkArgument(colors.length == expectedLength, "Patch colors must contain exactly width * height bytes!");
 
-    this.mapId = mapId;
-    this.left = left;
-    this.top = top;
-    this.width = width;
-    this.height = height;
-    this.colors = colors;
+    return new MapTilePatch(mapId, left, top, width, height, colors);
   }
 
   /**
@@ -135,5 +144,58 @@ public final class MapTilePatch {
    */
   public int getEncodedSize() {
     return this.colors.length + MapLayout.PATCH_OVERHEAD;
+  }
+
+  /**
+   * Returns whether {@code other} is a patch of the same map, rectangle and colors.
+   *
+   * @param other the object to compare with
+   * @return whether every part matches
+   */
+  @Override
+  public boolean equals(final @Nullable Object other) {
+    if (this == other) {
+      return true;
+    }
+
+    if (!(other instanceof final MapTilePatch patch)) {
+      return false;
+    }
+
+    return (
+      this.mapId == patch.mapId &&
+      this.left == patch.left &&
+      this.top == patch.top &&
+      this.width == patch.width &&
+      this.height == patch.height &&
+      Arrays.equals(this.colors, patch.colors)
+    );
+  }
+
+  /**
+   * Returns a hash code built from every part.
+   *
+   * @return the hash code
+   */
+  @Override
+  public int hashCode() {
+    final int colorsHash = Arrays.hashCode(this.colors);
+    return Objects.hash(this.mapId, this.left, this.top, this.width, this.height, colorsHash);
+  }
+
+  /**
+   * Returns a debugging representation with the map id and the rectangle.
+   *
+   * @return the representation
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("mapId", this.mapId)
+      .add("x", this.left)
+      .add("y", this.top)
+      .add("width", this.width)
+      .add("height", this.height)
+      .toString();
   }
 }

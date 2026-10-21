@@ -218,7 +218,7 @@ public final class DeltaMapEncoder {
     }
 
     final int mapId = this.layout.getMapId(map);
-    return new MapTilePatch(mapId, localX, localY, width, height, colors);
+    return MapTilePatch.of(mapId, localX, localY, width, height, colors);
   }
 
   /**

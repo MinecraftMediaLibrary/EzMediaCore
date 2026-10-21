@@ -287,7 +287,7 @@ final class PacketUtilsTest {
     final Connection connection = this.useConnection();
     final EmbeddedChannel channel = new EmbeddedChannel();
     connection.channel = channel;
-    final MapTilePatch page = new MapTilePatch(100, 0, 0, 128, 1, new byte[128]);
+    final MapTilePatch page = MapTilePatch.of(100, 0, 0, 128, 1, new byte[128]);
     final ClientboundBundlePacket bundle = MapPacketFactory.bundles(List.of(page)).getFirst().getPacket();
     final List<ChannelFuture> writes = new ArrayList<>();
     final boolean sent = PacketUtils.sendPacket(FIRST, bundle, writes::add);

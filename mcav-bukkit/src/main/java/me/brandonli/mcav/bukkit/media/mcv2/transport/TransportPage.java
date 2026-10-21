@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.bukkit.media.mcv2.transport;
 
+import com.google.common.base.MoreObjects;
 import java.util.Arrays;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -154,8 +155,18 @@ public final class TransportPage {
     return this.payload.clone();
   }
 
+  /**
+   * Returns whether {@code other} is a page with the same header fields and payload bytes.
+   *
+   * @param other the object to compare with
+   * @return whether every part matches
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
+    if (this == other) {
+      return true;
+    }
+
     if (!(other instanceof final TransportPage page)) {
       return false;
     }
@@ -173,8 +184,34 @@ public final class TransportPage {
     );
   }
 
+  /**
+   * Returns a hash code built from the frame id, the page number and the payload bytes.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
-    return Objects.hash(this.frameId, this.number, Arrays.hashCode(this.payload));
+    final int payloadHash = Arrays.hashCode(this.payload);
+    return Objects.hash(this.frameId, this.number, payloadHash);
+  }
+
+  /**
+   * Returns a debugging representation with every header field and the payload length.
+   *
+   * @return the representation
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("streamId", this.streamId)
+      .add("frameId", this.frameId)
+      .add("number", this.number)
+      .add("count", this.count)
+      .add("referenceId", this.referenceId)
+      .add("frameBytes", this.frameBytes)
+      .add("flags", this.flags)
+      .add("symbolBits", this.symbolBits)
+      .add("payloadBytes", this.payload.length)
+      .toString();
   }
 }

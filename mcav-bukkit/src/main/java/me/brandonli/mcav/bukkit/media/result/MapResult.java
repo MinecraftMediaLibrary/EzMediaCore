@@ -98,7 +98,7 @@ public class MapResult implements DitherResultStep {
       if (!region.isEmpty()) {
         this.copyRegion(image, width, region, colors);
       }
-      patches.add(new MapTilePatch(layout.getMapId(index), 0, 0, MapLayout.MAP_SIZE, MapLayout.MAP_SIZE, colors));
+      patches.add(MapTilePatch.of(layout.getMapId(index), 0, 0, MapLayout.MAP_SIZE, MapLayout.MAP_SIZE, colors));
     }
 
     return patches;

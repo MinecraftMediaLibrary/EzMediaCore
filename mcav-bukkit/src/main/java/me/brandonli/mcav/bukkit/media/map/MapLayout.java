@@ -145,7 +145,7 @@ public final class MapLayout {
     final int coveredHeight = Math.min(remainingMapHeight, remainingImageHeight);
     final int width = Math.max(0, coveredWidth);
     final int height = Math.max(0, coveredHeight);
-    return new MapRegion(localX, localY, width, height, sourceX, sourceY);
+    return MapRegion.of(localX, localY, width, height, sourceX, sourceY);
   }
 
   /**
@@ -226,7 +226,7 @@ public final class MapLayout {
     }
 
     final int mapId = this.getMapId(index);
-    return new MapTilePatch(mapId, left, top, width, height, colors);
+    return MapTilePatch.of(mapId, left, top, width, height, colors);
   }
 
   private void checkInsideRegion(
