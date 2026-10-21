@@ -78,6 +78,18 @@ import org.slf4j.LoggerFactory;
  * dithering pool it creates, but does not own the supplied algorithm. Release waits for the current process call to
  * leave the lock; start permits reuse, with a new encoder created on the next frame.
  *
+ * {@snippet :
+ * final CompressedMapResult result = new CompressedMapResult(configuration);
+ * final DitherAlgorithm algorithm = DitherAlgorithm.temporalFloydSteinberg();
+ * final FunctionalVideoFilter filter = DitherFilter.dither(algorithm, result);
+ * filter.start();
+ * final VideoPipelineStep pipeline = VideoPipelineStep.of(filter);
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * video.attach(pipeline);
+ * // when playback ends
+ * filter.release();
+ * }
+ *
  * @since 1.0.0
  */
 public class CompressedMapResult implements DitherResultStep {

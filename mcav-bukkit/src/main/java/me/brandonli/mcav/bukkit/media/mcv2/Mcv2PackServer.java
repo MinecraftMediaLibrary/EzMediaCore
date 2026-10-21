@@ -99,6 +99,18 @@ import org.slf4j.LoggerFactory;
  * Stop and release those results before closing their leases or shutting down this server. Offered/refused
  * callbacks run with player events or offers on the main thread and should return promptly.
  *
+ * {@snippet :
+ * final String packFolderName = "mcv2-pack";
+ * final Path packFolder = dataFolder.resolve(packFolderName);
+ * final Mcv2Pack.DebugView debugView = Mcv2Pack.DebugView.HIDDEN;
+ * final Mcv2PackServer packs = new Mcv2PackServer(packFolder, PackHosting::injector, debugView, onOffered, onRefused);
+ * packs.start();
+ * // for every screen that starts
+ * final Mcv2PackServer.Lease lease = packs.open(requested);
+ * // in onDisable, after every result is released and its lease closed
+ * packs.shutdown();
+ * }
+ *
  * @since 1.0.0
  */
 public final class Mcv2PackServer {

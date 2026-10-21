@@ -31,14 +31,18 @@ import java.util.UUID;
  * <p>The viewers collection is not copied. It is read for every frame, so a concurrent collection can be passed
  * to add or remove viewers while media is playing.
  *
- * <pre><code>
- *   final MapConfiguration configuration = MapConfiguration.builder()
- *     .map(0)
- *     .mapBlockWidth(5)
- *     .mapBlockHeight(5)
- *     .viewers(viewers)
- *     .build();
- * </code></pre>
+ * {@snippet :
+ * final int firstMapId = 0;
+ * final int mapBlockWidth = 5;
+ * final int mapBlockHeight = 5;
+ * final MapConfigurationBuilder builder = MapConfiguration.builder();
+ * final MapConfiguration configuration = builder
+ *   .viewers(viewers)
+ *   .map(firstMapId)
+ *   .mapBlockWidth(mapBlockWidth)
+ *   .mapBlockHeight(mapBlockHeight)
+ *   .build();
+ * }
  *
  * <p>This configuration does not create map items, reserve map ids or place item frames. The caller supplies
  * the display surfaces and ensures the consecutive ids belong to this screen. Resizing is disabled by default.

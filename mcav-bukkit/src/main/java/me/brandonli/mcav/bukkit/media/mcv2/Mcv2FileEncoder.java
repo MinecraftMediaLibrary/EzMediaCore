@@ -54,6 +54,19 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * off the calling thread. The caller owns the output stream and pool; the frame reader is closed after validated
  * arguments enter the encode operation, including on encoding or I/O failure.
  *
+ * {@snippet :
+ * final int width = 1920;
+ * final int height = 1080;
+ * final Mcv2.Settings settings = Mcv2.Settings.DEFAULT;
+ * final Mcv2.Pool budget = Mcv2.Pool.shared();
+ * try (
+ *   final Mcv2FileEncoder.FrameReader frames = Mcv2FileEncoder.ffmpeg(video, width, height);
+ *   final OutputStream output = Files.newOutputStream(stream)
+ * ) {
+ *   final Mcv2FileEncoder.Result result = Mcv2FileEncoder.encode(frames, width, height, settings, budget, output, progress);
+ * }
+ * }
+ *
  * @since 1.0.0
  */
 public final class Mcv2FileEncoder {

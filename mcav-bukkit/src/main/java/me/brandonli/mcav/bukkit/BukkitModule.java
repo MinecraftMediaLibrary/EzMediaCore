@@ -33,12 +33,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * After installing the module, a plugin instance must be injected with {@link #inject(Plugin)} before any Bukkit
  * feature is used, because listeners and tasks have to be registered on behalf of a plugin.
  *
- * <pre><code>
- *   final MCAVApi api = MCAV.api();
- *   api.install(BukkitModule.class);
- *   final BukkitModule module = api.getModule(BukkitModule.class);
- *   module.inject(plugin);
- * </code></pre>
+ * {@snippet :
+ * final MCAVApi api = MCAV.api();
+ * api.install(BukkitModule.class);
+ * final BukkitModule module = api.getModule(BukkitModule.class);
+ * module.inject(plugin);
+ * }
  *
  * <p>Initialize and stop this module on the server's main thread. The injected plugin remains caller-owned.
  * The module does not track or release players, holograms, image displays or hosted resource packs;

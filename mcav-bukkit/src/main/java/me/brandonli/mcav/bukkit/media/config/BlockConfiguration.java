@@ -37,6 +37,18 @@ import org.bukkit.Location;
  * <p>This class is immutable and thread-safe, except for the viewer collection and the position, which it shares with
  * the caller instead of copying.
  *
+ * {@snippet :
+ * final int blockWidth = 64;
+ * final int blockHeight = 36;
+ * final BlockConfigurationBuilder builder = BlockConfiguration.builder();
+ * final BlockConfiguration configuration = builder
+ *   .viewers(viewers)
+ *   .position(position)
+ *   .blockWidth(blockWidth)
+ *   .blockHeight(blockHeight)
+ *   .build();
+ * }
+ *
  * @since 1.0.0
  */
 public final class BlockConfiguration {

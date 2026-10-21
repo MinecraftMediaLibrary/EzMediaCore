@@ -36,12 +36,13 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  * Call {@link #release()} when finished. Blocks and scoreboards restore saved state, entities are removed,
  * and maps and chat are cleared; map pixels and chat history from before the display are not restored.
  *
- * <pre><code>
- *   final DisplayableImage display = DisplayableImage.map(configuration, DitherAlgorithm.filterLite());
- *   display.displayImage(image);
- *   // later
- *   display.release();
- * </code></pre>
+ * {@snippet :
+ * final DitherAlgorithm algorithm = DitherAlgorithm.filterLite();
+ * final DisplayableImage display = DisplayableImage.map(configuration, algorithm);
+ * display.displayImage(image);
+ * // later
+ * display.release();
+ * }
  *
  * <p>Calls may originate on a worker thread, but serialize display and release operations for a given instance.
  * For block, entity and scoreboard displays, release on the server main thread during plugin shutdown so cleanup

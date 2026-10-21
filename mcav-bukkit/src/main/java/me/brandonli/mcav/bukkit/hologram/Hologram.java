@@ -31,13 +31,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * the metadata of the video, {@link #start()} starts the progress bar, and {@link #kill()} removes the display
  * again. All methods must be called on the main thread.
  *
- * <pre><code>
- *   final Hologram hologram = Hologram.basic();
- *   hologram.spawn(location, dump);
- *   hologram.start();
- *   // when playback ends
- *   hologram.kill();
- * </code></pre>
+ * {@snippet :
+ * final Hologram hologram = Hologram.basic();
+ * hologram.spawn(location, dump);
+ * hologram.start();
+ * // when playback ends
+ * hologram.kill();
+ * }
  *
  * <p>The standard progress bar counts scheduler ticks independently of the media player. Seeking, pausing
  * or changing playback speed does not update its clock; recreate/restart it as appropriate for the application.

@@ -38,6 +38,19 @@ import org.bukkit.Location;
  * <p>This class is immutable and thread-safe, except for the viewer collection and the position, which it shares with
  * the caller instead of copying.
  *
+ * {@snippet :
+ * final int entityWidth = 64;
+ * final int entityHeight = 36;
+ * final EntityConfigurationBuilder builder = EntityConfiguration.builder();
+ * final EntityConfiguration configuration = builder
+ *   .viewers(viewers)
+ *   .position(position)
+ *   .character(Characters.BLACK_SQUARE)
+ *   .entityWidth(entityWidth)
+ *   .entityHeight(entityHeight)
+ *   .build();
+ * }
+ *
  * @since 1.0.0
  */
 public final class EntityConfiguration {

@@ -51,12 +51,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>Only the features MCAV needs are implemented, which keeps the builder free of any dependency on the
  * Adventure version of the server. A typical use looks like this:
  *
- * <pre><code>
- *   final SimpleResourcePack pack = SimpleResourcePack.pack();
- *   pack.meta(packFormat, "MCAV audio");
- *   pack.sound("mcav:audio", oggFile);
- *   pack.zip(Path.of("pack.zip"));
- * </code></pre>
+ * {@snippet :
+ * final String soundKey = "mcav:audio";
+ * final String zipName = "pack.zip";
+ * final Path zip = Path.of(zipName);
+ * final SimpleResourcePack pack = SimpleResourcePack.pack();
+ * pack.meta(packFormat, "MCAV audio");
+ * pack.sound(soundKey, oggFile);
+ * pack.zip(zip);
+ * }
  *
  * <p>Instances are not thread-safe.
  *

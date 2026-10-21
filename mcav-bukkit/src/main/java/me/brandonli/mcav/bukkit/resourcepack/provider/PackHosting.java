@@ -47,6 +47,14 @@ import me.brandonli.mcav.bukkit.resourcepack.provider.netty.NettyHosting;
  *
  * <p>Implementations in this library are thread-safe.
  *
+ * {@snippet :
+ * final PackHosting hosting = PackHosting.injector(zip);
+ * hosting.start();
+ * final String url = hosting.getRawUrl();
+ * // offer the url to the players; when the pack is no longer needed
+ * hosting.shutdown();
+ * }
+ *
  * @since 1.0.0
  */
 public interface PackHosting {

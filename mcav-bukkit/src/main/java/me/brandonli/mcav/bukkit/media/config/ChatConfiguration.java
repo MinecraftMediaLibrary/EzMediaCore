@@ -34,6 +34,18 @@ import me.brandonli.mcav.bukkit.media.result.Characters;
  * <p>This class is immutable and thread-safe, except for the viewer collection, which it shares with the caller instead
  * of copying.
  *
+ * {@snippet :
+ * final int chatWidth = 16;
+ * final int chatHeight = 16;
+ * final ChatConfigurationBuilder builder = ChatConfiguration.builder();
+ * final ChatConfiguration configuration = builder
+ *   .viewers(viewers)
+ *   .character(Characters.BLACK_SQUARE)
+ *   .chatWidth(chatWidth)
+ *   .chatHeight(chatHeight)
+ *   .build();
+ * }
+ *
  * @since 1.0.0
  */
 public final class ChatConfiguration {

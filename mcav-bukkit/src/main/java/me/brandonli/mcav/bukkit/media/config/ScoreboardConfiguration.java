@@ -33,6 +33,17 @@ import me.brandonli.mcav.bukkit.media.result.Characters;
  * <p>This class is immutable and thread-safe, except for the viewer collection, which it shares with the caller instead
  * of copying.
  *
+ * {@snippet :
+ * final int width = 16;
+ * final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
+ * final ScoreboardConfiguration configuration = builder
+ *   .viewers(viewers)
+ *   .character(Characters.BLACK_SQUARE)
+ *   .lines(ScoreboardConfiguration.MAXIMUM_LINES)
+ *   .width(width)
+ *   .build();
+ * }
+ *
  * @since 1.0.0
  */
 public final class ScoreboardConfiguration {

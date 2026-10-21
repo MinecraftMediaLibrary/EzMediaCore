@@ -94,6 +94,21 @@ import org.slf4j.LoggerFactory;
  * Serialize applyFilter calls; copied RGB/pixel data is handed to workers, so callers may reuse or close an input
  * buffer after the call returns. Do not mutate it during conversion.
  *
+ * {@snippet :
+ * final Mcv2PackServer.Lease lease = packs.open(requested);
+ * final Mcv2Configuration configuration = lease.getConfiguration();
+ * final Mcv2Viewers viewers = packs.getViewers();
+ * final DitherAlgorithm fallback = DitherAlgorithm.filterLite();
+ * final Mcv2Result result = new Mcv2Result(configuration, viewers, fallback);
+ * result.start();
+ * final VideoPipelineStep pipeline = VideoPipelineStep.of(result);
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * video.attach(pipeline);
+ * // when the video is over
+ * result.release();
+ * lease.close();
+ * }
+ *
  * @since 1.0.0
  */
 public final class Mcv2Result implements FunctionalVideoFilter {

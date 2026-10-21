@@ -48,6 +48,26 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * supplied encoder pool; neither the configuration nor a screen closes it. Creating a configuration does not
  * reserve map ids or build the visible wall.
  *
+ * {@snippet :
+ * final int firstMapId = 0;
+ * final int columns = 15;
+ * final int rows = 9;
+ * final int videoWidth = 1920;
+ * final int videoHeight = 1080;
+ * final Location origin = topLeft.getLocation();
+ * final BlockFace facing = topLeft.getFacing();
+ * final Mcv2ConfigurationBuilder builder = Mcv2Configuration.builder();
+ * final Mcv2Configuration requested = builder
+ *   .viewers(viewers)
+ *   .origin(origin)
+ *   .facing(facing)
+ *   .map(firstMapId)
+ *   .columns(columns)
+ *   .rows(rows)
+ *   .video(videoWidth, videoHeight)
+ *   .build();
+ * }
+ *
  * @since 1.0.0
  */
 public final class Mcv2Configuration {
