@@ -1633,6 +1633,19 @@ final class VmProcessTest {
   }
 
   @Test
+  void shouldAddTheUsbControllerWhenTheMachineOptionLeavesUsbUnset() {
+    final VmSettings settings = new VmSettings(DISPLAY_ONE_PORT, WIDTH, HEIGHT, FRAME_RATE);
+    final VmConfiguration configuration = VmConfiguration.builder().machine(Q35_MACHINE).build();
+
+    final List<String> command = this.commandWithoutAccelerator(settings, configuration);
+
+    final List<String> machineOptions = List.of(MACHINE_ARGUMENT, Q35_MACHINE);
+    final List<String> controllerAndTablet = List.of(USB_ARGUMENT, DEVICE_ARGUMENT, TABLET_DEVICE);
+    final List<String> expected = this.expectedOnDisplayOne(machineOptions, controllerAndTablet);
+    assertEquals(expected, command);
+  }
+
+  @Test
   void shouldNoticeWhenQemuExitsOnItsOwn() {
     final FakeProcess qemu = FakeProcess.running("");
     final VmProcess process = this.reachable(Os.FREEBSD, qemu);
