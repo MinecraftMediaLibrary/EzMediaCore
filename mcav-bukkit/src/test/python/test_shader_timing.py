@@ -165,9 +165,9 @@ class TimerAccountingTest(unittest.TestCase):
                 status = run("--reference", directory, version=VERSION_TWO, received=received)
                 self.assertEqual(0, status)
 
-            expected = [
-                [b"archived-v2:\x07\x06" + frame(keyframe, VERSION_TWO)] for keyframe in (True, True, False, False)
-            ]
+            keyframe_pages = [b"archived-v2:\x07\x06" + keyframe(VERSION_TWO)]
+            predicted_pages = [b"archived-v2:\x07\x06" + predicted_frame(VERSION_TWO)]
+            expected = [keyframe_pages, keyframe_pages, predicted_pages, predicted_pages]
             self.assertEqual(expected * 3, received)
 
 
@@ -188,7 +188,7 @@ def run(*options, missed=(), again=(), changed=(), version=mcv2_reference.VERSIO
         mock.patch.object(mcv2_tools, "make_pages", lambda data, stream_id, symbol_bits: [data]),
         mock.patch.object(mcv2_tools, "TimedShaderChain", chain),
         mock.patch.object(
-            mcv2_tools, "read_archive", lambda stream: [frame(True, version), frame(False, version)]
+            mcv2_tools, "read_archive", lambda stream: [keyframe(version), predicted_frame(version)]
         ),
         redirect_stdout(StringIO()),
         redirect_stderr(StringIO()),
@@ -242,18 +242,25 @@ class FakeChain:
         return types.SimpleNamespace(read=lambda: picture)
 
 
-def frame(keyframe, version=mcv2_reference.VERSION):
+def keyframe(version):
+    return frame(KEYFRAME_ID, version)
+
+
+def frame(frame_id, version):
     """The header of a 64x32 frame, which is all shader_timing reads of a frame itself."""
     if version == mcv2_reference.VERSION:
-        frame_id = KEYFRAME_ID if keyframe else PREDICTED_FRAME_ID
         return mcv2_reference.HEADER.pack(mcv2_reference.MAGIC, mcv2_reference.VERSION, WIDTH, HEIGHT, frame_id, KEYFRAME_ID)
 
     data = bytearray(VERSION_TWO_HEADER_BYTES)
     data[:len(mcv2_reference.MAGIC)] = mcv2_reference.MAGIC
     data[mcv2_reference.VERSION_OFFSET] = version
-    data[VERSION_TWO_FLAGS_OFFSET] = int(keyframe)
+    data[VERSION_TWO_FLAGS_OFFSET] = int(frame_id == KEYFRAME_ID)
     DIMENSIONS.pack_into(data, mcv2_reference.WIDTH_OFFSET, WIDTH, HEIGHT)
     return bytes(data)
+
+
+def predicted_frame(version):
+    return frame(PREDICTED_FRAME_ID, version)
 
 
 class FakeQuery:

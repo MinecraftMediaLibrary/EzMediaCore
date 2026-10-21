@@ -22,7 +22,7 @@ import zlib
 
 from rejection_cases import BYTE_CODE, HALF_WORD_CODE, WORD_CODE, changed
 import mcv2_reference
-from mcv2_reference import Assembler, PAGE_HEADER, from_symbols, make_pages, page_capacity, read_page, to_symbols, wire_bytes
+from mcv2_reference import Assembler, MapCharge, PAGE_HEADER, from_symbols, make_pages, page_capacity, read_page, to_symbols, wire_bytes
 from mcv2_reference import Node, pack_frame
 
 LARGE_WIDTH = 3200
@@ -88,7 +88,7 @@ class TransportTest(unittest.TestCase):
         page_wire_bytes = wire_bytes(pages)
         self.assertEqual(146, page_wire_bytes)
 
-        full_map_wire_bytes = wire_bytes(pages, full_maps=True)
+        full_map_wire_bytes = wire_bytes(pages, MapCharge.FULL_MAPS)
         self.assertEqual(16402, full_map_wire_bytes)
 
         overhead_wire_bytes = wire_bytes([bytes(129)], packet_overhead=5)

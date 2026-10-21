@@ -83,8 +83,8 @@ def _add_header_cases(cases):
             _add(cases, f'dimension-{offset}-{value}', changed(empty, offset, value, HALF_WORD_CODE), HEADER_RULE, 'dimensions')
 
 
-def _frame(node=None, key=True):
-    return pack_frame(1, 1, 0 if key else 1, 0, {} if node is None else {0: node})
+def _frame(node=None):
+    return pack_frame(1, 1, 0, 0, {} if node is None else {0: node})
 
 
 def _add(cases, name, data, rule, reason):
@@ -196,11 +196,15 @@ def _add_quantizer_cases(cases):
     ):
         _add(cases, f'quantizer-mode-{mode}', changed(solid, DESCRIPTORS_OFFSET, mode | QUANTIZER_STEP), DESCRIPTOR_RULE, 'quantizer')
 
-    compact = _frame(Node(mcv2_reference.COMPACT, record=bytes(mcv2_reference.COMPACT_BYTES)), key=False)
+    compact = _predicted_frame(Node(mcv2_reference.COMPACT, record=bytes(mcv2_reference.COMPACT_BYTES)))
     for quantizer in range(mcv2_reference.MAXIMUM_QUANTIZER + 1, QUANTIZER_VALUES):
         descriptor = mcv2_reference.COMPACT | quantizer << mcv2_reference.QUANTIZER_SHIFT
         data = changed(compact, DESCRIPTORS_OFFSET, descriptor)
         _add(cases, f'compact-quantizer-{quantizer}', data, DESCRIPTOR_RULE, 'COMPACT quantizer above 2')
+
+
+def _predicted_frame(node):
+    return pack_frame(1, 1, 1, 0, {0: node})
 
 
 def _add_keyframe_mode_cases(cases):
@@ -215,7 +219,7 @@ def _add_truncated_record_cases(cases):
              Node(mcv2_reference.PALETTE, record=bytes(134)), Node(mcv2_reference.PATTERN, record=bytes(11)),
              Node(mcv2_reference.COMPACT, record=bytes(mcv2_reference.COMPACT_BYTES))]
     for node in nodes:
-        data = _frame(node, key=False)
+        data = _predicted_frame(node)
         _add(cases, f'truncated-record-{node.mode}', data[:-1], DESCRIPTOR_RULE, 'record exceeds')
 
 

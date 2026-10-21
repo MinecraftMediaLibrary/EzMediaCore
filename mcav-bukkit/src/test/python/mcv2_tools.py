@@ -40,6 +40,7 @@ from mcv2_reference import (
     PAGE_SYMBOLS,
     SYMBOL_BITS,
     Decoder,
+    MapCharge,
     SOLID,
     decode,
     Node,
@@ -1052,7 +1053,7 @@ def fixtures_pages(root):
                 pages=[hashlib.sha256(page).hexdigest() for page in symbols],
                 lengths=[len(page) for page in symbols],
                 wire=wire_bytes(symbols),
-                wire_full=wire_bytes(symbols, full_maps=True),
+                wire_full=wire_bytes(symbols, MapCharge.FULL_MAPS),
             )
         )
     fixtures_write_json(

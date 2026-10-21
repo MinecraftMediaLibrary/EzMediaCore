@@ -20,6 +20,7 @@ import struct
 import zlib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from enum import Enum, auto
 
 import numpy
 
@@ -180,6 +181,13 @@ class Page:
     flags: int
     symbol_bits: int
     payload: bytes
+
+
+class MapCharge(Enum):
+    """How wire_bytes charges the map colours of a page: rounded up to whole 128-colour rows, or as a full map."""
+
+    ROWS = auto()
+    FULL_MAPS = auto()
 
 
 @dataclass(frozen=True)
@@ -870,13 +878,13 @@ def _page_crc(raw: bytes) -> int:
     return zlib.crc32(zeroed)
 
 
-def wire_bytes(pages: list[bytes], full_maps: bool = False, packet_overhead: int = PACKET_OVERHEAD) -> int:
-    """Charge map colour bytes rounded to 128-colour rows (or full maps), plus each page's packet allowance."""
-    return sum(_map_bytes(page, full_maps) + packet_overhead for page in pages)
+def wire_bytes(pages: list[bytes], charge: MapCharge = MapCharge.ROWS, packet_overhead: int = PACKET_OVERHEAD) -> int:
+    """Charge each page's map colour bytes as charge says, plus each page's packet allowance."""
+    return sum(_map_bytes(page, charge) + packet_overhead for page in pages)
 
 
-def _map_bytes(page: bytes, full_maps: bool) -> int:
-    if full_maps:
+def _map_bytes(page: bytes, charge: MapCharge) -> int:
+    if charge is MapCharge.FULL_MAPS:
         return PAGE_SYMBOLS
 
     rows = _divide_rounding_up(len(page), MAP_SIDE)
