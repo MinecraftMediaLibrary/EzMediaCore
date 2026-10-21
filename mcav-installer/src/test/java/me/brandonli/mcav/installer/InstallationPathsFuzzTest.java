@@ -64,8 +64,8 @@ final class InstallationPathsFuzzTest {
     boolean refused = false;
     try {
       WORKSPACE.manager.downloadDependencies("me.fuzz", artifactId, "1.0");
-    } catch (final InstallationException failure) {
-      final String message = failure.getMessage();
+    } catch (final InstallationException exception) {
+      final String message = exception.getMessage();
       refused = message.endsWith(" must contain only letters, digits, dots, underscores or hyphens!");
     }
     final List<Path> created = new ArrayList<>(WORKSPACE.list());
@@ -89,7 +89,7 @@ final class InstallationPathsFuzzTest {
     final Path destination;
     try {
       destination = InstallationManager.destinationOf(target, groupId, artifact, fileName);
-    } catch (final IOException | InvalidPathException refused) {
+    } catch (final IOException | InvalidPathException exception) {
       return;
     }
     final Path normalizedTarget = target.normalize();

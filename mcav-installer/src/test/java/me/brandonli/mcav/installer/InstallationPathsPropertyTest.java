@@ -120,8 +120,8 @@ final class InstallationPathsPropertyTest {
     boolean refused = false;
     try {
       this.manager.downloadDependencies("me.test", artifactId, "1.0");
-    } catch (final InstallationException failure) {
-      final String message = failure.getMessage();
+    } catch (final InstallationException exception) {
+      final String message = exception.getMessage();
       refused = message.endsWith(REFUSED);
     }
     final List<Path> after = listTree(this.root);
@@ -170,7 +170,7 @@ final class InstallationPathsPropertyTest {
     final Path destination;
     try {
       destination = InstallationManager.destinationOf(target, groupId, artifactId, fileName);
-    } catch (final IOException | InvalidPathException refused) {
+    } catch (final IOException | InvalidPathException exception) {
       return;
     }
     final Path normalizedTarget = target.normalize();

@@ -198,13 +198,13 @@ final class UnsafeInjector extends URLClassLoaderInjector {
         throw new JarInjectorException(message, exception);
       } catch (final JarInjectorException exception) {
         throw exception;
-      } catch (final VirtualMachineError fatal) {
-        throw fatal;
-      } catch (final Throwable throwable) {
+      } catch (final VirtualMachineError exception) {
+        throw exception;
+      } catch (final Throwable exception) {
         // Unsafe is an unsupported API that can fail in any other way on a new Java version, a LinkageError included,
         // and every such failure means that this strategy cannot be used
         final String message = "Field %s could not be read!".formatted(name);
-        throw new JarInjectorException(message, throwable);
+        throw new JarInjectorException(message, exception);
       }
     }
   }

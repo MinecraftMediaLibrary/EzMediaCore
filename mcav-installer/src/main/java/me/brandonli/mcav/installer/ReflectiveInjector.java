@@ -76,9 +76,9 @@ final class ReflectiveInjector extends URLClassLoaderInjector {
       this.addUrl.invoke(loader, url);
     } catch (final RuntimeException | Error exception) {
       throw exception;
-    } catch (final Throwable throwable) {
+    } catch (final Throwable exception) {
       final String message = "Jar %s could not be added to the class loader!".formatted(url);
-      throw new JarInjectorException(message, throwable);
+      throw new JarInjectorException(message, exception);
     }
   }
 }
