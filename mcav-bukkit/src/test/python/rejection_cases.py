@@ -57,76 +57,135 @@ QUANTIZER_VALUES = 1 << (mcv2_reference.BITS_PER_BYTE - mcv2_reference.QUANTIZER
 INVALID_ORIENTATION = mcv2_reference.HORIZONTAL_STRIPES + 1
 
 
+def rejected_frames():
+    cases = {}
+    _add_header_cases(cases)
+    _add_index_cases(cases)
+    _add_walk_cases(cases)
+    _add_descriptor_cases(cases)
+    _add(cases, 'payload-gap', _solid_frame() + b'\0', END_RULE, 'records do not end')
+
+    return cases
+
+
+def _add_header_cases(cases):
+    empty = _frame()
+    _add(cases, 'short-frame', bytes(mcv2_reference.MINIMUM_FRAME_BYTES - 1), HEADER_RULE, FRAME_LENGTH_REASON)
+    _add(cases, 'oversize-frame', bytes(mcv2_reference.MAXIMUM_FRAME_BYTES + 1), HEADER_RULE, FRAME_LENGTH_REASON)
+    _add(cases, 'bad-magic', b'ABCD' + empty[len(mcv2_reference.MAGIC):], HEADER_RULE, NOT_MCV2_REASON)
+    unknown_version = changed(empty, mcv2_reference.VERSION_OFFSET, mcv2_reference.VERSION + 1)
+    _add(cases, 'unknown-version', unknown_version, HEADER_RULE, NOT_MCV2_REASON)
+    for offset in range(mcv2_reference.VERSION_OFFSET + 1, mcv2_reference.WIDTH_OFFSET):
+        _add(cases, f'version-byte-{offset}', changed(empty, offset, 1), HEADER_RULE, NOT_MCV2_REASON)
+    _add_retired_version_cases(cases)
+    for offset in (mcv2_reference.WIDTH_OFFSET, mcv2_reference.HEIGHT_OFFSET):
+        for value in (0, mcv2_reference.MAXIMUM_DIMENSION + 1):
+            _add(cases, f'dimension-{offset}-{value}', changed(empty, offset, value, HALF_WORD_CODE), HEADER_RULE, 'dimensions')
+
+
+def _frame(node=None, key=True):
+    return pack_frame(1, 1, 0 if key else 1, 0, {} if node is None else {0: node})
+
+
+def _add(cases, name, data, rule, reason):
+    cases[name] = {FRAME_KEY: data.hex(), 'rule': rule, 'reason': reason}
+
+
 def changed(data, offset, value, code=BYTE_CODE):
     result = bytearray(data)
     struct.pack_into(BYTE_ORDER + code, result, offset, value)
     return bytes(result)
 
 
-def rejected_frames():
-    cases = {}
-
-    def add(name, data, rule, reason):
-        cases[name] = {FRAME_KEY: data.hex(), 'rule': rule, 'reason': reason}
-
-    def frame(node=None, key=True):
-        return pack_frame(1, 1, 0 if key else 1, 0, {} if node is None else {0: node})
-
-    empty = frame()
-    solid = frame(Node(mcv2_reference.SOLID, record=b'\x10\x20\x30'))
-    add('short-frame', bytes(mcv2_reference.MINIMUM_FRAME_BYTES - 1), HEADER_RULE, FRAME_LENGTH_REASON)
-    add('oversize-frame', bytes(mcv2_reference.MAXIMUM_FRAME_BYTES + 1), HEADER_RULE, FRAME_LENGTH_REASON)
-    add('bad-magic', b'ABCD' + empty[len(mcv2_reference.MAGIC):], HEADER_RULE, NOT_MCV2_REASON)
-    add('unknown-version', changed(empty, mcv2_reference.VERSION_OFFSET, mcv2_reference.VERSION + 1), HEADER_RULE, NOT_MCV2_REASON)
-    for offset in range(mcv2_reference.VERSION_OFFSET + 1, mcv2_reference.WIDTH_OFFSET):
-        add(f'version-byte-{offset}', changed(empty, offset, 1), HEADER_RULE, NOT_MCV2_REASON)
-    add('mcv1', bytes.fromhex(
+def _add_retired_version_cases(cases):
+    version_1 = bytes.fromhex(
         '4d4356310102010001000100090000000900000000000000010000003400000037000000'
-        '00000000000000000000000034000002102030'), HEADER_RULE, 'version 1 is no longer supported')
-    add('version-2', bytes.fromhex(
+        '00000000000000000000000034000002102030')
+    _add(cases, 'mcv1', version_1, HEADER_RULE, 'version 1 is no longer supported')
+    version_2 = bytes.fromhex(
         '4d4356320205730001000100000000000000000000000000010000004500000075000000000000000000000000000000010000000000000001000000'
-        '0000010600000000003224e3e9bafb4931c49e41fca6fb71c25d4744121177650106704ecf2c3e8fa04eaa462d163cd0d18bc59cbc0fbaead8'),
-        HEADER_RULE, 'version 2 is no longer supported')
-    for offset in (mcv2_reference.WIDTH_OFFSET, mcv2_reference.HEIGHT_OFFSET):
-        for value in (0, mcv2_reference.MAXIMUM_DIMENSION + 1):
-            add(f'dimension-{offset}-{value}', changed(empty, offset, value, HALF_WORD_CODE), HEADER_RULE, 'dimensions')
+        '0000010600000000003224e3e9bafb4931c49e41fca6fb71c25d4744121177650106704ecf2c3e8fa04eaa462d163cd0d18bc59cbc0fbaead8')
+    _add(cases, 'version-2', version_2, HEADER_RULE, 'version 2 is no longer supported')
+
+
+def _add_index_cases(cases):
+    _add_presence_cases(cases)
+    _add_count_cases(cases)
+    _add(cases, 'truncated-descriptor-walk', _solid_frame()[:44], INDEX_RULE, TRUNCATED_DESCRIPTORS_REASON)
+
+
+def _add_presence_cases(cases):
+    empty = _frame()
     for length in (20, 24, 28, 32, 36, 39):
-        add(f'truncated-index-{length}', empty[:length], INDEX_RULE, 'truncated index')
-    add('unused-mask-bit', changed(empty, MASK_OFFSET, 2, WORD_CODE), INDEX_RULE, 'presence mask')
-    add('directory-zero', changed(empty, DIRECTORY_OFFSET, 1, WORD_CODE), INDEX_RULE, DIRECTORY_PREFIX_REASON)
+        _add(cases, f'truncated-index-{length}', empty[:length], INDEX_RULE, 'truncated index')
+    _add(cases, 'unused-mask-bit', changed(empty, MASK_OFFSET, 2, WORD_CODE), INDEX_RULE, 'presence mask')
+    _add(cases, 'directory-zero', changed(empty, DIRECTORY_OFFSET, 1, WORD_CODE), INDEX_RULE, DIRECTORY_PREFIX_REASON)
+
     wide = pack_frame(4096, 65, 0, 0, {0: Node(mcv2_reference.SKIP), 256: Node(mcv2_reference.SKIP)})
     later_prefix = MASK_OFFSET + 12 * mcv2_reference.WORD_BYTES + mcv2_reference.WORD_BYTES
-    add('directory-later-prefix', changed(wide, later_prefix, 0, WORD_CODE), INDEX_RULE, DIRECTORY_PREFIX_REASON)
-    add('n0-popcount', changed(solid, COUNTS_OFFSET, 0, WORD_CODE), INDEX_RULE, 'level 0 count')
+    _add(cases, 'directory-later-prefix', changed(wide, later_prefix, 0, WORD_CODE), INDEX_RULE, DIRECTORY_PREFIX_REASON)
+
+
+def _add_count_cases(cases):
+    _add(cases, 'n0-popcount', changed(_solid_frame(), COUNTS_OFFSET, 0, WORD_CODE), INDEX_RULE, 'level 0 count')
     level_one_count = COUNTS_OFFSET + mcv2_reference.WORD_BYTES
-    add('count-overflow', changed(empty, level_one_count, 0xFFFFFFFF, WORD_CODE), INDEX_RULE, TRUNCATED_DESCRIPTORS_REASON)
-    split = Node(mcv2_reference.SPLIT, children=(Node(mcv2_reference.SKIP),) * mcv2_reference.SPLIT_CHILDREN)
-    branch = frame(split)
-    add('n1-children', changed(branch, DESCRIPTORS_OFFSET, mcv2_reference.SKIP), INDEX_RULE, 'level 1 count')
-    deep = frame(Node(mcv2_reference.SPLIT, children=(split,) * mcv2_reference.SPLIT_CHILDREN))
-    add('n2-children', changed(deep, DESCRIPTORS_OFFSET + 1, mcv2_reference.SKIP), INDEX_RULE, 'level 2 count')
+    count_overflow = changed(_frame(), level_one_count, 0xFFFFFFFF, WORD_CODE)
+    _add(cases, 'count-overflow', count_overflow, INDEX_RULE, TRUNCATED_DESCRIPTORS_REASON)
+
+    split = _skip_split()
+    branch = _frame(split)
+    _add(cases, 'n1-children', changed(branch, DESCRIPTORS_OFFSET, mcv2_reference.SKIP), INDEX_RULE, 'level 1 count')
+
+    deep = _frame(Node(mcv2_reference.SPLIT, children=(split,) * mcv2_reference.SPLIT_CHILDREN))
+    _add(cases, 'n2-children', _without_level_one_split(deep), INDEX_RULE, 'level 2 count')
+    _add(cases, 'split-at-level-2', changed(deep, DESCRIPTORS_OFFSET + 5, mcv2_reference.SPLIT), INDEX_RULE, 'SPLIT in level 2')
+
+
+def _solid_frame():
+    return _frame(Node(mcv2_reference.SOLID, record=b'\x10\x20\x30'))
+
+
+def _skip_split():
+    return Node(mcv2_reference.SPLIT, children=(Node(mcv2_reference.SKIP),) * mcv2_reference.SPLIT_CHILDREN)
+
+
+def _without_level_one_split(deep):
+    data = bytearray(changed(deep, DESCRIPTORS_OFFSET + 1, mcv2_reference.SKIP))
     # Removing that split also changes the later walk counts; repair those so this isolates n2.
-    data = bytearray(bytes.fromhex(cases['n2-children'][FRAME_KEY]))
     for offset in (TWO_LEVEL_WALK_OFFSET + mcv2_reference.WORD_BYTES, TWO_LEVEL_WALK_OFFSET + 2 * mcv2_reference.WORD_BYTES):
         value = WORD.unpack_from(data, offset)[0]
         WORD.pack_into(data, offset, value - WALK_SPLIT)
-    cases['n2-children'][FRAME_KEY] = data.hex()
-    add('split-at-level-2', changed(deep, DESCRIPTORS_OFFSET + 5, mcv2_reference.SPLIT), INDEX_RULE, 'SPLIT in level 2')
-    add('truncated-descriptor-walk', solid[:44], INDEX_RULE, TRUNCATED_DESCRIPTORS_REASON)
-    add('walk-zero', changed(solid, DESCRIPTORS_OFFSET + 1, 1, WORD_CODE), WALK_RULE, WALK_CHECKPOINT_REASON)
-    long = frame(Node(
-        mcv2_reference.SPLIT,
-        children=(Node(
-            mcv2_reference.SPLIT,
-            children=(Node(mcv2_reference.SOLID, record=bytes(mcv2_reference.SOLID_BYTES)),) * mcv2_reference.SPLIT_CHILDREN,
-        ),) * mcv2_reference.SPLIT_CHILDREN,
-    ))
+
+    return bytes(data)
+
+
+def _add_walk_cases(cases):
+    _add(cases, 'walk-zero', changed(_solid_frame(), DESCRIPTORS_OFFSET + 1, 1, WORD_CODE), WALK_RULE, WALK_CHECKPOINT_REASON)
+    solid_leaves = (Node(mcv2_reference.SOLID, record=bytes(mcv2_reference.SOLID_BYTES)),) * mcv2_reference.SPLIT_CHILDREN
+    solid_split = Node(mcv2_reference.SPLIT, children=solid_leaves)
+    long = _frame(Node(mcv2_reference.SPLIT, children=(solid_split,) * mcv2_reference.SPLIT_CHILDREN))
     offset = TWO_LEVEL_WALK_OFFSET + mcv2_reference.WORD_BYTES
     checkpoint = WORD.unpack_from(long, offset)[0]
-    add('walk-cursor', changed(long, offset, checkpoint + 1, WORD_CODE), WALK_RULE, WALK_CHECKPOINT_REASON)
-    add('walk-splits', changed(long, offset, checkpoint + WALK_SPLIT, WORD_CODE), WALK_RULE, WALK_CHECKPOINT_REASON)
+    _add(cases, 'walk-cursor', changed(long, offset, checkpoint + 1, WORD_CODE), WALK_RULE, WALK_CHECKPOINT_REASON)
+    _add(cases, 'walk-splits', changed(long, offset, checkpoint + WALK_SPLIT, WORD_CODE), WALK_RULE, WALK_CHECKPOINT_REASON)
+
+
+def _add_descriptor_cases(cases):
+    _add_mode_cases(cases)
+    _add_quantizer_cases(cases)
+    _add_keyframe_mode_cases(cases)
+    _add_truncated_record_cases(cases)
+    _add_orientation_cases(cases)
+
+
+def _add_mode_cases(cases):
+    solid = _solid_frame()
     for mode in range(mcv2_reference.SPLIT + 1, mcv2_reference.MODE_MASK + 1):
-        add(f'invalid-mode-{mode}', changed(solid, DESCRIPTORS_OFFSET, mode), DESCRIPTOR_RULE, 'descriptor mode')
+        _add(cases, f'invalid-mode-{mode}', changed(solid, DESCRIPTORS_OFFSET, mode), DESCRIPTOR_RULE, 'descriptor mode')
+
+
+def _add_quantizer_cases(cases):
+    solid = _solid_frame()
     for mode in (
         mcv2_reference.SKIP,
         mcv2_reference.MOTION,
@@ -135,44 +194,51 @@ def rejected_frames():
         mcv2_reference.PATTERN,
         mcv2_reference.SPLIT,
     ):
-        add(f'quantizer-mode-{mode}', changed(solid, DESCRIPTORS_OFFSET, mode | QUANTIZER_STEP), DESCRIPTOR_RULE, 'quantizer')
-    compact = frame(Node(mcv2_reference.COMPACT, record=bytes(mcv2_reference.COMPACT_BYTES)), key=False)
+        _add(cases, f'quantizer-mode-{mode}', changed(solid, DESCRIPTORS_OFFSET, mode | QUANTIZER_STEP), DESCRIPTOR_RULE, 'quantizer')
+
+    compact = _frame(Node(mcv2_reference.COMPACT, record=bytes(mcv2_reference.COMPACT_BYTES)), key=False)
     for quantizer in range(mcv2_reference.MAXIMUM_QUANTIZER + 1, QUANTIZER_VALUES):
-        add(
-            f'compact-quantizer-{quantizer}',
-            changed(compact, DESCRIPTORS_OFFSET, mcv2_reference.COMPACT | quantizer << mcv2_reference.QUANTIZER_SHIFT),
-            DESCRIPTOR_RULE, 'COMPACT quantizer above 2',
-        )
+        descriptor = mcv2_reference.COMPACT | quantizer << mcv2_reference.QUANTIZER_SHIFT
+        data = changed(compact, DESCRIPTORS_OFFSET, descriptor)
+        _add(cases, f'compact-quantizer-{quantizer}', data, DESCRIPTOR_RULE, 'COMPACT quantizer above 2')
+
+
+def _add_keyframe_mode_cases(cases):
+    solid = _solid_frame()
     for mode in (mcv2_reference.MOTION, mcv2_reference.COMPACT):
-        add(f'keyframe-mode-{mode}', changed(solid, DESCRIPTORS_OFFSET, mode), DESCRIPTOR_RULE, 'temporal mode')
+        _add(cases, f'keyframe-mode-{mode}', changed(solid, DESCRIPTORS_OFFSET, mode), DESCRIPTOR_RULE, 'temporal mode')
+
+
+def _add_truncated_record_cases(cases):
     nodes = [Node(mcv2_reference.MOTION, record=bytes(mcv2_reference.MOTION_BYTES)),
              Node(mcv2_reference.SOLID, record=bytes(mcv2_reference.SOLID_BYTES)),
              Node(mcv2_reference.PALETTE, record=bytes(134)), Node(mcv2_reference.PATTERN, record=bytes(11)),
              Node(mcv2_reference.COMPACT, record=bytes(mcv2_reference.COMPACT_BYTES))]
     for node in nodes:
-        data = frame(node, key=False)
-        add(f'truncated-record-{node.mode}', data[:-1], DESCRIPTOR_RULE, 'record exceeds')
-    pattern = frame(Node(mcv2_reference.PATTERN, record=bytes(11)))
-    pattern_orientation = parse_frame(pattern).payload_start + mcv2_reference.PATTERN_ORIENTATION_INDEX
-    add('pattern-orientation', changed(pattern, pattern_orientation, INVALID_ORIENTATION), DESCRIPTOR_RULE, PATTERN_ORIENTATION_REASON)
-    offscreen = frame(Node(
-        mcv2_reference.SPLIT,
-        children=(
-            Node(mcv2_reference.SKIP),
-            Node(mcv2_reference.SKIP),
-            Node(mcv2_reference.SKIP),
-            Node(mcv2_reference.PATTERN, record=bytes(9)),
-        ),
-    ))
-    offscreen_orientation = parse_frame(offscreen).payload_start + mcv2_reference.PATTERN_ORIENTATION_INDEX
-    add(
-        'off-picture-orientation',
-        changed(offscreen, offscreen_orientation, INVALID_ORIENTATION),
-        DESCRIPTOR_RULE, PATTERN_ORIENTATION_REASON,
+        data = _frame(node, key=False)
+        _add(cases, f'truncated-record-{node.mode}', data[:-1], DESCRIPTOR_RULE, 'record exceeds')
+
+
+def _add_orientation_cases(cases):
+    pattern = _frame(Node(mcv2_reference.PATTERN, record=bytes(11)))
+    _add(cases, 'pattern-orientation', _with_invalid_orientation(pattern, INVALID_ORIENTATION), DESCRIPTOR_RULE, PATTERN_ORIENTATION_REASON)
+
+    offscreen_children = (
+        Node(mcv2_reference.SKIP),
+        Node(mcv2_reference.SKIP),
+        Node(mcv2_reference.SKIP),
+        Node(mcv2_reference.PATTERN, record=bytes(9)),
     )
-    eight = frame(Node(mcv2_reference.SPLIT, children=(Node(mcv2_reference.SPLIT, children=(Node(mcv2_reference.PATTERN, record=bytes(8)),)
-                                                     + (Node(mcv2_reference.SKIP),) * 3),) + (Node(mcv2_reference.SKIP),) * 3))
-    eight_orientation = parse_frame(eight).payload_start + mcv2_reference.PATTERN_ORIENTATION_INDEX
-    add('pattern-orientation-8', changed(eight, eight_orientation, 255), DESCRIPTOR_RULE, PATTERN_ORIENTATION_REASON)
-    add('payload-gap', solid + b'\0', END_RULE, 'records do not end')
-    return cases
+    offscreen = _frame(Node(mcv2_reference.SPLIT, children=offscreen_children))
+    offscreen_orientation = _with_invalid_orientation(offscreen, INVALID_ORIENTATION)
+    _add(cases, 'off-picture-orientation', offscreen_orientation, DESCRIPTOR_RULE, PATTERN_ORIENTATION_REASON)
+
+    skips = (Node(mcv2_reference.SKIP),) * 3
+    corner = Node(mcv2_reference.SPLIT, children=(Node(mcv2_reference.PATTERN, record=bytes(8)),) + skips)
+    eight = _frame(Node(mcv2_reference.SPLIT, children=(corner,) + skips))
+    _add(cases, 'pattern-orientation-8', _with_invalid_orientation(eight, 255), DESCRIPTOR_RULE, PATTERN_ORIENTATION_REASON)
+
+
+def _with_invalid_orientation(data, orientation):
+    offset = parse_frame(data).payload_start + mcv2_reference.PATTERN_ORIENTATION_INDEX
+    return changed(data, offset, orientation)

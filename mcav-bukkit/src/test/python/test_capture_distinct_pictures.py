@@ -47,21 +47,6 @@ AMBIGUOUS_REFERENCE_FRAMES_KEY = "ambiguous_reference_frames"
 
 
 class CaptureCheckTest(unittest.TestCase):
-
-    def report(self, references, captures):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            reference = root / REFERENCE_NAME
-            reference.write_bytes(b"".join(picture.tobytes() for picture in references))
-            for index, picture in enumerate(captures):
-                Image.fromarray(picture).save(root / (CAPTURE_NAME % index))
-            height, width, _ = references[0].shape
-            arguments = [PROGRAM, str(reference), str(width), str(height), str(root), "--top", "0"]
-            output = StringIO()
-            with patch.object(sys, "argv", arguments), redirect_stdout(output), self.assertRaises(SystemExit) as ended:
-                mcv2_tools.capture_check_main()
-            return ended.exception.code, json.loads(output.getvalue().splitlines()[-1]), output.getvalue()
-
     def test_should_not_count_identical_reference_frames_as_unmatchable_missing_pictures(self):
         picture = numpy.full(PICTURE_SHAPE, FIRST_GRAY, numpy.uint8)
         status, result, text = self.report([picture, picture], [picture, picture])
@@ -102,6 +87,20 @@ class CaptureCheckTest(unittest.TestCase):
 
         ambiguous_reference_frames = result[AMBIGUOUS_REFERENCE_FRAMES_KEY]
         self.assertEqual(2, ambiguous_reference_frames)
+
+    def report(self, references, captures):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            reference = root / REFERENCE_NAME
+            reference.write_bytes(b"".join(picture.tobytes() for picture in references))
+            for index, picture in enumerate(captures):
+                Image.fromarray(picture).save(root / (CAPTURE_NAME % index))
+            height, width, _ = references[0].shape
+            arguments = [PROGRAM, str(reference), str(width), str(height), str(root), "--top", "0"]
+            output = StringIO()
+            with patch.object(sys, "argv", arguments), redirect_stdout(output), self.assertRaises(SystemExit) as ended:
+                mcv2_tools.capture_check_main()
+            return ended.exception.code, json.loads(output.getvalue().splitlines()[-1]), output.getvalue()
 
 
 if __name__ == "__main__":

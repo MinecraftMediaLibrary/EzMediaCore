@@ -49,24 +49,7 @@ LATENCY_KEY_PREFIX = "glass_to_glass_ms_"
 MEAN_LATENCY_KEY = LATENCY_KEY_PREFIX + "mean"
 
 
-def event(frame, arrived, sent, sent_to=1):
-    return dict(frame=frame, arrived=arrived, sent=sent, sent_to=sent_to, number=FRAME_NUMBER,
-                keyframe=True, bytes=EVENT_BYTES, colors=EVENT_COLORS, behind=0, waiting=0, backlog=0)
-
-
 class LatencyTest(unittest.TestCase):
-
-    def report(self, later):
-        with tempfile.TemporaryDirectory() as directory:
-            output = Path(directory, REPORT_NAME)
-            arguments = [PROGRAM, RECORDING_PATH, CAPTURE_PATH, "--json", str(output)]
-            events = [event(0, 0, FIRST_SENT), later]
-            captures = [(CAPTURE_TIME, FRAME_NUMBER), (LATER_CAPTURE_TIME, FRAME_NUMBER)]
-            with patch.object(sys, "argv", arguments), patch.object(mcv2_tools, "latency_events", return_value=events),\
-                    patch.object(mcv2_tools, "latency_captures", return_value=captures), redirect_stdout(StringIO()):
-                mcv2_tools.latency_main()
-            return json.loads(output.read_text())
-
     def test_should_use_a_frame_sent_before_the_capture_for_a_repeated_number(self):
         result = self.report(event(1, LATER_ARRIVAL, 250))
         displayed = result["displayed"]
@@ -92,6 +75,22 @@ class LatencyTest(unittest.TestCase):
                 result = self.report(event(1, LATER_ARRIVAL, invalid))
                 glass_to_glass = result[MEAN_LATENCY_KEY]
                 self.assertEqual(FIRST_FRAME_LATENCY, glass_to_glass)
+
+    def report(self, later):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory, REPORT_NAME)
+            arguments = [PROGRAM, RECORDING_PATH, CAPTURE_PATH, "--json", str(output)]
+            events = [event(0, 0, FIRST_SENT), later]
+            captures = [(CAPTURE_TIME, FRAME_NUMBER), (LATER_CAPTURE_TIME, FRAME_NUMBER)]
+            with patch.object(sys, "argv", arguments), patch.object(mcv2_tools, "latency_events", return_value=events),\
+                    patch.object(mcv2_tools, "latency_captures", return_value=captures), redirect_stdout(StringIO()):
+                mcv2_tools.latency_main()
+            return json.loads(output.read_text())
+
+
+def event(frame, arrived, sent, sent_to=1):
+    return dict(frame=frame, arrived=arrived, sent=sent, sent_to=sent_to, number=FRAME_NUMBER,
+                keyframe=True, bytes=EVENT_BYTES, colors=EVENT_COLORS, behind=0, waiting=0, backlog=0)
 
 
 if __name__ == "__main__":

@@ -40,22 +40,6 @@ REFERENCE_ID_OFFSET = 20
 FRAME_BYTES_OFFSET = 24
 
 
-def large_frame(frame_id=0):
-    roots = {index: Node(mcv2_reference.PALETTE, record=bytes(PALETTE_BYTES)) for index in range(LARGE_LEAVES)}
-    return pack_frame(LARGE_WIDTH, mcv2_reference.SUPERBLOCK_SIZE, frame_id, frame_id, roots)
-
-
-def page_bytes(symbols):
-    return from_symbols(symbols, mcv2_reference.SYMBOL_BITS, len(symbols) * mcv2_reference.SYMBOL_BITS // mcv2_reference.BITS_PER_BYTE)
-
-
-def with_crc(raw):
-    header = raw[:mcv2_reference.PAGE_CRC_OFFSET]
-    payload = raw[mcv2_reference.PAGE_HEADER_BYTES:]
-    crc = zlib.crc32(header + bytes(mcv2_reference.PAGE_CRC.size) + payload)
-    return header + mcv2_reference.PAGE_CRC.pack(crc) + payload
-
-
 class TransportTest(unittest.TestCase):
     def test_should_split_six_bit_symbols_in_least_significant_bit_order_and_check_their_extent_and_padding(self):
         # 0xdbd2bf, split at bit positions 0, 6, 12 and 18.
@@ -69,12 +53,10 @@ class TransportTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 from_symbols(values, mcv2_reference.SYMBOL_BITS, 1)
 
-        for width in (0, 5, 7, 8):
-            for function, arguments in ((page_capacity, (width,)), (make_pages, (large_frame(), 1, width)),
-                                   (read_page, (b'', width)), (Assembler, (1, width)), (to_symbols, (b'a', width)),
-                                   (from_symbols, (b'', width, 0))):
-                with self.subTest(function=function.__name__, width=width), self.assertRaises(ValueError):
-                    function(*arguments)
+        calls = [(width, function, arguments) for width in (0, 5, 7, 8) for function, arguments in symbol_width_calls(width)]
+        for width, function, arguments in calls:
+            with self.subTest(function=function.__name__, width=width), self.assertRaises(ValueError):
+                function(*arguments)
 
     def test_should_write_the_page_header_and_crc_and_count_wire_bytes(self):
         frame = pack_frame(1, 1, 9, 9, {0: Node(mcv2_reference.SOLID, record=b'\xab\xcd\xef')})
@@ -215,6 +197,27 @@ class TransportTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             Assembler().push(symbols)
+
+
+def symbol_width_calls(width):
+    return ((page_capacity, (width,)), (make_pages, (large_frame(), 1, width)), (read_page, (b'', width)),
+            (Assembler, (1, width)), (to_symbols, (b'a', width)), (from_symbols, (b'', width, 0)))
+
+
+def large_frame(frame_id=0):
+    roots = {index: Node(mcv2_reference.PALETTE, record=bytes(PALETTE_BYTES)) for index in range(LARGE_LEAVES)}
+    return pack_frame(LARGE_WIDTH, mcv2_reference.SUPERBLOCK_SIZE, frame_id, frame_id, roots)
+
+
+def page_bytes(symbols):
+    return from_symbols(symbols, mcv2_reference.SYMBOL_BITS, len(symbols) * mcv2_reference.SYMBOL_BITS // mcv2_reference.BITS_PER_BYTE)
+
+
+def with_crc(raw):
+    header = raw[:mcv2_reference.PAGE_CRC_OFFSET]
+    payload = raw[mcv2_reference.PAGE_HEADER_BYTES:]
+    crc = zlib.crc32(header + bytes(mcv2_reference.PAGE_CRC.size) + payload)
+    return header + mcv2_reference.PAGE_CRC.pack(crc) + payload
 
 
 if __name__ == '__main__':

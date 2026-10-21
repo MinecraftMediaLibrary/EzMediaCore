@@ -64,22 +64,6 @@ FRAMES_KEY = 'frames'
 
 
 class DifferentialTest(unittest.TestCase):
-    def report(self, frames, tokens):
-        with tempfile.TemporaryDirectory() as directory:
-            output = Path(directory)
-            arguments = SimpleNamespace(out=output, java=PLACEHOLDER, classpath=PLACEHOLDER, seed=SEED)
-            archive_path = str(output / ARCHIVE_PATH)
-            response = SimpleNamespace(returncode=0, stderr='', stdout=archive_path + TOKEN_SEPARATOR + TOKEN_SEPARATOR.join(tokens))
-            with patch.object(mcv2_tools, BUILD_ARCHIVES, return_value={ARCHIVE_NAME: frames}),\
-                    patch.object(mcv2_tools, 'differential_reference_tokens', return_value=[REFERENCE_DIGEST] * len(frames)),\
-                    patch.object(mcv2_tools.subprocess, RUN_FUNCTION, return_value=response) as launch, redirect_stdout(StringIO()):
-                status = mcv2_tools.differential_run(arguments)
-
-            command = launch.call_args.args[0]
-            self.assertEqual([PLACEHOLDER, '-cp', PLACEHOLDER, TOOLS_CLASS, 'digests', archive_path], command)
-
-            return status, json.loads((output / SUMMARY_NAME).read_text())
-
     def test_should_not_exempt_supported_frames_as_unsupported(self):
         status, result = self.report([FRAME], [UNSUPPORTED])
         self.assertEqual(1, status)
@@ -191,6 +175,22 @@ class DifferentialTest(unittest.TestCase):
                     redirect_stderr(StringIO()):
                 status = mcv2_tools.differential_run(arguments)
                 self.assertEqual(2, status)
+
+    def report(self, frames, tokens):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            arguments = SimpleNamespace(out=output, java=PLACEHOLDER, classpath=PLACEHOLDER, seed=SEED)
+            archive_path = str(output / ARCHIVE_PATH)
+            response = SimpleNamespace(returncode=0, stderr='', stdout=archive_path + TOKEN_SEPARATOR + TOKEN_SEPARATOR.join(tokens))
+            with patch.object(mcv2_tools, BUILD_ARCHIVES, return_value={ARCHIVE_NAME: frames}),\
+                    patch.object(mcv2_tools, 'differential_reference_tokens', return_value=[REFERENCE_DIGEST] * len(frames)),\
+                    patch.object(mcv2_tools.subprocess, RUN_FUNCTION, return_value=response) as launch, redirect_stdout(StringIO()):
+                status = mcv2_tools.differential_run(arguments)
+
+            command = launch.call_args.args[0]
+            self.assertEqual([PLACEHOLDER, '-cp', PLACEHOLDER, TOOLS_CLASS, 'digests', archive_path], command)
+
+            return status, json.loads((output / SUMMARY_NAME).read_text())
 
 
 if __name__ == '__main__':

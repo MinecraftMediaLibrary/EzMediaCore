@@ -70,88 +70,6 @@ PACKAGE_INIT = "__init__.py"
 TRANSPORT_MODULE = "transport.py"
 
 
-def frame(keyframe, version=mcv2_reference.VERSION):
-    """The header of a 64x32 frame, which is all shader_timing reads of a frame itself."""
-    if version == mcv2_reference.VERSION:
-        frame_id = KEYFRAME_ID if keyframe else PREDICTED_FRAME_ID
-        return mcv2_reference.HEADER.pack(mcv2_reference.MAGIC, mcv2_reference.VERSION, WIDTH, HEIGHT, frame_id, KEYFRAME_ID)
-    data = bytearray(VERSION_TWO_HEADER_BYTES)
-    data[:len(mcv2_reference.MAGIC)] = mcv2_reference.MAGIC
-    data[mcv2_reference.VERSION_OFFSET] = version
-    data[VERSION_TWO_FLAGS_OFFSET] = int(keyframe)
-    DIMENSIONS.pack_into(data, mcv2_reference.WIDTH_OFFSET, WIDTH, HEIGHT)
-    return bytes(data)
-
-
-class FakeChain:
-    """A post chain that decodes every frame once, to a picture of its own, except where a test says otherwise. The
-    sets hold (round, frame) pairs."""
-
-    missed = frozenset()
-    again = frozenset()
-    changed = frozenset()
-    received = None
-
-    def __init__(self, context, width, height, slots):
-        self.round = -1
-        self.index = 0
-        self.first = True
-
-    def reset(self):
-        self.round += 1
-        self.index = 0
-        self.first = True
-
-    def show(self, pages):
-        if self.received is not None:
-            self.received.append(pages)
-
-    def timed_frame(self, repeats):
-        # each frame is shown twice: with its new pages, which decode it, then with the same pages again
-        key = (self.round, self.index)
-        times = {"mcv2_decode": DECODE_MILLISECONDS, "mcv2_screen": SCREEN_MILLISECONDS}
-        if self.first:
-            self.first = False
-            return key not in self.missed, times
-        self.first = True
-        return key in self.again, times
-
-    def target(self, name):
-        key = (self.round, self.index)
-        self.index += 1
-        picture = b"another picture" if key in self.changed else b"picture %d" % key[1]
-        return types.SimpleNamespace(read=lambda: picture)
-
-
-def run(*options, missed=(), again=(), changed=(), version=mcv2_reference.VERSION, received=None):
-    """Runs main() on a stream of a keyframe and a P frame, and returns its exit code; 0 when it returns."""
-    context = types.SimpleNamespace(info={"GL_RENDERER": "fake", "GL_VERSION": GL_VERSION})
-    moderngl = types.ModuleType(MODERNGL_MODULE)
-    moderngl.create_standalone_context = lambda **_: context
-    chain = type(
-        "Chain",
-        (FakeChain,),
-        dict(missed=frozenset(missed), again=frozenset(again), changed=frozenset(changed), received=received),
-    )
-    argv = [PROGRAM, STREAM_NAME, *options]
-    with (
-        mock.patch.dict(sys.modules, {MODERNGL_MODULE: moderngl}),
-        mock.patch.object(sys, "argv", argv),
-        mock.patch.object(mcv2_tools, "make_pages", lambda data, stream_id, symbol_bits: [data]),
-        mock.patch.object(mcv2_tools, "TimedShaderChain", chain),
-        mock.patch.object(
-            mcv2_tools, "read_archive", lambda stream: [frame(True, version), frame(False, version)]
-        ),
-        redirect_stdout(StringIO()),
-        redirect_stderr(StringIO()),
-    ):
-        try:
-            mcv2_tools.shader_timing_main()
-        except SystemExit as exception:
-            return exception.code
-    return 0
-
-
 class ExitCodeTest(unittest.TestCase):
     def test_should_pass_a_run_whose_frames_all_decode_once_to_the_same_pictures(self):
         status = run()
@@ -179,24 +97,16 @@ class ExitCodeTest(unittest.TestCase):
 
 class TimerAccountingTest(unittest.TestCase):
     def test_should_count_each_copy_and_not_time_the_vanilla_outline_blit(self):
-        class Query:
-            elapsed = 2_000_000
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, *unused):
-                pass
-
-        chain = object.__new__(mcv2_tools.TimedShaderChain)
-        chain.context = types.SimpleNamespace(query=lambda **_: Query())
-        chain.queries = {}
-        chain.warm = lambda: None
-        chain.steps = lambda: [
+        steps = [
             ("mcv2_copy", "copy", {}, "mcav:mcv2_previous_0"),
             ("mcv2_copy", "copy", {}, "mcav:mcv2_state_0"),
             ("blit swap -> entity_outline", "vanilla", {}, "minecraft:entity_outline"),
         ]
+        chain = object.__new__(mcv2_tools.TimedShaderChain)
+        chain.context = types.SimpleNamespace(query=lambda **_: FakeQuery())
+        chain.queries = {}
+        chain.warm = lambda: None
+        chain.steps = lambda: steps
         drawn = []
         chain.draw = lambda program, inputs, output: drawn.append(output)
         chain.target = lambda name: types.SimpleNamespace(read=lambda: b"\x01\x00\x00\x00")
@@ -259,6 +169,101 @@ class TimerAccountingTest(unittest.TestCase):
                 [b"archived-v2:\x07\x06" + frame(keyframe, VERSION_TWO)] for keyframe in (True, True, False, False)
             ]
             self.assertEqual(expected * 3, received)
+
+
+def run(*options, missed=(), again=(), changed=(), version=mcv2_reference.VERSION, received=None):
+    """Runs main() on a stream of a keyframe and a P frame, and returns its exit code; 0 when it returns."""
+    context = types.SimpleNamespace(info={"GL_RENDERER": "fake", "GL_VERSION": GL_VERSION})
+    moderngl = types.ModuleType(MODERNGL_MODULE)
+    moderngl.create_standalone_context = lambda **_: context
+    chain = type(
+        "Chain",
+        (FakeChain,),
+        dict(missed=frozenset(missed), again=frozenset(again), changed=frozenset(changed), received=received),
+    )
+    argv = [PROGRAM, STREAM_NAME, *options]
+    with (
+        mock.patch.dict(sys.modules, {MODERNGL_MODULE: moderngl}),
+        mock.patch.object(sys, "argv", argv),
+        mock.patch.object(mcv2_tools, "make_pages", lambda data, stream_id, symbol_bits: [data]),
+        mock.patch.object(mcv2_tools, "TimedShaderChain", chain),
+        mock.patch.object(
+            mcv2_tools, "read_archive", lambda stream: [frame(True, version), frame(False, version)]
+        ),
+        redirect_stdout(StringIO()),
+        redirect_stderr(StringIO()),
+    ):
+        try:
+            mcv2_tools.shader_timing_main()
+        except SystemExit as exception:
+            return exception.code
+
+    return 0
+
+
+class FakeChain:
+    """A post chain that decodes every frame once, to a picture of its own, except where a test says otherwise. The
+    sets hold (round, frame) pairs."""
+
+    missed = frozenset()
+    again = frozenset()
+    changed = frozenset()
+    received = None
+
+    def __init__(self, context, width, height, slots):
+        self.round = -1
+        self.index = 0
+        self.first = True
+
+    def reset(self):
+        self.round += 1
+        self.index = 0
+        self.first = True
+
+    def show(self, pages):
+        if self.received is not None:
+            self.received.append(pages)
+
+    def timed_frame(self, repeats):
+        # each frame is shown twice: with its new pages, which decode it, then with the same pages again
+        key = (self.round, self.index)
+        times = {"mcv2_decode": DECODE_MILLISECONDS, "mcv2_screen": SCREEN_MILLISECONDS}
+        if self.first:
+            self.first = False
+            return key not in self.missed, times
+
+        self.first = True
+        return key in self.again, times
+
+    def target(self, name):
+        key = (self.round, self.index)
+        self.index += 1
+        picture = b"another picture" if key in self.changed else b"picture %d" % key[1]
+        return types.SimpleNamespace(read=lambda: picture)
+
+
+def frame(keyframe, version=mcv2_reference.VERSION):
+    """The header of a 64x32 frame, which is all shader_timing reads of a frame itself."""
+    if version == mcv2_reference.VERSION:
+        frame_id = KEYFRAME_ID if keyframe else PREDICTED_FRAME_ID
+        return mcv2_reference.HEADER.pack(mcv2_reference.MAGIC, mcv2_reference.VERSION, WIDTH, HEIGHT, frame_id, KEYFRAME_ID)
+
+    data = bytearray(VERSION_TWO_HEADER_BYTES)
+    data[:len(mcv2_reference.MAGIC)] = mcv2_reference.MAGIC
+    data[mcv2_reference.VERSION_OFFSET] = version
+    data[VERSION_TWO_FLAGS_OFFSET] = int(keyframe)
+    DIMENSIONS.pack_into(data, mcv2_reference.WIDTH_OFFSET, WIDTH, HEIGHT)
+    return bytes(data)
+
+
+class FakeQuery:
+    elapsed = 2_000_000
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *unused):
+        pass
 
 
 if __name__ == "__main__":

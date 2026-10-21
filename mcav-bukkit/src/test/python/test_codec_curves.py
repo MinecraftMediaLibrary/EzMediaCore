@@ -48,10 +48,6 @@ class ResumeTest(unittest.TestCase):
     def tearDown(self):
         self.folder.cleanup()
 
-    def write(self, measured):
-        with open(self.out, "w") as out:
-            json.dump(measured, out)
-
     def test_should_resume_the_documented_output(self):
         documented = json.loads(DOCUMENTED.read_text())
         self.write(documented)
@@ -86,6 +82,10 @@ class ResumeTest(unittest.TestCase):
     def test_should_start_an_output_that_does_not_exist(self):
         measured = mcv2_tools.codec_curves_resume(self.out, NEW_SOURCE, {DIGEST_KEY: "2" * DIGEST_DIGITS})
         self.assertEqual({SOURCES_KEY: {NEW_SOURCE: {DIGEST_KEY: "2" * DIGEST_DIGITS}}, CODECS_KEY: []}, measured)
+
+    def write(self, measured):
+        with open(self.out, "w") as out:
+            json.dump(measured, out)
 
 
 if __name__ == "__main__":

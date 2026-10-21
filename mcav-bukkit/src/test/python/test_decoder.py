@@ -17,6 +17,7 @@
 
 """Hand-computed pictures for every reconstruction rule and stream transition."""
 
+import itertools
 import unittest
 
 import numpy
@@ -31,23 +32,6 @@ HEIGHT = 2
 PICTURE_SHAPE = (HEIGHT, WIDTH, mcv2_reference.CHANNELS)
 
 ZERO_VECTOR = b'\0\0'
-
-
-def at_size(node, size):
-    while size < mcv2_reference.SUPERBLOCK_SIZE:
-        node = Node(mcv2_reference.SPLIT, children=(node, Node(mcv2_reference.SKIP), Node(mcv2_reference.SKIP), Node(mcv2_reference.SKIP)))
-        size *= mcv2_reference.QUADRANTS_PER_SIDE
-    return node
-
-
-def frame(node=None, width=WIDTH, height=HEIGHT, key=True, frame_id=0, reference_id=None, size=mcv2_reference.SUPERBLOCK_SIZE):
-    if reference_id is None:
-        reference_id = frame_id if key else (frame_id - 1) & mcv2_reference.ID_MASK
-    return pack_frame(width, height, frame_id, reference_id, {} if node is None else {0: at_size(node, size)})
-
-
-def gray(values):
-    return numpy.repeat(numpy.array(values, numpy.uint8)[..., None], mcv2_reference.CHANNELS, axis=-1)
 
 
 class ReconstructionTest(unittest.TestCase):
@@ -71,16 +55,14 @@ class ReconstructionTest(unittest.TestCase):
 
     def test_should_keep_full_precision_on_pattern_axes_at_all_sizes(self):
         colors = bytes([9, 21, 25, 67, 122, 238])
-        for size in mcv2_reference.LEAF_SIZES:
-            for orientation in (mcv2_reference.VERTICAL_STRIPES, mcv2_reference.HORIZONTAL_STRIPES):
-                other_selectors = bytes(size // mcv2_reference.BITS_PER_BYTE - 1)
-                node = Node(mcv2_reference.PATTERN, record=colors + bytes([orientation, 0b00000101]) + other_selectors)
-                expected = numpy.array(([[[67, 122, 238], [9, 21, 25], [67, 122, 238]]] * HEIGHT
-                                     if orientation == mcv2_reference.VERTICAL_STRIPES else
-                                     [[[67, 122, 238]] * WIDTH, [[9, 21, 25]] * WIDTH]), numpy.uint8)
-                with self.subTest(size=size, orientation=orientation):
-                    decoded = decode(frame(node, size=size))
-                    numpy.testing.assert_array_equal(expected, decoded)
+        orientations = (mcv2_reference.VERTICAL_STRIPES, mcv2_reference.HORIZONTAL_STRIPES)
+        for size, orientation in itertools.product(mcv2_reference.LEAF_SIZES, orientations):
+            other_selectors = bytes(size // mcv2_reference.BITS_PER_BYTE - 1)
+            node = Node(mcv2_reference.PATTERN, record=colors + bytes([orientation, 0b00000101]) + other_selectors)
+            expected = striped_picture(orientation)
+            with self.subTest(size=size, orientation=orientation):
+                decoded = decode(frame(node, size=size))
+                numpy.testing.assert_array_equal(expected, decoded)
 
     def test_should_sign_and_clamp_whole_pixel_motion(self):
         reference = gray([[1, 2, 3], [4, 5, 6]])
@@ -217,6 +199,32 @@ class StreamTest(unittest.TestCase):
         decoder.accept(frame(frame_id=mcv2_reference.ID_HALF_RANGE - 1))
         frame_id = decoder.frame_id
         self.assertEqual(mcv2_reference.ID_HALF_RANGE - 1, frame_id)
+
+
+def frame(node=None, width=WIDTH, height=HEIGHT, key=True, frame_id=0, reference_id=None, size=mcv2_reference.SUPERBLOCK_SIZE):
+    if reference_id is None:
+        reference_id = frame_id if key else (frame_id - 1) & mcv2_reference.ID_MASK
+
+    return pack_frame(width, height, frame_id, reference_id, {} if node is None else {0: at_size(node, size)})
+
+
+def at_size(node, size):
+    while size < mcv2_reference.SUPERBLOCK_SIZE:
+        node = Node(mcv2_reference.SPLIT, children=(node, Node(mcv2_reference.SKIP), Node(mcv2_reference.SKIP), Node(mcv2_reference.SKIP)))
+        size *= mcv2_reference.QUADRANTS_PER_SIDE
+
+    return node
+
+
+def striped_picture(orientation):
+    if orientation == mcv2_reference.VERTICAL_STRIPES:
+        return numpy.array([[[67, 122, 238], [9, 21, 25], [67, 122, 238]]] * HEIGHT, numpy.uint8)
+
+    return numpy.array([[[67, 122, 238]] * WIDTH, [[9, 21, 25]] * WIDTH], numpy.uint8)
+
+
+def gray(values):
+    return numpy.repeat(numpy.array(values, numpy.uint8)[..., None], mcv2_reference.CHANNELS, axis=-1)
 
 
 if __name__ == '__main__':

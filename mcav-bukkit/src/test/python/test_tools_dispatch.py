@@ -17,6 +17,7 @@
 
 """The subcommands of mcv2_tools: a usage naming them, their exit statuses and figures equal to the committed ones."""
 
+import functools
 import json
 import sys
 import tempfile
@@ -68,41 +69,26 @@ class HelpCommandTest(unittest.TestCase):
         )
         for command in commands:
             with self.subTest(command=command):
-                output = StringIO()
-                with patch.object(sys, "argv", [PROGRAM, command, "--help"]), redirect_stdout(output):
-                    with self.assertRaises(SystemExit) as status:
-                        mcv2_tools.main()
-
-                code = status.exception.code
+                code, usage = self.run_help(command)
                 self.assertEqual(0, code)
 
-                usage = output.getvalue()
                 self.assertIn(f"usage: {PROGRAM} {command} ", usage)
                 self.assertIn("Exit 1", usage)
                 self.assertNotIn(mcv2_tools.__doc__, usage)
 
-
-class StripCommandTest(unittest.TestCase):
-    def run_command(self, damaged):
-        def frame(context, screen, spirv, screen_index=0):
-            scene = numpy.zeros((screen[1], screen[0], RGBA_CHANNELS), numpy.uint8)
-            after = scene.copy()
-            if (screen, screen_index) == damaged:
-                after[0, 0, 0] = 1
-            return scene, after, False
-
-        context = SimpleNamespace(info={"GL_RENDERER": "fake"})
-        moderngl = SimpleNamespace(create_standalone_context=lambda **options: context)
+    def run_help(self, command):
         output = StringIO()
         with (
-            patch.dict(sys.modules, {"moderngl": moderngl}),
-            patch.object(sys, "argv", [PROGRAM, STRIP_FIT_CHECK, "--backend", "egl"]),
-            patch.object(mcv2_tools, "strip_fit_check_frame", side_effect=frame),
+            patch.object(sys, "argv", [PROGRAM, command, "--help"]),
             redirect_stdout(output),
+            self.assertRaises(SystemExit) as status,
         ):
-            status = mcv2_tools.main()
-        return status, json.loads(output.getvalue().splitlines()[-1])
+            mcv2_tools.main()
 
+        return status.exception.code, output.getvalue()
+
+
+class StripCommandTest(unittest.TestCase):
     def test_should_fail_the_subcommand_when_a_scene_pixel_changes(self):
         status, result = self.run_command(((160, 90), 0))
         self.assertEqual(1, status)
@@ -138,15 +124,49 @@ class StripCommandTest(unittest.TestCase):
         checks = result[CHECKS_KEY]
         self.assertEqual(CHECK_COUNT, checks)
 
+    def run_command(self, damaged):
+        context = SimpleNamespace(info={"GL_RENDERER": "fake"})
+        moderngl = SimpleNamespace(create_standalone_context=lambda **options: context)
+        frame = functools.partial(fake_strip_frame, damaged)
+        output = StringIO()
+        with (
+            patch.dict(sys.modules, {"moderngl": moderngl}),
+            patch.object(sys, "argv", [PROGRAM, STRIP_FIT_CHECK, "--backend", "egl"]),
+            patch.object(mcv2_tools, "strip_fit_check_frame", side_effect=frame),
+            redirect_stdout(output),
+        ):
+            status = mcv2_tools.main()
+
+        result = json.loads(output.getvalue().splitlines()[-1])
+        return status, result
+
 
 class ChartCommandTest(unittest.TestCase):
     def test_should_reproduce_the_committed_chart_pixels(self):
+        self.skip_without_the_pinned_chart_tools()
+        from PIL import Image
+
+        output = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        with patch.object(sys, "argv", [PROGRAM, CHARTS]), patch.object(mcv2_tools, "IMAGES", output):
+            mcv2_tools.main()
+
+        for name in ("codecs", "features"):
+            with (
+                self.subTest(figure=name),
+                Image.open(COMMITTED_CHARTS / (name + CHART_SUFFIX)) as expected,
+                Image.open(output / (name + CHART_SUFFIX)) as actual,
+            ):
+                pixels = numpy.array(actual)
+                numpy.testing.assert_array_equal(numpy.array(expected), pixels)
+
+    def skip_without_the_pinned_chart_tools(self):
         try:
             import matplotlib
             from matplotlib import font_manager
         except ImportError:
             message: str = f"Matplotlib is missing, but the chart pixels need matplotlib {MATPLOTLIB_VERSION} and the {CHART_FONT} font!"
             self.skipTest(message)
+
         font_path = font_manager.findfont(font_manager.FontProperties(family=mcv2_tools.CHARTS_FONT))
         font = font_manager.FontProperties(fname=font_path).get_name()
         if matplotlib.__version__ != MATPLOTLIB_VERSION or font != CHART_FONT:
@@ -154,23 +174,15 @@ class ChartCommandTest(unittest.TestCase):
             needed: str = f"matplotlib {MATPLOTLIB_VERSION} and {CHART_FONT}"
             message: str = f"Found matplotlib {version} and font {font}, but the chart pixels need {needed}!"
             self.skipTest(message)
-        from PIL import Image
 
-        with tempfile.TemporaryDirectory() as directory:
-            output = Path(directory)
-            with (
-                patch.object(sys, "argv", [PROGRAM, CHARTS]),
-                patch.object(mcv2_tools, "IMAGES", output),
-            ):
-                mcv2_tools.main()
-            for name in ("codecs", "features"):
-                with (
-                    self.subTest(figure=name),
-                    Image.open(COMMITTED_CHARTS / (name + CHART_SUFFIX)) as expected,
-                    Image.open(output / (name + CHART_SUFFIX)) as actual,
-                ):
-                    pixels = numpy.array(actual)
-                    numpy.testing.assert_array_equal(numpy.array(expected), pixels)
+
+def fake_strip_frame(damaged, context, screen, spirv, screen_index=0):
+    scene = numpy.zeros((screen[1], screen[0], RGBA_CHANNELS), numpy.uint8)
+    after = scene.copy()
+    if (screen, screen_index) == damaged:
+        after[0, 0, 0] = 1
+
+    return scene, after, False
 
 
 if __name__ == "__main__":

@@ -50,9 +50,8 @@ class FormatTest(unittest.TestCase):
         self.assertEqual({'9.1', '9.3', '9.4', '9.5', '9.6'}, rules)
 
         for name, case in cases.items():
-            with self.subTest(name=name, rule=case['rule']):
-                with self.assertRaisesRegex(ValueError, case['reason']):
-                    parse_frame(bytes.fromhex(case['frame']))
+            with self.subTest(name=name, rule=case['rule']), self.assertRaisesRegex(ValueError, case['reason']):
+                parse_frame(bytes.fromhex(case['frame']))
 
     def test_should_place_leaves_in_level_order_with_their_coordinates_and_offsets(self):
         solids = tuple(Node(mcv2_reference.SOLID, record=bytes([index, index, index])) for index in range(mcv2_reference.SPLIT_CHILDREN))
@@ -79,18 +78,10 @@ class FormatTest(unittest.TestCase):
 
     def test_should_round_trip_whole_patterns_at_every_size(self):
         randomizer = random.Random(1541)
-        def leaf(size):
-            return Node(mcv2_reference.PATTERN, record=bytes(randomizer.randrange(BYTE_VALUES) for _ in range(mcv2_reference.COLORS_BYTES))
-                        + bytes([randomizer.randrange(mcv2_reference.HORIZONTAL_STRIPES + 1)])
-                        + bytes(randomizer.randrange(BYTE_VALUES) for _ in range(size // mcv2_reference.BITS_PER_BYTE)))
-        def tree(size):
-            if size > mcv2_reference.SMALLEST_LEAF_SIZE and randomizer.random() < SPLIT_PROBABILITY:
-                children = tuple(tree(size // mcv2_reference.QUADRANTS_PER_SIDE) for _ in range(mcv2_reference.SPLIT_CHILDREN))
-                return Node(mcv2_reference.SPLIT, children=children)
-            return leaf(size)
         for _ in range(16):
-            roots = {0: tree(mcv2_reference.SUPERBLOCK_SIZE), 1: leaf(mcv2_reference.SUPERBLOCK_SIZE),
-                     2: tree(mcv2_reference.SUPERBLOCK_SIZE), 3: Node(mcv2_reference.SKIP)}
+            roots = {0: random_pattern_tree(randomizer, mcv2_reference.SUPERBLOCK_SIZE),
+                     1: random_pattern_leaf(randomizer, mcv2_reference.SUPERBLOCK_SIZE),
+                     2: random_pattern_tree(randomizer, mcv2_reference.SUPERBLOCK_SIZE), 3: Node(mcv2_reference.SKIP)}
             data = pack_frame(51, 35, 44, 44, roots)
             frame = parse_frame(data)
             parsed_roots = frame.roots
@@ -165,6 +156,23 @@ class FormatTest(unittest.TestCase):
         for node in bad:
             with self.subTest(node=node), self.assertRaises(ValueError):
                 pack_frame(mcv2_reference.SUPERBLOCK_SIZE, mcv2_reference.SUPERBLOCK_SIZE, 1, 0, {0: node})
+
+
+def random_pattern_tree(randomizer, size):
+    if size > mcv2_reference.SMALLEST_LEAF_SIZE and randomizer.random() < SPLIT_PROBABILITY:
+        half = size // mcv2_reference.QUADRANTS_PER_SIDE
+        children = tuple(random_pattern_tree(randomizer, half) for _ in range(mcv2_reference.SPLIT_CHILDREN))
+        return Node(mcv2_reference.SPLIT, children=children)
+
+    return random_pattern_leaf(randomizer, size)
+
+
+def random_pattern_leaf(randomizer, size):
+    colors = bytes(randomizer.randrange(BYTE_VALUES) for _ in range(mcv2_reference.COLORS_BYTES))
+    orientation = bytes([randomizer.randrange(mcv2_reference.HORIZONTAL_STRIPES + 1)])
+    axis = bytes(randomizer.randrange(BYTE_VALUES) for _ in range(size // mcv2_reference.BITS_PER_BYTE))
+    return Node(mcv2_reference.PATTERN, record=colors + orientation + axis)
+
 
 if __name__ == '__main__':
     unittest.main()
