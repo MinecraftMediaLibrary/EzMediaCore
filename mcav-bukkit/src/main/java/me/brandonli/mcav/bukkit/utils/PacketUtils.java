@@ -118,8 +118,8 @@ public final class PacketUtils {
   }
 
   /**
-   * Checks whether the player with the specified UUID is online and able to receive packets. May be called from
-   * any thread.
+   * Returns whether the player with the specified UUID is online and able to receive packets. May be called from any
+   * thread.
    *
    * @param player the UUID of the player
    * @return true if a connection is currently cached; this is a snapshot and does not guarantee that a

@@ -310,7 +310,7 @@ public final class Mcv2 {
   }
 
   /**
-   * Copies the latest reconstruction, including a frame still awaiting finish.
+   * Returns a copy of the latest reconstruction, including a frame still awaiting finish.
    *
    * @return row-major RGB24 reference, or empty before the first begin
    * @since 1.0.0
@@ -1617,7 +1617,7 @@ public final class Mcv2 {
     }
 
     /**
-     * Reports whether this pending frame decodes independently.
+     * Returns whether this pending frame decodes independently.
      *
      * @return whether the frame is a keyframe
      * @since 1.0.0

@@ -61,8 +61,8 @@ public final class ChatUtils {
   }
 
   /**
-   * Generates a string of color codes that is unique for the given index. The string renders as nothing, which
-   * makes it useful as an invisible, unique scoreboard entry.
+   * Returns a string of color codes that is unique for the given index. The string renders as nothing, which makes it
+   * useful as an invisible, unique scoreboard entry.
    *
    * @param index a non-negative index
    * @return an invisible string that is unique for every index

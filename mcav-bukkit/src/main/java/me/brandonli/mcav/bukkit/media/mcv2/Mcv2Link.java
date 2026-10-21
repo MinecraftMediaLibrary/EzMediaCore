@@ -73,7 +73,7 @@ public final class Mcv2Link {
   }
 
   /**
-   * Checks whether a frame is independent or predicts from the last frame this viewer was sent.
+   * Returns whether a frame is independent or predicts from the last frame this viewer was sent.
    *
    * @param kind        whether the frame is a keyframe or a P frame
    * @param referenceId the id of the frame a P frame predicts from

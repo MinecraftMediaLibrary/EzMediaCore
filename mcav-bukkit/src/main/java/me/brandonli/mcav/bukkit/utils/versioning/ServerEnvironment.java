@@ -57,8 +57,8 @@ public final class ServerEnvironment {
   }
 
   /**
-   * Checks whether the running server is supported. Patch releases of the supported version, such as
-   * {@code 26.3.1}, are supported as well.
+   * Returns whether the running server is supported. Patch releases of the supported version, such as {@code 26.3.1},
+   * are supported as well.
    *
    * @return true if the server version is supported, false otherwise
    * @since 1.0.0
@@ -69,7 +69,7 @@ public final class ServerEnvironment {
   }
 
   /**
-   * Checks whether the given Minecraft version is supported by the Bukkit module.
+   * Returns whether the given Minecraft version is supported by the Bukkit module.
    *
    * <p>This is an exact-name or dotted-prefix check, not a runtime probe of server internals. The suffix
    * after the supported version and a dot is not parsed or validated.

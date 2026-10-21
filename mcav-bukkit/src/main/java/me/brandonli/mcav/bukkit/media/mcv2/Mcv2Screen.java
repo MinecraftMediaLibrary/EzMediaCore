@@ -270,7 +270,7 @@ public final class Mcv2Screen {
   }
 
   /**
-   * The anchor row of every wall map.
+   * Returns the anchor row of every wall map.
    *
    * @return one patch per map, row 0 only
    * @since 1.0.0

@@ -115,7 +115,7 @@ public final class TransportPages {
   }
 
   /**
-   * The payload capacity of one page, after its header.
+   * Returns the payload capacity of one page, after its header.
    *
    * @return the capacity in logical bytes: 12,256
    * @since 1.0.0
@@ -125,7 +125,7 @@ public final class TransportPages {
   }
 
   /**
-   * The number of pages a frame of some length needs.
+   * Returns the number of pages a frame of some length needs.
    *
    * @param frameBytes the nonnegative frame length in bytes, within {@link Mcv2Decoder#MAXIMUM_FRAME_BYTES};
    *                   this helper does not validate the length
@@ -272,8 +272,8 @@ public final class TransportPages {
   }
 
   /**
-   * The number of useful symbols of a page, derived from its header. A map carries whole rows, so the symbols after
-   * this count are padding and not part of the page.
+   * Returns the number of useful symbols of a page, derived from its header. A map carries whole rows, so the symbols
+   * after this count are padding and not part of the page.
    *
    * @param symbols at least the header's symbols
    * @return the useful symbol count

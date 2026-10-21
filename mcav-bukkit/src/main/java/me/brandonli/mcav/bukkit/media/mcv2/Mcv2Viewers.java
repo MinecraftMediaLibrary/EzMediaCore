@@ -173,8 +173,8 @@ public final class Mcv2Viewers {
   }
 
   /**
-   * Checks whether a player's client loaded the pack and can decode with it: one whose MCV2 client mod reports a shader
-   * pack in use, under which MCV2 does not decode, cannot, whatever its pack status.
+   * Returns whether a player's client loaded the pack and can decode with it: one whose MCV2 client mod reports a
+   * shader pack in use, under which MCV2 does not decode, cannot, whatever its pack status.
    *
    * @param player the player's UUID
    * @return true if the tracked client status is LOADED and no report of the client mod rules decoding out; this is not

@@ -131,7 +131,7 @@ public final class MapRegion {
   }
 
   /**
-   * Checks whether the image does not cover the map at all.
+   * Returns whether the image does not cover the map at all.
    *
    * @return true if either stored dimension is zero or negative
    * @since 1.0.0

@@ -78,9 +78,9 @@ public abstract class MainThreadRenderer<FrameType> {
   protected abstract void apply(final FrameType frame);
 
   /**
-   * Called on the main thread once per server tick while the renderer is running, right after the pending frame,
-   * if there was one, was applied. Subclasses can override this method for work that does not depend on new
-   * frames, such as updating viewers who just started watching. Does nothing by default.
+   * Runs on the main thread once per server tick while the renderer is running, right after the pending frame, if there
+   * was one, was applied. Subclasses can override this method for work that does not depend on new frames, such as
+   * updating viewers who just started watching. Does nothing by default.
    *
    * @since 1.0.0
    */

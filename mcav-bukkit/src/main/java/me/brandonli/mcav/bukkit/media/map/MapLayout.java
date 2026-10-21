@@ -184,7 +184,7 @@ public final class MapLayout {
   }
 
   /**
-   * Checks whether this layout was created with exactly the specified grid and image dimensions.
+   * Returns whether this layout was created with exactly the specified grid and image dimensions.
    *
    * @param startMapId  the id of the top left map
    * @param columns     the number of maps horizontally

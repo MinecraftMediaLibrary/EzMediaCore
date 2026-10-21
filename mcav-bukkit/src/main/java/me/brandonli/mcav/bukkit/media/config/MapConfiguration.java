@@ -87,7 +87,7 @@ public final class MapConfiguration {
   }
 
   /**
-   * Checks whether frames should be resized to the configured resolution before they are displayed.
+   * Returns whether frames should be resized to the configured resolution before they are displayed.
    *
    * @return true if frames should be resized, false otherwise
    * @since 1.0.0

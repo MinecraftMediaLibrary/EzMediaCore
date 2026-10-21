@@ -259,7 +259,7 @@ public final class Mcv2Pacer {
   }
 
   /**
-   * Checks whether the frame that arrived last is to be encoded on the current rung.
+   * Returns whether the frame that arrived last is to be encoded on the current rung.
    *
    * @return true to encode it
    * @since 1.0.0
@@ -649,7 +649,7 @@ public final class Mcv2Pacer {
     }
 
     /**
-     * Checks whether this is the dithered maps.
+     * Returns whether this is the dithered maps.
      *
      * @return true for the dithered maps
      * @since 1.0.0

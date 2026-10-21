@@ -101,9 +101,9 @@ public final class ServerAddress {
   }
 
   /**
-   * Checks whether an address is the fallback that {@link #getPublicIpAddress()} returns when the public address
-   * cannot be determined. Callers that cache values derived from the address should not cache the fallback,
-   * because a later lookup may succeed.
+   * Returns whether an address is the fallback that {@link #getPublicIpAddress()} returns when the public address
+   * cannot be determined. Callers that cache values derived from the address should not cache the fallback, because a
+   * later lookup may succeed.
    *
    * @param address the address to check
    * @return true if the address is the fallback address {@code localhost}
