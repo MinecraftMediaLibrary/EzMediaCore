@@ -30,6 +30,9 @@ plugins {
 val junitBomAlias: String = "junit-bom"
 val testingBundleAlias: String = "testing"
 val junitLauncherAlias: String = "junit-platform-launcher"
+val byteBuddyAgentAlias: String = "byte-buddy-agent"
+val javaAgentConfiguration: String = "javaAgent"
+val javaAgentOption: String = "-javaagent:"
 
 val networkTestsProperty: String = "mcav.networkTests"
 val syncMeasurementProperty: String = "mcav.syncMeasurement"
@@ -69,10 +72,18 @@ val jazzerDurationProperty: String = "jazzer.max_duration"
 val timeoutModeProperty: String = "junit.jupiter.execution.timeout.mode"
 val disabledTimeoutMode: String = "disabled"
 
+// Mockito and Jazzer take their instrumentation from this agent instead of attaching one at run time, which JEP 451 restricts
+val javaAgent: NamedDomainObjectProvider<Configuration> = configurations.register(javaAgentConfiguration) {
+    isCanBeConsumed = false
+    isTransitive = false
+}
+
 dependencies {
     testImplementation(platform(CatalogUtils.libraryOf(libs, junitBomAlias)))
     testImplementation(CatalogUtils.bundleOf(libs, testingBundleAlias))
     testRuntimeOnly(CatalogUtils.libraryOf(libs, junitLauncherAlias))
+
+    javaAgent(CatalogUtils.libraryOf(libs, byteBuddyAgentAlias))
 }
 
 val networkTests: String = providers.gradleProperty(networkTestsProperty).getOrElse(disabledValue)
@@ -97,6 +108,13 @@ tasks.withType<Test>().configureEach {
         "-Xshare:off",
         "--sun-misc-unsafe-memory-access=allow"
     )
+    this.jvmArgumentProviders.add(CommandLineArgumentProvider {
+        listOf("$javaAgentOption${javaAgent.get().singleFile}")
+    })
+    // as an input the agent is resolved under the project lock, before the provider reads it
+    this.inputs.files(javaAgent)
+        .withPropertyName(javaAgentConfiguration)
+        .withPathSensitivity(PathSensitivity.NONE)
     this.systemProperty(networkTestsProperty, networkTests)
     this.systemProperty(syncMeasurementProperty, syncMeasurement)
 

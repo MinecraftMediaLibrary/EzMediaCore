@@ -25,6 +25,15 @@ val buildPlugins: List<Provider<PluginDependency>> = listOf(
 val buildPluginMarkers: List<Provider<String>> =
     buildPlugins.map { plugin -> plugin.map { "${it.pluginId}:${it.pluginId}.gradle.plugin:${it.version}" } }
 
+val javaAgentConfiguration: String = "javaAgent"
+val javaAgentOption: String = "-javaagent:"
+
+// Mockito and Jazzer take their instrumentation from this agent instead of attaching one at run time, which JEP 451 restricts
+val javaAgent: NamedDomainObjectProvider<Configuration> = configurations.register(javaAgentConfiguration) {
+    isCanBeConsumed = false
+    isTransitive = false
+}
+
 dependencies {
     implementation(libs.xz)
     buildPluginMarkers.forEach { implementation(it) }
@@ -34,6 +43,8 @@ dependencies {
     testImplementation(libs.jazzer.junit)
     testImplementation(gradleTestKit())
     testRuntimeOnly(libs.junit.platform.launcher)
+
+    javaAgent(libs.byte.buddy.agent)
 }
 
 val catalogVersionsPath: String = "generated/sources/catalog/kotlin"
@@ -101,6 +112,16 @@ val repositoryFiles: ConfigurableFileTree = fileTree(repositoryPath) {
     include(repositoryBuildFiles)
 }
 val buildSources: Directory = layout.projectDirectory.dir(buildSourcesPath)
+
+tasks.withType<Test>().configureEach {
+    this.jvmArgumentProviders.add(CommandLineArgumentProvider {
+        listOf("$javaAgentOption${javaAgent.get().singleFile}")
+    })
+    // as an input the agent is resolved under the project lock, before the provider reads it
+    this.inputs.files(javaAgent)
+        .withPropertyName(javaAgentConfiguration)
+        .withPathSensitivity(PathSensitivity.NONE)
+}
 
 // the tests read these files from disk, so a change to one of them must run the tests again
 tasks.test {
@@ -170,7 +191,7 @@ pitest {
     threads = mutationThreads
     outputFormats = setOf("HTML", "XML")
     timestampedReports = false
-    jvmArgs = listOf("--add-opens=java.base/java.lang=ALL-UNNAMED")
+    jvmArgs = provider { listOf("--add-opens=java.base/java.lang=ALL-UNNAMED", "$javaAgentOption${javaAgent.get().singleFile}") }
 }
 
 tasks.check {

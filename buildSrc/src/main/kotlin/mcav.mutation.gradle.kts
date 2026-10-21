@@ -30,9 +30,16 @@ val pitestAlias: String = "pitest"
 val pitestJunit5PluginAlias: String = "pitest-junit5-plugin"
 val mutatedClasses: String = "me.brandonli.mcav.*"
 val testJavaHomeProperty: String = "mcav.testJavaHome"
+val javaAgentConfiguration: String = "javaAgent"
+val javaAgentOption: String = "-javaagent:"
 
 val mutationThreads: Int = 4
 val mutationTimeoutMilliseconds: Int = 4000
+
+// forMutation copies no argument providers, so the minions get the agent of mcav.testing here, when it is applied
+val javaAgentArguments: Provider<List<String>> = provider {
+    configurations.matching { it.name == javaAgentConfiguration }.map { "$javaAgentOption${it.singleFile}" }
+}
 
 pitest {
     pitestVersion = CatalogUtils.versionOf(libs, pitestAlias)
@@ -42,7 +49,7 @@ pitest {
     timeoutConstInMillis = mutationTimeoutMilliseconds
     outputFormats = setOf("HTML", "XML")
     timestampedReports = false
-    jvmArgs = provider { TestRuntimeProfile.forMutation(tasks.test.get()) }
+    jvmArgs = provider { TestRuntimeProfile.forMutation(tasks.test.get()) + javaAgentArguments.get() }
 
     val testJavaHome: Provider<String> = providers.gradleProperty(testJavaHomeProperty)
     if (testJavaHome.isPresent) {
