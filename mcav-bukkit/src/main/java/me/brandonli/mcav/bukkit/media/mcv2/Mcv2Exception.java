@@ -18,6 +18,7 @@
 package me.brandonli.mcav.bukkit.media.mcv2;
 
 import java.io.Serial;
+import me.brandonli.mcav.bukkit.BukkitException;
 
 /**
  * Thrown when bytes are not a valid MCV2 frame, transport page or archive, or when a frame cannot be decoded against
@@ -25,9 +26,9 @@ import java.io.Serial;
  *
  * <p>This is the only exception the MCV2 parsers and decoders throw for bad input. They treat every byte as hostile:
  * malformed non-null byte input is reported by this exception rather than an out-of-bounds read.
- * API preconditions such as non-null arguments and valid worker lifecycles may still throw unchecked exceptions.
+ * API preconditions such as non-null arguments and valid worker lifecycles throw the JDK's exceptions instead.
  */
-public final class Mcv2Exception extends Exception {
+public final class Mcv2Exception extends BukkitException {
 
   @Serial
   private static final long serialVersionUID = 4270539862718624891L;
@@ -39,5 +40,15 @@ public final class Mcv2Exception extends Exception {
    */
   public Mcv2Exception(final String message) {
     super(message);
+  }
+
+  /**
+   * Constructs a new exception with the failure that caused it.
+   *
+   * @param message what is wrong with the input
+   * @param cause   the failure that caused this exception
+   */
+  public Mcv2Exception(final String message, final Throwable cause) {
+    super(message, cause);
   }
 }

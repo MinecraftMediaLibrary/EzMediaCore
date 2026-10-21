@@ -29,7 +29,7 @@ final class Mcv2CompactTest {
   private static final int RECORD_LENGTH = 10;
 
   @Test
-  void shouldStoreBothWholePixelVectorsInEveryTenByteRecord() throws Mcv2Exception {
+  void shouldStoreBothWholePixelVectorsInEveryTenByteRecord() {
     for (final int motionX : new int[] { -128, -7, 0, 7, 127 }) {
       for (final int motionY : new int[] { -128, -1, 0, 7, 127 }) {
         final byte[] record = { (byte) motionX, (byte) motionY, -128, 127, -1, 0, 0x18, 0x72, 0x4E, 0x5A };
@@ -48,7 +48,7 @@ final class Mcv2CompactTest {
   }
 
   @Test
-  void shouldRequireExactlyTenBytesForEveryBlockSize() throws Mcv2Exception {
+  void shouldRequireExactlyTenBytesForEveryBlockSize() {
     for (final int size : new int[] { 8, 16, 32 }) {
       for (int length = 0; length <= 20; length++) {
         this.assertRecordLengthChecked(size, length);
@@ -56,7 +56,7 @@ final class Mcv2CompactTest {
     }
   }
 
-  private void assertRecordLengthChecked(final int size, final int length) throws Mcv2Exception {
+  private void assertRecordLengthChecked(final int size, final int length) {
     final byte[] data = Mcv2WireFrames.block(size, 5, 0, new byte[length], Mcv2FrameKind.PREDICTED);
     if (length != RECORD_LENGTH) {
       assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));

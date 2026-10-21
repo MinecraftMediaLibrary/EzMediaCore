@@ -33,7 +33,7 @@ final class Mcv2PatternTest {
   }
 
   @Test
-  void shouldResolveAnInlineRecordAlongColumns() throws Mcv2Exception {
+  void shouldResolveAnInlineRecordAlongColumns() {
     final byte[] data = Mcv2WireFrames.block(8, 4, 0, INLINE, Mcv2FrameKind.KEYFRAME);
     final byte[] picture = Mcv2Decoder.decode(data, null, 0);
     final int lastRowColor = this.colorAt(picture, 8, 0, 7);

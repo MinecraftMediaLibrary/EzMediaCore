@@ -40,7 +40,6 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Channel;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Configuration;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.Frame;
-import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2FileEncoder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2PackServer;
 import me.brandonli.mcav.plugin.MCAVSandbox;
@@ -303,7 +302,7 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
       final List<byte[]> frames = read(this.streamFile(file));
       final Frame first = Mcv2Decoder.parse(frames.getFirst());
       return () -> this.open(load, sender, playerSelector, blocks, mapId, frames, first, start);
-    } catch (final IOException | Mcv2Exception | RuntimeException exception) {
+    } catch (final IOException | RuntimeException exception) {
       final Component message = Message.MCV2_FILE_ERROR.build(String.valueOf(exception.getMessage()));
       return () -> this.report(load, sender, message);
     }

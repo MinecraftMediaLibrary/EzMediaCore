@@ -34,7 +34,7 @@ final class MapAlphabetTest {
   }
 
   @Test
-  void shouldMapSymbolsToColoursAndBack() throws Mcv2Exception {
+  void shouldMapSymbolsToColoursAndBack() {
     final byte[] colors = MapAlphabet.toMapColors(new byte[] { 0, 63, 1 });
     final int colorCount = colors.length;
     assertEquals(128, colorCount);

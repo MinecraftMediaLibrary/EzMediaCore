@@ -21,9 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import me.brandonli.mcav.bukkit.BukkitException;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
 import org.bukkit.Bukkit;
@@ -79,8 +81,20 @@ final class ServerEnvironmentTest {
       final String message = exception.getMessage();
       assertFalse(supported);
       assertEquals("MCAV only supports Minecraft 26.3, but the server is running 1.21.4!", message);
-      assertInstanceOf(IllegalStateException.class, exception, "an unchecked exception that catch (Exception) handles");
+      assertInstanceOf(BukkitException.class, exception);
     }
+  }
+
+  @Test
+  void shouldKeepTheMessageAndTheCauseInExceptions() {
+    final IllegalStateException failure = new IllegalStateException("Cause!");
+    final UnsupportedServerVersionException exception = new UnsupportedServerVersionException("Unsupported!", failure);
+
+    final String message = exception.getMessage();
+    final Throwable cause = exception.getCause();
+
+    assertEquals("Unsupported!", message);
+    assertSame(failure, cause);
   }
 
   @Test

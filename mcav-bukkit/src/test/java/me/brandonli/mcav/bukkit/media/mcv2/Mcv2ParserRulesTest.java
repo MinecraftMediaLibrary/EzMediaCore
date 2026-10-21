@@ -64,7 +64,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void shouldHaveASixWordWalkAndThirtyTwoLeavesInThePatternFixture() throws Mcv2Exception {
+  void shouldHaveASixWordWalkAndThirtyTwoLeavesInThePatternFixture() {
     final byte[] frame = this.patterns();
     final Layout layout = Layout.of(frame);
     final int expectedWalkLength = 6 * 4;
@@ -76,7 +76,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void shouldRefuseASplitWithAQuantizerInTheDerivedForm() throws Mcv2Exception {
+  void shouldRefuseASplitWithAQuantizerInTheDerivedForm() {
     final byte[] frame = keyframe(32, 32, split(solid(1, 2, 3)));
     Mcv2Decoder.parse(frame);
     final int descriptor = Layout.of(frame).plane();
@@ -111,7 +111,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void shouldRefuseEveryInvalidLeafModeInTheDerivedForm() throws Mcv2Exception {
+  void shouldRefuseEveryInvalidLeafModeInTheDerivedForm() {
     final byte[] frame = predicted(32, 32, motion(1, 1));
     Mcv2Decoder.parse(frame);
     final int descriptor = Layout.of(frame).plane();
@@ -122,7 +122,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void shouldReadEveryStoredCheckpointOfALongDirectory() throws Mcv2Exception {
+  void shouldReadEveryStoredCheckpointOfALongDirectory() {
     final List<Node> roots = new ArrayList<>();
     for (int index = 0; index < 33 * 9; index++) {
       roots.add(index % 7 == 0 ? motion(1, 1) : Node.skip());
@@ -142,7 +142,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void shouldRefuseAnIndexThatCannotContainItsChildQuartet() throws Mcv2Exception {
+  void shouldRefuseAnIndexThatCannotContainItsChildQuartet() {
     final Node quartet = Node.split(motion(1, 1), motion(2, 2), motion(3, 3), motion(4, 4));
     final byte[] frame = predicted(32, 32, quartet);
     Mcv2Decoder.parse(frame);

@@ -264,7 +264,7 @@ public class McPackHosting implements WebsiteHosting {
         throw new McPacksException(message);
       }
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
+      final String message = "The resource pack upload to mc-packs.net failed!";
       throw new McPacksException(message, exception);
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();

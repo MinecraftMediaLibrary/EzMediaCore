@@ -48,11 +48,7 @@ final class PageAssemblerTest {
   private static final byte[] TINY = Mcv2Trees.tiny();
 
   private static List<byte[]> pages(final byte[] frame) {
-    try {
-      return TransportPages.makePages(frame, 3);
-    } catch (final Mcv2Exception exception) {
-      throw new AssertionError(exception);
-    }
+    return TransportPages.makePages(frame, 3);
   }
 
   private static byte[] page(final int number) {
@@ -61,26 +57,22 @@ final class PageAssemblerTest {
 
   /** A copy of a page with one header field changed and its CRC recomputed, so only the assembler's rules object. */
   private static byte[] rewritten(final byte[] page, final int offset, final long value) {
-    try {
-      final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
-      if (offset == 6 || offset == 16 || offset == 18) {
-        Mcv2Decoder.putU16(raw, offset, (int) value);
-      } else {
-        Mcv2Decoder.putU32(raw, offset, value);
-      }
-
-      Mcv2Decoder.putU32(raw, 28, 0);
-      final CRC32 crc = new CRC32();
-      crc.update(raw);
-      Mcv2Decoder.putU32(raw, 28, crc.getValue());
-      return TransportPages.toSymbols(raw);
-    } catch (final Mcv2Exception exception) {
-      throw new AssertionError(exception);
+    final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
+    if (offset == 6 || offset == 16 || offset == 18) {
+      Mcv2Decoder.putU16(raw, offset, (int) value);
+    } else {
+      Mcv2Decoder.putU32(raw, offset, value);
     }
+
+    Mcv2Decoder.putU32(raw, 28, 0);
+    final CRC32 crc = new CRC32();
+    crc.update(raw);
+    Mcv2Decoder.putU32(raw, 28, crc.getValue());
+    return TransportPages.toSymbols(raw);
   }
 
   @Test
-  void shouldAssemblePagesInAnyOrderAndAcceptIdenticalDuplicates() throws Mcv2Exception {
+  void shouldAssemblePagesInAnyOrderAndAcceptIdenticalDuplicates() {
     final PageAssembler assembler = new PageAssembler(3, 6);
     final int pageCount = pages(BIG).size();
     assertEquals(2, pageCount);
@@ -126,7 +118,7 @@ final class PageAssemblerTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("disagreements")
-  void shouldDropAFrameWhosePagesDisagree(final String field, final byte[] first, final byte[] second) throws Mcv2Exception {
+  void shouldDropAFrameWhosePagesDisagree(final String field, final byte[] first, final byte[] second) {
     final PageAssembler assembler = new PageAssembler(3, 6);
     final Optional<byte[]> firstPush = assembler.push(first);
     assertTrue(firstPush.isEmpty());
@@ -140,7 +132,7 @@ final class PageAssemblerTest {
   }
 
   @Test
-  void shouldDropAFrameOnAConflictingDuplicate() throws Mcv2Exception {
+  void shouldDropAFrameOnAConflictingDuplicate() {
     final PageAssembler assembler = new PageAssembler(3, 6);
     assembler.push(page(0));
     final byte[] conflicting = rewritten(page(0), 40, 0x12345678L);
@@ -153,7 +145,7 @@ final class PageAssemblerTest {
   }
 
   @Test
-  void shouldKeepAtMostFourFramesPendingAndEvictTheOldest() throws Mcv2Exception {
+  void shouldKeepAtMostFourFramesPendingAndEvictTheOldest() {
     final PageAssembler assembler = new PageAssembler(3, 6);
     for (int id = 1; id <= 4; id++) {
       final Optional<byte[]> pending = assembler.push(rewritten(page(0), 12, id));
@@ -186,7 +178,7 @@ final class PageAssemblerTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("contradictions")
-  void shouldRefuseAFrameWhoseHeaderContradictsItsPages(final String field, final int offset, final long value) throws Mcv2Exception {
+  void shouldRefuseAFrameWhoseHeaderContradictsItsPages(final String field, final int offset, final long value) {
     final PageAssembler assembler = new PageAssembler(3, 6);
     assembler.push(rewritten(page(0), offset, value));
     final byte[] last = rewritten(page(1), offset, value);
@@ -196,7 +188,7 @@ final class PageAssemblerTest {
   }
 
   @Test
-  void shouldRefuseACompleteFrameThatIsNotValid() throws Mcv2Exception {
+  void shouldRefuseACompleteFrameThatIsNotValid() {
     final PageAssembler assembler = new PageAssembler(3, 6);
     // the payload starts with the frame header; a zero width makes the frame invalid
     assembler.push(rewritten(page(0), 40, 0));

@@ -37,7 +37,7 @@ final class Mcv2BoundsTest {
   private static final int THREADS = 4;
 
   @Test
-  void shouldRetryAndVerifyTheLargestTrivialFrame() throws Mcv2Exception {
+  void shouldRetryAndVerifyTheLargestTrivialFrame() {
     final int width = LARGEST_SIDE;
     final int height = LARGEST_SIDE;
     final byte[] picture = new byte[width * height * 3];
@@ -80,7 +80,7 @@ final class Mcv2BoundsTest {
   }
 
   @Test
-  void shouldFallBackWhenEveryRetryExceedsTheFormatByteLimit() throws Mcv2Exception {
+  void shouldFallBackWhenEveryRetryExceedsTheFormatByteLimit() {
     final int width = 1024;
     final byte[] picture = new byte[width * width * 3];
     new Random(0x131071).nextBytes(picture);

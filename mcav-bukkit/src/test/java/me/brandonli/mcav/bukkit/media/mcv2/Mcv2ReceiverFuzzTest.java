@@ -49,7 +49,7 @@ final class Mcv2ReceiverFuzzTest {
   private static final ForkJoinPool POOL = new ForkJoinPool(THREADS);
 
   @FuzzTest(maxDuration = "30s")
-  void shouldCommitOnlyFramesThatDecodeAndDecodeThemAlikeOnAnyWorkers(final byte[] archive) throws Mcv2Exception {
+  void shouldCommitOnlyFramesThatDecodeAndDecodeThemAlikeOnAnyWorkers(final byte[] archive) {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     final Mcv2Receiver committedOnly = new Mcv2Receiver();
     byte @Nullable [] parallelPicture = null;

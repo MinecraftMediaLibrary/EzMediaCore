@@ -62,7 +62,7 @@ final class Mcv2VerificationTest {
   }
 
   @Test
-  void shouldCheckTheWholeConformanceAndEdgeCorpusIncludingUnusedCompactClasses() throws Mcv2Exception {
+  void shouldCheckTheWholeConformanceAndEdgeCorpusIncludingUnusedCompactClasses() {
     for (final String folder : List.of("conformance", "edge")) {
       for (final String stream : Mcv2Fixtures.digests(folder).keySet()) {
         this.compareStream(folder, stream);
@@ -70,7 +70,7 @@ final class Mcv2VerificationTest {
     }
   }
 
-  private void compareStream(final String folder, final String stream) throws Mcv2Exception {
+  private void compareStream(final String folder, final String stream) {
     final Map<Long, byte[]> pictures = new HashMap<>();
     for (final byte[] data : Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + PATH_SEPARATOR + stream))) {
       final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
@@ -81,7 +81,7 @@ final class Mcv2VerificationTest {
     }
   }
 
-  static void compareRandom(final long seed) throws Mcv2Exception {
+  static void compareRandom(final long seed) {
     final Random random = new Random(seed);
     final int width = 1 + random.nextInt(100);
     final int height = 1 + random.nextInt(100);
@@ -138,7 +138,7 @@ final class Mcv2VerificationTest {
   }
 
   @Test
-  void shouldPartitionLargeFramesAndDetectEveryBoundaryPixel() throws Mcv2Exception {
+  void shouldPartitionLargeFramesAndDetectEveryBoundaryPixel() {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(
       Mcv2Trees.keyframe(31, 32 * 70 - 3, Mcv2Trees.repeat(Mcv2Trees.solid(17, 31, 63), 70))
     );
@@ -162,7 +162,7 @@ final class Mcv2VerificationTest {
   }
 
   @Test
-  void shouldRejectPictureAndReferenceMismatch() throws Mcv2Exception {
+  void shouldRejectPictureAndReferenceMismatch() {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(Mcv2Trees.predicted(8, 8, Node.skip()));
     final byte[] picture = new byte[8 * 8 * 3];
     final IllegalStateException shortReference = assertThrows(IllegalStateException.class, () -> verify(frame, new byte[1], 0, picture));

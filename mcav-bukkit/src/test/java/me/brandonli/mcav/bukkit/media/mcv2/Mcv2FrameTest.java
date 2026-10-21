@@ -59,7 +59,7 @@ final class Mcv2FrameTest {
     return Mcv2Pictures.scene(width, height, frame, pan);
   }
 
-  private Mcv2 play(final Settings settings, final int width, final int height, final int frames, final int pan) throws Mcv2Exception {
+  private Mcv2 play(final Settings settings, final int width, final int height, final int frames, final int pan) {
     final Mcv2 encoder = this.encoder(settings);
     final Client client = new Client();
     for (int index = 0; index < frames; index++) {
@@ -156,7 +156,7 @@ final class Mcv2FrameTest {
   }
 
   @Test
-  void shouldStartWithAKeyframeAndPredictWhatFollows() throws Mcv2Exception {
+  void shouldStartWithAKeyframeAndPredictWhatFollows() {
     final Mcv2 encoder = this.encoder(Settings.DEFAULT);
     final Optional<Mcv2.Statistics> statistics = encoder.getStatistics();
     assertTrue(statistics.isEmpty());
@@ -239,7 +239,7 @@ final class Mcv2FrameTest {
   }
 
   @Test
-  void shouldEncodePicturesThatAreNotWholeBlocks() throws Mcv2Exception {
+  void shouldEncodePicturesThatAreNotWholeBlocks() {
     final Client client = new Client();
     final Mcv2 encoder = this.encoder(Settings.DEFAULT);
     final byte[] picture = this.texture(40, 20, 5);
@@ -273,13 +273,13 @@ final class Mcv2FrameTest {
   }
 
   @Test
-  void shouldDecodeEveryFrameOfTheLiveProfile() throws Mcv2Exception {
+  void shouldDecodeEveryFrameOfTheLiveProfile() {
     this.play(Settings.DEFAULT, 100, 70, 6, 2);
     this.play(Settings.DEFAULT, 64, 64, 4, 0);
   }
 
   @Test
-  void shouldRaiseTheLambdaOfFastMotion() throws Mcv2Exception {
+  void shouldRaiseTheLambdaOfFastMotion() {
     final Settings settings = Settings.DEFAULT;
     // noise that changes from frame to frame but no movement keeps the profile's lambda, which is all a search without
     // the motion's lambda uses
@@ -292,14 +292,14 @@ final class Mcv2FrameTest {
   }
 
   @Test
-  void shouldDecodeEveryFrameOfTheQuarterResolutionSearch() throws Mcv2Exception {
+  void shouldDecodeEveryFrameOfTheQuarterResolutionSearch() {
     this.play(Settings.DEFAULT, 100, 70, 5, 5);
     this.play(Settings.DEFAULT, 64, 64, 4, 2);
     this.play(Settings.FAST, 100, 70, 4, 3);
   }
 
   @Test
-  void shouldStartAgainAfterASizeChange() throws Mcv2Exception {
+  void shouldStartAgainAfterASizeChange() {
     final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
     final Client client = new Client();
     client.decode(encoder.encode(this.scene(64, 64, 0, 0), 64, 64, 0));
@@ -341,7 +341,7 @@ final class Mcv2FrameTest {
   }
 
   @Test
-  void shouldEndAFrameSoonAfterItsBudgetWithTheCheapestChoices() throws Mcv2Exception {
+  void shouldEndAFrameSoonAfterItsBudgetWithTheCheapestChoices() {
     final Mcv2 hurried = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
     assertThrows(IllegalArgumentException.class, () -> hurried.setFrameBudget(-1));
     // a budget every superblock starts past: a keyframe of one solid colour per superblock, SKIP where the colour is
@@ -398,7 +398,7 @@ final class Mcv2FrameTest {
   }
 
   @Test
-  void shouldSwitchLiveProfilesWithoutAKeyframe() throws Mcv2Exception {
+  void shouldSwitchLiveProfilesWithoutAKeyframe() {
     final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
     final Client client = new Client();
     for (int frameNumber = 0; frameNumber < 8; frameNumber++) {
@@ -422,7 +422,7 @@ final class Mcv2FrameTest {
   }
 
   @Test
-  void shouldSearchAFrameOverItsByteBoundAgainAtAHigherLambda() throws Mcv2Exception {
+  void shouldSearchAFrameOverItsByteBoundAgainAtAHigherLambda() {
     final byte[] picture = this.noise(96, 64, 5);
     final byte[][] keyframes = new byte[LIMIT_TRIES][];
     for (int attempt = 0; attempt < LIMIT_TRIES; attempt++) {
@@ -475,7 +475,7 @@ final class Mcv2FrameTest {
 
     private final Mcv2Receiver receiver = new Mcv2Receiver();
 
-    private byte[] decode(final byte[] data) throws Mcv2Exception {
+    private byte[] decode(final byte[] data) {
       return Objects.requireNonNull(this.receiver.accept(data));
     }
   }

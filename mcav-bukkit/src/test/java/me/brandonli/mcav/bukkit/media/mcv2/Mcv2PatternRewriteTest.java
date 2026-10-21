@@ -86,7 +86,7 @@ final class Mcv2PatternRewriteTest {
   }
 
   @Test
-  void shouldEncodeRepeatingSelectorsAsPatternsAtEveryLeafSize() throws Mcv2Exception {
+  void shouldEncodeRepeatingSelectorsAsPatternsAtEveryLeafSize() {
     for (final int size : new int[] { 8, 16, 32 }) {
       for (final int orientation : new int[] { 0, 1 }) {
         this.assertPatternRoundTrip(size, orientation);
@@ -94,7 +94,7 @@ final class Mcv2PatternRewriteTest {
     }
   }
 
-  private void assertPatternRoundTrip(final int size, final int orientation) throws Mcv2Exception {
+  private void assertPatternRoundTrip(final int size, final int orientation) {
     final byte[] expected = this.expectedPattern(size, orientation);
     final byte[] palette = this.repeatedPalette(expected, size, orientation);
     final byte[] output = new byte[expected.length];
@@ -152,7 +152,7 @@ final class Mcv2PatternRewriteTest {
     return source;
   }
 
-  private void assertCodedAsPattern(final byte[] source, final int size, final double lambda) throws Mcv2Exception {
+  private void assertCodedAsPattern(final byte[] source, final int size, final double lambda) {
     final Mcv2BlockState state = new Mcv2BlockState(
       source,
       new byte[0],
@@ -175,7 +175,7 @@ final class Mcv2PatternRewriteTest {
   }
 
   @Test
-  void shouldRebuildKeyframeSolidsAndPatterns() throws Mcv2Exception {
+  void shouldRebuildKeyframeSolidsAndPatterns() {
     final Node patterns = Mcv2Trees.split(Mcv2Trees.pattern(16, ENDPOINTS, 1, 0x5a));
     final byte[] data = Mcv2Trees.keyframe(64, 32, Mcv2Trees.solid(4, 5, 6), patterns);
     final List<Node> expected = List.of(Mcv2Trees.solid(4, 5, 6), patterns);
@@ -184,7 +184,7 @@ final class Mcv2PatternRewriteTest {
   }
 
   @Test
-  void shouldRebuildMotionSkipsAndCompactRecords() throws Mcv2Exception {
+  void shouldRebuildMotionSkipsAndCompactRecords() {
     final Node compact = Node.leaf(Mcv2Decoder.MODE_COMPACT, 2, new byte[] { 0, 0, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 });
     final Node split = Node.split(compact, Node.skip(), Mcv2Trees.motion(1, 1), compact);
     final byte[] data = Mcv2Trees.predicted(96, 32, Mcv2Trees.motion(-2, 3), Node.skip(), split);

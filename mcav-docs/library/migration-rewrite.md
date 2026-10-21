@@ -218,6 +218,10 @@ The configuration builders are now top-level interfaces with internal implementa
 `ScoreboardConfigurationBuilder` rather than `MapConfiguration.Builder<?>` and the other nested builders; the nested
 result builders, such as `MapConfiguration.MapResultBuilder`, are removed.
 
+The exceptions of `mcav-bukkit` now extend `BukkitException`, an unchecked subtype of `MCAVException`.
+`HttpServerException`, `InjectorException` and `McPacksException` no longer extend `AssertionError`, so a catch of
+`AssertionError` around resource-pack hosting no longer sees them; catch `BukkitException` instead.
+
 Custom `HttpResult` implementations must now supply `getCurrentMedia`, `setCurrentMedia`, `getListenerCount` and
 `isRunning`. Custom `DiscordPlayer` implementations must supply `flush`, `getQueuedMillis` and `setPlaying`.
 Custom `SVCFilter` implementations must supply `getQueuedFrames`. Existing factory users usually need only to

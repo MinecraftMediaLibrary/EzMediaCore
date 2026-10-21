@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Tag;
 final class Mcv2VerificationFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
-  void shouldAgreeWithTheReferenceDecoderOnRandomTrees(final FuzzedDataProvider data) throws Mcv2Exception {
+  void shouldAgreeWithTheReferenceDecoderOnRandomTrees(final FuzzedDataProvider data) {
     Mcv2VerificationTest.compareRandom(data.consumeLong());
   }
 }

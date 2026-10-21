@@ -155,7 +155,7 @@ public final class TransportPages {
    * @throws Mcv2Exception        if the symbols do not carry exactly that many bytes with zero padding
    * @throws NullPointerException if {@code symbols} is null
    */
-  public static byte[] fromSymbols(final byte[] symbols, final int byteCount) throws Mcv2Exception {
+  public static byte[] fromSymbols(final byte[] symbols, final int byteCount) {
     Preconditions.checkNotNull(symbols, SYMBOLS_NULL_MESSAGE);
 
     if (byteCount < 0 || symbols.length != symbolCount(byteCount)) {
@@ -197,7 +197,7 @@ public final class TransportPages {
    * @throws IllegalArgumentException if the stream id is outside unsigned 32-bit range
    * @throws NullPointerException     if {@code frame} is null
    */
-  public static List<byte[]> makePages(final byte[] frame, final long streamId) throws Mcv2Exception {
+  public static List<byte[]> makePages(final byte[] frame, final long streamId) {
     Preconditions.checkNotNull(frame, FRAME_NULL_MESSAGE);
     Preconditions.checkArgument(streamId >= 0 && streamId <= Mcv2Decoder.MAXIMUM_UNSIGNED_INT, STREAM_ID_RANGE_MESSAGE);
 
@@ -254,13 +254,13 @@ public final class TransportPages {
    * @throws Mcv2Exception        if the header is truncated, malformed or inconsistent
    * @throws NullPointerException if the symbol array is null
    */
-  public static int usefulSymbols(final byte[] symbols) throws Mcv2Exception {
+  public static int usefulSymbols(final byte[] symbols) {
     final byte[] header = readHeader(symbols);
     final int size = checkHeader(header);
     return (int) symbolCount(HEADER_BYTES + size);
   }
 
-  private static byte[] readHeader(final byte[] symbols) throws Mcv2Exception {
+  private static byte[] readHeader(final byte[] symbols) {
     Preconditions.checkNotNull(symbols, SYMBOLS_NULL_MESSAGE);
 
     if (symbols.length > PAGE_SYMBOLS) {
@@ -289,7 +289,7 @@ public final class TransportPages {
     return header;
   }
 
-  private static int checkHeader(final byte[] header) throws Mcv2Exception {
+  private static int checkHeader(final byte[] header) {
     final int capacity = capacity();
     if (
       Mcv2Decoder.u32(header, MAGIC_OFFSET) != MAGIC ||
@@ -324,7 +324,7 @@ public final class TransportPages {
    * @throws Mcv2Exception        if the page is malformed or its CRC does not match
    * @throws NullPointerException if the symbol array is null
    */
-  public static TransportPage readPage(final byte[] symbols) throws Mcv2Exception {
+  public static TransportPage readPage(final byte[] symbols) {
     final byte[] header = readHeader(symbols);
     final int size = checkHeader(header);
     final byte[] pageBytes = fromSymbols(symbols, HEADER_BYTES + size);

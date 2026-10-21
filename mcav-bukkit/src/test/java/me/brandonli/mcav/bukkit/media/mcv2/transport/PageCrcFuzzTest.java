@@ -54,12 +54,8 @@ final class PageCrcFuzzTest {
 
   private static List<byte[]> pages() {
     final List<byte[]> pages = new ArrayList<>();
-    try {
-      for (final byte[] frame : FRAMES) {
-        pages.addAll(TransportPages.makePages(frame, STREAM));
-      }
-    } catch (final Mcv2Exception exception) {
-      throw new AssertionError(exception);
+    for (final byte[] frame : FRAMES) {
+      pages.addAll(TransportPages.makePages(frame, STREAM));
     }
 
     return pages;

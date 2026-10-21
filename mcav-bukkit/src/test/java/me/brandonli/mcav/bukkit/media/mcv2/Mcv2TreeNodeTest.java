@@ -55,7 +55,7 @@ final class Mcv2TreeNodeTest {
   }
 
   @Test
-  void shouldRetainTheRecordsOfEncodedFramesWhenTheCoderIsReused() throws Mcv2Exception {
+  void shouldRetainTheRecordsOfEncodedFramesWhenTheCoderIsReused() {
     final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
     final byte[] source = new byte[64 * 32 * 3];
     for (int pixel = 0; pixel < 64 * 32; pixel++) {

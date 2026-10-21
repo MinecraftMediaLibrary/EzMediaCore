@@ -220,7 +220,7 @@ final class Mcv2ParserPropertyTest {
   }
 
   @Property(seed = SEED, tries = 300)
-  void shouldCarryAnyBytesExactlyInSymbols(@ForAll @Size(max = 2000) final byte[] data) throws Mcv2Exception {
+  void shouldCarryAnyBytesExactlyInSymbols(@ForAll @Size(max = 2000) final byte[] data) {
     final byte[] carried = TransportPages.fromSymbols(TransportPages.toSymbols(data), data.length);
     assertArrayEquals(data, carried);
   }
@@ -235,7 +235,7 @@ final class Mcv2ParserPropertyTest {
     @ForAll @IntRange(min = 0, max = 1000) final int index,
     @ForAll @LongRange(min = 0, max = 0xFFFFFFFFL) final long stream,
     @ForAll final long seed
-  ) throws Mcv2Exception {
+  ) {
     final int symbolBits = 6;
     final byte[] frame = FRAMES.get(index % FRAMES.size());
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);

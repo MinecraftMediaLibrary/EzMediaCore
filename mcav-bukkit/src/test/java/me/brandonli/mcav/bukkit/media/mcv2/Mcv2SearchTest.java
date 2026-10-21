@@ -164,7 +164,7 @@ final class Mcv2SearchTest {
   }
 
   @Test
-  void shouldFallBackDirectlyAtZeroLambdaWhenTheFrameExceedsItsLimit() throws UnmodifiableClassException, Mcv2Exception {
+  void shouldFallBackDirectlyAtZeroLambdaWhenTheFrameExceedsItsLimit() throws UnmodifiableClassException {
     final Class<?> encoderType = Mcv2.class;
     final Instrumentation instrumentation = PremainAttachAccess.getInstrumentation();
     final Set<String> clockedMethods = ConcurrentHashMap.newKeySet();
@@ -645,7 +645,7 @@ final class Mcv2SearchTest {
   }
 
   @Test
-  void shouldKeepASkippedRootBelowTheNormalSplitThresholdEvenWhenOneChildFitsMoreClosely() throws Mcv2Exception {
+  void shouldKeepASkippedRootBelowTheNormalSplitThresholdEvenWhenOneChildFitsMoreClosely() {
     final byte[] reference = new byte[32 * 32 * 3];
     for (int row = 0; row < 32; row++) {
       for (int column = 0; column < 32; column++) {
@@ -733,7 +733,7 @@ final class Mcv2SearchTest {
   }
 
   @Test
-  void shouldRetainSixteenPixelLeavesBelowTheNormalFineSplitThreshold() throws Mcv2Exception {
+  void shouldRetainSixteenPixelLeavesBelowTheNormalFineSplitThreshold() {
     final byte[] source = new byte[32 * 32 * 3];
     for (int row = 0; row < 32; row++) {
       for (int column = 0; column < 32; column++) {

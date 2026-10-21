@@ -45,6 +45,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
+import me.brandonli.mcav.bukkit.BukkitException;
 import me.brandonli.mcav.bukkit.resourcepack.provider.PackHosting;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.utils.ServerAddress;
@@ -419,8 +420,8 @@ final class NettyHostingTest {
   }
 
   @Test
-  void shouldMakeExceptionsIllegalStateExceptions() {
+  void shouldMakeExceptionsBukkitExceptions() {
     final InjectorException exception = new InjectorException(MESSAGE);
-    assertInstanceOf(IllegalStateException.class, exception, "a missing pack is a state of the server, so it is no Error");
+    assertInstanceOf(BukkitException.class, exception);
   }
 }

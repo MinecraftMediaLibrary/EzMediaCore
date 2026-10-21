@@ -18,18 +18,16 @@
 package me.brandonli.mcav.bukkit.resourcepack.provider.netty;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import me.brandonli.mcav.bukkit.BukkitException;
 
 /**
  * Thrown when a resource pack cannot be served on the Minecraft port, for example because the pack file does not
  * exist.
  *
- * <p>This is an {@link IllegalStateException}: the hosting was started while its pack file is missing, which is a
- * state of the server that the caller can fix, for example by writing the pack before starting the hosting again. It
- * is unchecked and never an {@link Error}, so a plugin can catch it together with its other startup failures and
- * disable itself cleanly.
+ * <p>A plugin can write the pack before starting the hosting again, or catch it together with its other startup
+ * failures and disable itself cleanly.
  */
-public class InjectorException extends IllegalStateException {
+public final class InjectorException extends BukkitException {
 
   @Serial
   private static final long serialVersionUID = 180052351920535948L;
@@ -39,7 +37,7 @@ public class InjectorException extends IllegalStateException {
    *
    * @param message the detail message, which names the pack that cannot be served
    */
-  InjectorException(final @Nullable String message) {
+  InjectorException(final String message) {
     super(message);
   }
 
@@ -47,9 +45,9 @@ public class InjectorException extends IllegalStateException {
    * Constructs a new exception with a detail message and the failure that caused it.
    *
    * @param message the detail message, which names the pack that cannot be served
-   * @param cause   the failure that caused this exception, or null if it is unknown
+   * @param cause   the failure that caused this exception
    */
-  InjectorException(final @Nullable String message, final @Nullable Throwable cause) {
+  InjectorException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

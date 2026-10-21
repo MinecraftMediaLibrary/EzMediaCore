@@ -18,18 +18,15 @@
 package me.brandonli.mcav.bukkit.resourcepack.provider;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import me.brandonli.mcav.bukkit.BukkitException;
 
 /**
  * Thrown when a resource pack cannot be uploaded to mc-packs.net.
  *
- * <p>This is a plain {@link RuntimeException}: the upload depends on the network and on a remote service, so a
- * failure is neither a programming error nor a state of the caller, and trying again later may succeed. It is not a
- * {@link java.io.UncheckedIOException}, because a rejected upload is reported by the service without any
- * {@link java.io.IOException} to wrap, and it is never an {@link Error}, so a plugin can catch it and fall back to
- * another hosting.
+ * <p>The upload depends on the network and on a remote service, so trying again later may succeed; a plugin can also
+ * catch it and fall back to another hosting.
  */
-public class McPacksException extends RuntimeException {
+public final class McPacksException extends BukkitException {
 
   @Serial
   private static final long serialVersionUID = -6775463807604247034L;
@@ -39,7 +36,7 @@ public class McPacksException extends RuntimeException {
    *
    * @param message the detail message, which says why the upload failed
    */
-  McPacksException(final @Nullable String message) {
+  McPacksException(final String message) {
     super(message);
   }
 
@@ -47,9 +44,9 @@ public class McPacksException extends RuntimeException {
    * Constructs a new exception with a detail message and the failure that caused it.
    *
    * @param message the detail message, which says why the upload failed
-   * @param cause   the failure that caused this exception, or null if it is unknown
+   * @param cause   the failure that caused this exception
    */
-  McPacksException(final @Nullable String message, final @Nullable Throwable cause) {
+  McPacksException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

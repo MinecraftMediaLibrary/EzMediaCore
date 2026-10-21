@@ -99,7 +99,7 @@ final class Mcv2WriterTest {
   }
 
   @Test
-  void shouldAcceptAQuantizerOnlyWhereTheModeHasOne() throws Mcv2Exception {
+  void shouldAcceptAQuantizerOnlyWhereTheModeHasOne() {
     for (final Node node : List.of(
       Node.leaf(Mcv2Decoder.MODE_MOTION, 1, new byte[] { 1, 1 }),
       Node.leaf(Mcv2Decoder.MODE_SOLID, 2, new byte[3])
@@ -120,7 +120,7 @@ final class Mcv2WriterTest {
   }
 
   @Test
-  void shouldWriteNoDescriptorsForAbsentRoots() throws Mcv2Exception {
+  void shouldWriteNoDescriptorsForAbsentRoots() {
     final byte[] skipped = predicted(64, 32, Node.skip(), Node.skip());
     final int skippedLength = skipped.length;
     assertEquals(40, skippedLength);

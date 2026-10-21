@@ -64,7 +64,7 @@ final class FrameMutationTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("frames")
-  void shouldAcceptOrDeclareEveryCorruption(final String stream, final List<byte[]> frames) throws Mcv2Exception {
+  void shouldAcceptOrDeclareEveryCorruption(final String stream, final List<byte[]> frames) {
     final Mcv2Decoder.Frame reference = Mcv2Decoder.parse(frames.getFirst());
     final byte[] picture = Mcv2Decoder.decode(reference, null, 0);
     final List<Boolean> acceptances = new ArrayList<>();
@@ -79,8 +79,7 @@ final class FrameMutationTest {
     assertTrue(acceptedAny, stream + " accepted nothing");
   }
 
-  private void corruptEveryOffset(final byte[] frame, final byte[] picture, final long frameId, final List<Boolean> acceptances)
-    throws Mcv2Exception {
+  private void corruptEveryOffset(final byte[] frame, final byte[] picture, final long frameId, final List<Boolean> acceptances) {
     for (int offset = 0; offset < frame.length; offset += offset < DENSE ? 1 : STRIDE) {
       for (final int mask : MASKS) {
         final boolean accepted = this.isCorruptionAccepted(frame, offset, mask, picture, frameId);
@@ -89,8 +88,7 @@ final class FrameMutationTest {
     }
   }
 
-  private boolean isCorruptionAccepted(final byte[] frame, final int offset, final int mask, final byte[] picture, final long frameId)
-    throws Mcv2Exception {
+  private boolean isCorruptionAccepted(final byte[] frame, final int offset, final int mask, final byte[] picture, final long frameId) {
     final byte[] corrupted = frame.clone();
     corrupted[offset] ^= (byte) mask;
     final Mcv2Decoder.Frame parsed;
@@ -106,7 +104,7 @@ final class FrameMutationTest {
   }
 
   @Test
-  void shouldCheckAReferenceMismatchThroughTheDecoder() throws Mcv2Exception {
+  void shouldCheckAReferenceMismatchThroughTheDecoder() {
     final List<byte[]> stream = Mcv2Fixtures.frames(Mcv2Fixtures.read(PROXY_DEFAULT_STREAM_PATH));
     final Mcv2Decoder.Frame keyframe = Mcv2Decoder.parse(stream.getFirst());
     final byte[] reference = Mcv2Decoder.decode(keyframe, null, 0);
@@ -118,7 +116,7 @@ final class FrameMutationTest {
     this.decodeAgainst(interFrame, reference, wrongReference);
   }
 
-  private void decodeAgainst(final Mcv2Decoder.Frame parsed, final byte[] picture, final long id) throws Mcv2Exception {
+  private void decodeAgainst(final Mcv2Decoder.Frame parsed, final byte[] picture, final long id) {
     final int expectedLength = parsed.getWidth() * parsed.getHeight() * 3;
     if (!parsed.isKeyframe() && (parsed.getReferenceId() != id || expectedLength != picture.length)) {
       final Mcv2Exception mismatch = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(parsed, picture, id));

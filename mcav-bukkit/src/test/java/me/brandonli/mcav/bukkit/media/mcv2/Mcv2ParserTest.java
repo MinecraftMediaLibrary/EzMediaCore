@@ -54,7 +54,7 @@ final class Mcv2ParserTest {
   }
 
   @Test
-  void shouldGiveAbsentRootsNoRecordOffset() throws Mcv2Exception {
+  void shouldGiveAbsentRootsNoRecordOffset() {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(Mcv2Trees.predicted(1, 1, Node.skip()));
     final int leafCount = frame.getLeafCount();
     assertEquals(1, leafCount);
@@ -69,7 +69,7 @@ final class Mcv2ParserTest {
   }
 
   @Test
-  void shouldParseTheHeaderAndTheLeavesOfAKeyframe() throws Mcv2Exception {
+  void shouldParseTheHeaderAndTheLeavesOfAKeyframe() {
     final byte[] frame = keyframe(40, 20, solid(1, 2, 3), split(Node.leaf(Mcv2Decoder.MODE_PALETTE, 0, palette())));
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
     final int width = parsed.getWidth();
@@ -117,7 +117,7 @@ final class Mcv2ParserTest {
   }
 
   @Test
-  void shouldCopyTheInputSoTheCallerMayReuseIt() throws Mcv2Exception {
+  void shouldCopyTheInputSoTheCallerMayReuseIt() {
     final byte[] frame = keyframe(8, 8, solid(9, 9, 9));
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
     frame[12] = 1;

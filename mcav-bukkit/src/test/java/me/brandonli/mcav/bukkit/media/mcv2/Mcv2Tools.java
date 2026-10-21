@@ -315,7 +315,7 @@ final class Mcv2Tools {
     decoded.write(picture);
   }
 
-  private static byte[] decoded(final byte[] data, final byte[] predictFrom) throws Mcv2Exception {
+  private static byte[] decoded(final byte[] data, final byte[] predictFrom) {
     final Frame frame = Mcv2Decoder.parse(data);
     return Mcv2Decoder.decode(frame, predictFrom, frame.getReferenceId());
   }
@@ -956,7 +956,7 @@ final class Mcv2Tools {
       return true;
     }
 
-    private static Map<String, Object> pageExpectations(final byte[] data) throws Mcv2Exception {
+    private static Map<String, Object> pageExpectations(final byte[] data) {
       final List<byte[]> symbols = TransportPages.makePages(data, 7);
       final List<String> pageHashes = new ArrayList<>();
       for (final byte[] page : symbols) {

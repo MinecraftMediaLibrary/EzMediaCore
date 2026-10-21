@@ -71,7 +71,7 @@ public final class MapAlphabet {
    * @throws Mcv2Exception        if a colour is outside the alphabet
    * @throws NullPointerException if {@code colors} is null
    */
-  public static byte[] fromMapColors(final byte[] colors) throws Mcv2Exception {
+  public static byte[] fromMapColors(final byte[] colors) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
 
     final byte[] symbols = new byte[colors.length];

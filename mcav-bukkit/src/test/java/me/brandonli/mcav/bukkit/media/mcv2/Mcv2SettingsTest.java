@@ -72,7 +72,7 @@ final class Mcv2SettingsTest {
   }
 
   @Test
-  void shouldTryPatternsInPredictedFramesInBothPresets() throws Mcv2Exception {
+  void shouldTryPatternsInPredictedFramesInBothPresets() {
     final byte[] stripes = new byte[8 * 8 * 3];
     for (int pixel = 0; pixel < 8 * 8; pixel++) {
       Arrays.fill(stripes, pixel * 3, pixel * 3 + 3, (byte) ((pixel & 1) == 0 ? 16 : 240));

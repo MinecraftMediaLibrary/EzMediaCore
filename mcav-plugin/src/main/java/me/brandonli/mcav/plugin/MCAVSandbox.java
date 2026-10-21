@@ -155,7 +155,7 @@ public final class MCAVSandbox extends JavaPlugin {
    * @param failure the setup problem
    * @param remedy  what the server owner has to do about it
    */
-  private void disableBecause(final IllegalStateException failure, final String remedy) {
+  private void disableBecause(final RuntimeException failure, final String remedy) {
     final ComponentLogger pluginLogger = this.requireLogger();
     final String reason = failure.getMessage();
     pluginLogger.error(CANNOT_ENABLE, reason, remedy);

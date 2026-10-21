@@ -48,7 +48,7 @@ final class Mcv2DecoderTest {
   }
 
   @Test
-  void shouldDecodeAKeyframeWithoutAReferenceAndCropItsEdges() throws Mcv2Exception {
+  void shouldDecodeAKeyframeWithoutAReferenceAndCropItsEdges() {
     final byte[] frame = keyframe(3, 2, solid(SOLID_RED, SOLID_GREEN, SOLID_BLUE));
     final byte[] picture = Mcv2Decoder.decode(frame, null, 99);
     final byte[] expected = new byte[] {
@@ -78,7 +78,7 @@ final class Mcv2DecoderTest {
   }
 
   @Test
-  void shouldDecodeIntoAPictureOfTheFramesSize() throws Mcv2Exception {
+  void shouldDecodeIntoAPictureOfTheFramesSize() {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(keyframe(3, 2, solid(SOLID_RED, SOLID_GREEN, SOLID_BLUE)));
     final byte[] fresh = Mcv2Decoder.decode(frame, null, 0);
     final byte[] into = new byte[18];
@@ -97,7 +97,7 @@ final class Mcv2DecoderTest {
   }
 
   @Test
-  void shouldPredictAPFrameFromItsReference() throws Mcv2Exception {
+  void shouldPredictAPFrameFromItsReference() {
     final byte[] reference = new byte[2 * 1 * 3];
     for (int index = 0; index < reference.length; index++) {
       reference[index] = (byte) (index * 10);
@@ -110,7 +110,7 @@ final class Mcv2DecoderTest {
   }
 
   @Test
-  void shouldDecodeTheSamePictureOnAnyNumberOfWorkers() throws Mcv2Exception {
+  void shouldDecodeTheSamePictureOnAnyNumberOfWorkers() {
     final String stream = Mcv2Fixtures.digests(CONFORMANCE_FOLDER).keySet().iterator().next();
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(CONFORMANCE_PREFIX + stream));
     try (final ForkJoinPool pool = new ForkJoinPool(4)) {
@@ -138,15 +138,11 @@ final class Mcv2DecoderTest {
   }
 
   private void decodeRow(final Mcv2Decoder.Frame frame, final byte @Nullable [] reference, final byte[] picture, final int row) {
-    try {
-      Mcv2Decoder.decodeRows(frame, reference, frame.getReferenceId(), picture, row, row + 1);
-    } catch (final Mcv2Exception exception) {
-      throw new AssertionError(exception);
-    }
+    Mcv2Decoder.decodeRows(frame, reference, frame.getReferenceId(), picture, row, row + 1);
   }
 
   @Test
-  void shouldDecodeAPFrameIntoThePictureItIsPredictedFrom() throws Mcv2Exception {
+  void shouldDecodeAPFrameIntoThePictureItIsPredictedFrom() {
     final String stream = Mcv2Fixtures.digests(CONFORMANCE_FOLDER).keySet().iterator().next();
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(CONFORMANCE_PREFIX + stream));
     byte[] reference = null;

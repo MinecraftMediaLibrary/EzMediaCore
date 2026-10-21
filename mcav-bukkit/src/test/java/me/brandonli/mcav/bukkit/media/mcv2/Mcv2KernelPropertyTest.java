@@ -74,7 +74,7 @@ final class Mcv2KernelPropertyTest {
     @ForAll @IntRange(min = 0, max = 2) final int sizeIndex,
     @ForAll @IntRange(min = 0, max = 2) final int quantizer,
     @ForAll final long seed
-  ) throws Mcv2Exception {
+  ) {
     final int size = SIZES[sizeIndex];
     final Random random = new Random(seed);
     final byte[] record = record(random, 10);

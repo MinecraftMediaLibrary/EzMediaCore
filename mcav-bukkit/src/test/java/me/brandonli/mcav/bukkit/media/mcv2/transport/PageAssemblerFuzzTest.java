@@ -74,19 +74,15 @@ final class PageAssemblerFuzzTest {
 
   private static List<List<byte[]>> pages(final long stream) {
     final List<List<byte[]>> pages = new ArrayList<>();
-    try {
-      for (final byte[] frame : FRAMES) {
-        pages.add(TransportPages.makePages(frame, stream));
-      }
-    } catch (final Mcv2Exception exception) {
-      throw new AssertionError(exception);
+    for (final byte[] frame : FRAMES) {
+      pages.add(TransportPages.makePages(frame, stream));
     }
 
     return pages;
   }
 
   @FuzzTest(maxDuration = "30s")
-  void shouldAssembleExactlyTheFramesThatArrive(final byte[] data) throws Mcv2Exception {
+  void shouldAssembleExactlyTheFramesThatArrive(final byte[] data) {
     if (data.length < 1) {
       return;
     }
@@ -120,7 +116,7 @@ final class PageAssemblerFuzzTest {
     final int index,
     final int number,
     final List<byte[]> frame
-  ) throws Mcv2Exception {
+  ) {
     final long id = index;
     if (!pending.containsKey(id) && pending.size() >= PageAssembler.MAXIMUM_PENDING) {
       final Iterator<Long> oldest = pending.keySet().iterator();

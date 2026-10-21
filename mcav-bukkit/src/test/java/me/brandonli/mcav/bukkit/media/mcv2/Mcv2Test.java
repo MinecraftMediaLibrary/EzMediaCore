@@ -37,7 +37,7 @@ final class Mcv2Test {
   private static final int LAMBDA = 72;
 
   @Test
-  void shouldWriteTheHandComputedUniformKeyframeAndPredictedGolden() throws Mcv2Exception {
+  void shouldWriteTheHandComputedUniformKeyframeAndPredictedGolden() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, Mcv2.Verification.VERIFIED);
       final byte[] picture = { 10, 20, 30 };
@@ -68,14 +68,14 @@ final class Mcv2Test {
   }
 
   @Test
-  void shouldReconstructExactlyWhatDecodeGivesForEveryPresetAndOddSize() throws Mcv2Exception {
+  void shouldReconstructExactlyWhatDecodeGivesForEveryPresetAndOddSize() {
     final Random random = new Random(0x4D435632);
     for (final Mcv2.Settings settings : new Mcv2.Settings[] { Mcv2.Settings.DEFAULT, Mcv2.Settings.FAST }) {
       this.assertReconstructsEveryFrame(settings, random);
     }
   }
 
-  private void assertReconstructsEveryFrame(final Mcv2.Settings settings, final Random random) throws Mcv2Exception {
+  private void assertReconstructsEveryFrame(final Mcv2.Settings settings, final Random random) {
     try (final ForkJoinPool pool = new ForkJoinPool(4)) {
       final Mcv2 encoder = new Mcv2(settings, pool, 4, Mcv2.Verification.VERIFIED);
       byte[] reference = null;
@@ -85,8 +85,7 @@ final class Mcv2Test {
     }
   }
 
-  private byte[] reconstructCheckedFrame(final Mcv2 encoder, final Random random, final int index, final byte @Nullable [] previous)
-    throws Mcv2Exception {
+  private byte[] reconstructCheckedFrame(final Mcv2 encoder, final Random random, final int index, final byte @Nullable [] previous) {
     final byte[] picture = new byte[65 * 37 * 3];
     random.nextBytes(picture);
     final byte[] data = encoder.encode(picture, 65, 37, index);
@@ -145,7 +144,7 @@ final class Mcv2Test {
   }
 
   @Test
-  void shouldRetryAndFallBackFromTheSameReference() throws Mcv2Exception {
+  void shouldRetryAndFallBackFromTheSameReference() {
     try (final ForkJoinPool pool = new ForkJoinPool(2)) {
       final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(0), pool, 2, Mcv2.Verification.VERIFIED);
       final byte[] source = new byte[63 * 65 * 3];
@@ -176,7 +175,7 @@ final class Mcv2Test {
   }
 
   @Test
-  void shouldRetryAtMostFourTimesWhenEvenTheTrivialFrameExceedsTheLimit() throws Mcv2Exception {
+  void shouldRetryAtMostFourTimesWhenEvenTheTrivialFrameExceedsTheLimit() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(1), pool, 1, Mcv2.Verification.VERIFIED);
       encoder.setFrameLimit(40);
@@ -211,7 +210,7 @@ final class Mcv2Test {
   }
 
   @Test
-  void shouldUseMeanSolidsAndThenSkipWhenTheBudgetIsExhausted() throws Mcv2Exception {
+  void shouldUseMeanSolidsAndThenSkipWhenTheBudgetIsExhausted() {
     try (final ForkJoinPool pool = new ForkJoinPool(2)) {
       final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 2, Mcv2.Verification.VERIFIED);
       encoder.setFrameBudget(1);
@@ -240,7 +239,7 @@ final class Mcv2Test {
   }
 
   @Test
-  void shouldPlaceKeyframesByRequestsSizesIntervalsAndWrappedIds() throws Mcv2Exception {
+  void shouldPlaceKeyframesByRequestsSizesIntervalsAndWrappedIds() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final Mcv2 encoder = new Mcv2(Mcv2.Settings.of(LAMBDA, false), pool, 1, Mcv2.Verification.VERIFIED);
       final byte[] black = new byte[3];
@@ -278,7 +277,7 @@ final class Mcv2Test {
   }
 
   @Test
-  void shouldKeepTheReferenceAndMotionLambdaWhenSwitchingSettings() throws Mcv2Exception {
+  void shouldKeepTheReferenceAndMotionLambdaWhenSwitchingSettings() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, Mcv2.Verification.VERIFIED);
       final byte[] source = new byte[32 * 32 * 3];

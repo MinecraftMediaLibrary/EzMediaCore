@@ -139,7 +139,7 @@ final class Mcv2RoundTripPropertyTest {
     @ForAll @IntRange(min = 0, max = 3) final int profile,
     @ForAll @DoubleRange(min = 5, max = 400) final double lambda,
     @ForAll final long seed
-  ) throws Mcv2Exception {
+  ) {
     final Random random = new Random(seed);
     final Mcv2 encoder = new Mcv2(PROFILES.get(profile).withLambda(lambda), POOL, 2, Mcv2.Verification.VERIFIED);
     final Mcv2Receiver client = new Mcv2Receiver();
@@ -164,7 +164,7 @@ final class Mcv2RoundTripPropertyTest {
     @ForAll @IntRange(min = 0, max = 3) final int profile,
     @ForAll @DoubleRange(min = 5, max = 400) final double lambda,
     @ForAll @IntRange(min = 0, max = 0xFFFFFF) final int color
-  ) throws Mcv2Exception {
+  ) {
     final byte[] rgb = new byte[width * height * 3];
     for (int offset = 0; offset < rgb.length; offset += 3) {
       rgb[offset] = (byte) (color >> 16);

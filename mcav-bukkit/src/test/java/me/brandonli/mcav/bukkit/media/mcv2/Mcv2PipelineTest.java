@@ -213,7 +213,7 @@ final class Mcv2PipelineTest {
   }
 
   @Test
-  void shouldPipelineToTheStreamItEncodesOneFrameAtATime() throws InterruptedException, ExecutionException, Mcv2Exception {
+  void shouldPipelineToTheStreamItEncodesOneFrameAtATime() throws InterruptedException, ExecutionException {
     final List<Settings> profiles = List.of(Settings.DEFAULT, Settings.FAST);
     for (final Settings settings : profiles) {
       for (final int requestEvery : new int[] { 0, 1, 3 }) {
@@ -223,7 +223,7 @@ final class Mcv2PipelineTest {
   }
 
   private void assertPipelinedMatchesSequential(final Settings settings, final int requestEvery)
-    throws InterruptedException, ExecutionException, Mcv2Exception {
+    throws InterruptedException, ExecutionException {
     final List<byte[]> one = sequential(settings, 100, 70, 7, 3, requestEvery);
     final List<byte[]> two = pipelined(settings, 100, 70, 7, 3, requestEvery);
     final Mcv2Receiver client = new Mcv2Receiver();

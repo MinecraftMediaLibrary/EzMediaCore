@@ -23,7 +23,7 @@ import net.jqwik.api.Property;
 final class Mcv2VerificationPropertyTest {
 
   @Property(seed = "20261003", tries = 1000)
-  void shouldMatchTheReferenceDecoderAndFindAlteredPixelsAtEveryLevel(@ForAll final long seed) throws Mcv2Exception {
+  void shouldMatchTheReferenceDecoderAndFindAlteredPixelsAtEveryLevel(@ForAll final long seed) {
     Mcv2VerificationTest.compareRandom(seed);
   }
 }

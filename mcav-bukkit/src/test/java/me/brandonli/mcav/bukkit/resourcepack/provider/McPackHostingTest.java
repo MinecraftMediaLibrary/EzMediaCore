@@ -60,6 +60,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import me.brandonli.mcav.bukkit.BukkitException;
 import me.brandonli.mcav.bukkit.testing.LogCapture;
 import me.brandonli.mcav.utils.IoUtils;
 import org.apache.logging.log4j.Level;
@@ -339,7 +340,9 @@ final class McPackHostingTest {
 
     final McPacksException exception = assertThrows(McPacksException.class, hosting::start);
 
+    final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
+    assertEquals("The resource pack upload to mc-packs.net failed!", message);
     assertInstanceOf(ConnectException.class, cause);
   }
 
@@ -545,9 +548,9 @@ final class McPackHostingTest {
   }
 
   @Test
-  void shouldMakeExceptionsRuntimeExceptions() {
+  void shouldMakeExceptionsBukkitExceptions() {
     final McPacksException exception = new McPacksException(MESSAGE);
-    assertInstanceOf(RuntimeException.class, exception, "a failed upload is recoverable, so it is no Error");
+    assertInstanceOf(BukkitException.class, exception);
   }
 
   /**

@@ -71,7 +71,7 @@ public final class PageAssembler {
    *                              or completes a frame that is not valid
    * @throws NullPointerException if the symbol array is null
    */
-  public Optional<byte[]> push(final byte[] symbols) throws Mcv2Exception {
+  public Optional<byte[]> push(final byte[] symbols) {
     final TransportPage page = TransportPages.readPage(symbols);
     if (page.getStreamId() != this.streamId) {
       throw new Mcv2Exception("Wrong stream!");

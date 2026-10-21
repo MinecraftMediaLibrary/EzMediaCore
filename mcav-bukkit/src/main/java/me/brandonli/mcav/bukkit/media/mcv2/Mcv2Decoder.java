@@ -143,7 +143,7 @@ public final class Mcv2Decoder {
    * @throws NullPointerException if bytes is null
    * @throws Mcv2Exception        if any version 3 validation rule fails, including unsupported older versions
    */
-  public static Frame parse(final byte[] bytes) throws Mcv2Exception {
+  public static Frame parse(final byte[] bytes) {
     Preconditions.checkNotNull(bytes, "Frame bytes must not be null!");
 
     if (bytes.length >= Integer.BYTES && u32(bytes, MAGIC_OFFSET) == LEGACY_MAGIC) {
@@ -213,7 +213,7 @@ public final class Mcv2Decoder {
    * @throws NullPointerException if bytes is null
    * @throws Mcv2Exception        if syntax or reference validation fails
    */
-  public static byte[] decode(final byte[] bytes, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
+  public static byte[] decode(final byte[] bytes, final byte @Nullable [] reference, final long referenceId) {
     return decode(parse(bytes), reference, referenceId);
   }
 
@@ -227,7 +227,7 @@ public final class Mcv2Decoder {
    * @throws NullPointerException if frame is null
    * @throws Mcv2Exception        if the required reference is missing or has the wrong id or byte length
    */
-  public static byte[] decode(final Frame frame, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
+  public static byte[] decode(final Frame frame, final byte @Nullable [] reference, final long referenceId) {
     final byte[] output = new byte[frame.width * frame.height * CHANNELS];
     decode(frame, reference, referenceId, output);
     return output;
@@ -244,8 +244,7 @@ public final class Mcv2Decoder {
    * @throws IllegalArgumentException if output has the wrong length
    * @throws Mcv2Exception            if the required reference is missing or has the wrong id or byte length
    */
-  public static void decode(final Frame frame, final byte @Nullable [] reference, final long referenceId, final byte[] output)
-    throws Mcv2Exception {
+  public static void decode(final Frame frame, final byte @Nullable [] reference, final long referenceId, final byte[] output) {
     final byte[] prediction = reference(frame, reference, referenceId);
     decodeRows(frame, samePicture(prediction, output) ? prediction.clone() : prediction, referenceId, output, 0, frame.height);
   }
@@ -257,7 +256,7 @@ public final class Mcv2Decoder {
     final byte[] output,
     final int fromRow,
     final int toRow
-  ) throws Mcv2Exception {
+  ) {
     final byte[] prediction = reference(frame, reference, referenceId);
     Preconditions.checkArgument(output.length == frame.width * frame.height * CHANNELS, "Output size does not match the frame!");
     Preconditions.checkArgument(fromRow >= 0 && fromRow <= toRow && toRow <= frame.height, "Invalid row range!");
@@ -269,7 +268,7 @@ public final class Mcv2Decoder {
     }
   }
 
-  private static byte[] reference(final Frame frame, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
+  private static byte[] reference(final Frame frame, final byte @Nullable [] reference, final long referenceId) {
     if (frame.keyframe) {
       return NO_REFERENCE;
     }
@@ -521,7 +520,7 @@ public final class Mcv2Decoder {
       this.roots = this.columns * ((height + ROOT_SIZE - 1) / ROOT_SIZE);
     }
 
-    private Frame parse() throws Mcv2Exception {
+    private Frame parse() {
       final int groups = (this.roots + GROUP_ROOTS - 1) / GROUP_ROOTS;
       final int checkpoints = (groups + CHECKPOINT_GROUPS - 1) / CHECKPOINT_GROUPS;
       final int countsAt = HEADER_BYTES + (groups + checkpoints) * Integer.BYTES;
@@ -630,7 +629,7 @@ public final class Mcv2Decoder {
       return new Frame(this, leaves);
     }
 
-    private int[] readDirectory(final int groups, final int count) throws Mcv2Exception {
+    private int[] readDirectory(final int groups, final int count) {
       final int[] present = new int[count];
       int seen = 0;
       for (int group = 0; group < groups; group++) {
@@ -663,7 +662,7 @@ public final class Mcv2Decoder {
       return listed;
     }
 
-    private int readDescriptorMode(final int position) throws Mcv2Exception {
+    private int readDescriptorMode(final int position) {
       final int descriptor = this.data[position] & BYTE_MASK;
       final int mode = descriptor & MODE_MASK;
       final int quantizer = descriptor >> QUANTIZER_SHIFT;
@@ -679,7 +678,7 @@ public final class Mcv2Decoder {
       return mode;
     }
 
-    private int recordLength(final int mode, final int size, final int offset) throws Mcv2Exception {
+    private int recordLength(final int mode, final int size, final int offset) {
       final int length = recordSize(mode, size);
       if (length > this.data.length - offset) {
         throw new Mcv2Exception("Truncated record!");

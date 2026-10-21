@@ -54,7 +54,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldDetermineKeyframesFromExactlyTheTwoIds() throws Mcv2Exception {
+  void shouldDetermineKeyframesFromExactlyTheTwoIds() {
     final byte[] data = block(32, 0, 0, new byte[0], Mcv2FrameKind.PREDICTED);
     final boolean keyframeBefore = Mcv2Decoder.parse(data).isKeyframe();
     assertFalse(keyframeBefore);
@@ -129,7 +129,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldValidateAllModeAndQuantizerCombinations() throws Mcv2Exception {
+  void shouldValidateAllModeAndQuantizerCombinations() {
     for (int descriptor = 0; descriptor < 256; descriptor++) {
       final int mode = descriptor & 31;
       final int quantizer = descriptor >> 5;
@@ -175,7 +175,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldDecodePatternSelectorsForAllSizes() throws Mcv2Exception {
+  void shouldDecodePatternSelectorsForAllSizes() {
     for (final int size : new int[] { 8, 16, 32 }) {
       for (int orientation = 0; orientation < 2; orientation++) {
         this.assertPatternDecodes(size, orientation);
@@ -183,7 +183,7 @@ final class Mcv2Version3Test {
     }
   }
 
-  private void assertPatternDecodes(final int size, final int orientation) throws Mcv2Exception {
+  private void assertPatternDecodes(final int size, final int orientation) {
     final byte[] record = new byte[7 + size / 8];
     record[0] = (byte) 255;
     record[5] = (byte) 255;
@@ -203,7 +203,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldDecodeSolidPaletteAndBlackKeyframeSkipsExactly() throws Mcv2Exception {
+  void shouldDecodeSolidPaletteAndBlackKeyframeSkipsExactly() {
     final byte[] solid = Mcv2Decoder.decode(block(8, 2, 0, new byte[] { 10, 20, 30 }, Mcv2FrameKind.KEYFRAME), null, 0);
     for (int offset = 0; offset < solid.length; offset += 3) {
       final byte[] expectedPixel = new byte[] { 10, 20, 30 };
@@ -235,7 +235,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldPredictWholePixelMotionWithClampedEdgesAndSignedVectors() throws Mcv2Exception {
+  void shouldPredictWholePixelMotionWithClampedEdgesAndSignedVectors() {
     final byte[] reference = new byte[8 * 8 * 3];
     for (int index = 0; index < reference.length; index++) {
       reference[index] = (byte) index;
@@ -252,7 +252,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldInterpolateSignedGridNodesAndRoundTiesUp() throws Mcv2Exception {
+  void shouldInterpolateSignedGridNodesAndRoundTiesUp() {
     for (final int size : new int[] { 8, 16, 32 }) {
       final byte[] reference = new byte[size * size * 3];
       Arrays.fill(reference, (byte) 100);
@@ -268,7 +268,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldApplyAllQuantizersAndSaturatePositiveAndNegativeResiduals() throws Mcv2Exception {
+  void shouldApplyAllQuantizersAndSaturatePositiveAndNegativeResiduals() {
     final byte[] reference = new byte[8 * 8 * 3];
     for (final int base : new int[] { 0, 6, 100, 250, 255 }) {
       Arrays.fill(reference, (byte) base);
@@ -278,7 +278,7 @@ final class Mcv2Version3Test {
     }
   }
 
-  private void assertResidualsSaturate(final byte[] reference, final int base, final int quantizer) throws Mcv2Exception {
+  private void assertResidualsSaturate(final byte[] reference, final int base, final int quantizer) {
     for (final int delta : new int[] { -8, -1, 0, 1, 7 }) {
       final int value = Math.min(255, Math.max(0, base + (delta << quantizer)));
       final byte[] record = new byte[10];
@@ -290,7 +290,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldValidateInvisibleLeavesAndCropOutput() throws Mcv2Exception {
+  void shouldValidateInvisibleLeavesAndCropOutput() {
     final byte[] data = block(16, 2, 0, new byte[] { 10, 20, 30 }, Mcv2FrameKind.KEYFRAME);
     put(data, 8, 1, 2);
     put(data, 10, 1, 2);
@@ -304,7 +304,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldDecodeRowsAndAliasedWholePictures() throws Mcv2Exception {
+  void shouldDecodeRowsAndAliasedWholePictures() {
     final byte[] data = block(8, 1, 0, new byte[] { -1, 1 }, Mcv2FrameKind.PREDICTED);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
     final byte[] reference = new byte[8 * 8 * 3];
@@ -327,7 +327,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldValidateReferencesAndOwnParsedData() throws Mcv2Exception {
+  void shouldValidateReferencesAndOwnParsedData() {
     final byte[] data = block(8, 1, 0, new byte[] { 0, 0 }, Mcv2FrameKind.PREDICTED);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, null, 0));
@@ -362,7 +362,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void shouldAcceptMaximumDimensionsWithAllRootsAbsent() throws Mcv2Exception {
+  void shouldAcceptMaximumDimensionsWithAllRootsAbsent() {
     final byte[] data = frame(4096, 4096, Mcv2FrameKind.KEYFRAME, new byte[0], new byte[0][], new int[3]);
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(data);
 

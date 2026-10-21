@@ -38,7 +38,7 @@ final class Mcv2ReceiverTest {
   }
 
   @Test
-  void shouldCommitNewerFramesOnly() throws Mcv2Exception {
+  void shouldCommitNewerFramesOnly() {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     final long initialFrameId = receiver.getFrameId();
     assertEquals(-1, initialFrameId);
@@ -58,7 +58,7 @@ final class Mcv2ReceiverTest {
   }
 
   @Test
-  void shouldStillRequireAFrameAfterFrameZeroToBeNewer() throws Mcv2Exception {
+  void shouldStillRequireAFrameAfterFrameZeroToBeNewer() {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     receiver.accept(this.keyframeWithId(0, 1));
 
@@ -71,7 +71,7 @@ final class Mcv2ReceiverTest {
   }
 
   @Test
-  void shouldWrapFrameIdsAroundThirtyTwoBits() throws Mcv2Exception {
+  void shouldWrapFrameIdsAroundThirtyTwoBits() {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     receiver.accept(this.keyframeWithId(0xFFFFFFFFL, 1));
     final byte[] picture = receiver.accept(this.keyframeWithId(0, 9));
@@ -85,7 +85,7 @@ final class Mcv2ReceiverTest {
   }
 
   @Test
-  void shouldKeepItsStateWhenAFrameFails() throws Mcv2Exception {
+  void shouldKeepItsStateWhenAFrameFails() {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     receiver.accept(this.keyframeWithId(1, 3));
     final byte[] orphan = Mcv2Trees.write(4, 4, 2, 7, Mcv2FrameKind.PREDICTED, List.of(motion(0, 0)));
@@ -115,7 +115,7 @@ final class Mcv2ReceiverTest {
   }
 
   @Test
-  void shouldRejectAReferenceWithTheSamePixelCountButDifferentDimensions() throws Mcv2Exception {
+  void shouldRejectAReferenceWithTheSamePixelCountButDifferentDimensions() {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     receiver.accept(Mcv2Trees.write(8, 16, 0, 0, Mcv2FrameKind.KEYFRAME, List.of(solid(1, 2, 3))));
     final byte[] wrongShape = Mcv2Trees.write(16, 8, 1, 0, Mcv2FrameKind.PREDICTED, List.of(motion(0, 0)));

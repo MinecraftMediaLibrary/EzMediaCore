@@ -121,7 +121,7 @@ final class Mcv2DecoderFormatTest {
   }
 
   @Test
-  void shouldSizeTheWalkRegion() throws Mcv2Exception {
+  void shouldSizeTheWalkRegion() {
     for (int descriptors = 0; descriptors < 40; descriptors++) {
       final byte[] modes = new byte[descriptors];
       final byte[] frame = Mcv2WireFrames.frame(

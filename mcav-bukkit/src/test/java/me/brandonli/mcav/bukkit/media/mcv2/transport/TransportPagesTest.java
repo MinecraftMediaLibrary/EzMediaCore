@@ -83,7 +83,7 @@ final class TransportPagesTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("vectors")
-  void shouldMakeTheReferencePages(final String name, final JsonObject expected) throws Mcv2Exception {
+  void shouldMakeTheReferencePages(final String name, final JsonObject expected) {
     final String stream = name.substring(0, name.indexOf('#'));
     final int index = Integer.parseInt(name.substring(name.indexOf('#') + 1, name.indexOf('@')));
     final int bits = Integer.parseInt(name.substring(name.indexOf('@') + 1));
@@ -132,7 +132,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void shouldReuseAnImmutableValidatedFrame() throws Mcv2Exception {
+  void shouldReuseAnImmutableValidatedFrame() {
     final byte[] bytes = Mcv2Trees.twoPages();
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(bytes);
     final List<byte[]> expected = TransportPages.makePages(bytes, 7);
@@ -166,7 +166,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void shouldPackSymbolsLeastSignificantBitFirst() throws Mcv2Exception {
+  void shouldPackSymbolsLeastSignificantBitFirst() {
     // A5 has low six bits 37 and high two bits 2.
     final byte[] expectedSymbols = new byte[] { 37, 2 };
     final byte[] symbols = TransportPages.toSymbols(new byte[] { (byte) 0xA5 });
@@ -205,20 +205,20 @@ final class TransportPagesTest {
     assertEquals("Nonzero symbol padding!", paddingMessage);
   }
 
-  private byte[] page() throws Mcv2Exception {
+  private byte[] page() {
     final byte[] frame = Mcv2Trees.tiny();
     return TransportPages.makePages(frame, 7).get(0);
   }
 
   /** Rewrites one header byte of a six-bit page and recomputes nothing, so the page tells the rule it breaks. */
-  private byte[] withHeaderByte(final byte[] page, final int offset, final int value) throws Mcv2Exception {
+  private byte[] withHeaderByte(final byte[] page, final int offset, final int value) {
     final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
     raw[offset] = (byte) value;
     return TransportPages.toSymbols(raw);
   }
 
   @Test
-  void shouldReadAValidPage() throws Mcv2Exception {
+  void shouldReadAValidPage() {
     final TransportPage read = TransportPages.readPage(this.page());
     final long streamId = read.getStreamId();
     assertEquals(7, streamId);
@@ -248,7 +248,7 @@ final class TransportPagesTest {
 
   @ParameterizedTest(name = "header byte {0}")
   @ValueSource(ints = { 0, 4, 5, 6, 7 })
-  void shouldRefuseAnUnsupportedHeader(final int offset) throws Mcv2Exception {
+  void shouldRefuseAnUnsupportedHeader(final int offset) {
     final byte[] page = this.page();
     final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
     final byte[] broken = this.withHeaderByte(page, offset, raw[offset] + 2);
@@ -258,7 +258,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void shouldRefuseInconsistentPageMetadata() throws Mcv2Exception {
+  void shouldRefuseInconsistentPageMetadata() {
     final byte[] page = this.page();
     final Mcv2Exception frameBytesFailure = assertThrows(Mcv2Exception.class, () ->
       TransportPages.readPage(this.withHeaderByte(page, 24, 10))
@@ -286,7 +286,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void shouldRefusePagesOfTheWrongSize() throws Mcv2Exception {
+  void shouldRefusePagesOfTheWrongSize() {
     final byte[] page = this.page();
     final Mcv2Exception oversizeFailure = assertThrows(Mcv2Exception.class, () ->
       TransportPages.readPage(new byte[TransportPages.PAGE_SYMBOLS + 1])
@@ -313,7 +313,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void shouldNameInEveryPageTheFrameItsFrameIsPredictedFrom() throws Mcv2Exception {
+  void shouldNameInEveryPageTheFrameItsFrameIsPredictedFrom() {
     final Node root = Mcv2Trees.motion(1, 1);
     final byte[] frame = Mcv2Trees.write(32, 32, 5, 4, Mcv2FrameKind.PREDICTED, List.of(root));
     for (final byte[] page : TransportPages.makePages(frame, 7)) {
@@ -346,7 +346,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void shouldReadThePagesOfTheSmallestAndTheLargestFrames() throws Mcv2Exception {
+  void shouldReadThePagesOfTheSmallestAndTheLargestFrames() {
     final int smallestFrameBytes = TransportPages.readPage(this.pageOfFrame(20, 0, 1, 20)).getFrameBytes();
     assertEquals(20, smallestFrameBytes);
 
@@ -358,7 +358,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void shouldFitAFrameOneByteShortOfAFullPageInOnePage() throws Mcv2Exception {
+  void shouldFitAFrameOneByteShortOfAFullPageInOnePage() {
     final int count = TransportPages.readPage(this.pageOfFrame(12_255, 0, 1, 12_255)).getCount();
     assertEquals(1, count);
   }
@@ -371,7 +371,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void shouldRefuseAPageCutRightAfterItsHeaderForItsExtent() throws Mcv2Exception {
+  void shouldRefuseAPageCutRightAfterItsHeaderForItsExtent() {
     // 43 six-bit symbols hold the whole 32-byte header, so the header reads; the missing payload is what is wrong
     final byte[] page = this.page();
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(Arrays.copyOf(page, 43)));

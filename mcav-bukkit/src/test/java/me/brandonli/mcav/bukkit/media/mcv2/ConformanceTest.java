@@ -59,7 +59,7 @@ final class ConformanceTest {
 
   @ParameterizedTest(name = "{0}/{1}")
   @MethodSource("streams")
-  void shouldDecodeEveryFrameBitExactly(final String folder, final String stream, final List<String> digests) throws Mcv2Exception {
+  void shouldDecodeEveryFrameBitExactly(final String folder, final String stream, final List<String> digests) {
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + PATH_SEPARATOR + stream));
     final int expectedFrameCount = digests.size();
     final int frameCount = frames.size();

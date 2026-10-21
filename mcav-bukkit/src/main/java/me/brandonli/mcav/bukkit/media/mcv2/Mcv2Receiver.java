@@ -56,7 +56,7 @@ public final class Mcv2Receiver {
    *                              does not hold; the state is unchanged then
    * @throws NullPointerException if the frame bytes are null
    */
-  public byte[] accept(final byte[] data) throws Mcv2Exception {
+  public byte[] accept(final byte[] data) {
     final Frame frame = Mcv2Decoder.parse(data);
     if (this.frameId >= 0 && !Mcv2Decoder.follows(frame.getFrameId(), this.frameId)) {
       throw new Mcv2Exception("Stale or ambiguous frame number!");

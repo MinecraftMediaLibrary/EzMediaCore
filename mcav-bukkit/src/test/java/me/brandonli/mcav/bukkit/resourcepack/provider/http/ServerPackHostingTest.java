@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import me.brandonli.mcav.bukkit.BukkitException;
 import me.brandonli.mcav.bukkit.resourcepack.provider.PackHosting;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -329,8 +330,8 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void shouldMakeItsExceptionsRuntimeExceptions() {
+  void shouldMakeItsExceptionsBukkitExceptions() {
     final HttpServerException exception = new HttpServerException(MESSAGE);
-    assertInstanceOf(RuntimeException.class, exception, "a port in use is recoverable, so it is no Error");
+    assertInstanceOf(BukkitException.class, exception);
   }
 }
