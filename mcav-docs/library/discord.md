@@ -67,8 +67,8 @@ environment variables, so that no secret ends up in the source:
 `setPlaying(String)` sets the bot online and shows the title as its "Playing" activity. `setCurrentMedia(UrlParseDump)`
 does the same with the title yt-dlp resolved. Any title is accepted and adjusted to the rules of Discord:
 
-- Surrounding whitespace is removed.
-- A blank title, or media without a title, shows "Unknown title".
+- Surrounding whitespace and control characters up to U+001F are removed.
+- A title left blank, or media without a title, shows "Unknown title".
 - A title longer than 128 characters (`Activity.MAX_ACTIVITY_NAME_LENGTH`) is cut to 127 characters and ends with an
   ellipsis (`…`), so it fits the limit. An emoji or other character outside the Basic Multilingual Plane is never
   split in half.

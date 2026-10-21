@@ -227,8 +227,8 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
   }
 
   /**
-   * Turns a title into a name Discord accepts for an activity: surrounding whitespace is removed, a missing or
-   * blank title becomes {@value #UNKNOWN_TITLE}, and a title longer than
+   * Turns a title into a name Discord accepts for an activity: surrounding whitespace and control characters up to
+   * U+001F are removed, a missing title or one left blank becomes {@value #UNKNOWN_TITLE}, and a title longer than
    * {@link Activity#MAX_ACTIVITY_NAME_LENGTH} characters is cut and ends with an ellipsis, without splitting a
    * character outside the Basic Multilingual Plane such as an emoji.
    *
@@ -240,20 +240,22 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
       return UNKNOWN_TITLE;
     }
     final String stripped = title.strip();
-    if (stripped.isEmpty()) {
+    // JDA trims the control characters that strip keeps
+    final String trimmed = stripped.trim();
+    if (trimmed.isBlank()) {
       return UNKNOWN_TITLE;
     }
-    final int length = stripped.length();
+    final int length = trimmed.length();
     if (length <= Activity.MAX_ACTIVITY_NAME_LENGTH) {
-      return stripped;
+      return trimmed;
     }
 
     int end = Activity.MAX_ACTIVITY_NAME_LENGTH - ELLIPSIS.length();
-    final char last = stripped.charAt(end - 1);
+    final char last = trimmed.charAt(end - 1);
     if (Character.isHighSurrogate(last)) {
       end--;
     }
-    final String kept = stripped.substring(0, end);
+    final String kept = trimmed.substring(0, end);
     return kept + ELLIPSIS;
   }
 }

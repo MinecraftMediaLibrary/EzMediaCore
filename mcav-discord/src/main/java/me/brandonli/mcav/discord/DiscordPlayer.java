@@ -72,11 +72,11 @@ public interface DiscordPlayer extends AudioFilter, AudioSendHandler {
 
   /**
    * Sets the presence of the bot to "Playing" a title. Any title is accepted and adjusted to the rules of
-   * Discord: surrounding whitespace is removed, a blank title shows "Unknown title", and a title longer than
-   * {@link net.dv8tion.jda.api.entities.Activity#MAX_ACTIVITY_NAME_LENGTH} characters is cut and ends with an
-   * ellipsis character (U+2026), so it fits the limit.
+   * Discord: surrounding whitespace and control characters up to U+001F are removed, a title left blank shows
+   * "Unknown title", and a title longer than {@link net.dv8tion.jda.api.entities.Activity#MAX_ACTIVITY_NAME_LENGTH}
+   * characters is cut and ends with an ellipsis character (U+2026), so it fits the limit.
    *
-   * @param title the non-null title; an empty or blank string shows "Unknown title"
+   * @param title the non-null title; a title left blank shows "Unknown title"
    * @throws NullPointerException if {@code title} is null
    */
   void setPlaying(final String title);

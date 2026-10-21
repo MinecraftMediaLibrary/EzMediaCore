@@ -226,6 +226,23 @@ final class PcmDiscordPlayerTest {
   }
 
   @Test
+  void shouldRemoveTheControlCharactersThatDiscordTrimsFromTheTitle() {
+    final PcmDiscordPlayer player = this.createPlayer();
+    final List<String> invisibles = List.of("\u0000", "\u0001\u2003\u0001");
+    for (final String invisible : invisibles) {
+      player.setPlaying(invisible);
+      final String name = this.shownActivityName();
+      assertEquals(UNKNOWN_TITLE, name);
+    }
+
+    final String title = "a".repeat(200);
+    player.setPlaying("\u0000" + title);
+    final String name = this.shownActivityName();
+    final String kept = title.substring(0, MAXIMUM_NAME_LENGTH - ELLIPSIS.length());
+    assertEquals(kept + ELLIPSIS, name);
+  }
+
+  @Test
   void shouldKeepTitlesOfExactlyTheMaximumLength() {
     final PcmDiscordPlayer player = this.createPlayer();
     final String title = "a".repeat(MAXIMUM_NAME_LENGTH);
