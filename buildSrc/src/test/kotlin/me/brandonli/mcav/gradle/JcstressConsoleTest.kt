@@ -97,7 +97,7 @@ class JcstressConsoleTest {
         tee.close()
 
         val consoleClosed: Boolean = closed
-        assertFalse(consoleClosed, "the build's console stays open for everything after the run")
+        assertFalse(consoleClosed, "The build's console must stay open for everything after the run!")
 
         shown.write('!'.code)
 
