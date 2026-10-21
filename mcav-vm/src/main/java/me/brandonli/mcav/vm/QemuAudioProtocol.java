@@ -79,7 +79,9 @@ final class QemuAudioProtocol {
   static final int SERVER_BELL = 2;
   static final int SERVER_CUT_TEXT = 3;
   static final int SERVER_QEMU = 255;
+
   static final int QEMU_AUDIO = 1;
+
   private static final int AUDIO_END = 0;
   private static final int AUDIO_BEGIN = 1;
   static final int AUDIO_DATA = 2;
@@ -87,21 +89,50 @@ final class QemuAudioProtocol {
   private static final String VERSION = "RFB 003.008\n";
   private static final int VERSION_BYTES = 12;
   private static final Pattern SERVER_VERSION = Pattern.compile("RFB \\d{3}\\.\\d{3}\n");
+
+  private static final int MAJOR_VERSION_START = 4;
+  private static final int MAJOR_VERSION_END = 7;
+  private static final int MINOR_VERSION_START = 8;
+  private static final int MINOR_VERSION_END = 11;
+
+  private static final int MINIMUM_MAJOR_VERSION = 3;
+  private static final int MINIMUM_MINOR_VERSION = 8;
+
   private static final int SECURITY_NONE = 1;
   private static final int SECURITY_VNC = 2;
+
+  private static final int SECURITY_RESULT_OK = 0;
+
   private static final int CHALLENGE_BYTES = 16;
   // VNC authentication takes the first eight characters of the password as the DES key
   private static final int KEY_BYTES = 8;
   private static final int DES_BLOCK_BYTES = 8;
   // CBC from a zero vector encrypts a single block as ECB, the mode VNC authentication uses
   private static final String CIPHER = "DES/CBC/NoPadding";
+  private static final String KEY_ALGORITHM = "DES";
+
+  private static final int BYTE_MASK = 0xFF;
+  private static final int REVERSED_BYTE_SHIFT = Integer.SIZE - Byte.SIZE;
+
+  private static final int SHARED_DISPLAY = 1;
+
   private static final int CLIENT_SET_ENCODINGS = 2;
   private static final int CLIENT_QEMU = 255;
   private static final int CLIENT_AUDIO_ENABLE = 0;
   private static final int CLIENT_AUDIO_SET_FORMAT = 2;
+
+  private static final int PADDING = 0;
+  private static final int REQUESTED_ENCODINGS = 1;
+
+  private static final int FRAMEBUFFER_SIZE_BYTES = 4;
   private static final int PIXEL_FORMAT_BYTES = 16;
+  private static final int UPDATE_PADDING_BYTES = 1;
+  private static final int COLOUR_MAP_PADDING_BYTES = 1;
+  private static final int FIRST_COLOUR_BYTES = 2;
   private static final int COLOUR_BYTES = 6;
+  private static final int CUT_TEXT_PADDING_BYTES = 3;
   private static final int RECTANGLE_BYTES = 8;
+
   private static final int SKIP_BUFFER_BYTES = 8192;
 
   private static final String REFUSED_MESSAGE = "VNC server refused the connection because of \"%s\"!";
@@ -124,9 +155,9 @@ final class QemuAudioProtocol {
       final String message = "VNC server does not speak RFB!";
       throw new ProtocolException(message);
     }
-    final int major = Integer.parseInt(version.substring(4, 7));
-    final int minor = Integer.parseInt(version.substring(8, 11));
-    if (major < 3 || (major == 3 && minor < 8)) {
+    final int major = Integer.parseInt(version.substring(MAJOR_VERSION_START, MAJOR_VERSION_END));
+    final int minor = Integer.parseInt(version.substring(MINOR_VERSION_START, MINOR_VERSION_END));
+    if (major < MINIMUM_MAJOR_VERSION || (major == MINIMUM_MAJOR_VERSION && minor < MINIMUM_MINOR_VERSION)) {
       final String message = "VNC server speaks RFB %s.%s instead of RFB 3.8 or later!".formatted(major, minor);
       throw new ProtocolException(message);
     }
@@ -205,12 +236,12 @@ final class QemuAudioProtocol {
     final byte[] key = new byte[KEY_BYTES];
     final int length = Math.min(KEY_BYTES, characters.length);
     for (int index = 0; index < length; index++) {
-      key[index] = (byte) (Integer.reverse(characters[index] & 0xFF) >>> 24);
+      key[index] = (byte) (Integer.reverse(characters[index] & BYTE_MASK) >>> REVERSED_BYTE_SHIFT);
     }
     final byte[] response = new byte[challenge.length];
     try {
       final Cipher cipher = Cipher.getInstance(CIPHER);
-      final SecretKeySpec secret = new SecretKeySpec(key, "DES");
+      final SecretKeySpec secret = new SecretKeySpec(key, KEY_ALGORITHM);
       final IvParameterSpec zeros = new IvParameterSpec(new byte[DES_BLOCK_BYTES]);
       for (int block = 0; block < challenge.length; block += DES_BLOCK_BYTES) {
         cipher.init(Cipher.ENCRYPT_MODE, secret, zeros);
@@ -231,7 +262,7 @@ final class QemuAudioProtocol {
    */
   static void readSecurityResult(final DataInput input) throws IOException {
     final int result = input.readInt();
-    if (result != 0) {
+    if (result != SECURITY_RESULT_OK) {
       final String reason = readText(input);
       final String message = REFUSED_MESSAGE.formatted(reason);
       throw new ProtocolException(message);
@@ -245,7 +276,7 @@ final class QemuAudioProtocol {
    * @throws IOException if the stream fails
    */
   static void writeClientInitialization(final DataOutput output) throws IOException {
-    output.writeByte(1);
+    output.writeByte(SHARED_DISPLAY);
   }
 
   /**
@@ -255,7 +286,7 @@ final class QemuAudioProtocol {
    * @throws IOException if the stream ends or the name of the display is longer than allowed
    */
   static void readServerInitialization(final DataInput input) throws IOException {
-    skipFully(input, 4 + PIXEL_FORMAT_BYTES);
+    skipFully(input, FRAMEBUFFER_SIZE_BYTES + PIXEL_FORMAT_BYTES);
     readText(input);
   }
 
@@ -267,8 +298,8 @@ final class QemuAudioProtocol {
    */
   static void writeSetEncodings(final DataOutput output) throws IOException {
     output.writeByte(CLIENT_SET_ENCODINGS);
-    output.writeByte(0);
-    output.writeShort(1);
+    output.writeByte(PADDING);
+    output.writeShort(REQUESTED_ENCODINGS);
     output.writeInt(AUDIO_ENCODING);
   }
 
@@ -306,14 +337,14 @@ final class QemuAudioProtocol {
     return switch (type) {
       case SERVER_UPDATE -> readUpdate(input);
       case SERVER_COLOUR_MAP -> {
-        skipFully(input, 1 + 2);
+        skipFully(input, COLOUR_MAP_PADDING_BYTES + FIRST_COLOUR_BYTES);
         final int colours = input.readUnsignedShort();
         skipFully(input, (long) colours * COLOUR_BYTES);
         yield Message.IGNORED;
       }
       case SERVER_BELL -> Message.IGNORED;
       case SERVER_CUT_TEXT -> {
-        skipFully(input, 3);
+        skipFully(input, CUT_TEXT_PADDING_BYTES);
         final long length = Integer.toUnsignedLong(input.readInt());
         if (length > MAXIMUM_CUT_TEXT_BYTES) {
           final String message = "VNC server sent %s bytes of clipboard text, more than the %s bytes allowed!".formatted(
@@ -334,7 +365,7 @@ final class QemuAudioProtocol {
   }
 
   private static Message readUpdate(final DataInput input) throws IOException {
-    skipFully(input, 1);
+    skipFully(input, UPDATE_PADDING_BYTES);
     final int rectangles = input.readUnsignedShort();
     if (rectangles > MAXIMUM_RECTANGLES) {
       final String message = "VNC server announced %s rectangles, more than the %s allowed!".formatted(rectangles, MAXIMUM_RECTANGLES);

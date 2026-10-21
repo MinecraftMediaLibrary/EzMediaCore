@@ -29,6 +29,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class VmSettings {
 
+  private static final int MAXIMUM_PORT = 65535;
+
   private final int port;
   private final int width;
   private final int height;
@@ -68,7 +70,11 @@ public final class VmSettings {
    * @throws IllegalArgumentException if the port is outside 5900 through 65535, or a dimension or frame rate is nonpositive
    */
   public static VmSettings of(final int port, final int width, final int height, final int targetFrameRate) {
-    Preconditions.checkArgument(port >= VmProcess.FIRST_VNC_PORT && port <= 65535, "VNC port %s must be between 5900 and 65535!", port);
+    Preconditions.checkArgument(
+      port >= VmProcess.FIRST_VNC_PORT && port <= MAXIMUM_PORT,
+      "VNC port %s must be between 5900 and 65535!",
+      port
+    );
     Preconditions.checkArgument(width > 0 && height > 0, "Frame size %sx%s must be positive!", width, height);
     Preconditions.checkArgument(targetFrameRate > 0, "Frame rate %s must be positive!", targetFrameRate);
     return new VmSettings(port, width, height, targetFrameRate);

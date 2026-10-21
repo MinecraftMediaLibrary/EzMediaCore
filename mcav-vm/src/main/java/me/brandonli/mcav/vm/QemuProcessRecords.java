@@ -27,11 +27,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
 import me.brandonli.mcav.utils.IoUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +51,21 @@ import org.slf4j.LoggerFactory;
 final class QemuProcessRecords {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(QemuProcessRecords.class);
+
   private static final String NOT_RECORDED = "QEMU process {} could not be recorded, so it keeps running if this server is killed.";
+
+  private static final String HOME_PROPERTY = "user.home";
+  private static final String MCAV_FOLDER = ".mcav";
+  private static final String RECORDS_FOLDER = "vm";
+
   private static final String SUFFIX = ".qemu";
+  private static final String RECORD_GLOB = "*" + SUFFIX;
+
+  private static final String LINE_SEPARATOR = "\n";
+  private static final int STARTED_LINE = 0;
+  private static final int OWNER_PROCESS_ID_LINE = 1;
+  private static final int OWNER_STARTED_LINE = 2;
+
   private static final Duration STOP_TIMEOUT = Duration.ofSeconds(10);
 
   private final Path folder;
@@ -64,8 +79,9 @@ final class QemuProcessRecords {
    * @return the records
    */
   static QemuProcessRecords ofUser() {
-    final String home = System.getProperty("user.home");
-    final Path folder = Path.of(home, ".mcav", "vm");
+    final @Nullable String homeOrNull = System.getProperty(HOME_PROPERTY);
+    final String home = Objects.requireNonNull(homeOrNull, "The JVM always sets the user home!");
+    final Path folder = Path.of(home, MCAV_FOLDER, RECORDS_FOLDER);
     return new QemuProcessRecords(folder, ProcessHandle.current(), ProcessHandle::of, STOP_TIMEOUT);
   }
 
@@ -104,7 +120,7 @@ final class QemuProcessRecords {
       LOGGER.warn(NOT_RECORDED, processId);
       return;
     }
-    final String record = started.get() + "\n" + this.owner.pid() + "\n" + ownerStarted.get() + "\n";
+    final String record = started.get() + LINE_SEPARATOR + this.owner.pid() + LINE_SEPARATOR + ownerStarted.get() + LINE_SEPARATOR;
     try {
       Files.createDirectories(this.folder);
       Files.writeString(this.fileOf(processId), record, StandardCharsets.US_ASCII);
@@ -137,7 +153,7 @@ final class QemuProcessRecords {
       return 0;
     }
     int stopped = 0;
-    try (final DirectoryStream<Path> records = Files.newDirectoryStream(this.folder, "*" + SUFFIX)) {
+    try (final DirectoryStream<Path> records = Files.newDirectoryStream(this.folder, RECORD_GLOB)) {
       for (final Path record : records) {
         stopped += this.reapRecord(record);
       }
@@ -203,9 +219,9 @@ final class QemuProcessRecords {
     final List<String> lines = Files.readAllLines(record, StandardCharsets.US_ASCII);
     try {
       final long processId = Long.parseLong(name.substring(0, name.length() - SUFFIX.length()));
-      final Instant started = Instant.parse(lines.get(0));
-      final long ownerProcessId = Long.parseLong(lines.get(1));
-      final Instant ownerStarted = Instant.parse(lines.get(2));
+      final Instant started = Instant.parse(lines.get(STARTED_LINE));
+      final long ownerProcessId = Long.parseLong(lines.get(OWNER_PROCESS_ID_LINE));
+      final Instant ownerStarted = Instant.parse(lines.get(OWNER_STARTED_LINE));
       return Optional.of(new ProcessRecord(processId, started, ownerProcessId, ownerStarted));
     } catch (final NumberFormatException | DateTimeParseException | IndexOutOfBoundsException exception) {
       return Optional.empty();

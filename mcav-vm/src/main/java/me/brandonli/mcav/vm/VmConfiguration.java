@@ -54,6 +54,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class VmConfiguration {
 
+  private static final String OPTION_PREFIX = "-";
+  private static final String ARGUMENT_SEPARATOR = " ";
+
+  private static final String MEMORY_OPTION = "m";
+  private static final String MEGABYTES_SUFFIX = "M";
+
+  private static final int REPEATABLE_ENTRY_SIZE = 2;
+
   private static final String MEMORY_NOT_POSITIVE_MESSAGE = "Memory %s must be positive!";
 
   private static final String DISK_PATH_NULL_MESSAGE = "Disk path must not be null!";
@@ -90,7 +98,7 @@ public final class VmConfiguration {
    */
   public VmConfiguration memory(final int memoryMegabytes) {
     Preconditions.checkArgument(memoryMegabytes > 0, MEMORY_NOT_POSITIVE_MESSAGE, memoryMegabytes);
-    return this.option("m", memoryMegabytes + "M");
+    return this.option(MEMORY_OPTION, memoryMegabytes + MEGABYTES_SUFFIX);
   }
 
   /**
@@ -106,7 +114,7 @@ public final class VmConfiguration {
   public VmConfiguration memory(final int amount, final String unit) {
     Preconditions.checkArgument(amount > 0, MEMORY_NOT_POSITIVE_MESSAGE, amount);
     Preconditions.checkNotNull(unit, "Unit must not be null!");
-    return this.option("m", amount + unit);
+    return this.option(MEMORY_OPTION, amount + unit);
   }
 
   /**
@@ -285,7 +293,7 @@ public final class VmConfiguration {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
     Preconditions.checkNotNull(value, VALUE_NULL_MESSAGE);
     Preconditions.checkArgument(!key.isBlank(), KEY_BLANK_MESSAGE);
-    this.repeatable.add("-" + key);
+    this.repeatable.add(OPTION_PREFIX + key);
     this.repeatable.add(value);
     return this;
   }
@@ -317,9 +325,9 @@ public final class VmConfiguration {
     this.options.remove(key);
     this.flags.remove(key);
 
-    final String argument = "-" + key;
+    final String argument = OPTION_PREFIX + key;
     final List<String> kept = new ArrayList<>();
-    for (int index = 0; index < this.repeatable.size(); index += 2) {
+    for (int index = 0; index < this.repeatable.size(); index += REPEATABLE_ENTRY_SIZE) {
       final String name = this.repeatable.get(index);
       final String value = this.repeatable.get(index + 1);
       if (!name.equals(argument)) {
@@ -356,9 +364,9 @@ public final class VmConfiguration {
    */
   public List<String> getAll(final String key) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
-    final String argument = "-" + key;
+    final String argument = OPTION_PREFIX + key;
     final List<String> values = new ArrayList<>();
-    for (int index = 0; index < this.repeatable.size(); index += 2) {
+    for (int index = 0; index < this.repeatable.size(); index += REPEATABLE_ENTRY_SIZE) {
       final String name = this.repeatable.get(index);
       if (name.equals(argument)) {
         final String value = this.repeatable.get(index + 1);
@@ -394,9 +402,9 @@ public final class VmConfiguration {
         values.add(entry.getValue());
       }
     }
-    for (int index = 0; index < this.repeatable.size(); index += 2) {
+    for (int index = 0; index < this.repeatable.size(); index += REPEATABLE_ENTRY_SIZE) {
       final String name = this.repeatable.get(index);
-      if (keys.contains(name.substring(1))) {
+      if (keys.contains(name.substring(OPTION_PREFIX.length()))) {
         values.add(this.repeatable.get(index + 1));
       }
     }
@@ -413,14 +421,14 @@ public final class VmConfiguration {
     for (final Map.Entry<String, String> entry : this.options.entrySet()) {
       final String key = entry.getKey();
       final String value = entry.getValue();
-      arguments.add("-" + key);
+      arguments.add(OPTION_PREFIX + key);
       arguments.add(value);
     }
 
     arguments.addAll(this.repeatable);
 
     for (final String flag : this.flags) {
-      arguments.add("-" + flag);
+      arguments.add(OPTION_PREFIX + flag);
     }
     return List.copyOf(arguments);
   }
@@ -444,6 +452,6 @@ public final class VmConfiguration {
   @Override
   public String toString() {
     final List<String> arguments = this.getArguments();
-    return String.join(" ", arguments);
+    return String.join(ARGUMENT_SEPARATOR, arguments);
   }
 }

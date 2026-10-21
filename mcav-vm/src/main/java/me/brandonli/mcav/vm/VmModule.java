@@ -41,6 +41,8 @@ public final class VmModule implements MCAVModule {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VmModule.class);
 
+  private static final String MODULE_NAME = "vm";
+
   private final ExecutableFinder finder;
   private final QemuProcessRecords records;
   private volatile boolean qemuInstalled;
@@ -100,7 +102,7 @@ public final class VmModule implements MCAVModule {
    */
   @Override
   public String getModuleName() {
-    return "vm";
+    return MODULE_NAME;
   }
 
   /**

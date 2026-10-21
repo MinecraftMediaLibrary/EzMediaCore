@@ -85,12 +85,15 @@ final class VmProcess {
    */
   private static final String PASSWORD_ID = "mcav-vnc-password";
 
+  private static final String SOUND_CARD_ID = "mcav-sound";
+
   // VNC's password authentication reads at most eight characters
   private static final int PASSWORD_LENGTH = 8;
   private static final String PASSWORD_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  private static final SecureRandom RANDOM = new SecureRandom();
+
   private static final String PASSWORD_FILE = "password";
   private static final String SECRET_FOLDER_PREFIX = "mcav-vm-";
-  private static final SecureRandom RANDOM = new SecureRandom();
   private static final Path TEMPORARY_FOLDER = Path.of(System.getProperty("java.io.tmpdir"));
   private static final boolean POSIX = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
   private static final FileAttribute<Set<PosixFilePermission>> OWNER_ONLY = PosixFilePermissions.asFileAttribute(
@@ -98,19 +101,62 @@ final class VmProcess {
   );
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VmProcess.class);
-  private static final String LOCALHOST = "127.0.0.1";
-  private static final Set<String> MACHINE_OPTIONS = Set.of("machine", "M");
-  private static final List<String> NETWORK_OPTIONS = List.of("nic", "netdev", "net", "nodefaults");
-  private static final String RESTRICTED_NETWORK = "user,restrict=on";
+
+  static final String LOCALHOST = "127.0.0.1";
   static final InetAddress LOOPBACK = InetAddress.ofLiteral(LOCALHOST);
+  private static final String DISPLAY_SEPARATOR = ":";
+
+  private static final String ARGUMENT_SEPARATOR = " ";
+
+  private static final String PROPERTY_SEPARATOR = ",";
+  private static final String ESCAPED_PROPERTY_SEPARATOR = ",,";
+  private static final String PROPERTY_ASSIGNMENT = "=";
+  private static final Splitter PROPERTY_SPLITTER = Splitter.on(PROPERTY_SEPARATOR);
+
+  private static final List<String> MODULE_OPTIONS = List.of("vnc", "audio", "audiodev");
+  private static final List<String> ACCELERATOR_OPTIONS = List.of("accel", "enable-kvm");
+  private static final List<String> DISPLAY_OPTIONS = List.of("display", "nographic");
+  private static final List<String> NETWORK_OPTIONS = List.of("nic", "netdev", "net", "nodefaults");
+  private static final Set<String> MACHINE_OPTIONS = Set.of("machine", "M");
+
+  private static final String DEVICE_OPTION = "-device";
+  private static final String VNC_OPTION = "-vnc";
+
+  private static final String RESTRICTED_NETWORK = "user,restrict=on";
+
+  private static final String SPEAKER_PROPERTY = "pcspk-audiodev";
+  private static final String TYPE_PROPERTY = "type=";
+
+  private static final String PC_MACHINE = "pc";
+  private static final String Q35_MACHINE = "q35";
+  private static final String PC_VERSION_PREFIX = "pc-";
+  private static final String Q35_VERSION_PREFIX = "pc-q35";
+
+  private static final String ICH9_SOUND_CARD = "ich9-intel-hda";
+  private static final String SOUND_CARD = "intel-hda";
+
+  private static final String TABLET_DEVICE = "usb-tablet";
+
+  private static final String SOFTWARE_ACCELERATOR = "tcg";
+  private static final String KVM_ACCELERATOR = "kvm";
+  private static final String WHPX_ACCELERATOR = "whpx";
+  private static final String HVF_ACCELERATOR = "hvf";
+  private static final Path KVM_DEVICE = Path.of("/dev/kvm");
+
+  private static final List<String> ACCELERATOR_WORDS = List.of("accel", "hypervisor", "virtualization");
+
   private static final long START_TIMEOUT_MILLISECONDS = 60_000L;
   private static final long POLL_MILLISECONDS = 100L;
+  private static final int CONNECT_TIMEOUT_MILLISECONDS = (int) POLL_MILLISECONDS * 5;
   private static final long STOP_TIMEOUT_SECONDS = 10L;
   private static final long OUTPUT_TIMEOUT_MILLISECONDS = 2_000L;
+
+  private static final String OUTPUT_THREAD_NAME = "mcav-qemu-output";
+  private static final int READ_BUFFER_CHARACTERS = 4096;
+  private static final char LINE_FEED = '\n';
+  private static final char CARRIAGE_RETURN = '\r';
   private static final int OUTPUT_TAIL_LINES = 40;
   private static final int OUTPUT_LINE_CHARACTERS = 4096;
-  private static final String SOFTWARE_ACCELERATOR = "tcg";
-  private static final Path KVM_DEVICE = Path.of("/dev/kvm");
 
   private final VmSettings settings;
   private final VmPlayer.Architecture architecture;
@@ -282,7 +328,7 @@ final class VmProcess {
   }
 
   private void launchMachine(final Path passwordFile) {
-    final boolean acceleratorConfigured = this.configuration.has("accel") || this.configuration.has("enable-kvm");
+    final boolean acceleratorConfigured = ACCELERATOR_OPTIONS.stream().anyMatch(this.configuration::has);
     if (acceleratorConfigured) {
       this.launch(null, passwordFile);
       return;
@@ -356,14 +402,14 @@ final class VmProcess {
    */
   @VisibleForTesting
   static void checkModuleOptions(final VmConfiguration configuration) {
-    for (final String option : List.of("vnc", "audio", "audiodev")) {
+    for (final String option : MODULE_OPTIONS) {
       if (configuration.has(option)) {
         final String message = "Option -%s is set by MCAV itself and must be removed from the configuration!".formatted(option);
         throw new PlayerException(message);
       }
     }
     for (final String machine : machineValues(configuration)) {
-      if (machine.contains("pcspk-audiodev")) {
+      if (machine.contains(SPEAKER_PROPERTY)) {
         final String message = "PC speaker is routed by MCAV itself, so pcspk-audiodev must be removed from -machine!";
         throw new PlayerException(message);
       }
@@ -391,10 +437,10 @@ final class VmProcess {
     String type = "";
     for (final String machine : machineValues(configuration)) {
       boolean first = true;
-      for (final String part : Splitter.on(',').split(machine)) {
-        if (part.startsWith("type=")) {
-          type = part.substring("type=".length());
-        } else if (first && !part.isEmpty() && !part.contains("=")) {
+      for (final String part : PROPERTY_SPLITTER.split(machine)) {
+        if (part.startsWith(TYPE_PROPERTY)) {
+          type = part.substring(TYPE_PROPERTY.length());
+        } else if (first && !part.isEmpty() && !part.contains(PROPERTY_ASSIGNMENT)) {
           type = part;
         }
         first = false;
@@ -423,11 +469,11 @@ final class VmProcess {
    */
   @VisibleForTesting
   static boolean isPcMachine(final String type) {
-    return type.isEmpty() || type.equals("pc") || type.equals("q35") || type.startsWith("pc-");
+    return type.isEmpty() || type.equals(PC_MACHINE) || type.equals(Q35_MACHINE) || type.startsWith(PC_VERSION_PREFIX);
   }
 
   private static boolean isQ35(final String type) {
-    return type.equals("q35") || type.startsWith("pc-q35");
+    return type.equals(Q35_MACHINE) || type.startsWith(Q35_VERSION_PREFIX);
   }
 
   private void ensurePortIsFree() {
@@ -454,12 +500,14 @@ final class VmProcess {
   static boolean mentionsAccelerator(final @Nullable String reason, final String accelerator) {
     final String message = Objects.requireNonNullElse(reason, "");
     final String lower = message.toLowerCase(Locale.ROOT);
-    return lower.contains(accelerator) || lower.contains("accel") || lower.contains("hypervisor") || lower.contains("virtualization");
+    final boolean namesAccelerator = lower.contains(accelerator);
+    final boolean blamesVirtualization = ACCELERATOR_WORDS.stream().anyMatch(lower::contains);
+    return namesAccelerator || blamesVirtualization;
   }
 
   private void launch(final @Nullable String accelerator, final Path passwordFile) {
     final List<String> command = this.buildCommand(accelerator, passwordFile);
-    final String rendered = String.join(" ", command);
+    final String rendered = String.join(ARGUMENT_SEPARATOR, command);
     LOGGER.debug("QEMU is started with the command line {}.", rendered);
 
     final Process started;
@@ -488,7 +536,7 @@ final class VmProcess {
     }
 
     final InputStream output = started.getInputStream();
-    final Thread drain = new Thread(() -> this.drain(output), "mcav-qemu-output");
+    final Thread drain = new Thread(() -> this.drain(output), OUTPUT_THREAD_NAME);
     drain.setDaemon(true);
     this.drainThread = drain;
     drain.start();
@@ -527,7 +575,7 @@ final class VmProcess {
    */
   private static void routeSpeaker(final List<String> command) {
     command.add("-machine");
-    command.add("pcspk-audiodev=" + AUDIO_ID);
+    command.add(SPEAKER_PROPERTY + PROPERTY_ASSIGNMENT + AUDIO_ID);
   }
 
   /**
@@ -538,7 +586,7 @@ final class VmProcess {
    */
   private void addDefaultOptions(final List<String> command, final Path passwordFile) {
     this.addUnlessConfigured(command, "vga", "-vga", "std");
-    final boolean hasDisplay = this.configuration.has("display") || this.configuration.has("nographic");
+    final boolean hasDisplay = DISPLAY_OPTIONS.stream().anyMatch(this.configuration::has);
     if (!hasDisplay) {
       command.add("-display");
       command.add("none");
@@ -553,16 +601,16 @@ final class VmProcess {
     final int port = this.settings.getPort();
     final int display = port - FIRST_VNC_PORT;
     // QEMU splits its option values at commas, so a comma of the path is written twice
-    final String secretFile = passwordFile.toString().replace(",", ",,");
+    final String secretFile = passwordFile.toString().replace(PROPERTY_SEPARATOR, ESCAPED_PROPERTY_SEPARATOR);
     command.add("-object");
     command.add("secret,id=" + PASSWORD_ID + ",file=" + secretFile);
-    final String vnc = LOCALHOST + ":" + display + ",share=force-shared,password-secret=" + PASSWORD_ID;
+    final String vnc = LOCALHOST + DISPLAY_SEPARATOR + display + ",share=force-shared,password-secret=" + PASSWORD_ID;
     if (this.hasAudio()) {
       this.addAudio(command);
-      command.add("-vnc");
+      command.add(VNC_OPTION);
       command.add(vnc + ",audiodev=" + AUDIO_ID);
     } else {
-      command.add("-vnc");
+      command.add(VNC_OPTION);
       command.add(vnc);
     }
     this.addUsbTablet(command);
@@ -577,11 +625,11 @@ final class VmProcess {
   private void addAudio(final List<String> command) {
     command.add("-audiodev");
     command.add("none,id=" + AUDIO_ID + ",out.frequency=" + AudioFilter.SAMPLE_RATE);
-    final String card = isQ35(machineType(this.configuration)) ? "ich9-intel-hda" : "intel-hda";
-    command.add("-device");
-    command.add(card + ",id=mcav-sound");
-    command.add("-device");
-    command.add("hda-output,bus=mcav-sound.0,audiodev=" + AUDIO_ID);
+    final String card = isQ35(machineType(this.configuration)) ? ICH9_SOUND_CARD : SOUND_CARD;
+    command.add(DEVICE_OPTION);
+    command.add(card + ",id=" + SOUND_CARD_ID);
+    command.add(DEVICE_OPTION);
+    command.add("hda-output,bus=" + SOUND_CARD_ID + ".0,audiodev=" + AUDIO_ID);
   }
 
   /**
@@ -594,7 +642,7 @@ final class VmProcess {
     boolean controllerChosen = this.configuration.has("usb");
     boolean usbOff = false;
     for (final String machine : machineValues(this.configuration)) {
-      for (final String part : Splitter.on(',').split(machine)) {
+      for (final String part : PROPERTY_SPLITTER.split(machine)) {
         if (part.startsWith("usb=")) {
           controllerChosen = true;
           usbOff = part.equals("usb=off");
@@ -608,14 +656,14 @@ final class VmProcess {
       command.add("-usb");
     }
     if (!legacyTablet && !usbOff && !tabletAdded) {
-      command.add("-device");
-      command.add("usb-tablet");
+      command.add(DEVICE_OPTION);
+      command.add(TABLET_DEVICE);
     }
   }
 
   private static boolean hasTablet(final List<String> devices) {
     for (final String device : devices) {
-      final boolean tablet = device.equals("usb-tablet") || device.startsWith("usb-tablet,");
+      final boolean tablet = device.equals(TABLET_DEVICE) || device.startsWith(TABLET_DEVICE + PROPERTY_SEPARATOR);
       if (tablet) {
         return true;
       }
@@ -641,9 +689,9 @@ final class VmProcess {
   @VisibleForTesting
   static String detectAccelerator(final Os os, final Path kvmDevice) {
     return switch (os) {
-      case LINUX -> Files.isWritable(kvmDevice) ? "kvm" : SOFTWARE_ACCELERATOR;
-      case WINDOWS -> "whpx";
-      case MAC -> "hvf";
+      case LINUX -> Files.isWritable(kvmDevice) ? KVM_ACCELERATOR : SOFTWARE_ACCELERATOR;
+      case WINDOWS -> WHPX_ACCELERATOR;
+      case MAC -> HVF_ACCELERATOR;
       case FREEBSD, OTHER -> SOFTWARE_ACCELERATOR;
     };
   }
@@ -651,7 +699,7 @@ final class VmProcess {
   private void drain(final InputStream stream) {
     final StringBuilder line = new StringBuilder();
     try (final Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
-      final char[] characters = new char[4096];
+      final char[] characters = new char[READ_BUFFER_CHARACTERS];
       int count;
       while ((count = reader.read(characters)) >= 0) {
         this.collectLines(characters, count, line);
@@ -674,12 +722,12 @@ final class VmProcess {
   private void collectLines(final char[] characters, final int count, final StringBuilder line) {
     for (int index = 0; index < count; index++) {
       final char character = characters[index];
-      if (character == '\n') {
+      if (character == LINE_FEED) {
         trimLine(line);
         final String complete = line.toString();
         this.remember(complete);
         line.setLength(0);
-      } else if (character != '\r') {
+      } else if (character != CARRIAGE_RETURN) {
         line.append(character);
       }
     }
@@ -801,7 +849,7 @@ final class VmProcess {
 
   private static boolean isReachable(final InetSocketAddress address) {
     try (final Socket socket = new Socket()) {
-      socket.connect(address, (int) POLL_MILLISECONDS * 5);
+      socket.connect(address, CONNECT_TIMEOUT_MILLISECONDS);
       return true;
     } catch (final IOException exception) {
       return false;

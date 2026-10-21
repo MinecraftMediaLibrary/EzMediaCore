@@ -47,6 +47,10 @@ final class VmAudioClient implements Closeable {
 
   static final int HANDSHAKE_TIMEOUT_MILLISECONDS = 5_000;
 
+  private static final String UNSTARTED_READER_NAME = "mcav-vm-audio-not-started";
+  private static final String READER_THREAD_NAME = "mcav-vm-audio";
+  private static final String DEADLINE_THREAD_NAME = "mcav-vm-audio-deadline";
+
   private final Socket socket;
   private final DataInputStream input;
   private final Sink sink;
@@ -59,11 +63,11 @@ final class VmAudioClient implements Closeable {
     this.input = input;
     this.sink = sink;
     this.failures = failures;
-    this.reader = new Thread("mcav-vm-audio-not-started");
+    this.reader = new Thread(UNSTARTED_READER_NAME);
   }
 
   private void startReading() {
-    final Thread thread = new Thread(this::read, "mcav-vm-audio");
+    final Thread thread = new Thread(this::read, READER_THREAD_NAME);
     thread.setDaemon(true);
     this.reader = thread;
     thread.start();
@@ -191,7 +195,7 @@ final class VmAudioClient implements Closeable {
   }
 
   private static void onOwnThread(final Runnable task) {
-    Thread.ofVirtual().name("mcav-vm-audio-deadline").start(task);
+    Thread.ofVirtual().name(DEADLINE_THREAD_NAME).start(task);
   }
 
   /**

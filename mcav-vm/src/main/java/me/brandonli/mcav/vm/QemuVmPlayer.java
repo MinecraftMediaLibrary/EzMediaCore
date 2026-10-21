@@ -287,7 +287,7 @@ public final class QemuVmPlayer implements VmPlayer {
     final int height = settings.getHeight();
     final int frameRate = settings.getTargetFrameRate();
     final VncSourceBuilder builder = VncSource.builder();
-    builder.host("127.0.0.1");
+    builder.host(VmProcess.LOCALHOST);
     builder.port(port);
     builder.screenWidth(width);
     builder.screenHeight(height);
