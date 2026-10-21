@@ -103,13 +103,6 @@ public class McPackHosting implements WebsiteHosting {
     this(zip, UPLOAD_URI, DOWNLOAD_URL_FORMAT);
   }
 
-  /**
-   * Constructs a new {@code McPackHosting} that talks to another upload service.
-   *
-   * @param zip               the path to the resource pack zip to upload
-   * @param uploadUri         the URI the pack is posted to as a multipart form
-   * @param downloadUrlFormat the format of the download URL, with one placeholder for the SHA-1 hash of the pack
-   */
   @VisibleForTesting
   McPackHosting(final Path zip, final URI uploadUri, final String downloadUrlFormat) {
     Preconditions.checkNotNull(zip, "Resource pack path must not be null!");
@@ -166,14 +159,6 @@ public class McPackHosting implements WebsiteHosting {
     }
   }
 
-  /**
-   * Hashes bytes and formats the hash as lowercase hexadecimal digits.
-   *
-   * @param bytes     the bytes to hash
-   * @param algorithm the name of the hash algorithm, such as {@code SHA-1}
-   * @return the hash in hexadecimal
-   * @throws IllegalStateException if the algorithm is not available
-   */
   @VisibleForTesting
   static String hash(final byte[] bytes, final String algorithm) {
     try {
@@ -186,14 +171,6 @@ public class McPackHosting implements WebsiteHosting {
     }
   }
 
-  /**
-   * Looks the pack up in the upload cache, uploading it only if it was never uploaded before or its download is
-   * no longer available.
-   *
-   * @param hash the SHA-1 hash of the pack
-   * @param pack the bytes of the pack
-   * @return the download URL of the pack
-   */
   private String findOrUpload(final String hash, final byte[] pack) {
     final Map<String, String> cache = this.readCache();
     final String cachedUrl = cache.get(hash);

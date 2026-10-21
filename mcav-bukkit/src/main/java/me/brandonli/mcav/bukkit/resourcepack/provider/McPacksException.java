@@ -31,21 +31,10 @@ public final class McPacksException extends BukkitException {
   @Serial
   private static final long serialVersionUID = -6775463807604247034L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which says why the upload failed
-   */
   McPacksException(final String message) {
     super(message);
   }
 
-  /**
-   * Constructs a new exception with a detail message and the failure that caused it.
-   *
-   * @param message the detail message, which says why the upload failed
-   * @param cause   the failure that caused this exception
-   */
   McPacksException(final String message, final Throwable cause) {
     super(message, cause);
   }

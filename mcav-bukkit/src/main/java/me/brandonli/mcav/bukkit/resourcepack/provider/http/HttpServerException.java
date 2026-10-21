@@ -30,21 +30,10 @@ public final class HttpServerException extends BukkitException {
   @Serial
   private static final long serialVersionUID = -1558230210828592665L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which names the port that cannot be bound
-   */
   HttpServerException(final String message) {
     super(message);
   }
 
-  /**
-   * Constructs a new exception with a detail message and the failure that caused it.
-   *
-   * @param message the detail message, which names the port that cannot be bound
-   * @param cause   the failure that caused this exception, such as the bind failure
-   */
   HttpServerException(final String message, final Throwable cause) {
     super(message, cause);
   }

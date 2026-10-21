@@ -208,10 +208,7 @@ public class CompressedMapResult implements DitherResultStep {
     }
   }
 
-  /**
-   * Subtracts the current snapshot from the exact union of previously sent pixels. A bounding rectangle would
-   * erase pixels never owned by the result when, for example, a wide image is followed by a tall image.
-   */
+  // the exact union, not a bounding box, which would erase pixels this result never drew
   private List<MapTilePatch> createHistoryClears(final List<MapTilePatch> snapshot) {
     final Map<Integer, BitSet> uncovered = new TreeMap<>();
     for (final Map.Entry<Integer, BitSet> entry : this.sentPixels.entrySet()) {
@@ -250,10 +247,6 @@ public class CompressedMapResult implements DitherResultStep {
     }
   }
 
-  /**
-   * Consumes a coverage bitmap as disjoint transparent rectangles. Each horizontal run is extended down through
-   * rows that contain it, keeping solid regions compact without including a pixel outside the recorded coverage.
-   */
   private void appendClearRectangles(final int mapId, final BitSet pixels, final List<MapTilePatch> clears) {
     final int size = MapLayout.MAP_SIZE;
     int first = pixels.nextSetBit(0);
@@ -287,10 +280,6 @@ public class CompressedMapResult implements DitherResultStep {
     return height;
   }
 
-  /**
-   * Sorts the connected viewers into those who already watch, and receive only the changes, and those who just
-   * started watching, and need the complete picture first. Viewers who disconnected are forgotten.
-   */
   private void sortConnectedViewers(final List<UUID> existingViewers, final List<UUID> newViewers) {
     final Collection<UUID> viewers = this.configuration.getViewers();
     final Set<UUID> connectedViewers = new HashSet<>();

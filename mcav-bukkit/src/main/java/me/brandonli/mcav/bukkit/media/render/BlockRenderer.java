@@ -71,9 +71,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
 
-  /**
-   * The number of server ticks between two complete sends of the wall to every viewer.
-   */
   static final int FULL_RESEND_INTERVAL_TICKS = 20;
 
   private static final int CENTERING_DIVISOR = 2;
@@ -179,23 +176,16 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     this.displayedBlocks = null;
   }
 
-  /** Whether a player is in the world of the wall, the only one whose client shows it. */
   private boolean isInWallWorld(final Player player) {
     return player.getWorld().getUID().equals(this.worldId);
   }
 
-  /**
-   * Returns the number of blocks of the wall.
-   */
   private int getBlockCount() {
     final int width = this.configuration.getBlockWidth();
     final int height = this.configuration.getBlockHeight();
     return width * height;
   }
 
-  /**
-   * Returns the x coordinate of a block of the screen, which is centered on the origin horizontally.
-   */
   private int getBlockX(final int originX, final int index) {
     final int width = this.configuration.getBlockWidth();
     final int leftX = originX - width / CENTERING_DIVISOR;
@@ -203,9 +193,6 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     return leftX + column;
   }
 
-  /**
-   * Returns the y coordinate of a block of the screen, whose bottom row is at the height of the origin.
-   */
   private int getBlockY(final int originY, final int index) {
     final int width = this.configuration.getBlockWidth();
     final int height = this.configuration.getBlockHeight();
@@ -213,12 +200,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     return originY + (height - 1 - row);
   }
 
-  /**
-   * Sends the blocks that changed since the previous frame to the viewers who already see the wall. Viewers who
-   * just started watching receive the complete wall in {@link #onTick()}, which runs right afterward.
-   *
-   * @param blocks the blocks of the new frame
-   */
+  // new viewers get the whole wall from onTick(), which runs next
   @Override
   protected void apply(final BlockData[] blocks) {
     final Position[] currentPositions = this.positions;
@@ -237,9 +219,6 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     this.sendToActiveViewers(changes);
   }
 
-  /**
-   * Collects the blocks of a frame that differ from the previous frame, or every block if there is none.
-   */
   private Map<Position, BlockData> collectChanges(
     final Position[] positions,
     final BlockData @Nullable [] previousBlocks,
@@ -269,11 +248,6 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     }
   }
 
-  /**
-   * Sends the complete wall to viewers who just started watching, and to every viewer once every
-   * {@value #FULL_RESEND_INTERVAL_TICKS} ticks. Viewers who were removed from the viewers while online receive
-   * the original blocks again.
-   */
   @Override
   protected void onTick() {
     final Position[] currentPositions = this.positions;
@@ -295,9 +269,6 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     this.restoreRemovedViewers(currentPositions, watchingViewers);
   }
 
-  /**
-   * Counts the tick and checks whether the complete wall is due for every viewer, starting the count over if so.
-   */
   private WallRecipients advanceResendCounter() {
     this.ticksSinceFullResend++;
     if (this.ticksSinceFullResend < FULL_RESEND_INTERVAL_TICKS) {
@@ -309,12 +280,6 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     return WallRecipients.EVERY_VIEWER;
   }
 
-  /**
-   * Adds every online viewer in the world of the wall to the watching viewers and marks them as active. A viewer in
-   * another world is not watching: coming back, they receive the complete wall again.
-   *
-   * @return the online viewers who need the complete wall, because they just started watching or it is due
-   */
   private List<Player> updateActiveViewers(final Set<UUID> watchingViewers, final WallRecipients recipients) {
     final List<Player> playersWithoutWall = new ArrayList<>();
     final Collection<UUID> viewers = this.configuration.getViewers();
@@ -333,9 +298,6 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     return playersWithoutWall;
   }
 
-  /**
-   * Sends the original blocks to the active viewers who are no longer watching, and forgets them.
-   */
   private void restoreRemovedViewers(final Position[] currentPositions, final Set<UUID> watchingViewers) {
     final List<UUID> removedViewers = new ArrayList<>(this.activeViewers);
     removedViewers.removeAll(watchingViewers);

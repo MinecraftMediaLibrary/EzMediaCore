@@ -257,9 +257,6 @@ public final class PacketUtils {
     PLAYER_CONNECTIONS.remove(uuid);
   }
 
-  /**
-   * The owner of the connection tracking handlers, which {@link #shutdown()} unregisters all at once.
-   */
   private static final class ConnectionListener implements Listener {}
 
   private record CachedConnection(ServerGamePacketListenerImpl listener, Object identity) {}

@@ -93,11 +93,7 @@ public final class SimpleResourcePack {
 
   private static final String PARENT_DIRECTORY = "..";
 
-  /**
-   * The modification time of every entry, fixed so the same pack always zips to the same bytes, and so to the same
-   * hash, which lets clients keep the pack they downloaded before. It is a local time in the zip format's range, so the
-   * bytes do not depend on the server's time zone either.
-   */
+  // fixed, so the same pack zips to the same bytes and hash in every time zone
   private static final LocalDateTime ENTRY_TIME = LocalDateTime.of(1980, 2, 1, 0, 0);
 
   private final Map<String, Map<String, Path>> sounds;
@@ -292,14 +288,7 @@ public final class SimpleResourcePack {
     }
   }
 
-  /**
-   * Makes a file readable by everyone. Temporary files are created readable by their owner only, and would keep
-   * that mode after they were moved into place.
-   *
-   * @param view the POSIX attributes of the file, or null if the file system does not support POSIX permissions,
-   *             like on Windows, in which case nothing is changed
-   * @throws IOException if the permissions cannot be changed
-   */
+  // temporary files are owner-only and keep that mode after the move
   @VisibleForTesting
   static void makeReadable(final @Nullable PosixFileAttributeView view) throws IOException {
     if (view == null) {
@@ -310,15 +299,6 @@ public final class SimpleResourcePack {
     view.setPermissions(permissions);
   }
 
-  /**
-   * Moves a file into place, replacing the target. The move is atomic where the file system supports it, and a
-   * regular move otherwise, for example on some network file systems.
-   *
-   * @param source the file to move
-   * @param target the destination
-   * @param mover  moves files, usually {@link Files#move(Path, Path, CopyOption...)}
-   * @throws IOException if the file cannot be moved
-   */
   @VisibleForTesting
   static void moveIntoPlace(final Path source, final Path target, final FileMover mover) throws IOException {
     try {
@@ -390,12 +370,6 @@ public final class SimpleResourcePack {
     return event;
   }
 
-  /**
-   * Creates a zip entry with the fixed modification time.
-   *
-   * @param name the entry's name
-   * @return the entry
-   */
   @VisibleForTesting
   static ZipEntry entry(final String name) {
     final ZipEntry entry = new ZipEntry(name);
@@ -416,19 +390,8 @@ public final class SimpleResourcePack {
     zip.closeEntry();
   }
 
-  /**
-   * Moves files, like {@link Files#move(Path, Path, CopyOption...)}.
-   */
   @FunctionalInterface
   interface FileMover {
-    /**
-     * Moves a file.
-     *
-     * @param source  the file to move
-     * @param target  the destination
-     * @param options how the file is moved
-     * @throws IOException if the file cannot be moved
-     */
     void move(Path source, Path target, CopyOption... options) throws IOException;
   }
 }

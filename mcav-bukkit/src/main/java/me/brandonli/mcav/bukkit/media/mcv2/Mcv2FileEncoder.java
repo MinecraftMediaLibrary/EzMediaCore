@@ -128,13 +128,6 @@ public final class Mcv2FileEncoder {
     }
   }
 
-  /**
-   * Returns the most bytes a frame may have to play on a wall of the video's native size with the default page slots.
-   *
-   * @param width  the video width
-   * @param height the video height
-   * @return the frame limit in bytes
-   */
   static int screenFrameLimit(final int width, final int height) {
     final int maps = Math.ceilDiv(width, MapLayout.MAP_SIZE) * Math.ceilDiv(height, MapLayout.MAP_SIZE);
     return Mcv2Configuration.defaultPageSlots(maps) * TransportPages.capacity();

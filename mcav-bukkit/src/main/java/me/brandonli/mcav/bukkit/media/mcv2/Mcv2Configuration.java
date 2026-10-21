@@ -195,12 +195,6 @@ public final class Mcv2Configuration {
     };
   }
 
-  /**
-   * Returns the page slots a screen has when its configuration names none.
-   *
-   * @param maps the maps of the wall
-   * @return the default page slots of such a wall
-   */
   static int defaultPageSlots(final int maps) {
     return Math.min(DEFAULT_PAGE_SLOTS, maps);
   }

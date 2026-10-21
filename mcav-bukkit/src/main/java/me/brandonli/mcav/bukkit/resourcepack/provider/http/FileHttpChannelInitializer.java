@@ -32,14 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Builds the pipeline of a resource pack download: a read timeout while the request arrives, a write timeout while the
- * pack is sent, and the handler that answers it.
- *
- * <p>The timeouts and the limit on connections exist because this server listens on a port of its own, which anyone
- * can reach. Without them a client that sends half a request, or that stops reading its download, would hold a socket
- * and an open file of the server until it disconnects, which it never has to do.
- */
+// timeouts and a connection cap, because anyone can reach this port
 final class FileHttpChannelInitializer extends ChannelInitializer<SocketChannel> {
 
   static final String READ_TIMEOUT_NAME = "mcav_read_timeout";
@@ -48,16 +41,8 @@ final class FileHttpChannelInitializer extends ChannelInitializer<SocketChannel>
 
   static final int READ_TIMEOUT_SECONDS = 30;
 
-  /**
-   * How long a download may stall before the connection is closed. A client that reads its pack at any usable speed
-   * is far below this, and one that stops reading is closed instead of holding the socket and the file.
-   */
   static final int WRITE_TIMEOUT_SECONDS = 300;
 
-  /**
-   * How many downloads may run at once. Players download a pack as they join, so a real server stays far below this,
-   * while a client that opens connections without finishing them can tie up no more than this many.
-   */
   private static final int MAXIMUM_CONNECTIONS = 256;
 
   private static final String BUSY_RESPONSE = "HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";

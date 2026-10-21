@@ -32,21 +32,10 @@ public final class InjectorException extends BukkitException {
   @Serial
   private static final long serialVersionUID = 180052351920535948L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which names the pack that cannot be served
-   */
   InjectorException(final String message) {
     super(message);
   }
 
-  /**
-   * Constructs a new exception with a detail message and the failure that caused it.
-   *
-   * @param message the detail message, which names the pack that cannot be served
-   * @param cause   the failure that caused this exception
-   */
   InjectorException(final String message, final Throwable cause) {
     super(message, cause);
   }

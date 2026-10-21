@@ -35,7 +35,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.entity.CraftTextDisplay;
 import org.bukkit.entity.Display;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.Plugin;
@@ -151,16 +150,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     }
   }
 
-  /**
-   * Shows the display to every viewer who cannot see it.
-   *
-   * <p>The entity is spawned with {@code setVisibleByDefault(false)}, so a player only ever sees it after an
-   * explicit {@link Player#showEntity(Plugin, Entity)}. That grant is per session and per player,
-   * and Paper takes it back whenever the entity stops being tracked, which a display respawned as its chunk loads again
-   * can do before its viewer ever saw it. So every tick, each online viewer who cannot see the display is shown it: a
-   * viewer added to the configuration after the spawn, a viewer who logged out and back in, and a viewer whose grant
-   * was taken back. Online viewers removed from the configuration have this plugin's visibility grant revoked.
-   */
+  // Paper revokes a showEntity grant when tracking ends, so every tick shows the display again to viewers who lost it
   @Override
   protected void onTick() {
     final TextDisplay current = this.entity;
@@ -214,12 +204,6 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     display.setLineWidth(Integer.MAX_VALUE);
   }
 
-  /**
-   * Sets the text of the display. If the display is gone, because its chunk was unloaded, a new display is spawned
-   * first, as soon as the chunk is loaded again.
-   *
-   * @param text the text of the frame
-   */
   @Override
   protected void apply(final Component text) {
     final TextDisplay current = this.entity;
@@ -243,7 +227,6 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     handle.setText(text);
   }
 
-  /** Spawns a new display in place of one that is gone, with the text the old one showed last. */
   private @Nullable TextDisplay respawnWithLastText() {
     final TextDisplay display = this.respawnEntity();
     final Component text = this.lastText;
@@ -254,12 +237,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     return display;
   }
 
-  /**
-   * Spawns a new display in place of one that is gone. Nothing is spawned while the chunk at the position is not
-   * loaded, because spawning would load it again right after the server unloaded it.
-   *
-   * @return the new display, or null if the chunk is not loaded or the position has no world anymore
-   */
+  // spawning into an unloaded chunk would load it again
   private @Nullable TextDisplay respawnEntity() {
     final Location position = this.configuration.getPosition();
     final World world = position.getWorld();

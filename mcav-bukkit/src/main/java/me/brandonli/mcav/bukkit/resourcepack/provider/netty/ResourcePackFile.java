@@ -25,15 +25,7 @@ import java.nio.file.attribute.FileTime;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Caches the contents of a resource pack in memory, so repeated downloads do not read the file from disk every
- * time. The cache uses the full modification time, size, and file identity when available. Changes that preserve
- * all of that metadata cannot be detected; rebuilders should update the modification time. This class is thread-safe.
- *
- * <p>The whole pack is kept on the heap for as long as the hosting exists, so it costs as much memory as the pack
- * is large. For very large packs, prefer a dedicated server that streams the file from disk, such as
- * {@link me.brandonli.mcav.bukkit.resourcepack.provider.http.ServerPackHosting}.
- */
+// a change that keeps the modification time, the size and the file key goes unnoticed
 final class ResourcePackFile {
 
   private static final byte[] EMPTY = new byte[0];
@@ -45,24 +37,13 @@ final class ResourcePackFile {
   private @Nullable Object cachedFileKey;
   private long cachedSize;
 
-  /**
-   * Constructs a new cache for the specified file. The file is not read until the first call to {@link #read()}.
-   *
-   * @param path the path to the resource pack
-   */
   ResourcePackFile(final Path path) {
     this.path = path;
     this.cachedBytes = EMPTY;
     this.cachedSize = -1;
   }
 
-  /**
-   * Returns the contents of the resource pack, reading the file again only if it changed since the last call.
-   * The returned array is shared between callers and must not be modified.
-   *
-   * @return the bytes of the resource pack
-   * @throws IOException if the file cannot be read
-   */
+  // the array is shared: callers must not modify it
   synchronized byte[] read() throws IOException {
     final BasicFileAttributes attributes = Files.readAttributes(this.path, BasicFileAttributes.class);
     final FileTime modifiedTime = attributes.lastModifiedTime();

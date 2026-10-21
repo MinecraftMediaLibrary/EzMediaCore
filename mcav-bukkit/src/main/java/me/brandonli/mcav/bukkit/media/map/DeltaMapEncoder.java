@@ -262,10 +262,6 @@ public final class DeltaMapEncoder {
     return new MapCandidate(map, patches, size, priority);
   }
 
-  /**
-   * Removes the dirty tiles that only changed a few pixels from the tiles to send, unless they have been held back
-   * for too long already, and updates how long every tile has been held back.
-   */
   private long holdBackNoise(final int map, final long dirtyTiles) {
     final byte[] noiseFrames = this.deferredNoiseFrames[map];
     long tilesToSend = 0;
@@ -305,9 +301,6 @@ public final class DeltaMapEncoder {
     return changedPixels;
   }
 
-  /**
-   * Chooses whichever is smaller: the merged rectangles of the tiles, or one bounding rectangle around all of them.
-   */
   private List<PatchRectangle> chooseRectangles(final long tiles, final MapRegion region) {
     final List<PatchRectangle> rectangles = this.mergeTiles(tiles, region);
     final PatchRectangle bounds = PatchRectangle.boundingBox(rectangles);
@@ -343,12 +336,6 @@ public final class DeltaMapEncoder {
     return patches;
   }
 
-  /**
-   * Compares the region of the image against what the clients display and records how many pixels changed in
-   * every tile.
-   *
-   * @return a bit mask with the bit of every tile that changed
-   */
   private long findDirtyTiles(final byte[] image, final int map, final MapRegion region) {
     Arrays.fill(this.changedPixelsPerTile, 0);
     final byte[] state = this.clientState[map];
@@ -389,11 +376,6 @@ public final class DeltaMapEncoder {
     return dirtyTiles;
   }
 
-  /**
-   * Finds the first column of the row, starting at a column, where the image differs from what the clients display.
-   *
-   * @return the column of the first change, or -1 if the rest of the row is unchanged
-   */
   private int findNextChange(
     final byte[] image,
     final int imageRowStart,
@@ -472,12 +454,6 @@ public final class DeltaMapEncoder {
     return pending;
   }
 
-  /**
-   * Grows a rectangle of pending tiles from a tile, first to the right and then downwards, marks its tiles as
-   * handled, and clips it to the region.
-   *
-   * @return the rectangle in map pixels
-   */
   private PatchRectangle takeRun(final boolean[] pending, final int tileX, final int tileY, final MapRegion region) {
     final int runWidth = this.measureRunWidth(pending, tileX, tileY);
     final int runHeight = this.measureRunHeight(pending, tileX, tileY, runWidth);
@@ -559,9 +535,6 @@ public final class DeltaMapEncoder {
     return this.layout;
   }
 
-  /**
-   * A rectangle inside a map that should be sent as one patch.
-   */
   private static final class PatchRectangle {
 
     private final int left;
@@ -576,10 +549,7 @@ public final class DeltaMapEncoder {
       this.height = height;
     }
 
-    /**
-     * Clips a rectangle of tiles to the region. The rectangle always overlaps the region, because it only consists
-     * of dirty tiles, and a tile only becomes dirty when a pixel inside the region changed.
-     */
+    // the rectangle always overlaps the region: only a change inside it dirties a tile
     private static PatchRectangle clip(final int left, final int top, final int width, final int height, final MapRegion region) {
       final int regionX = region.getLocalX();
       final int regionY = region.getLocalY();
@@ -629,9 +599,6 @@ public final class DeltaMapEncoder {
     }
   }
 
-  /**
-   * The patches that would bring one map up to date, together with their cost and urgency.
-   */
   private static final class MapCandidate {
 
     private final int map;

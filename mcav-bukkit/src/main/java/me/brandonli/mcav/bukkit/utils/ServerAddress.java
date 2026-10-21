@@ -56,12 +56,6 @@ public final class ServerAddress {
     return getPublicIpAddress(NetworkUtils.DEFAULT_ADDRESS_SERVICE);
   }
 
-  /**
-   * Returns the address players use to reach the server, looking the public address up with the specified service.
-   *
-   * @param addressService the service that answers with the public address of the caller as plain text
-   * @return the public address of the server, or {@code localhost} if it cannot be determined right now
-   */
   @VisibleForTesting
   static String getPublicIpAddress(final URI addressService) {
     Preconditions.checkNotNull(addressService, "Address service must not be null!");

@@ -41,14 +41,6 @@ public final class Mcv2Resources {
     return digest(bytes, SHA_256_ALGORITHM);
   }
 
-  /**
-   * Hashes bytes with a named algorithm.
-   *
-   * @param bytes     the bytes
-   * @param algorithm the algorithm
-   * @return the lowercase hexadecimal digest
-   * @throws IllegalStateException if the algorithm does not exist
-   */
   static String digest(final byte[] bytes, final String algorithm) {
     try {
       return HexFormat.of().formatHex(MessageDigest.getInstance(algorithm).digest(bytes));

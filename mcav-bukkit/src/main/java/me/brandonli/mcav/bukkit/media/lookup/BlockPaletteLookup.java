@@ -119,14 +119,6 @@ public final class BlockPaletteLookup {
     return Holder.DITHERING;
   }
 
-  /**
-   * Reads a block palette, which maps block names to their average color as an array of red, green, and blue.
-   * The reader is closed afterward.
-   *
-   * @param reader the reader of the palette JSON
-   * @return the palette in the order of the JSON object, whose colors are null where the JSON has {@code null}
-   * @throws UncheckedIOException if the palette is empty or cannot be read
-   */
   @VisibleForTesting
   static Map<String, int @Nullable []> parsePalette(final Reader reader) {
     final Gson gson = GsonProvider.getSimple();
@@ -147,14 +139,7 @@ public final class BlockPaletteLookup {
     }
   }
 
-  /**
-   * Resolves the blocks of a palette. Names that are unknown or do not name a block are skipped, and so are
-   * malformed entries whose color is missing or has fewer than three components, so a broken palette can never
-   * break the initialization of the lookup tables.
-   *
-   * @param palette the palette, mapping block names to their average color as an array of red, green, and blue
-   * @return an immutable map from the RGB color to its block
-   */
+  // skips bad entries, so a broken palette cannot break class initialization
   @VisibleForTesting
   static Map<Integer, Material> resolveMaterials(final Map<String, int @Nullable []> palette) {
     final Map<Integer, Material> materials = new HashMap<>();
@@ -180,10 +165,6 @@ public final class BlockPaletteLookup {
     return Map.copyOf(materials);
   }
 
-  /**
-   * Holds the lookup tables. The tables are built when this class is first accessed, which the JVM guarantees to
-   * happen exactly once and in a thread-safe way.
-   */
   private static final class Holder {
 
     private static final Map<Integer, Material> MATERIALS;

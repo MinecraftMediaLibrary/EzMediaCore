@@ -159,10 +159,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
     return objective;
   }
 
-  /**
-   * Registers one team per line. The text of a line is the suffix of its team, and the score of its unique,
-   * invisible entry keeps the lines in order.
-   */
+  // a line is its team's suffix; the score of its invisible entry keeps the order
   private void registerTeams(final Scoreboard board, final Objective objective) {
     final int lines = this.teams.length;
     for (int row = 0; row < lines; row++) {
@@ -190,16 +187,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
     }
   }
 
-  /**
-   * Shows the scoreboard to newly configured or returning online viewers.
-   *
-   * <p>The scoreboard a player sees is per session, so a viewer added to the configuration after the board was
-   * created, and a viewer who logged out and back in, would never be shown it again without this. A viewer already
-   * looking at the board is left alone, so their remembered previous scoreboard is not overwritten with this one.
-   * Viewers who went offline are forgotten: the server gives them the main scoreboard when they rejoin, so there is
-   * nothing left to restore, and they are served again as new viewers. Online viewers removed from the
-   * configuration receive their saved scoreboard before ownership is forgotten.
-   */
+  // a shown scoreboard lasts one session, so new and returning viewers are shown it again
   @Override
   protected void onTick() {
     final Scoreboard board = this.scoreboard;
@@ -237,11 +225,6 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
     }
   }
 
-  /**
-   * Draws every line of the frame into the suffix of its team.
-   *
-   * @param lines the lines of the frame, from top to bottom
-   */
   @Override
   protected void apply(final Component[] lines) {
     if (this.scoreboard == null) {
@@ -267,9 +250,6 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
     this.scoreboard = null;
   }
 
-  /**
-   * Gives every viewer who still sees the scoreboard back the scoreboard they had before.
-   */
   private void restoreViewers(final Scoreboard board) {
     final ScoreboardManager manager = Bukkit.getScoreboardManager();
     final Scoreboard mainScoreboard = manager.getMainScoreboard();

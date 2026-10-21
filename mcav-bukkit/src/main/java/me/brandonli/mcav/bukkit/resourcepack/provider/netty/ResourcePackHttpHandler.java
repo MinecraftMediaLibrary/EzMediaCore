@@ -44,39 +44,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Decides whether a freshly accepted connection belongs to a Minecraft client or to an HTTP client.
- *
- * <p>The handler sits at the very front of the pipeline and looks at the first bytes the peer sends. A Minecraft
- * handshake can never start with {@code "GET "} or {@code "HEAD "}, because its second byte is always the packet
- * id {@code 0x00}. That makes the decision unambiguous after at most five bytes:
- *
- * <ul>
- *   <li>HTTP requests for this handler's exact path receive the resource pack and the connection is closed afterward.
- *       Other paths pass to the next handler, allowing several packs on the same server port.</li>
- *   <li>Minecraft clients receive every byte unchanged, and the handler removes itself from the pipeline, so it
- *       adds no overhead to game connections.</li>
- * </ul>
- *
- * <p>A new handler is created for every connection, so the handler is never shared between threads.
- */
+// a Minecraft handshake's second byte is always 0x00, so "GET " or "HEAD " decides within five bytes
 final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
 
-  /**
-   * The name of the handler inside the channel pipeline.
-   */
   static final String NAME = "mcav_resource_pack_http";
 
-  /** The name of the handler that closes a download that stopped making progress. */
   static final String STALL_NAME = "mcav_resource_pack_stall";
 
-  /** The name of the handler that writes the pack a chunk at a time. */
   private static final String CHUNKS_NAME = "mcav_resource_pack_chunks";
 
-  /** How long a download may take less than a chunk of the pack before its connection is closed, in seconds. */
   static final long STALL_SECONDS = 60;
 
-  /** How much of the pack is written at a time, in bytes. */
   private static final int CHUNK_BYTES = 8 * 1024;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourcePackHttpHandler.class);
@@ -102,25 +80,12 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
   private @Nullable CompositeByteBuf cumulation;
   private boolean served;
 
-  /**
-   * Constructs a new handler for one connection.
-   *
-   * @param packFile    the resource pack to serve to HTTP clients
-   * @param requestPath the unique absolute request path of this pack
-   */
   ResourcePackHttpHandler(final ResourcePackFile packFile, final String requestPath) {
     this.packFile = packFile;
     this.getPrefix = (GET_REQUEST_PREFIX + requestPath + REQUEST_PATH_TERMINATOR).getBytes(StandardCharsets.US_ASCII);
     this.headPrefix = (HEAD_REQUEST_PREFIX + requestPath + REQUEST_PATH_TERMINATOR).getBytes(StandardCharsets.US_ASCII);
   }
 
-  /**
-   * Inspects the incoming bytes until the type of the client is known, then either serves the resource pack or
-   * passes the bytes on to Minecraft.
-   *
-   * @param context the context of this handler
-   * @param message the received message, usually a {@link ByteBuf}
-   */
   @Override
   public void channelRead(final ChannelHandlerContext context, final Object message) {
     Preconditions.checkNotNull(context);
@@ -168,9 +133,6 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     this.serve(context, data, type);
   }
 
-  /**
-   * Passes the bytes to the next pack handler or Minecraft and removes this handler.
-   */
   private void passToMinecraft(final ChannelHandlerContext context, final ByteBuf data) {
     this.cumulation = null;
     context.fireChannelRead(data);
@@ -186,12 +148,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     this.respond(context, type);
   }
 
-  /**
-   * Bounds the connection by the download's progress instead of the game's read timeout. The game closes a connection
-   * that sent nothing for 30 seconds, and a client downloading the pack sends nothing after its request, so a download
-   * longer than that was cut. A client that stops taking the pack is still closed, once it took less than a chunk of
-   * {@value #CHUNK_BYTES} bytes for {@value #STALL_SECONDS} seconds.
-   */
+  // the game's 30-second read timeout would cut a download, which sends nothing after its request
   private void replaceReadTimeout(final ChannelHandlerContext context) {
     final ChannelPipeline pipeline = context.pipeline();
     for (final Map.Entry<String, ChannelHandler> handler : pipeline.toMap().entrySet()) {
@@ -207,13 +164,6 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     pipeline.addBefore(CHUNKS_NAME, STALL_NAME, new IdleStateHandler(true, 0, STALL_SECONDS, 0, TimeUnit.SECONDS));
   }
 
-  /**
-   * Closes a download that took less than a chunk of the pack for {@value #STALL_SECONDS} seconds, and passes every
-   * other event on.
-   *
-   * @param context the context of this handler
-   * @param event   the event
-   */
   @Override
   public void userEventTriggered(final ChannelHandlerContext context, final Object event) {
     if (this.served && event instanceof final IdleStateEvent idle && idle.state() == IdleState.WRITER_IDLE) {
@@ -287,12 +237,6 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     return Unpooled.copiedBuffer(text, StandardCharsets.US_ASCII);
   }
 
-  /**
-   * Classifies the client based on the bytes received so far. The reader index of the buffer is not changed.
-   *
-   * @param buffer the bytes received so far
-   * @return the type of the client, or {@link RequestType#INCOMPLETE} if more bytes are needed to decide
-   */
   static RequestType classify(final ByteBuf buffer) {
     final int readable = buffer.readableBytes();
     final int start = buffer.readerIndex();
@@ -326,11 +270,6 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     return true;
   }
 
-  /**
-   * Releases any bytes that were buffered while waiting for the client type.
-   *
-   * @param context the context of this handler
-   */
   @Override
   public void handlerRemoved(final ChannelHandlerContext context) {
     Preconditions.checkNotNull(context);
@@ -338,11 +277,6 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     this.releaseCumulation();
   }
 
-  /**
-   * Releases any buffered bytes when the connection closes before the client type was known.
-   *
-   * @param context the context of this handler
-   */
   @Override
   public void channelInactive(final ChannelHandlerContext context) {
     Preconditions.checkNotNull(context);
@@ -361,28 +295,13 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     pending.release();
   }
 
-  /**
-   * The type of client that opened a connection.
-   */
   enum RequestType {
-    /**
-     * Not enough bytes have been received to decide.
-     */
     INCOMPLETE,
 
-    /**
-     * The client is a Minecraft client, or anything else that is not a supported HTTP request.
-     */
     MINECRAFT,
 
-    /**
-     * The client sent an HTTP {@code GET} request.
-     */
     GET,
 
-    /**
-     * The client sent an HTTP {@code HEAD} request.
-     */
     HEAD,
   }
 }

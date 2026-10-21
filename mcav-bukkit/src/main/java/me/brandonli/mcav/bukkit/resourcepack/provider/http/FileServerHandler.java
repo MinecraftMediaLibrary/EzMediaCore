@@ -40,21 +40,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Answers exactly one HTTP request per connection with the served file.
- *
- * <p>The handler reads the request until the end of its headers, looks only at the request method, and answers
- * {@code GET} with the file and {@code HEAD} with its headers. Any other method is rejected. The connection is
- * closed after the response, which keeps the handler simple and is exactly what Minecraft clients expect when
- * they download a resource pack. The file body is sent as a zero-copy file region.
- *
- * <p>The file is opened once per request, and both the {@code Content-Length} header and the body come from that
- * open file. A pack that is replaced while a download starts therefore never produces a response whose length
- * does not match its body. Once the request is complete, the read timeout of the connection is removed, so a slow
- * download is never cut off.
- *
- * <p>A new handler is created for every connection, so it is never shared between threads.
- */
+// one request per connection, as Minecraft clients expect; the length and the body come from one open file
 final class FileServerHandler extends ChannelInboundHandlerAdapter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FileServerHandler.class);
@@ -88,21 +74,10 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   private @Nullable ByteBuf requestBuffer;
   private boolean responded;
 
-  /**
-   * Constructs a new handler for one connection.
-   *
-   * @param filePath the file to serve
-   */
   FileServerHandler(final Path filePath) {
     this(filePath, FileServerHandler::openFile);
   }
 
-  /**
-   * Constructs a new handler for one connection that opens the file with the specified opener.
-   *
-   * @param filePath the file to serve
-   * @param opener   opens the file for reading
-   */
   @VisibleForTesting
   FileServerHandler(final Path filePath, final FileOpener opener) {
     this.filePath = filePath;
@@ -114,23 +89,12 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     return FileChannel.open(path, StandardOpenOption.READ);
   }
 
-  /**
-   * Returns the name of the served file for the {@code Content-Disposition} header.
-   *
-   * @param path the path of the served file
-   * @return the file name, or a generic name if the path has none, such as a root directory
-   */
   @VisibleForTesting
   static String getFileName(final Path path) {
     final Path fileNamePath = path.getFileName();
     return fileNamePath == null ? DEFAULT_FILE_NAME : fileNamePath.toString();
   }
 
-  /**
-   * Allocates the buffer that collects the request headers.
-   *
-   * @param context the context of this handler
-   */
   @Override
   public void handlerAdded(final ChannelHandlerContext context) {
     Preconditions.checkNotNull(context);
@@ -139,11 +103,6 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     this.requestBuffer = allocator.buffer(INITIAL_REQUEST_BUFFER_BYTES, MAXIMUM_HEADER_BYTES);
   }
 
-  /**
-   * Releases the request buffer. Calling this method again after the buffer was released has no effect.
-   *
-   * @param context the context of this handler
-   */
   @Override
   public void handlerRemoved(final ChannelHandlerContext context) {
     Preconditions.checkNotNull(context);
@@ -155,13 +114,6 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     }
   }
 
-  /**
-   * Collects request bytes until the headers are complete, then answers the request. The received message is
-   * always released, and everything that arrives after the response was sent is dropped.
-   *
-   * @param context the context of this handler
-   * @param message the received bytes
-   */
   @Override
   public void channelRead(final ChannelHandlerContext context, final Object message) {
     Preconditions.checkNotNull(context);
@@ -283,10 +235,6 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     this.sendFile(context, channel, fileLength, method);
   }
 
-  /**
-   * Sends the headers and, unless only the headers were requested, the file itself without copying it into memory.
-   * The file region closes the channel once it was sent.
-   */
   private void sendFile(final ChannelHandlerContext context, final FileChannel channel, final long fileLength, final String method) {
     final ByteBuf headers = this.createHeaders(fileLength, this.fileName);
     if (method.equals(HEAD_METHOD)) {
@@ -340,13 +288,6 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     return Unpooled.copiedBuffer(text, StandardCharsets.US_ASCII);
   }
 
-  /**
-   * Closes the connection when anything goes wrong, including a read timeout. Errors of a single download must
-   * never affect the server.
-   *
-   * @param context the context of this handler
-   * @param cause   the error
-   */
   @Override
   public void exceptionCaught(final ChannelHandlerContext context, final Throwable cause) {
     Preconditions.checkNotNull(context);
@@ -356,10 +297,6 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     closing.addListener(LOG_CLOSE_FAILURE);
   }
 
-  /**
-   * Logs why a connection could not be closed after an error. Nothing else is left to do for such a connection, so
-   * the failure is only recorded for debugging.
-   */
   private static void logCloseFailure(final ChannelFuture closing) {
     final boolean closed = closing.isSuccess();
     if (closed) {
@@ -370,18 +307,8 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     LOGGER.debug(CLOSE_FAILED, failure);
   }
 
-  /**
-   * Opens the served file for reading.
-   */
   @FunctionalInterface
   interface FileOpener {
-    /**
-     * Opens a file for reading.
-     *
-     * @param path the file to open
-     * @return the open file, which the caller closes
-     * @throws IOException if the file cannot be opened
-     */
     FileChannel open(Path path) throws IOException;
   }
 }

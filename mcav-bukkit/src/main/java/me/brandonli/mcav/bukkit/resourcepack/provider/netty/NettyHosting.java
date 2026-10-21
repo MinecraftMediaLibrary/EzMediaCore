@@ -130,13 +130,7 @@ public final class NettyHosting implements InjectorHosting {
     return builtUrl;
   }
 
-  /**
-   * Formats an address as the host of a URL. IPv6 addresses are enclosed in brackets and the percent sign of a
-   * zone id is escaped, as required by RFC 3986 and RFC 6874. Other addresses and host names are returned as is.
-   *
-   * @param address the address or host name
-   * @return the host part of a URL
-   */
+  // RFC 3986 and RFC 6874: IPv6 in brackets, the zone id's percent sign escaped
   @VisibleForTesting
   static String formatHost(final String address) {
     return NetworkUtils.formatHostForUrl(address);
@@ -167,11 +161,7 @@ public final class NettyHosting implements InjectorHosting {
     this.running = true;
   }
 
-  /**
-   * Reads the pack here, on the thread that starts the hosting, so the first download does not read the whole file on
-   * the Netty thread that also carries the packets of every player. A pack that cannot be read is reported when the
-   * download is answered, exactly as before, so hosting still starts.
-   */
+  // keeps the first read off the Netty thread that carries every player's packets
   private void readPackAhead() {
     try {
       this.packFile.read();
@@ -197,11 +187,6 @@ public final class NettyHosting implements InjectorHosting {
     }
   }
 
-  /**
-   * Returns the name this instance installs its handler under in the Netty pipeline. Visible for testing.
-   *
-   * @return the pipeline name, which is unique per instance
-   */
   @VisibleForTesting
   String getHandlerName() {
     return this.handlerName;

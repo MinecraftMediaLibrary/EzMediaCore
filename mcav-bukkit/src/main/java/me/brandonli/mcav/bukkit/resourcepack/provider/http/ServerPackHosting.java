@@ -56,16 +56,6 @@ public class ServerPackHosting implements HttpHosting {
     this(zip, hostName, port, new FileHttpServer(port, zip));
   }
 
-  /**
-   * Constructs a new {@code ServerPackHosting} that runs the specified server, which may listen on another port
-   * than the one players are told about, for example a free port picked by the operating system in tests.
-   *
-   * @param zip      the path to the resource pack zip to serve
-   * @param hostName the host name or address players use to reach this server
-   * @param port     the port players use to reach this server, from 1 to 65535
-   * @param server   the server that serves the pack
-   * @throws IllegalArgumentException if the port is out of range
-   */
   @VisibleForTesting
   ServerPackHosting(final Path zip, final String hostName, final int port, final FileHttpServer server) {
     Preconditions.checkNotNull(zip);
