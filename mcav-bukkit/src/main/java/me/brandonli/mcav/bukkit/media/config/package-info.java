@@ -18,11 +18,13 @@
 /**
  * Builder-based settings for map, block, chat, text-entity and sidebar displays.
  *
- * <p>Choose a configuration matching the target image or video result. Builders validate required fields
- * and dimensions when built. They are mutable and not thread-safe. Viewer collections and locations are
- * retained by reference; collections may be concurrent when membership changes during playback. Entity, block
- * and sidebar renderers check viewer membership each tick; map and chat delivery reads viewers for each frame.
- * Creating settings does not create display entities, reserve maps or acquire player ownership.
+ * <p>Choose a configuration matching the target image or video result: {@link MapConfiguration},
+ * {@link BlockConfiguration}, {@link ChatConfiguration}, {@link EntityConfiguration} or
+ * {@link ScoreboardConfiguration}, each started from its {@code builder()}. Builders validate required fields and
+ * dimensions when built. They are mutable and not thread-safe. Viewer collections and locations are retained by
+ * reference; collections may be concurrent when membership changes during playback. Entity, block and sidebar renderers
+ * check viewer membership each tick; map and chat delivery reads viewers for each frame. Creating settings does not
+ * create display entities, reserve maps or acquire player ownership.
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.

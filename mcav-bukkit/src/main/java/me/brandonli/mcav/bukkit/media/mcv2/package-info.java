@@ -22,11 +22,13 @@
  * Immutable parsed frames may be shared; receivers, pacing state and stream encoders need serialized access. Decoder
  * output arrays and borrowed references have explicit ownership rules.
  *
- * <p>For server playback, configure a screen, acquire a pack-server lease, and create a result using that lease's
- * configuration and the shared pack tracker. Start and release the result on the main thread; submit frames from
- * one media thread between those lifecycle calls. Release the result before closing its lease, and shut down the
- * pack server when its screens stop. The caller supplies the visible map wall. Client pack status and socket-write
- * callbacks do not acknowledge successful video decoding.
+ * <p>For server playback, configure a screen with {@link Mcv2Configuration}, acquire a lease from an
+ * {@link Mcv2PackServer}, and create an {@link Mcv2Result} using that lease's configuration and the pack server's
+ * {@link Mcv2Viewers}. Start and release the result on the main thread; submit frames from one media thread between
+ * those lifecycle calls. Release the result before closing its lease, and shut down the pack server when its screens
+ * stop. The caller supplies the visible map wall. Client pack status and socket-write callbacks do not acknowledge
+ * successful video decoding. A server too small to encode a video while it plays encodes it ahead with
+ * {@link Mcv2FileEncoder}.
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
