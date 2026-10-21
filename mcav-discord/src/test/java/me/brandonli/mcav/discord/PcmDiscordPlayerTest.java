@@ -54,9 +54,16 @@ import org.mockito.verification.VerificationMode;
 final class PcmDiscordPlayerTest {
 
   private static final int FRAME_BYTES = 3840;
+  private static final int FRAME_MILLISECONDS = 20;
   private static final int MAXIMUM_FRAMES = 150;
+
   private static final int PRODUCERS = 4;
   private static final int FRAMES_PER_PRODUCER = 25;
+  private static final long PRODUCER_TIMEOUT_SECONDS = 10;
+
+  private static final int MAXIMUM_NAME_LENGTH = 128;
+  private static final String UNKNOWN_TITLE = "Unknown title";
+  private static final String ELLIPSIS = "…";
 
   private final JDA jda = Mockito.mock(JDA.class);
   private final Presence presence = Mockito.mock(Presence.class);
@@ -214,19 +221,19 @@ final class PcmDiscordPlayerTest {
     for (final String blank : blanks) {
       player.setPlaying(blank);
       final String name = this.shownActivityName();
-      assertEquals("Unknown title", name);
+      assertEquals(UNKNOWN_TITLE, name);
     }
   }
 
   @Test
   void shouldKeepTitlesOfExactlyTheMaximumLength() {
     final PcmDiscordPlayer player = this.createPlayer();
-    final String title = "a".repeat(128);
+    final String title = "a".repeat(MAXIMUM_NAME_LENGTH);
     player.setPlaying("  " + title + "  ");
     final String name = this.shownActivityName();
     final int maximumLength = Activity.MAX_ACTIVITY_NAME_LENGTH;
     assertEquals(title, name);
-    assertEquals(128, maximumLength);
+    assertEquals(MAXIMUM_NAME_LENGTH, maximumLength);
   }
 
   @Test
@@ -238,13 +245,13 @@ final class PcmDiscordPlayerTest {
     }
     final String title = builder.toString();
     final String kept = title.substring(0, 127);
-    final String expected = kept + "…";
+    final String expected = kept + ELLIPSIS;
 
     player.setPlaying(title);
     final String name = this.shownActivityName();
     final int length = name.length();
     assertEquals(expected, name);
-    assertEquals(128, length);
+    assertEquals(MAXIMUM_NAME_LENGTH, length);
 
     final UrlParseDump dump = UrlParseDump.of(title);
     player.setCurrentMedia(dump);
@@ -260,14 +267,14 @@ final class PcmDiscordPlayerTest {
     final String splitPrefix = "a".repeat(126);
     player.setPlaying(splitPrefix + emoji + tail);
     final String withoutEmoji = this.shownActivityName();
-    assertEquals(splitPrefix + "…", withoutEmoji, "half an emoji is dropped instead of shown as a broken character");
+    assertEquals(splitPrefix + ELLIPSIS, withoutEmoji, "half an emoji is dropped instead of shown as a broken character");
 
     final String fittingPrefix = "a".repeat(125);
     player.setPlaying(fittingPrefix + emoji + tail);
     final String withEmoji = this.shownActivityName();
     final int length = withEmoji.length();
-    assertEquals(fittingPrefix + emoji + "…", withEmoji, "an emoji that fits is kept whole");
-    assertEquals(128, length);
+    assertEquals(fittingPrefix + emoji + ELLIPSIS, withEmoji, "an emoji that fits is kept whole");
+    assertEquals(MAXIMUM_NAME_LENGTH, length);
   }
 
   @Test
@@ -397,7 +404,7 @@ final class PcmDiscordPlayerTest {
       }
       start.countDown();
       for (final Future<?> future : futures) {
-        future.get(10, TimeUnit.SECONDS);
+        future.get(PRODUCER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       }
     }
   }
@@ -422,7 +429,7 @@ final class PcmDiscordPlayerTest {
     final PcmDiscordPlayer player = this.createPlayer();
     this.produceConcurrently(player);
     final long queued = player.getQueuedMilliseconds();
-    assertEquals((long) PRODUCERS * FRAMES_PER_PRODUCER * 20, queued);
+    assertEquals((long) PRODUCERS * FRAMES_PER_PRODUCER * FRAME_MILLISECONDS, queued);
 
     final int[] counts = countFramesPerProducer(player);
     for (final int count : counts) {
@@ -473,7 +480,7 @@ final class PcmDiscordPlayerTest {
     final List<Activity> activities = this.shownActivities(twice);
     for (final Activity activity : activities) {
       final String name = activity.getName();
-      assertEquals("Unknown title", name);
+      assertEquals(UNKNOWN_TITLE, name);
     }
     assertThrows(NullPointerException.class, () -> player.setCurrentMedia(null));
   }

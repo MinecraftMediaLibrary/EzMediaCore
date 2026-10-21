@@ -42,10 +42,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class PcmDiscordPlayer implements DiscordPlayer {
 
+  private static final int FRAME_MILLISECONDS = 20;
+  private static final int MILLISECONDS_PER_SECOND = 1000;
+
   /**
    * The size of one 20 millisecond frame of 48 kHz 16-bit stereo audio in bytes.
    */
-  static final int FRAME_BYTES = (AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE * 20) / 1000;
+  static final int FRAME_BYTES = (AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE * FRAME_MILLISECONDS) / MILLISECONDS_PER_SECOND;
+
+  private static final int MAXIMUM_QUEUED_FRAMES = 150;
 
   /**
    * The activity shown for media without a title.
@@ -56,9 +61,6 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
    * The character that ends a title cut to the length limit of Discord.
    */
   private static final String ELLIPSIS = "…";
-
-  private static final int MAXIMUM_QUEUED_FRAMES = 150;
-  private static final int FRAME_MILLISECONDS = 20;
 
   private final JDA jda;
   private final Deque<ByteBuffer> frames;

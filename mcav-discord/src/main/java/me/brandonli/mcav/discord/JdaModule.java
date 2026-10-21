@@ -25,6 +25,8 @@ import me.brandonli.mcav.module.MCAVModule;
  */
 public final class JdaModule implements MCAVModule {
 
+  private static final String MODULE_NAME = "jda";
+
   /**
    * Constructs the module. The module loader creates it for you.
    */
@@ -50,6 +52,6 @@ public final class JdaModule implements MCAVModule {
    */
   @Override
   public String getModuleName() {
-    return "jda";
+    return MODULE_NAME;
   }
 }

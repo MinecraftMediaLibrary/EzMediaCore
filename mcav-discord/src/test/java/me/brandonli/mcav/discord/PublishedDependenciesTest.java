@@ -30,21 +30,28 @@ import org.w3c.dom.Document;
 
 final class PublishedDependenciesTest {
 
+  private static final String JACKSON_CORE_GROUP = "com.fasterxml.jackson.core";
+
+  private static final String JACKSON_BILL_OF_MATERIALS_PATH =
+    "/project/dependencyManagement/dependencies/dependency[groupId='com.fasterxml.jackson' and artifactId='jackson-bom']";
+
+  private static final String TYPE_PATH = "/type";
+  private static final String SCOPE_PATH = "/scope";
+  private static final String VERSION_PATH = "/version";
+
   @Test
   void shouldPublishTheDependencyVersionsUsedByTheLibrary() throws Exception {
     final Document document = publishedPom();
-    assertPublishedVersion(document, JsonFactory.class, "com.fasterxml.jackson.core", "jackson-core");
-    assertPublishedVersion(document, ObjectMapper.class, "com.fasterxml.jackson.core", "jackson-databind");
+    assertPublishedVersion(document, JsonFactory.class, JACKSON_CORE_GROUP, "jackson-core");
+    assertPublishedVersion(document, ObjectMapper.class, JACKSON_CORE_GROUP, "jackson-databind");
   }
 
   @Test
   void shouldImportTheJacksonBillOfMaterials() throws Exception {
     final Document document = publishedPom();
-    final String dependency =
-      "/project/dependencyManagement/dependencies/dependency[groupId='com.fasterxml.jackson' and artifactId='jackson-bom']";
-    final String type = value(document, dependency + "/type");
-    final String scope = value(document, dependency + "/scope");
-    final String version = value(document, dependency + "/version");
+    final String type = value(document, JACKSON_BILL_OF_MATERIALS_PATH + TYPE_PATH);
+    final String scope = value(document, JACKSON_BILL_OF_MATERIALS_PATH + SCOPE_PATH);
+    final String version = value(document, JACKSON_BILL_OF_MATERIALS_PATH + VERSION_PATH);
     assertEquals("pom", type);
     assertEquals("import", scope);
     assertEquals(ObjectMapper.class.getPackage().getImplementationVersion(), version);
@@ -61,8 +68,8 @@ final class PublishedDependenciesTest {
     final String version = type.getPackage().getImplementationVersion();
     assertNotNull(version, "the resolved library declares its implementation version");
     final String dependency = "/project/dependencies/dependency[groupId='%s' and artifactId='%s']".formatted(group, artifact);
-    final String publishedVersion = value(document, dependency + "/version");
-    final String scope = value(document, dependency + "/scope");
+    final String publishedVersion = value(document, dependency + VERSION_PATH);
+    final String scope = value(document, dependency + SCOPE_PATH);
     final String message = "The resolved version of %s is what Maven consumers need".formatted(artifact);
     assertEquals(version, publishedVersion, message);
     assertEquals("runtime", scope);
