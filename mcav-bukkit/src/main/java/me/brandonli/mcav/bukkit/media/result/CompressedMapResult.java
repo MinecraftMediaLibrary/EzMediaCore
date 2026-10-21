@@ -115,10 +115,12 @@ public class CompressedMapResult implements DitherResultStep {
   /**
    * Constructs a new {@code CompressedMapResult}.
    *
+   * <p>The byte budget covers ordinary delta updates, including estimated patch overhead. The most urgent map is always
+   * sent even if it exceeds the budget. Resize cleanup and new-viewer snapshots are additional. Lower values spread
+   * motion and scene cuts over more frames.
+   *
    * @param configuration        the configuration describing the map grid and the viewers
-   * @param maximumBytesPerFrame the budget for ordinary delta updates, including estimated patch overhead. The most
-   *                             urgent map is always sent even if it exceeds the budget. Resize cleanup and new-viewer
-   *                             snapshots are additional. Lower values spread motion and scene cuts over more frames
+   * @param maximumBytesPerFrame the budget for ordinary delta updates, including estimated patch overhead
    * @throws IllegalArgumentException if the budget is not positive
    * @throws NullPointerException     if {@code configuration} is null
    * @since 1.0.0
