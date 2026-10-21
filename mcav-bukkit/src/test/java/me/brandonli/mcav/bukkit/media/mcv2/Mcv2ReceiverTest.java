@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** The receiver's state machine: commit only newer frames, keep the state on every failure, and wrap ids. */
 final class Mcv2ReceiverTest {
 
   private static final String STALE_FRAME_MESSAGE = "Stale or ambiguous frame number!";

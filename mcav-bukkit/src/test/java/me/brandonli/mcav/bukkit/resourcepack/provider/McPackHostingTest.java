@@ -71,10 +71,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Isolated;
 
-/**
- * Tests {@link McPackHosting} and {@link McPacksException} against an upload and download service on the loopback
- * interface. The tests change {@code user.home}, where the upload cache lives, so they run in isolation.
- */
+// changes user.home, where the upload cache lives
 @Isolated
 final class McPackHostingTest {
 
@@ -442,13 +439,7 @@ final class McPackHostingTest {
     assertInstanceOf(IOException.class, thrown);
   }
 
-  /**
-   * Uploads a pack on another thread and waits for it to finish. The upload cache lock is shared by every hosting, so
-   * a lock the calling thread still holds shows up as a thread that never finishes.
-   *
-   * @param hosting the hosting to start
-   * @throws InterruptedException if the test is interrupted while waiting for the thread
-   */
+  // every hosting shares the upload cache lock, so a lock this thread holds shows as a thread that never finishes
   private void startInAnotherThread(final McPackHosting hosting) throws InterruptedException {
     final AtomicReference<Throwable> failure = new AtomicReference<>();
     final Thread starter = new Thread(hosting::start, "pack-upload-lock-probe");
@@ -553,9 +544,6 @@ final class McPackHostingTest {
     assertInstanceOf(BukkitException.class, exception);
   }
 
-  /**
-   * One upload received by the service.
-   */
   private static final class Upload {
 
     private final String method;
@@ -573,11 +561,6 @@ final class McPackHostingTest {
     }
   }
 
-  /**
-   * An upload and download service on the loopback interface, like mc-packs.net, that records every request.
-   * Uploads are posted to {@code /upload}, and downloads are answered below {@code /pack/} while they are
-   * available.
-   */
   private static final class PackService implements AutoCloseable {
 
     private static final int REJECTED_STATUS = 500;

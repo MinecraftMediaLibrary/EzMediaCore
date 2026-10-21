@@ -28,23 +28,13 @@ import me.brandonli.mcav.bukkit.media.result.Characters;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.source.file.FileSource;
 
-/**
- * The scoreboard example from the documentation, kept here so it keeps compiling. It must run inside a server
- * where the Bukkit module is installed.
- */
+// the scoreboard example of the documentation, compiled here so it stays valid
 public final class JavadocFormattingExample {
 
   private JavadocFormattingExample() {
     throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
 
-  /**
-   * Shows an image on the scoreboard of a player.
-   *
-   * @param viewer the player who sees the image
-   * @param file   the image file
-   * @return the displayed image, which the caller releases when it is no longer shown
-   */
   public static DisplayableImage showScoreboardImage(final UUID viewer, final Path file) {
     final Collection<UUID> viewers = List.of(viewer);
     final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();

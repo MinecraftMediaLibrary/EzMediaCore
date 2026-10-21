@@ -45,9 +45,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/**
- * Tests {@link MapResult}.
- */
 final class MapResultTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -89,13 +86,6 @@ final class MapResultTest {
     return builder.build();
   }
 
-  /**
-   * Creates a configuration of a grid of maps, whose first map has the id 5.
-   *
-   * @param columns the number of maps per row
-   * @param rows    the number of rows of maps
-   * @return the configuration
-   */
   private MapConfiguration createGridConfiguration(final int columns, final int rows) {
     final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));

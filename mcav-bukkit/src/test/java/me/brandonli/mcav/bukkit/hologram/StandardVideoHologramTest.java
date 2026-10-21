@@ -64,10 +64,7 @@ import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 
-/**
- * Tests {@link Hologram}, {@link StandardVideoHologram}, and {@link VideoHologram}. The tests change the default time
- * zone, so they run in isolation.
- */
+// changes the default time zone
 @Isolated
 final class StandardVideoHologramTest {
 
@@ -157,9 +154,6 @@ final class StandardVideoHologramTest {
     return captor.getValue();
   }
 
-  /**
-   * Counts the progress segments drawn in the color, following the color inheritance of the component tree.
-   */
   private int countSegments(final Component component, final TextColor inheritedColor, final TextColor color) {
     final TextColor ownColor = component.color();
     final TextColor effectiveColor = ownColor == null ? inheritedColor : ownColor;

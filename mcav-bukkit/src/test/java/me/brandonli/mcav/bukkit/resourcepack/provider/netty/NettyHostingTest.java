@@ -58,9 +58,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link NettyHosting} and {@link InjectorException}.
- */
 final class NettyHostingTest {
 
   private static final byte[] PACK = { 'P', 'K', 3, 4, 8 };

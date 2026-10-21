@@ -84,7 +84,6 @@ final class Mcv2ScreenTest {
 
   private CraftPlayer player;
 
-  /** The page map behind each map of a 3x2 wall with two page slots, in reading order: the slots alternate. */
   private static final int[] PAGES_OF_A_THREE_BY_TWO_WALL = { 500, 501, 500, 501, 500, 501 };
 
   private World world;

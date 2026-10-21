@@ -72,10 +72,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Tests {@link DisplayableImage} and its displays {@link MapImage}, {@link ChatImage}, {@link EntityImage},
- * {@link ScoreboardImage}, and {@link BlockImage}.
- */
 final class DisplayableImageTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -129,13 +125,6 @@ final class DisplayableImageTest {
     return builder.build();
   }
 
-  /**
-   * Creates a configuration of a grid of maps, whose first map has the id 2.
-   *
-   * @param columns the number of maps per row
-   * @param rows    the number of rows of maps
-   * @return the configuration
-   */
   private MapConfiguration createMapGridConfiguration(final int columns, final int rows) {
     final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));

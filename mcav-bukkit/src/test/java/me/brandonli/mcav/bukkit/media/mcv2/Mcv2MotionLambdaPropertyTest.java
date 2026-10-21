@@ -25,7 +25,6 @@ import net.jqwik.api.constraints.DoubleRange;
 import net.jqwik.api.constraints.IntRange;
 import net.jqwik.api.constraints.Size;
 
-/** Motion smoothing converges monotonically and more motion never lowers lambda. */
 final class Mcv2MotionLambdaPropertyTest {
 
   private static final String SEED = "20260927";

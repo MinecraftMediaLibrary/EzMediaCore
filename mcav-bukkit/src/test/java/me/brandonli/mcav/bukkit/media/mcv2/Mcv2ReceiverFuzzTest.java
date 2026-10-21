@@ -30,17 +30,6 @@ import java.util.stream.IntStream;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes a receiver with whole streams, the way a client sees them: frames that arrive in any order, repeat, go
- * missing, predict from a frame of another size or id, or are damaged. Whatever the frames, the receiver commits a frame
- * only when it decodes, to a picture of the frame's size, and otherwise throws {@link Mcv2Exception} and keeps its state
- * - so a second receiver that sees only the frames the first one committed decodes the very same pictures. The decoder
- * on several workers, writing into the picture it predicts from, decodes the same pictures as well.
- *
- * <p>An input is a research archive: every frame is preceded by its length as four little-endian bytes, cut short where
- * the input ends. The seeds include every committed edge stream, which together use every v3 mode and boundary
- * geometry, the tiny one with its six frames in their order, and the first three frames of every conformance stream.
- */
 @Tag("fuzz")
 final class Mcv2ReceiverFuzzTest {
 

@@ -34,28 +34,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-/**
- * The committed MCV2 conformance fixtures: research archives (a little-endian u32 length before every frame) and the
- * per-frame SHA-256 digests of the reference decoder's RGB output, produced outside the tests by
- * {@code mcv2_tools.py fixtures} and {@code mcv2_tools.py edge_streams} with the Python reference.
- */
+// made by mcv2_tools.py fixtures and edge_streams with the Python reference
 public final class Mcv2Fixtures {
 
   private static final String DIGESTS_FILE = "/digests.json";
 
-  /** The resource folder of the fixtures. */
   private static final String ROOT = "/mcv2/";
 
   private Mcv2Fixtures() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Reads a resource.
-   *
-   * @param path the path below {@link #ROOT}
-   * @return the bytes
-   */
   public static byte[] read(final String path) {
     try (final InputStream stream = Objects.requireNonNull(Mcv2Fixtures.class.getResourceAsStream(ROOT + path), path)) {
       return stream.readAllBytes();
@@ -64,12 +53,6 @@ public final class Mcv2Fixtures {
     }
   }
 
-  /**
-   * Splits a research archive into its frames.
-   *
-   * @param archive the archive
-   * @return the frames in order
-   */
   public static List<byte[]> frames(final byte[] archive) {
     final List<byte[]> frames = new ArrayList<>();
     int offset = 0;
@@ -82,12 +65,6 @@ public final class Mcv2Fixtures {
     return frames;
   }
 
-  /**
-   * Reads the per-frame digests of a fixture folder.
-   *
-   * @param folder {@code conformance} or {@code edge}
-   * @return the digests of every stream, by file name
-   */
   static Map<String, List<String>> digests(final String folder) {
     final String text = new String(read(folder + DIGESTS_FILE), StandardCharsets.UTF_8);
     final JsonObject root = JsonParser.parseString(text).getAsJsonObject();
@@ -105,12 +82,6 @@ public final class Mcv2Fixtures {
     return digests;
   }
 
-  /**
-   * Hashes a picture.
-   *
-   * @param bytes the bytes
-   * @return the lowercase hexadecimal SHA-256
-   */
   public static String sha256(final byte[] bytes) {
     try {
       return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));

@@ -29,16 +29,6 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Trees;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the checks a map page passes before its bytes are trusted - the header, the symbol alphabet, the padding and
- * the CRC - on real pages rather than on random symbols, which would never get past the CRC: the first input byte is reserved,
- * the second picks one of the pages of three frames (one of them two pages long), the third cuts
- * the page short or lengthens it with zero symbols, and every byte after them is XORed onto the page's symbols from its
- * start. Whatever the change, the page is rejected with {@link Mcv2Exception}, or it is accepted and everything it
- * reports is what its symbols say: rebuilt from what was read, header and payload with a freshly computed CRC give back
- * the same symbols. The CRC detects corruption and is not authentication, so a change that keeps it valid is accepted;
- * what the target checks is that nothing unchecked gets through.
- */
 @Tag("fuzz")
 final class PageCrcFuzzTest {
 
@@ -85,7 +75,6 @@ final class PageCrcFuzzTest {
     assertArrayEquals(symbols, rebuilt);
   }
 
-  /** The symbols of a page, written from its fields as the sender writes them. */
   private byte[] rebuild(final TransportPage page) {
     final byte[] payload = page.getPayload();
     final byte[] raw = new byte[TransportPages.HEADER_BYTES + payload.length];

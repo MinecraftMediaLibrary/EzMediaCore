@@ -44,10 +44,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-/**
- * Tests that the limit of a viewer's unsent bytes, which only keeps a slow viewer's backlog small, never keeps the
- * viewer from being shown the screen.
- */
 final class Mcv2ChannelUnsentLimitTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000041");

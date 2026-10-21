@@ -38,9 +38,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 
-/**
- * Tests {@link ResourcePackFile}.
- */
 final class ResourcePackFileTest {
 
   private static final byte[] ORIGINAL = { 1, 2, 3 };

@@ -57,9 +57,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link FileServerHandler}.
- */
 final class FileServerHandlerTest {
 
   private static final byte[] PACK = { 'P', 'K', 3, 4, 7, 7 };

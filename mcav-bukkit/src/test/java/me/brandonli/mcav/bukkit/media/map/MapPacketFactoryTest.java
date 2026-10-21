@@ -37,9 +37,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link MapPacketFactory}.
- */
 final class MapPacketFactoryTest {
 
   private static final UUID FIRST = UUID.fromString("00000000-0000-0000-0000-000000000001");

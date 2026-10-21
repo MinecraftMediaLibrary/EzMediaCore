@@ -32,9 +32,6 @@ import org.bukkit.Bukkit;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-/**
- * Tests {@link ServerEnvironment} and {@link UnsupportedServerVersionException}.
- */
 final class ServerEnvironmentTest {
 
   @Test

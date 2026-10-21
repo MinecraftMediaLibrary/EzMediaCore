@@ -36,12 +36,6 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Kernels;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * The native kernels for the tests: the library of this platform, loaded once from the jar's resources into the build
- * folder, and its kernels at every level this processor runs. Where the jar ships a library for the platform it must
- * load, or every test that asks for it fails; only a platform recorded as running Java runs the tests with
- * {@code -Dmcv2.native.expect=java}, and there, as where the jar has no library, there are no levels to test.
- */
 final class NativeTesting {
 
   private static final String OS_NAME_PROPERTY = "os.name";
@@ -52,10 +46,9 @@ final class NativeTesting {
 
   private static final String NATIVE_KERNELS_CLASS = "NativeKernels";
 
-  /** The system property that records a platform whose library does not load, so its tests expect Java. */
+  // names a platform whose library does not load, so its tests expect Java
   private static final String EXPECT = "mcv2.native.expect";
 
-  /** Where the tests extract the library: the module's build folder. */
   static final Path FOLDER = Path.of("build", "mcv2-natives");
 
   private static @Nullable Resolution loaded;
@@ -64,23 +57,11 @@ final class NativeTesting {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Gets whether this platform should run the native kernels: the jar has its library, and no one recorded it as a Java
-   * platform.
-   *
-   * @return whether the native kernels must load
-   */
   static boolean expected() {
     final String platform = Natives.platform(System.getProperty(OS_NAME_PROPERTY, ""), System.getProperty(OS_ARCHITECTURE_PROPERTY, ""));
     return !"java".equals(System.getProperty(EXPECT)) && platform != null && Mcv2.NATIVE_DIGESTS.containsKey(platform);
   }
 
-  /**
-   * Loads the library of this platform once, failing where it should load and does not.
-   *
-   * @return the resolution, native where expected, else Java
-   * @throws IllegalStateException if the library should load and did not
-   */
   static synchronized Resolution resolution() {
     final Resolution previous = loaded;
     if (previous != null) {
@@ -104,11 +85,6 @@ final class NativeTesting {
     return Natives.read(Mcv2.class.getResourceAsStream(resource));
   }
 
-  /**
-   * Gets the levels this processor runs, best first, or none where no library loads.
-   *
-   * @return the levels
-   */
   static List<Level> levels() {
     final Resolution resolution = resolution();
     final List<Level> levels = new ArrayList<>();
@@ -121,12 +97,6 @@ final class NativeTesting {
     return levels;
   }
 
-  /**
-   * Gets the loaded library.
-   *
-   * @return its symbols
-   * @throws IllegalStateException if no library loads here
-   */
   @SuppressWarnings("restricted") // a library lookup is a restricted method of the foreign function API
   static SymbolLookup library() {
     if (resolution().binding() == null) {
@@ -140,12 +110,6 @@ final class NativeTesting {
     return SymbolLookup.libraryLookup(FOLDER.resolve("mcv2kernels-" + digest + "-" + Natives.libraryName(platform)), Arena.global());
   }
 
-  /**
-   * Makes kernels at one level.
-   *
-   * @param level a level the processor runs
-   * @return the kernels
-   */
   static NativeKernels kernels(final Level level) {
     return kernels(Binding.of(library(), level));
   }
@@ -158,12 +122,6 @@ final class NativeTesting {
     return Mcv2Internals.construct(Mcv2Internals.nested(NATIVE_KERNELS_CLASS), new Class<?>[] { Binding.class }, binding);
   }
 
-  /**
-   * Gets the factory of the kernels at one level, for an encoder.
-   *
-   * @param level a level the processor runs
-   * @return the factory
-   */
   static Supplier<?> factory(final Level level) {
     final Binding binding = Binding.of(library(), level);
     return () -> create(binding);

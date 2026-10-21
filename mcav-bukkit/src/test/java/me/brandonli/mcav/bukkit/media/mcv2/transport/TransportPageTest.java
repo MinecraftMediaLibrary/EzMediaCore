@@ -25,7 +25,6 @@ import java.util.Objects;
 import me.brandonli.mcav.bukkit.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/** Pages compare by every header field and every payload byte, which the assembler's duplicate rule relies on. */
 final class TransportPageTest {
 
   private TransportPage page(

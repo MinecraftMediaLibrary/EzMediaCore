@@ -28,9 +28,6 @@ import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.result.Characters;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ScoreboardConfiguration}.
- */
 final class ScoreboardConfigurationTest {
 
   private static final String CHARACTER = "x";

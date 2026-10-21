@@ -35,16 +35,6 @@ import net.jqwik.api.Provide;
 import net.jqwik.api.arbitraries.IntegerArbitrary;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
-/**
- * Properties of {@link DeltaMapEncoder}, checked against a model of the clients: an array per map that receives every
- * patch the encoder returns, in order, exactly as a client applies map data packets.
- *
- * <p>The encoder documents two ways in which a frame may reach the clients incompletely: maps that do not fit the byte
- * budget of a frame wait for later frames, and tiles with only a few changed pixels are held back for a few frames.
- * Both only delay: once the picture stops changing, the clients must end up showing exactly the last frame. The number
- * of frames that takes is bounded, because every frame that sends anything brings at least one tile up to date and at
- * most {@value #MAXIMUM_QUIET_FRAMES} frames in a row can send nothing while a tile is still out of date.
- */
 final class DeltaMapEncoderPropertyTest {
 
   private static final String SEED = "20260925";
@@ -57,10 +47,7 @@ final class DeltaMapEncoderPropertyTest {
 
   private static final String SCENARIOS = "scenarios";
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
+  // jqwik 1.10 shares a range between derived arbitraries, so each range starts from a fresh one
   private Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
     return integers.between(minimum, maximum);
@@ -91,10 +78,6 @@ final class DeltaMapEncoderPropertyTest {
     return scenarios.as(EncodingScenario::new);
   }
 
-  /**
-   * Changes of one frame against the previous one: large rectangles, which look like motion, and single pixels, which
-   * look like dithering noise and are held back by the encoder.
-   */
   private Arbitrary<List<FrameEdit>> edits() {
     final Arbitrary<Integer> positions = this.between(0, 999);
     final Arbitrary<Integer> sizes = this.between(1, PER_MILLE);
@@ -191,9 +174,7 @@ final class DeltaMapEncoderPropertyTest {
     assertTrue(withinBudget, () -> sent + " bytes over " + mapCount + " maps in one frame, budget " + budget);
   }
 
-  /**
-   * One frame of a scenario, a pure function of the scenario so that shrinking the scenario shrinks the frames.
-   */
+  // a pure function of the scenario, so shrinking the scenario shrinks the frames
   private static final class EncodingScenario {
 
     private final int columns;
@@ -223,10 +204,6 @@ final class DeltaMapEncoderPropertyTest {
       return new MapLayout(7, this.columns, this.rows, this.imageWidth, this.imageHeight);
     }
 
-    /**
-     * Builds the frames: the first starts from a picture with a different color in every row, and every frame applies
-     * its edits to the previous one.
-     */
     private List<byte[]> createFrames() {
       final List<byte[]> frames = new ArrayList<>();
       byte[] frame = new byte[this.imageWidth * this.imageHeight];
@@ -270,9 +247,6 @@ final class DeltaMapEncoderPropertyTest {
     }
   }
 
-  /**
-   * A rectangle painted in one color, given in thousandths of the image so it fits every image size.
-   */
   private static final class FrameEdit {
 
     private final int left;
@@ -312,10 +286,6 @@ final class DeltaMapEncoderPropertyTest {
     }
   }
 
-  /**
-   * What the clients display: every map starts with pixels that were never sent, and every patch overwrites its
-   * rectangle, as the Minecraft client does with a map data packet.
-   */
   private static final class ClientModel {
 
     private final MapLayout layout;
@@ -362,9 +332,6 @@ final class DeltaMapEncoderPropertyTest {
       return index;
     }
 
-    /**
-     * Asserts that a patch lies inside the covered region of its map and shows the pixels the frame has there.
-     */
     private void assertCarriesFramePixels(final MapTilePatch patch, final byte[] frame) {
       final int index = this.indexOf(patch);
       final MapRegion region = this.layout.getRegion(index);
@@ -391,9 +358,6 @@ final class DeltaMapEncoderPropertyTest {
       }
     }
 
-    /**
-     * Asserts that the snapshot is exactly what the clients display: every map that received anything, and nothing else.
-     */
     private void assertMatchesSnapshot(final List<MapTilePatch> snapshot) {
       final ClientModel restored = new ClientModel(this.layout);
       restored.applyAll(snapshot);
@@ -451,9 +415,6 @@ final class DeltaMapEncoderPropertyTest {
       return covered;
     }
 
-    /**
-     * Asserts that every map shows the frame where the image covers it and was never sent anything anywhere else.
-     */
     private void assertShows(final byte[] frame) {
       final int imageWidth = this.layout.getImageWidth();
       for (int index = 0; index < this.maps.length; index++) {

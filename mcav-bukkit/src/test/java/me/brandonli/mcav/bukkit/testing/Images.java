@@ -20,23 +20,12 @@ package me.brandonli.mcav.bukkit.testing;
 import java.util.Arrays;
 import me.brandonli.mcav.media.image.ImageBuffer;
 
-/**
- * Creates small images for tests.
- */
 public final class Images {
 
   private Images() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Creates an image filled with one color.
-   *
-   * @param width  the width
-   * @param height the height
-   * @param argb   the color as packed ARGB
-   * @return the image
-   */
   public static ImageBuffer solid(final int width, final int height, final int argb) {
     final int[] pixels = new int[width * height];
     Arrays.fill(pixels, argb);

@@ -40,12 +40,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the paths and names that go into a resource pack: sound keys, locations of extra files and the description.
- * Whatever they are, the builder either refuses them with an {@link IllegalArgumentException} or writes a pack whose
- * entries all lie below its root, with no empty, dot or parent segment, and whose generated JSON holds exactly the
- * description and the sounds that were accepted. The seeds are the keys and paths of the tests of the builder.
- */
 @Tag("fuzz")
 final class ResourcePackFuzzTest {
 

@@ -24,16 +24,10 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.MotionLambda;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Workers;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the temporal information of frames large enough to be summed in several bands, as a 1080p frame is: every
- * sample counts once, whichever band sums it.
- */
 final class Mcv2MotionLambdaBandsTest {
 
-  /** More samples than three bands of the workers take, with a band left partly full. */
   private static final int SAMPLES = 50_000;
 
-  /** One luma step in the units of the blurred samples: 36 per step, as nine samples of r + 2 g + b each. */
   private static final int LUMA_STEP = 36;
 
   @Test

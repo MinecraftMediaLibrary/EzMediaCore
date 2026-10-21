@@ -40,10 +40,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 
-/**
- * Properties of {@link MapPacketFactory} for every number of patches, not only the counts around the bundle limit the
- * examples use.
- */
 final class MapPacketFactoryPropertyTest {
 
   private static final String SEED = "20260925";
@@ -83,9 +79,6 @@ final class MapPacketFactoryPropertyTest {
     return Arbitraries.oneOf(anyCount, aroundLimits);
   }
 
-  /**
-   * Gets the packets the viewer received since the given number of packets.
-   */
   private List<Packet<?>> packetsSince(final int before) {
     final List<Packet<?>> packets = this.server.getSentPackets(VIEWER);
     final int after = packets.size();
@@ -157,11 +150,6 @@ final class MapPacketFactoryPropertyTest {
     assertEquals(mapCount, offset, "every map of the range is cleared once");
   }
 
-  /**
-   * The largest wall the sandbox builds has 64 by 64 maps. Clearing it happens when a video is released, without the
-   * byte budget of playback, so the live pass measured it as a burst: this pins that any clear of up to 4096 maps
-   * reaches a client as one bundle, applied in one tick rather than split, and that its size is 16400 bytes a map.
-   */
   @Property(seed = SEED, tries = 30)
   void shouldClearAWallOfUpTo4096MapsInOneBundle(@ForAll @IntRange(min = 1, max = BUNDLE_LIMIT) final int mapCount) {
     final List<UUID> viewers = List.of(VIEWER);

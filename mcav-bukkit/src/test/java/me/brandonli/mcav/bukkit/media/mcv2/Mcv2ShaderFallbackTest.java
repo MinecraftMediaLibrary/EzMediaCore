@@ -37,10 +37,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests that a player whose MCV2 client mod reports a shader pack in use, which keeps MCV2 from decoding, sees an MCV2
- * screen as a player without the pack does, and the video again once the report says otherwise.
- */
 final class Mcv2ShaderFallbackTest {
 
   private static final UUID PACK = UUID.fromString("00000000-0000-0000-0000-0000000000c1");

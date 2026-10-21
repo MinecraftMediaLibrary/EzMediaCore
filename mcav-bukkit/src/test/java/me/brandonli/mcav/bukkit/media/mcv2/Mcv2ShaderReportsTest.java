@@ -35,10 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/**
- * Tests how the reports of the MCV2 client mod are read: only well-formed reports of version 1, at the rate allowed,
- * each changing only the state of the player who sent it.
- */
 final class Mcv2ShaderReportsTest {
 
   private static final UUID ALICE = UUID.fromString("00000000-0000-0000-0000-000000000061");
@@ -83,7 +79,6 @@ final class Mcv2ShaderReportsTest {
     this.reports.onPluginMessageReceived(Mcv2ShaderReports.CHANNEL, player, message);
   }
 
-  /** Sends a report a second after the last, which the rate always allows. */
   private void sendLater(final Player player, final byte[] message) {
     this.clock.addAndGet(Mcv2ShaderReports.INTERVAL_NANOSECONDS);
     this.send(player, message);

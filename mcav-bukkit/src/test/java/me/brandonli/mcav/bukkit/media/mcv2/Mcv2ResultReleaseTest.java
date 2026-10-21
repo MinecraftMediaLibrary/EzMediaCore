@@ -41,10 +41,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests that releasing an MCV2 screen clears every map of its wall for the viewers that decoded it, a wall of several
- * maps included.
- */
 final class Mcv2ResultReleaseTest {
 
   private static final UUID WITH_PACK = UUID.fromString("00000000-0000-0000-0000-000000000061");

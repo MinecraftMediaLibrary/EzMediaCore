@@ -37,7 +37,6 @@ import org.bytedeco.ffmpeg.ffmpeg;
 import org.bytedeco.javacpp.Loader;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** Generates fixture media without depending on production subprocess code that PIT may mutate. */
 public final class GeneratedMedia {
 
   private static final Duration PROCESS_TIMEOUT = Duration.ofMinutes(2);
@@ -48,20 +47,11 @@ public final class GeneratedMedia {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /** Locates the bundled executable directly, without production FFmpeg provider mutations affecting fixtures. */
   public static Path ffmpegPath() {
     final String location = Loader.load(ffmpeg.class);
     return Path.of(location);
   }
 
-  /**
-   * Generates a file into a temporary sibling with the same extension and publishes it only after a successful
-   * nonempty result. A fixture process has a 120 second deadline. Successful paths are reused within this JVM.
-   *
-   * @param output the destination media file
-   * @param command constructs the command using the temporary media destination
-   * @return the absolute published path
-   */
   public static synchronized Path generate(final Path output, final Function<Path, List<String>> command) {
     return generate(output, command, PROCESS_TIMEOUT);
   }

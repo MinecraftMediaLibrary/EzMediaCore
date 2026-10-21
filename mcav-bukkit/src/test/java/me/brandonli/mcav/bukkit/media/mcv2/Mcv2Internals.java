@@ -29,7 +29,6 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** Reaches the encoder's private members by reflection, so the tests need no wider encoder API. */
 final class Mcv2Internals {
 
   private Mcv2Internals() {

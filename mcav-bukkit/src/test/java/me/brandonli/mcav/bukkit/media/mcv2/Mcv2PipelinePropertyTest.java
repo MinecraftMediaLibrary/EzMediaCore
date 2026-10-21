@@ -25,11 +25,6 @@ import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import net.jqwik.api.constraints.IntRange;
 
-/**
- * Pipelining is the same encoder called in another order: frame N verified on another thread while frame N+1 is
- * searched gives, byte for byte, the stream one frame at a time gives, for any picture size, pan, live profile and
- * keyframe request cadence.
- */
 final class Mcv2PipelinePropertyTest {
 
   private static final String SEED = "20260927";

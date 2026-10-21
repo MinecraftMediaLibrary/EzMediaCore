@@ -72,12 +72,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * The loading of the native kernels: which platform names a library, the libraries the jar ships against the digests
- * generated with them, each way a library can fail to load - off, unknown, missing, unreadable, altered, without a folder,
- * unextractable, unloadable, the wrong interface, a kernel short - running Java with the reason, the extraction under
- * the digest that a second load reuses, the level chosen, and the path the live encoders take.
- */
 final class Mcv2NativesTest {
 
   private static final byte[] NOT_A_LIBRARY = "not a library".getBytes(StandardCharsets.US_ASCII);

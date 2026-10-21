@@ -31,9 +31,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link EntityConfiguration}.
- */
 final class EntityConfigurationTest {
 
   private static final String CHARACTER = "x";

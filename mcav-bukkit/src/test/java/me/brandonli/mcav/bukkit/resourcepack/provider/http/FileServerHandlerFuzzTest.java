@@ -49,22 +49,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the handler that serves the resource pack on its own port. Its bytes come from anyone who can open a TCP
- * connection, and arrive split into reads wherever the network splits them. Whatever the bytes, the splits and the state
- * of the file: once the headers end within the limit of 8192 bytes, the request is answered exactly once by its method -
- * {@code GET} with the whole file and its length, {@code HEAD} with the headers alone, any other method with 405, a file
- * that cannot be read with 404 - and the read timeout is gone; a stream that passes the limit without ending its headers
- * is refused with 431; a shorter one waits. Every answer closes the connection, and no buffer or file is leaked.
- *
- * <p>The first byte of an input holds the options: how the file opens (bits 0 and 1: normally, failing, or open but
- * unable to tell its size), whether the read timeout is in the pipeline (bit 2), whether the file is empty (bit 3),
- * whether a message that is not bytes arrives after the first read (bit 4), and whether the filler comes before the
- * rest of the stream (bit 5). The second byte is the number of splits, followed by two bytes per split for where it
- * falls, two bytes for the length of the filler and one for its byte; the rest of the input is the stream. The filler
- * lets small inputs reach the limit. The seeds are real requests of a client, a request whose headers fill the limit
- * exactly, headers that pass it, and requests followed by more bytes than the limit.
- */
 @Tag("fuzz")
 final class FileServerHandlerFuzzTest {
 
@@ -328,9 +312,6 @@ final class FileServerHandlerFuzzTest {
     return stream.length >= prefix.length && Arrays.equals(stream, 0, prefix.length, prefix, 0, prefix.length);
   }
 
-  /**
-   * How the served file opens.
-   */
   private enum OpenMode {
     OPENS,
     FAILS,
@@ -349,9 +330,6 @@ final class FileServerHandlerFuzzTest {
 
   private record Outcome(List<Object> answered, boolean openAfterReads, boolean timeoutLeft) {}
 
-  /**
-   * The bytes a connection sends and the reads they arrive in.
-   */
   private static final class Request {
 
     private final byte[] stream;
@@ -397,9 +375,6 @@ final class FileServerHandlerFuzzTest {
     }
   }
 
-  /**
-   * Hands out unpooled heap buffers and remembers each, so the test sees whether the handler released its own.
-   */
   private static final class RecordingAllocator extends AbstractByteBufAllocator {
 
     private final List<ByteBuf> allocated = new ArrayList<>();

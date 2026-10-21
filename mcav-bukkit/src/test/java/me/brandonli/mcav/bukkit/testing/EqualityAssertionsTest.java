@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-/** Tests that the equality helper accepts valid hash collisions. */
 final class EqualityAssertionsTest {
 
   @Test

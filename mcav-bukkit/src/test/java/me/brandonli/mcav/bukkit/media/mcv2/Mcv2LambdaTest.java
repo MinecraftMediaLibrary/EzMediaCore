@@ -24,7 +24,6 @@ import java.util.concurrent.ForkJoinPool;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import org.junit.jupiter.api.Test;
 
-/** Records the usable-cost boundary of finite lambdas admitted by the settings. */
 final class Mcv2LambdaTest {
 
   @Test

@@ -28,15 +28,6 @@ import net.jqwik.api.Property;
 import net.jqwik.api.constraints.DoubleRange;
 import net.jqwik.api.constraints.IntRange;
 
-/**
- * Round trips through the encoder and the decoder on generated pictures. MCV2 is a rate-distortion codec with no fixed
- * error bound, so the bound a round trip is held to is the encoder's own picture, the one it keeps as the reference of
- * its next frame: a client's decoder must reproduce it bit for bit, frame after frame, whatever the profile, lambda,
- * size and content, or encoder and client drift apart. The encoders verify, so the pictures their searches built leaf
- * by leaf must agree with the decode too: the reference of the shipped profiles is a decode of the chosen frame, and
- * without the check it would agree with the client's by construction. Where the format is lossless - a solid colour
- * is stored as eight-bit RGB, the cheapest leaf a keyframe has - a flat picture comes back exactly.
- */
 final class Mcv2RoundTripPropertyTest {
 
   private static final String SEED = "20260926";
@@ -45,7 +36,6 @@ final class Mcv2RoundTripPropertyTest {
 
   private static final List<Settings> PROFILES = List.of(Settings.of(72, false), Settings.FAST, Settings.DEFAULT, Settings.FAST);
 
-  /** A picture of flat rectangles, noise and ramps, the kinds of content different leaf modes win on. */
   private static byte[] picture(final Random random, final int width, final int height) {
     final byte[] rgb = new byte[width * height * 3];
     for (int index = 0; index < rgb.length; index++) {
@@ -101,7 +91,6 @@ final class Mcv2RoundTripPropertyTest {
     }
   }
 
-  /** The next picture: the same one, moved a few pixels, partly repainted, or a new scene. */
   private static byte[] next(final Random random, final byte[] previous, final int width, final int height) {
     final int kind = random.nextInt(4);
     if (kind == 3) {

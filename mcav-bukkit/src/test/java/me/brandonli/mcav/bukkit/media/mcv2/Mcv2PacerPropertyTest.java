@@ -29,11 +29,6 @@ import net.jqwik.api.constraints.DoubleRange;
 import net.jqwik.api.constraints.IntRange;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Whatever the video, the presets and however fast the budget encodes: the pacer never stays long on a rung whose frames
- * take more than their time, a step up it takes under a steady load holds, and it climbs back to the top once the budget
- * frees.
- */
 final class Mcv2PacerPropertyTest {
 
   private static final String SEED = "20260926";
@@ -47,7 +42,6 @@ final class Mcv2PacerPropertyTest {
 
   private static final int MILLISECONDS_PER_SECOND = 1000;
 
-  /** The presets a screen steps through, when it has more than one. */
   private static final List<Mcv2Pacer.Preset> PRESETS = List.of(
     Mcv2Pacer.Preset.of("live", 1),
     Mcv2Pacer.Preset.of("live-fast", 0.6),
@@ -63,10 +57,6 @@ final class Mcv2PacerPropertyTest {
     return (1000.0 * rung.getDivisor()) / framesPerSecond;
   }
 
-  /**
-   * Under a steady load, a rung whose frames take more than their time is left within the time the pacer waits plus
-   * two encodes, since it only learns how long a frame takes once the frame is done; and no step up has to be undone.
-   */
   @Property(seed = SEED, tries = 300)
   boolean shouldNeverStayLongOverItsTime(
     @ForAll("frameRates") final double framesPerSecond,
@@ -106,7 +96,6 @@ final class Mcv2PacerPropertyTest {
     return true;
   }
 
-  /** After a heavy load, once the budget frees up, the pacer climbs back to the top rung. */
   @Property(seed = SEED, tries = 300)
   boolean shouldClimbBackWhenTheLoadDrops(
     @ForAll("frameRates") final double framesPerSecond,
@@ -124,14 +113,8 @@ final class Mcv2PacerPropertyTest {
     return simulation.pacer.getRung().equals(simulation.pacer.getLadder().getFirst());
   }
 
-  /** A rung the pacer was on, from when to when, whether a step up brought it there and a step down ended it. */
   private record Stretch(Mcv2Pacer.Rung rung, long from, long to, boolean climbed, boolean leftDown) {}
 
-  /**
-   * A screen's encoder under a budget: frames arrive at the video's rate; an encode takes the time of a 1080p frame at
-   * the budget's current speed, scaled by the rung's pixels, its preset's cost and a little noise; while the encoder
-   * works, the newest frame it is asked for waits, as in the screen.
-   */
   private static final class Simulation {
 
     private final Mcv2Pacer pacer;
@@ -180,7 +163,6 @@ final class Mcv2PacerPropertyTest {
       this.climbed = !change.isDown() && !change.getFrom().isDithered();
     }
 
-    /** Plays the video for a while with 1080p frames taking {@code fullMilliseconds}. */
     void play(final double seconds, final double fullMilliseconds) {
       final long end = this.now + (long) (seconds * SECOND);
       while (this.now < end) {

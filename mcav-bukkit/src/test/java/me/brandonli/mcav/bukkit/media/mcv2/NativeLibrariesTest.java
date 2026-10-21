@@ -44,31 +44,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/**
- * The generated native libraries, read from their files with no emulator: each is built for its platform's machine and
- * exports exactly the entry points of the levels that platform dispatches to, the Linux ones need no library and leave
- * no symbol undefined, and all of them were built from the sources in the tree.
- */
 final class NativeLibrariesTest {
 
   private static final String SOURCES_RESOURCE = "/mcav/mcv2/natives/SOURCES";
   private static final String NATIVES_RESOURCE_FOLDER = "/mcav/mcv2/natives/";
   private static final String PATH_SEPARATOR = "/";
 
-  /** The module folder is the working folder of its tests, under Gradle and under PIT alike. */
   private static final Path SOURCES = Path.of("src/main/native/mcv2");
 
-  /** The formatter's settings, which no library is built from. */
   private static final String FORMAT_SETTINGS = ".clang-format";
 
   private static final String REBUILD = "rebuild the libraries: ./gradlew :mcav-bukkit:buildMcv2Natives";
 
-  /** One entry of the source's kernel list, {@code KERNEL(return type, name, parameters)}. */
   private static final Pattern KERNEL = Pattern.compile("\\bKERNEL\\(\\s*\\w+\\s*,\\s*(\\w+)\\s*,");
 
   private static final Set<String> QUERIES = Set.of("mcv2_abi", "mcv2_cpu_levels");
 
-  /** What the Mach-O linker exports from every dylib besides the library's own symbols. */
   private static final Set<String> MACH_O_LINKER_SYMBOLS = Set.of("_mh_dylib_header", "__dso_handle");
 
   private static final int EM_X86_64 = 62;
@@ -85,10 +76,9 @@ final class NativeLibrariesTest {
 
   private static final List<Level> X86_64 = List.of(Level.SCALAR, Level.SSE2, Level.SSE41, Level.AVX2, Level.AVX512);
 
-  /** macOS saves ZMM state lazily, so XCR0 cannot authorize AVX-512 and the library dispatches to AVX2 at most. */
+  // macOS saves ZMM state lazily, so XCR0 cannot authorize AVX-512
   private static final List<Level> MACOS_X86_64 = List.of(Level.SCALAR, Level.SSE2, Level.SSE41, Level.AVX2);
 
-  /** Only Linux says whether a program may run SVE, and at which vector length. */
   private static final List<Level> LINUX_AARCH64 = List.of(Level.SCALAR, Level.NEON, Level.SVE256, Level.SVE512);
 
   private static final List<Level> AARCH64 = List.of(Level.SCALAR, Level.NEON);
@@ -184,7 +174,6 @@ final class NativeLibrariesTest {
     assertEquals(tree, built, "the native sources changed since the libraries were built: " + REBUILD);
   }
 
-  /** The kernels every level exports, from the source's list of them. */
   private static List<String> kernels() throws IOException {
     final String header = Files.readString(SOURCES.resolve("mcv2.cpp"), StandardCharsets.US_ASCII);
     final int start = header.indexOf("#define MCV2_KERNELS(KERNEL)");

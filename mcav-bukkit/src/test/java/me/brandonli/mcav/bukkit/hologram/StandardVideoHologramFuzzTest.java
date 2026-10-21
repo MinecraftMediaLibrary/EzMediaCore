@@ -45,17 +45,6 @@ import org.junit.jupiter.api.Tag;
 import org.mockito.ArgumentMatchers;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Fuzzes the text a video hologram shows about a video, which comes from the site of the video through yt-dlp: the
- * title and the uploader are whatever the site names them, tags, escapes and backslashes included. Whatever they are,
- * the hologram shows the title on the first line and the uploader on the second, each exactly as the site named it, and
- * a placeholder for a missing one; no part of them is read as markup.
- *
- * <p>The first byte of an input says which of the title (bit 0), the uploader (bit 1) and the upload time (bit 2) the
- * site reported; the next four bytes are the upload time in seconds, and the rest is the title and the uploader in
- * UTF-8, separated by the first zero byte. The seeds are titles and uploaders of real videos, tags, escaped tags and
- * backslashes.
- */
 @Tag("fuzz")
 final class StandardVideoHologramFuzzTest {
 

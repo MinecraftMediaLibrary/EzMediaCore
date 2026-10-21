@@ -26,27 +26,12 @@ import java.util.HashMap;
 import java.util.Map;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Assertions for the {@link Object#equals(Object)} and {@link Object#hashCode()} contract of value types.
- */
 public final class EqualityAssertions {
 
   private EqualityAssertions() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Asserts that a value equals itself, that two values are equal in both directions with equal hash codes, that
-   * the value equals neither {@code null} nor an unrelated object, and that the value differs from every one of the
-   * different values in both directions and remains distinct from them as a hash map key.
-   *
-   * <p>Unequal values may have equal hash codes, even when only one property differs. Hash maps use equality to
-   * distinguish keys that collide; the contract requires equal hashes only for equal values.
-   *
-   * @param value           the value under test
-   * @param equalValue      a distinct instance that must be equal to the value
-   * @param differentValues instances that must not be equal to the value, each differing in one property
-   */
   public static void assertEqualityContract(final Object value, final Object equalValue, final Object... differentValues) {
     Preconditions.checkNotNull(value, "Value must not be null!");
     Preconditions.checkNotNull(equalValue, "Equal value must not be null!");
@@ -105,10 +90,7 @@ public final class EqualityAssertions {
     assertFalse(backward, () -> differentValue + " must differ from the value");
   }
 
-  /**
-   * Calls {@link Object#equals(Object)} directly, so the assertions check the implementation of the value rather than
-   * a shortcut such as the identity check of {@link java.util.Objects#equals(Object, Object)}.
-   */
+  // not Objects.equals, whose identity shortcut would skip the implementation
   private static boolean isEqual(final Object receiver, final @Nullable Object argument) {
     return receiver.equals(argument);
   }

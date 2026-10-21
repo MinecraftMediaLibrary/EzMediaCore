@@ -53,9 +53,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
-/**
- * Tests {@link FileHttpChannelInitializer}.
- */
 final class FileHttpChannelInitializerTest {
 
   private static final byte[] PACK = { 'P', 'K', 3, 4 };
@@ -174,9 +171,6 @@ final class FileHttpChannelInitializerTest {
     assertFalse(openAfterTimeout, "a slow client cannot keep the connection open forever");
   }
 
-  /**
-   * A socket channel whose pipeline and close future are observable, as a connection of the server.
-   */
   private static final class Connection {
 
     private final SocketChannel channel;

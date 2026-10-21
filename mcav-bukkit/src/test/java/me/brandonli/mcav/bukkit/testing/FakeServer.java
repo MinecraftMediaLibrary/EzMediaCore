@@ -61,15 +61,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
-/**
- * A fake Bukkit server for tests, built from Mockito mocks.
- *
- * <p>{@link Bukkit} is mocked statically for the current thread until the server is closed. The server reports the
- * supported Minecraft version, runs on the main thread by default, and has a plugin manager, a scoreboard manager,
- * a scheduler, and Bukkit's own messenger of plugin channels. Scheduled tasks never run on their own; {@link #runTasks()} runs them like one server tick.
- * Players added with {@link #addPlayer(UUID)} are online, and every packet sent to them is recorded, whether through
- * their packet listener or written to their connection's channel.
- */
 public final class FakeServer implements AutoCloseable {
 
   private final MockedStatic<Bukkit> bukkit;
@@ -92,7 +83,6 @@ public final class FakeServer implements AutoCloseable {
 
   private final List<ScheduledTask> tasks;
 
-  /** The entities whose visibility a grant inverts, per player. */
   private final Map<UUID, Set<Entity>> visibility;
 
   private final List<ScheduledTask> laterTasks;
@@ -119,11 +109,6 @@ public final class FakeServer implements AutoCloseable {
     this.bukkit = this.mockBukkit();
   }
 
-  /**
-   * Starts a fake server for the current thread.
-   *
-   * @return the running server
-   */
   public static FakeServer start() {
     return new FakeServer();
   }
@@ -189,25 +174,12 @@ public final class FakeServer implements AutoCloseable {
     return task;
   }
 
-  /**
-   * Delivers a plugin message that a player's client sent in the game, through the messenger, as the server does.
-   *
-   * @param player  the player
-   * @param channel the plugin channel
-   * @param message the message
-   */
   public void receivePluginMessage(final Player player, final String channel, final byte[] message) {
     final PlayerGameConnection connection = mock(PlayerGameConnection.class);
     when(connection.getPlayer()).thenReturn(player);
     this.messenger.dispatchIncomingMessage(connection, channel, message);
   }
 
-  /**
-   * Creates the Bukkit module and injects the plugin, which also caches the connections of the online players.
-   *
-   * @return the module
-   * @throws ReflectiveOperationException if the module cannot be created
-   */
   public BukkitModule injectModule() throws ReflectiveOperationException {
     final Constructor<BukkitModule> constructor = BukkitModule.class.getDeclaredConstructor();
     constructor.setAccessible(true);
@@ -216,13 +188,7 @@ public final class FakeServer implements AutoCloseable {
     return module;
   }
 
-  /**
-   * Adds an online player whose packets are recorded. Players added after {@link #injectModule()} only receive
-   * packets once {@link PacketUtils#initialize()} runs again.
-   *
-   * @param uuid the UUID of the player
-   * @return the player mock, which is a {@link CraftPlayer}
-   */
+  // a player added after injectModule() receives packets once PacketUtils.initialize() runs again
   public CraftPlayer addPlayer(final UUID uuid) {
     final CraftPlayer player = mock(CraftPlayer.class);
     final ServerPlayer handle = mock(ServerPlayer.class);
@@ -281,12 +247,7 @@ public final class FakeServer implements AutoCloseable {
     return player;
   }
 
-  /**
-   * Creates a network connection without a server: its class reads Paper's global configuration when it is loaded,
-   * which only a running server has, so the configuration is stubbed while the class loads.
-   *
-   * @return the connection, without a channel
-   */
+  // the connection class reads Paper's global configuration when it loads, so that is stubbed meanwhile
   public static Connection connection() {
     final GlobalConfiguration configuration = mock(GlobalConfiguration.class);
     configuration.misc = mock(GlobalConfiguration.Misc.class);
@@ -296,12 +257,6 @@ public final class FakeServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Gives a packet listener its network connection, as the server does when it creates the listener.
-   *
-   * @param listener   the packet listener
-   * @param connection the connection
-   */
   public static void connect(final ServerCommonPacketListenerImpl listener, final Connection connection) {
     try {
       final Field field = ServerCommonPacketListenerImpl.class.getDeclaredField("connection");
@@ -312,10 +267,6 @@ public final class FakeServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Creates a channel that records every packet written to it and holds the listeners of the writes until
-   * {@link #completeWrites(UUID)} runs them.
-   */
   private static Channel recordingChannel(final List<Packet<?>> packets, final List<ChannelFutureListener> pending) {
     final Channel channel = mock(Channel.class);
     final ChannelFuture write = mock(ChannelFuture.class);
@@ -332,24 +283,11 @@ public final class FakeServer implements AutoCloseable {
     return channel;
   }
 
-  /**
-   * Ends the tracking of an entity as Paper does when its chunk section stops being tracked: every player loses the
-   * grant that inverted its visibility (CraftPlayer.onEntityRemove, called from ServerLevel's onTrackingEnd).
-   *
-   * @param entity the entity
-   */
+  // as CraftPlayer.onEntityRemove does when Paper stops tracking the entity
   public void endTracking(final Entity entity) {
     this.visibility.values().forEach(inverted -> inverted.remove(entity));
   }
 
-  /**
-   * Completes the writes of the packets sent to a player with a listener so far, in order, as its connection would
-   * once it wrote them.
-   *
-   * @param uuid the UUID of the player
-   * @return the number of writes completed
-   * @throws Exception if a listener throws
-   */
   public int completeWrites(final UUID uuid) throws Exception {
     final List<ChannelFutureListener> pending = this.pendingWrites.getOrDefault(uuid, new CopyOnWriteArrayList<>());
     final List<ChannelFutureListener> writes = List.copyOf(pending);
@@ -361,11 +299,6 @@ public final class FakeServer implements AutoCloseable {
     return writes.size();
   }
 
-  /**
-   * Takes a player offline. The connection cache only notices once {@link PacketUtils#initialize()} runs again.
-   *
-   * @param uuid the UUID of the player
-   */
   public void removePlayer(final UUID uuid) {
     this.onlinePlayers.removeIf(player -> {
       final UUID playerUuid = player.getUniqueId();
@@ -374,23 +307,12 @@ public final class FakeServer implements AutoCloseable {
     this.bukkit.when(() -> Bukkit.getPlayer(uuid)).thenReturn(null);
   }
 
-  /**
-   * Gets the packets sent to a player, in order.
-   *
-   * @param uuid the UUID of the player
-   * @return the packets, or an empty list if the player is unknown
-   */
   public List<Packet<?>> getSentPackets(final UUID uuid) {
     final List<Packet<?>> noPackets = List.of();
     final List<Packet<?>> packets = this.sentPackets.getOrDefault(uuid, noPackets);
     return List.copyOf(packets);
   }
 
-  /**
-   * Runs every scheduled task once, like one server tick. Tasks that were scheduled to run once are removed.
-   *
-   * @return the number of tasks that ran
-   */
   public int runTasks() {
     final List<ScheduledTask> snapshot = new ArrayList<>(this.tasks);
     for (final ScheduledTask task : snapshot) {
@@ -403,12 +325,7 @@ public final class FakeServer implements AutoCloseable {
     return snapshot.size();
   }
 
-  /**
-   * Runs every task scheduled with a delay once, as if its delay had passed, and removes it. {@link #runTasks()} never
-   * runs them, so a test decides when their time has come.
-   *
-   * @return the number of tasks that ran
-   */
+  // runTasks() never runs delayed tasks, so a test decides when their time has come
   public int runLaterTasks() {
     final List<ScheduledTask> snapshot = new ArrayList<>(this.laterTasks);
     for (final ScheduledTask task : snapshot) {
@@ -419,9 +336,6 @@ public final class FakeServer implements AutoCloseable {
     return snapshot.size();
   }
 
-  /**
-   * Clears the connection cache, forgets the injected plugin, and removes the static mock of {@link Bukkit}.
-   */
   @Override
   public void close() {
     try {
@@ -432,9 +346,6 @@ public final class FakeServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Forgets the plugin injected into {@link BukkitModule}.
-   */
   public static void clearInjectedPlugin() {
     try {
       final Field field = BukkitModule.class.getDeclaredField("injectedPlugin");
@@ -445,81 +356,38 @@ public final class FakeServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Gets the static mock of {@link Bukkit}, for stubbing more methods.
-   *
-   * @return the static mock
-   */
   public MockedStatic<Bukkit> getBukkit() {
     return this.bukkit;
   }
 
-  /**
-   * Gets the plugin that is injected by {@link #injectModule()}.
-   *
-   * @return the plugin mock
-   */
   public Plugin getPlugin() {
     return this.plugin;
   }
 
-  /**
-   * Gets the plugin manager.
-   *
-   * @return the plugin manager mock
-   */
   public PluginManager getPluginManager() {
     return this.pluginManager;
   }
 
-  /**
-   * Gets the scheduler.
-   *
-   * @return the scheduler mock
-   */
   public BukkitScheduler getScheduler() {
     return this.scheduler;
   }
 
-  /**
-   * Gets the scoreboard manager.
-   *
-   * @return the scoreboard manager mock
-   */
   public ScoreboardManager getScoreboardManager() {
     return this.scoreboardManager;
   }
 
-  /**
-   * Gets the messenger of plugin channels, through which a test delivers what a client sends on one.
-   *
-   * @return the messenger, Bukkit's own
-   */
   public Messenger getMessenger() {
     return this.messenger;
   }
 
-  /**
-   * Sets whether {@link Bukkit#isPrimaryThread()} reports the main thread.
-   *
-   * @param primaryThread true to report the main thread
-   */
   public void setPrimaryThread(final boolean primaryThread) {
     this.primaryThread = primaryThread;
   }
 
-  /**
-   * Gets the number of tasks that are scheduled and not cancelled.
-   *
-   * @return the number of scheduled tasks
-   */
   public int getScheduledTaskCount() {
     return this.tasks.size();
   }
 
-  /**
-   * A task that was handed to the scheduler.
-   */
   private static final class ScheduledTask {
 
     private final Runnable runnable;

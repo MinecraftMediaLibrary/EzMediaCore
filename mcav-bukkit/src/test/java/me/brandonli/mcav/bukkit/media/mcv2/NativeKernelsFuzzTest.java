@@ -27,12 +27,7 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the native kernels against the Java ones: the fuzzed bytes choose a level this processor runs, a kernel and all
- * its inputs, and the native kernel must compute exactly what the Java one computes. It runs on the release library the
- * jar ships; where no library loads there is nothing to compare, and every input passes. The seeds are random byte
- * strings, which the fuzzer mutates into every kernel and size.
- */
+// where no library loads, every input passes
 @Tag("fuzz")
 final class NativeKernelsFuzzTest {
 

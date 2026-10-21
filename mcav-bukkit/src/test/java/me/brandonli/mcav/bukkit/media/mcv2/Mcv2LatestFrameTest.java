@@ -27,10 +27,7 @@ import java.util.concurrent.TimeUnit;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Mcv2LatestFrame} on one thread and with an encoder thread that waits; {@code LatestFrameRace} and
- * {@code LatestFrameCloseRace} in the jcstress module race them.
- */
+// jcstress races these in LatestFrameRace and LatestFrameCloseRace
 final class Mcv2LatestFrameTest {
 
   private static final long TIMEOUT_SECONDS = 10L;

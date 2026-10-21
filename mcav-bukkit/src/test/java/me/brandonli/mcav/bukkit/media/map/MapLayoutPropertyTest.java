@@ -32,10 +32,6 @@ import net.jqwik.api.Provide;
 import net.jqwik.api.arbitraries.IntegerArbitrary;
 import net.jqwik.api.constraints.IntRange;
 
-/**
- * Properties of {@link MapLayout}, {@link MapRegion} and the patches a layout cuts out of an image, for every grid and
- * image size rather than the few the examples use.
- */
 final class MapLayoutPropertyTest {
 
   private static final String SEED = "20260925";
@@ -44,10 +40,7 @@ final class MapLayoutPropertyTest {
 
   private static final String GRIDS = "grids";
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
+  // jqwik 1.10 shares a range between derived arbitraries, so each range starts from a fresh one
   private Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
     return integers.between(minimum, maximum);
@@ -142,9 +135,6 @@ final class MapLayoutPropertyTest {
     assertEquals(Integer.MAX_VALUE, lastId, "the last map may have the largest id");
   }
 
-  /**
-   * A grid of maps with an image on it; the image may be smaller than the grid, larger, or larger in one direction.
-   */
   private static final class MapGrid {
 
     private final int startMapId;
@@ -165,9 +155,6 @@ final class MapLayoutPropertyTest {
       return new MapLayout(this.startMapId, this.columns, this.rows, this.imageWidth, this.imageHeight);
     }
 
-    /**
-     * Fills an image so that neighboring pixels have different colors, cycling through the 256 a byte holds.
-     */
     private byte[] createImage() {
       final byte[] image = new byte[this.imageWidth * this.imageHeight];
       for (int index = 0; index < image.length; index++) {
@@ -214,10 +201,6 @@ final class MapLayoutPropertyTest {
     }
   }
 
-  /**
-   * Which pixels of the image the patches show, checked against the image as the patches are added. Every patch must
-   * show the image at the same position on the grid, so the offset of the image is learned from the first patch.
-   */
   private static final class ImageCoverage {
 
     private final MapGrid grid;
@@ -291,10 +274,6 @@ final class MapLayoutPropertyTest {
       return covered;
     }
 
-    /**
-     * Asserts that the image is centered: the grid pixels left over before and after it, or the image pixels cut off
-     * before and after the grid, differ by at most one on each axis.
-     */
     private void assertCentered() {
       if (!this.offsetKnown) {
         return;

@@ -23,7 +23,6 @@ import java.util.Map;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Workers;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** Access to the real block search without widening the encoder's API. */
 final class Mcv2BlockState {
 
   private static final Class<?> BUFFERS = Mcv2Internals.nested("Buffers");

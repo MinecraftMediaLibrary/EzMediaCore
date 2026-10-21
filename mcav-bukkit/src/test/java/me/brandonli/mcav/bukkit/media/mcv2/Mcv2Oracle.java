@@ -17,7 +17,6 @@
  */
 package me.brandonli.mcav.bukkit.media.mcv2;
 
-/** The spec's floating-point equations independently check the production integer kernels. */
 final class Mcv2Oracle {
 
   private static final int MAXIMUM_CHANNEL = 255;

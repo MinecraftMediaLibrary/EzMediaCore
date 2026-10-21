@@ -38,12 +38,6 @@ import java.util.function.Supplier;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import org.junit.jupiter.api.Test;
 
-/**
- * An encoder in two steps: a frame searched and written by {@code begin}, verified by {@code finish} while the next
- * frame is searched on another thread, gives the stream the encoder gives one frame at a time; one frame at most is in
- * flight; a frame that fails its verification stops the encoder; a keyframe asked for while a frame is in flight comes
- * with the frame after it.
- */
 final class Mcv2PipelineTest {
 
   private static final ForkJoinPool POOL = ForkJoinPool.commonPool();
@@ -53,7 +47,6 @@ final class Mcv2PipelineTest {
   private static final String KERNELS_FIELD = "kernels";
   private static final String PICTURE_FIELD = "picture";
 
-  /** Encodes a panning scene one frame at a time. */
   static List<byte[]> sequential(
     final Settings settings,
     final int width,
@@ -74,7 +67,6 @@ final class Mcv2PipelineTest {
     return stream;
   }
 
-  /** Encodes the same scene pipelined: frame N is verified on another thread while frame N+1 is searched. */
   static List<byte[]> pipelined(
     final Settings settings,
     final int width,

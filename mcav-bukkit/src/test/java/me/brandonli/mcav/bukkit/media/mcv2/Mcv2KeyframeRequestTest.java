@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-/** The keyframe requests of a channel; that none is lost to a frame taking them at the same time, jcstress checks. */
 final class Mcv2KeyframeRequestTest {
 
   @Test

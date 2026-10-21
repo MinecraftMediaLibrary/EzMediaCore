@@ -33,10 +33,6 @@ import me.brandonli.mcav.bukkit.testing.EqualityAssertions;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
-/**
- * The pacer's ladder and its steps: down by preset, then frame rate, then size, then to the dithered maps, each with a
- * message that says why; back up when there is room; keyframes left out; and the waits that keep it from swinging.
- */
 final class Mcv2PacerTest {
 
   private static final long SECOND = 1_000_000_000L;
@@ -54,10 +50,9 @@ final class Mcv2PacerTest {
   private static final String TRIED_AGAIN_PREFIX = "tried again ";
   private static final String AFTER_FALLING_BACK_SUFFIX = " s after falling back";
 
-  /** A frame of a 50 fps video: 20 ms exactly, so every frame time and share below is an exact double. */
+  // 20 ms, so every frame time and share below is an exact double
   private static final long FRAME_50 = 20_000_000L;
 
-  /** A frame of a 62.5 fps video: 16 ms, 625 of which make ten seconds, an odd number. */
   private static final long FRAME_62 = 16_000_000L;
 
   private static final int[] FULL = { 1920, 1080 };
@@ -66,7 +61,6 @@ final class Mcv2PacerTest {
 
   private static final Mcv2Pacer.Preset LIVE = Mcv2Pacer.Preset.of("live", 1);
 
-  /** A preset that takes half the time: every time below stays an exact double. */
   private static final Mcv2Pacer.Preset FAST = Mcv2Pacer.Preset.of("live-fast", 0.5);
 
   @Test
@@ -1103,10 +1097,6 @@ final class Mcv2PacerTest {
     assertEquals(3.0, videoFrameRate);
   }
 
-  /**
-   * Drives a pacer with a video at a frame rate; an encoded frame takes a time that grows with the pixels of its size
-   * and with the cost of its preset.
-   */
   private static final class Driver {
 
     private final Mcv2Pacer pacer;
@@ -1123,7 +1113,6 @@ final class Mcv2PacerTest {
       this.now = start;
     }
 
-    /** Plays the video for a while; every frame the pacer encodes takes {@code fullMilliseconds} scaled to its size and preset. */
     Mcv2Pacer.@Nullable Change play(final double seconds, final double fullMilliseconds) {
       Mcv2Pacer.Change last = null;
       final long end = this.now + (long) (seconds * SECOND);
@@ -1156,7 +1145,6 @@ final class Mcv2PacerTest {
     }
   }
 
-  /** Drives a pacer frame by frame at an exact interval; every frame it encodes takes the time given. */
   private static final class Exact {
 
     private final Mcv2Pacer pacer;
@@ -1171,7 +1159,6 @@ final class Mcv2PacerTest {
       this.now = first - interval;
     }
 
-    /** The next frame: it arrives, and if the pacer encodes it, it takes the given time; the change it caused, or null. */
     Mcv2Pacer.@Nullable Change frame(final double milliseconds) {
       this.now += this.interval;
       final Mcv2Pacer.@Nullable Change tried = this.pacer.arrive(this.now).orElse(null);
@@ -1182,7 +1169,6 @@ final class Mcv2PacerTest {
       return this.pacer.isEncoded() ? this.pacer.encoded(milliseconds, Mcv2FrameKind.PREDICTED, this.now).orElse(null) : null;
     }
 
-    /** Frames until one causes a change, which it returns; the clock is then at that frame. */
     Mcv2Pacer.Change until(final double milliseconds, final int limit) {
       for (int frameNumber = 0; frameNumber < limit; frameNumber++) {
         final Mcv2Pacer.Change change = this.frame(milliseconds);

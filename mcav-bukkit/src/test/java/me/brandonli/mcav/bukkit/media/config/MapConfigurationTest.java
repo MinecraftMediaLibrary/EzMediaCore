@@ -29,9 +29,6 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link MapConfiguration}.
- */
 final class MapConfigurationTest {
 
   private static final int MAP_BLOCK_COUNT = 3;

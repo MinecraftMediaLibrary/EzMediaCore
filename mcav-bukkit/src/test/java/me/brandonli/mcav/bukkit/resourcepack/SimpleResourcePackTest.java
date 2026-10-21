@@ -56,9 +56,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link SimpleResourcePack}.
- */
 final class SimpleResourcePackTest {
 
   private static final byte[] FIRST_SOUND = "first sound".getBytes(StandardCharsets.US_ASCII);

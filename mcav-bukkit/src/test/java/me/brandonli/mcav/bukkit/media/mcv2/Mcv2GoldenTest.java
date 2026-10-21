@@ -29,11 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-/**
- * Encoder conformance: on a committed 320x180 crop of the 1080p30 source (four frames, a keyframe and three P frames),
- * the encoder reproduces the committed DEFAULT and FAST streams byte for byte, with one to four threads and with the
- * verification on or off.
- */
 final class Mcv2GoldenTest {
 
   private static final int WIDTH = 320;

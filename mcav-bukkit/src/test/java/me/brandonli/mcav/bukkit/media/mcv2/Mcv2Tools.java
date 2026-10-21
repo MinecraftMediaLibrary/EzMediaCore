@@ -178,10 +178,7 @@ final class Mcv2Tools {
     }
   }
 
-  /**
-   * Native extraction files are scheduled for deletion at JVM shutdown. On Windows, loaded DLLs and their temporary
-   * directory may remain because the libraries are still open while shutdown hooks run.
-   */
+  // on Windows, loaded DLLs and their folder may outlive the JVM
   private static void bench(final String[] arguments) throws Exception {
     final Map<String, String> options = arguments(arguments);
     final Path nativeFolder = installNatives(options.getOrDefault("natives", Mcv2.NATIVE_AUTO));
@@ -407,10 +404,6 @@ final class Mcv2Tools {
     return (bytes * Byte.SIZE) / seconds / BITS_PER_MEGABIT;
   }
 
-  /**
-   * Prints each archive path followed by one lowercase RGB SHA-256 or {@code reject} token per frame. A missing length
-   * prefix or payload emits {@code truncated} and ends that archive. {@code --rgb FILE} concatenates accepted pictures.
-   */
   private static void digests(final String[] arguments) throws Exception {
     final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
     final boolean rgb = arguments.length >= 2 && arguments[0].equals("--rgb");
@@ -578,11 +571,7 @@ final class Mcv2Tools {
     return defines;
   }
 
-  /**
-   * Compiles Minecraft's shader variants through shaderc and SPIRV-Cross, returning the number of failed stages.
-   * Sampler names stay unchanged so the Python GL harness can bind them; Minecraft renames them to names such as
-   * {@code _uniform_00_03}. The command exits with this failure count.
-   */
+  // keeps the sampler names, so the Python GL harness can bind them
   private static int shaderCompile(final String[] arguments) throws IOException {
     final Path pack = Path.of(arguments[0]);
     final Path generated = Path.of(arguments[1]);

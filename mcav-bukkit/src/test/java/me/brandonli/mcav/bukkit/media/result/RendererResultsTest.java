@@ -64,10 +64,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-/**
- * Tests {@link BlockResult}, {@link EntityResult}, and {@link ScoreboardResult}, the video filters that hand every
- * frame to a renderer.
- */
 final class RendererResultsTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");

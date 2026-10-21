@@ -28,7 +28,6 @@ import java.util.Objects;
 import java.util.Random;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** Exercises the encoder's private tree writer without exposing it as production API. */
 public final class Mcv2Trees {
 
   private static final Class<?> TREE = Arrays.stream(Mcv2.class.getDeclaredClasses())

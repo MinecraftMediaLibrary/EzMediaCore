@@ -40,7 +40,6 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Workers;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
-/** The loop runner of the parallel decode and encode stages. */
 final class Mcv2WorkersTest {
 
   private static final String BODY_FAILURE_MESSAGE = "body failed!";

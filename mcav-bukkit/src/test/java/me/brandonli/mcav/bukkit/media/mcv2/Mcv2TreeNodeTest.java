@@ -28,7 +28,6 @@ import java.util.concurrent.ForkJoinPool;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Trees.Node;
 import org.junit.jupiter.api.Test;
 
-/** Private tree structure and ownership of encoded records. */
 final class Mcv2TreeNodeTest {
 
   private static final Node SOLID = Node.leaf(Mcv2Decoder.MODE_SOLID, 0, new byte[] { 1, 2, 3 });

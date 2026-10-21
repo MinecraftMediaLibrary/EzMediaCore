@@ -38,14 +38,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the handler mcav puts in front of Minecraft on its own port. Its bytes come from anyone who can open a TCP
- * connection, before any Minecraft handshake, and arrive split into reads wherever the network splits them. Whatever the
- * bytes and the splits: a request for the pack of this handler is answered and nothing of it reaches Minecraft; the
- * start of such a request waits for more; everything else reaches Minecraft byte for byte, in order; and no buffer is
- * leaked. The first byte of an input is the number of splits, the next bytes are where they fall, and the rest is what
- * the connection sends. The seeds are a real handshake of a client, real pack downloads, and their prefixes.
- */
 @Tag("fuzz")
 final class ResourcePackHttpHandlerFuzzTest {
 
@@ -157,9 +149,6 @@ final class ResourcePackHttpHandlerFuzzTest {
     assertArrayEquals(stream, forwarded, "everything else reaches Minecraft byte for byte");
   }
 
-  /**
-   * Moves what the handler passed on and what it answered out of the channel, releasing the buffers.
-   */
   private void drain(final EmbeddedChannel channel, final ByteArrayOutputStream forwarded, final ByteArrayOutputStream answered) {
     Object inbound = channel.readInbound();
     while (inbound != null) {

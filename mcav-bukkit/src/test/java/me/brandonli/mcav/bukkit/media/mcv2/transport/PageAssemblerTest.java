@@ -34,17 +34,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/** The page assembler: reordering, duplicates, conflicts, eviction and the frame/page identity check. */
 final class PageAssemblerTest {
 
   private static final String FRAME_ID_FIELD = "frame id";
   private static final String REFERENCE_ID_FIELD = "reference id";
   private static final String FRAME_TYPE_FIELD = "frame type";
 
-  /** A two-page keyframe (frame id 0) at six bits. */
   private static final byte[] BIG = Mcv2Trees.twoPages();
 
-  /** A one-page keyframe, also frame id 0. */
   private static final byte[] TINY = Mcv2Trees.tiny();
 
   private static List<byte[]> pages(final byte[] frame) {
@@ -55,7 +52,7 @@ final class PageAssemblerTest {
     return pages(BIG).get(number);
   }
 
-  /** A copy of a page with one header field changed and its CRC recomputed, so only the assembler's rules object. */
+  // recomputes the CRC, so only the assembler's rules object
   private static byte[] rewritten(final byte[] page, final int offset, final long value) {
     final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
     if (offset == 6 || offset == 16 || offset == 18) {

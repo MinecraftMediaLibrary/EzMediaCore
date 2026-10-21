@@ -54,9 +54,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-/**
- * Tests {@link BlockRenderer}.
- */
 final class BlockRendererTest {
 
   private static final int BROWN = (102 << 16) | (76 << 8) | 51;

@@ -28,9 +28,6 @@ import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.result.Characters;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ChatConfiguration}.
- */
 final class ChatConfigurationTest {
 
   private static final String CHARACTER = "x";

@@ -44,10 +44,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/**
- * The map-page transport: pages identical to the reference's {@code make_pages} (compared by SHA-256 of every page's
- * symbols at 6 bits), symbol packing, and every rule {@code read_page} enforces.
- */
 final class TransportPagesTest {
 
   private static final String PAGES_PATH = "conformance/pages.json";
@@ -210,7 +206,7 @@ final class TransportPagesTest {
     return TransportPages.makePages(frame, 7).get(0);
   }
 
-  /** Rewrites one header byte of a six-bit page and recomputes nothing, so the page tells the rule it breaks. */
+  // recomputes nothing, so the page breaks the rule of that byte
   private byte[] withHeaderByte(final byte[] page, final int offset, final int value) {
     final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
     raw[offset] = (byte) value;
@@ -327,10 +323,6 @@ final class TransportPagesTest {
     }
   }
 
-  /**
-   * A six-bit page made by hand, with a correct CRC: page {@code number} of {@code count} of a frame of
-   * {@code frameBytes} bytes, carrying {@code size} bytes of it. read_page checks the numbers against each other.
-   */
   private byte[] pageOfFrame(final long frameBytes, final int number, final int count, final int size) {
     final byte[] raw = new byte[TransportPages.HEADER_BYTES + size];
     Mcv2Decoder.putU32(raw, 0, TransportPages.MAGIC);

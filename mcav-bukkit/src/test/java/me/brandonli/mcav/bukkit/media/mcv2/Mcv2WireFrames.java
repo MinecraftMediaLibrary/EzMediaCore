@@ -17,7 +17,7 @@
  */
 package me.brandonli.mcav.bukkit.media.mcv2;
 
-/** Independent wire fixtures can express valid syntax the optimizing writer never emits. */
+// hand-written wire fixtures reach valid syntax the optimizing writer never emits
 final class Mcv2WireFrames {
 
   private Mcv2WireFrames() {

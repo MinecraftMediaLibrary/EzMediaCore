@@ -27,18 +27,12 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.MotionLambda;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Workers;
 import org.junit.jupiter.api.Test;
 
-/**
- * The lambda of a live frame from the motion of its source: the measure of the motion, pinned on pictures small enough
- * to compute by hand, and the rule that turns the average motion into a lambda.
- */
 final class Mcv2MotionLambdaTest {
 
   private static final double BASE = 72;
 
-  /** Forty thousand samples span three temporal-information bands. */
   private static final int SAMPLES = 200 * 200;
 
-  /** A 5x5 grey picture whose four sampled pixels, at the corners, hold the given grey values. */
   private byte[] corners(final int topLeft, final int topRight, final int bottomLeft, final int bottomRight) {
     final byte[] rgb = new byte[5 * 5 * 3];
     final int[] values = { topLeft, topRight, bottomLeft, bottomRight };

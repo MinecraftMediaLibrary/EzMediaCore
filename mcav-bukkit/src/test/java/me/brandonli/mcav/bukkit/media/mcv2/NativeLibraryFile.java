@@ -25,29 +25,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-/**
- * What a native library's file says about itself, read from its headers as a loader reads them: the format, the
- * machine it is built for, the symbols it exports and, for ELF, the libraries it needs and the symbols it leaves
- * undefined. It reads the formats of the committed libraries only: 64-bit little-endian ELF, PE32+ and 64-bit Mach-O.
- *
- * @param format    the object file format
- * @param machine   the ELF {@code e_machine}, the PE {@code Machine} or the Mach-O {@code cputype}
- * @param exports   the exported symbols, without the underscore Mach-O puts before every C name
- * @param needed    the ELF {@code DT_NEEDED} libraries, empty for the other formats
- * @param undefined the undefined ELF dynamic symbols, empty for the other formats
- */
 record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<String> exports, List<String> needed, Set<String> undefined) {
-  /** The object file formats of the six platforms. */
   enum Format {
-    /** Linux. */
     ELF,
-    /** Windows. */
     PE,
-    /** macOS. */
     MACH_O,
   }
 
-  /** {@code 0x7f 'E' 'L' 'F'}, read little-endian. */
   private static final int ELF_MAGIC = 0x464c457f;
 
   private static final int ELF_CLASS_64 = 2;
@@ -72,15 +56,12 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
 
   private static final long DT_NEEDED = 1;
 
-  /** {@code 'M' 'Z'}, read little-endian. */
   private static final short MZ = 0x5a4d;
 
-  /** {@code 'P' 'E' 0 0}, read little-endian. */
   private static final int PE_SIGNATURE = 0x00004550;
 
   private static final short PE32_PLUS = 0x20b;
 
-  /** The first data directory, the export table's, after the 112 bytes of a PE32+ optional header's fields. */
   private static final int EXPORT_TABLE = 112;
 
   private static final int PE_SECTION_SIZE = 40;
@@ -103,13 +84,6 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
 
   private static final int N_EXT = 0x01;
 
-  /**
-   * Reads a library's headers.
-   *
-   * @param bytes the library file
-   * @return what it says about itself
-   * @throws IllegalArgumentException if it is none of the three formats
-   */
   static NativeLibraryFile read(final byte[] bytes) {
     final ByteBuffer file = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
     final int magic = file.getInt(0);
@@ -213,7 +187,6 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
     return new NativeLibraryFile(Format.PE, machine, exports, List.of(), Set.of());
   }
 
-  /** Finds the file offset of a relative virtual address in the section that maps it. */
   private static int offset(final ByteBuffer file, final int sectionTable, final int sections, final int address) {
     for (int section = 0; section < sections; section++) {
       final int header = sectionTable + section * PE_SECTION_SIZE;

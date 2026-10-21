@@ -73,9 +73,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link CompressedMapResult}.
- */
 final class CompressedMapResultTest {
 
   private static final UUID FIRST = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -169,14 +166,7 @@ final class CompressedMapResultTest {
     return frame;
   }
 
-  /**
-   * Runs work on another thread and waits for it to finish. A lock that the calling thread still holds shows up as a
-   * thread that never finishes, because the lock is reentrant only for its owner. Work that fails instead of hanging
-   * is reported as well, so a failure on the other thread can never pass unnoticed.
-   *
-   * @param work the work to run
-   * @throws InterruptedException if the test is interrupted while waiting for the thread
-   */
+  // a lock this thread still holds shows as a thread that never finishes
   private void runInAnotherThread(final Runnable work) throws InterruptedException {
     final AtomicReference<Throwable> failure = new AtomicReference<>();
     final Thread worker = new Thread(work, "map-result-lock-probe");
@@ -790,9 +780,6 @@ final class CompressedMapResultTest {
     verify(parallel, never()).ditherIntoBytes(any(ImageBuffer.class));
   }
 
-  /**
-   * Creates a parallel algorithm that records the pool it receives and the worker thread that runs a task in it.
-   */
   private ParallelDitherAlgorithm createRecordingAlgorithm(final List<ForkJoinPool> pools, final List<Thread> workers) {
     final ParallelDitherAlgorithm parallel = mock(ParallelDitherAlgorithm.class);
     when(parallel.ditherIntoBytes(any(ImageBuffer.class), any(ForkJoinPool.class))).thenAnswer(invocation -> {
@@ -831,10 +818,6 @@ final class CompressedMapResultTest {
     assertSame(failure, thrown);
   }
 
-  /**
-   * Creates a parallel algorithm that runs a task in the pool which throws the failure out of its worker thread, so
-   * the pool hands it to the uncaught exception handler of that thread.
-   */
   private ParallelDitherAlgorithm createFailingAlgorithm(final RuntimeException failure) {
     final ParallelDitherAlgorithm parallel = mock(ParallelDitherAlgorithm.class);
     when(parallel.ditherIntoBytes(any(ImageBuffer.class), any(ForkJoinPool.class))).thenAnswer(invocation -> {

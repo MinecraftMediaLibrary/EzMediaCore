@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/** The shared arithmetic of the bitstream, checked against the values the format defines. */
 final class Mcv2DecoderFormatTest {
 
   @Test

@@ -42,9 +42,6 @@ import org.bukkit.scoreboard.Team;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link JavadocFormattingExample}, so the example from the documentation keeps working.
- */
 final class JavadocFormattingExampleTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");

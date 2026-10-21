@@ -124,10 +124,9 @@ final class Mcv2ResultTest {
   private static final String FAILURE_LOGGED_MESSAGE = "the failure is logged";
   private static final String WAITER_STOPPED_MESSAGE = "the fixture probe must stop its own waiter";
 
-  /** A location holds its world weakly; a world a test builds screens in again must stay reachable. */
+  // a location holds its world weakly, so a static field keeps it reachable
   private static final World WORLD = mock(World.class);
 
-  /** Another world, which a viewer can be in. */
   private static final World ELSEWHERE = mock(World.class);
 
   private FakeServer server;
@@ -503,11 +502,6 @@ final class Mcv2ResultTest {
     assertNull(takenAfterRelease);
   }
 
-  /**
-   * Plays frames at 60 frames a second on the test's clock and encodes every frame the result hands over.
-   *
-   * @return how many frames were encoded
-   */
   private int play(final Mcv2Result result, final AtomicLong clock, final Mcv2 encoder, final ImageBuffer frame, final int frames)
     throws InterruptedException {
     int encoded = 0;
@@ -1088,12 +1082,10 @@ final class Mcv2ResultTest {
     result.release();
   }
 
-  /** Whether a screen's or a sender's thread that did not exist before is alive. */
   private boolean hasPipelineThreads(final Set<Thread> before) {
     return !threads(SCREEN_THREAD_NAME, before).isEmpty() || !threads(SENDER_THREAD_NAME, before).isEmpty();
   }
 
-  /** Waits up to five seconds for the screen's and the sender's threads that did not exist before to end. */
   private void awaitPipelineEnd(final Set<Thread> before) throws InterruptedException {
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
     while (this.hasPipelineThreads(before) && System.nanoTime() < deadline) {
@@ -1101,7 +1093,6 @@ final class Mcv2ResultTest {
     }
   }
 
-  /** The live threads of a name that did not exist before. */
   private static Set<Thread> threads(final String name, final Set<Thread> before) {
     final Set<Thread> found = new HashSet<>();
     for (final Thread thread : Thread.getAllStackTraces().keySet()) {
@@ -1228,7 +1219,6 @@ final class Mcv2ResultTest {
     result.release();
   }
 
-  /** A viewer whose client sees six chunks far, from wherever the position is. */
   private void seesSixChunksFrom(final Player player, final AtomicReference<Location> position) {
     when(player.getViewDistance()).thenReturn(6);
     when(player.getWorld()).thenAnswer(_ -> position.get().getWorld());
@@ -1414,7 +1404,6 @@ final class Mcv2ResultTest {
     this.server.completeWrites(second);
   }
 
-  /** A screen of one map for the viewer with the pack, at 64x32, with the given encoder settings. */
   private Mcv2Configuration packScreen(final Settings settings) {
     return Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK))
@@ -1430,10 +1419,6 @@ final class Mcv2ResultTest {
       .build();
   }
 
-  /**
-   * Makes mock encoders of a screen: each frame begins, and finishes - once the gate is open - with a keyframe's bytes,
-   * or fails its verification.
-   */
   private Function<Settings, Mcv2> mockEncoders(final List<Mcv2> made, final FinishOutcome outcome, final CountDownLatch gate) {
     return settings -> this.mockEncoder(settings, made, outcome, gate);
   }
@@ -1462,7 +1447,6 @@ final class Mcv2ResultTest {
     return encoded;
   }
 
-  /** Waits until the screen's thread has made the given number of encoders. */
   private void awaitEncoders(final List<Mcv2> made, final int count) throws InterruptedException {
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
     while (made.size() < count && System.nanoTime() < deadline) {
@@ -1614,10 +1598,6 @@ final class Mcv2ResultTest {
     assertEquals(expectedRung, fastestRung);
   }
 
-  /**
-   * An encoder that codes with the settings it was made with or last switched to, its frames taking the clock's time:
-   * the normal thresholds take the given nanoseconds and the fast thresholds take three quarters of it.
-   */
   private Mcv2 timedEncoder(
     final Settings settings,
     final AtomicLong clock,
@@ -1716,12 +1696,6 @@ final class Mcv2ResultTest {
     assertEquals(expectedPreset, preset);
   }
 
-  /**
-   * Plays frames at 60 frames a second on the test's clock, as {@link #play} does, and encodes each with the encoder of
-   * the preset it arrived on, as the screen's thread does.
-   *
-   * @return the encoder of the last frame
-   */
   private Mcv2 playSwitching(final Mcv2Result result, final AtomicLong clock, final Mcv2 first, final ImageBuffer frame, final int frames)
     throws InterruptedException {
     Mcv2 encoder = first;
@@ -1910,7 +1884,6 @@ final class Mcv2ResultTest {
     result.release();
   }
 
-  /** Waits up to ten seconds until a thread waits, such as on the result's lock. */
   private void awaitWaiting(final Thread thread) throws InterruptedException {
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
     while (thread.getState() != Thread.State.WAITING && System.nanoTime() < deadline) {
@@ -1921,7 +1894,6 @@ final class Mcv2ResultTest {
     assertEquals(Thread.State.WAITING, state);
   }
 
-  /** Waits for a latch the way code that does not answer interrupts does, and keeps the interrupt for later. */
   private void awaitUninterruptibly(final CountDownLatch latch) {
     boolean interrupted = false;
     while (true) {
@@ -1938,7 +1910,6 @@ final class Mcv2ResultTest {
     }
   }
 
-  /** A thread that waits in {@link Mcv2Result#take()} and keeps what it took. */
   private Thread taker(final Mcv2Result result, final AtomicReference<Mcv2Result.Arrival> taken) {
     return new Thread(() -> {
       try {

@@ -45,10 +45,6 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Workers;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
-/**
- * The encoder budget: never more threads than its size, even when several encodes run at once and each waits for its
- * own parallel loops; its threads rank below the game's; and the server's shared budget.
- */
 final class Mcv2PoolTest {
 
   private static final String ENCODER_THREAD_PREFIX = "mcav-mcv2-encoder-";
@@ -208,7 +204,6 @@ final class Mcv2PoolTest {
     }
   }
 
-  /** Whether a thrown exception is the original, or the copy of it the pool makes for the waiting thread. */
   private boolean isOrWraps(final Throwable thrown, final Throwable original) {
     return thrown.equals(original) || original.equals(thrown.getCause());
   }

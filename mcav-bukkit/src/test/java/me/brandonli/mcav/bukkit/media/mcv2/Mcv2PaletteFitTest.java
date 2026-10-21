@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-/** The two-colour palette fit. */
 final class Mcv2PaletteFitTest {
 
   private static final int ENDPOINTS_LENGTH = 6;
@@ -110,7 +109,6 @@ final class Mcv2PaletteFitTest {
     assertArrayEquals(expectedSelectors, selectors);
   }
 
-  /** The pattern assignment agrees with the plain one whenever the selectors repeat along an axis, and says when not. */
   @Test
   void shouldAssignPatternsAndStopWhereNoneCanHold() {
     final int size = 8;

@@ -36,9 +36,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
-/**
- * Tests {@link ServerAddress}.
- */
 final class ServerAddressTest {
 
   private static final String CONFIGURED_ADDRESS = "10.0.0.5";

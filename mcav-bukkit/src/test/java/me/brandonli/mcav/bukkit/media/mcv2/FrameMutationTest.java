@@ -29,14 +29,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Every single-byte corruption of valid frames of every index form, deterministically: the parser accepts the result
- * or throws {@link Mcv2Exception}, never anything else, and an accepted frame decodes without failing, against a
- * matching reference when it is a P frame. The frames are the first keyframe and P frame of each committed
- * conformance and edge stream (the keyframe alone when it is the stream's only frame), which together use every v3
- * mode, compact quantizer and boundary geometry; every byte of the first 4 KB, where headers and indexes live, is
- * corrupted, and every 61st byte after it.
- */
 final class FrameMutationTest {
 
   private static final int[] MASKS = { 0x01, 0x80, 0xFF };
@@ -45,7 +37,6 @@ final class FrameMutationTest {
 
   private static final String PROXY_DEFAULT_STREAM_PATH = "conformance/proxy-default.mcs";
 
-  /** Every offset of the first bytes, where the header and index live; a sample of the payload after them. */
   private static final int DENSE = 4096;
 
   private static final int STRIDE = 61;

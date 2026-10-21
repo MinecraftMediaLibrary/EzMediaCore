@@ -38,20 +38,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
-/**
- * The Java side of the native kernels: every size, offset and length a kernel would index with is checked before the
- * call, whatever the library, so a bad one fails in Java and never reaches native code; a kernel that fails is reported
- * as such; a scored kernel keeps the distortion of a block it finished and nothing of one it stopped; every kernel, at every level this processor runs,
- * computes what Java computes.
- */
 final class NativeKernelsTest {
 
-  /** Kernels whose every call fails, so a check that let a bad argument through shows as the wrong exception. */
+  // every call fails, so a missed argument check shows as the wrong exception
   private NativeKernels failing() {
     return NativeTesting.kernels(new Binding(Level.SCALAR, (name, descriptor) -> this.returning(descriptor, null)));
   }
 
-  /** A handle of the descriptor's type that returns a value, or throws when the value is null. */
   private MethodHandle returning(final FunctionDescriptor descriptor, final @Nullable Object value) {
     final MethodType type = descriptor.toMethodType();
     final MethodHandle body;

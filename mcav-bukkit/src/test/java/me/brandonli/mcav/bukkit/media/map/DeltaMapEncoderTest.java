@@ -27,18 +27,12 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DeltaMapEncoder}.
- */
 final class DeltaMapEncoderTest {
 
   private static final int LARGE_BUDGET = 1 << 20;
 
   private static final int MAP_SIZE = 128;
 
-  /**
-   * Changes every pixel inside a rectangle of the image to a different color.
-   */
   private byte[] change(final byte[] image, final int imageWidth, final int left, final int top, final int width, final int height) {
     final byte[] changed = image.clone();
     for (int row = top; row < top + height; row++) {

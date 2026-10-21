@@ -42,9 +42,6 @@ import org.bukkit.block.data.BlockData;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link BlockPaletteLookup}. The block data of the palette are mocks created by the test bootstrap.
- */
 final class BlockPaletteLookupTest {
 
   private static final int BROWN_STAINED_GLASS = (102 << 16) | (76 << 8) | 51;
@@ -220,9 +217,6 @@ final class BlockPaletteLookupTest {
     UtilityClassAssertions.assertNotInstantiable(BlockPaletteLookup.class);
   }
 
-  /**
-   * A reader that remembers whether it was closed, and can fail the first time it is closed.
-   */
   private static final class TrackingReader extends Reader {
 
     private final StringReader content;

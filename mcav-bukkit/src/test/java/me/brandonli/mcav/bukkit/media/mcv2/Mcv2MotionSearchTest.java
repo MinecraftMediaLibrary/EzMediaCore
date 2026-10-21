@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
-/** The local motion search: its step ladder, and the vectors it finds on smooth pictures. */
 final class Mcv2MotionSearchTest {
 
   private static final int WIDTH = 96;
@@ -44,7 +43,6 @@ final class Mcv2MotionSearchTest {
     }
   }
 
-  /** A smooth picture used to check exact seeded motion. */
   private static byte[] picture() {
     final byte[] rgb = new byte[WIDTH * HEIGHT * 3];
     for (int row = 0; row < HEIGHT; row++) {
@@ -59,7 +57,6 @@ final class Mcv2MotionSearchTest {
     return rgb;
   }
 
-  /** The block at (blockLeft, blockTop) of the picture displaced by a vector in whole pixels. */
   private int[] block(final byte[] rgb, final int blockLeft, final int blockTop, final int size, final int motionX, final int motionY) {
     final int[] source = new int[size * size * 3];
     for (int row = 0; row < size; row++) {

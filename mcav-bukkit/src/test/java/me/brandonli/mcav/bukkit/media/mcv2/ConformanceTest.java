@@ -33,13 +33,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Decoder conformance: every frame of the committed streams decodes to exactly the RGB the Python reference decoder
- * produced, compared by SHA-256.
- *
- * <p>The {@code conformance} streams are real crops encoded with the v3 live encoder; each is at most 1 MB. The {@code edge} streams are
- * random trees built with the reference's own serializer to reach every leaf mode, quantizers 0..2, cropped edges and the derived index. Old v2 frames belong to the rejection corpus.
- */
 final class ConformanceTest {
 
   private static final String PATH_SEPARATOR = "/";
@@ -89,7 +82,6 @@ final class ConformanceTest {
     return arguments.stream();
   }
 
-  /** Every invalid frame in the reference rejection corpus is refused. */
   @ParameterizedTest(name = "{0}")
   @MethodSource("rejected")
   void shouldRefuseEveryFrameOfTheRejectionCorpus(final String name, final byte[] frame) {

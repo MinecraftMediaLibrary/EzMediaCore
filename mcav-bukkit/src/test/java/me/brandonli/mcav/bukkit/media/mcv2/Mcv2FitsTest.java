@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-/** The least-squares grid fits: a field the decoder can reconstruct exactly is fitted back to its own nodes. */
 final class Mcv2FitsTest {
 
   @Test

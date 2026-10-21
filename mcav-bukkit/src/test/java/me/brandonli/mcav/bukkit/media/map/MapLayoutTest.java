@@ -26,9 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link MapLayout}.
- */
 final class MapLayoutTest {
 
   private static final int MAP_SIZE = 128;

@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-/** A viewer's link: what it can decode, and frames held back while its connection is behind. */
 final class Mcv2LinkTest {
 
   private static final int LINK_LIMIT = 1000;

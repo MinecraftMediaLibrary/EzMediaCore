@@ -36,7 +36,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/** Native encoders reproduce the Java bytes on every fixture at every level this processor runs. */
 final class NativeConformanceTest {
 
   private static final int WIDTH = 320;

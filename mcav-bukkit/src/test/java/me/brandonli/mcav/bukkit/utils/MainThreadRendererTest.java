@@ -41,9 +41,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link MainThreadRenderer}.
- */
 final class MainThreadRendererTest {
 
   private static final String FRAME = "frame";
@@ -290,9 +287,6 @@ final class MainThreadRendererTest {
     assertEquals(1, count);
   }
 
-  /**
-   * A renderer that overrides nothing but {@link MainThreadRenderer#apply}, so the default {@code onTick} runs.
-   */
   private static final class PlainRenderer extends MainThreadRenderer<String> {
 
     private final List<String> appliedFrames = new CopyOnWriteArrayList<>();
@@ -307,9 +301,6 @@ final class MainThreadRendererTest {
     }
   }
 
-  /**
-   * Records every frame it applies and counts the ticks.
-   */
   private static final class RecordingRenderer extends MainThreadRenderer<String> {
 
     private final List<String> appliedFrames = new CopyOnWriteArrayList<>();

@@ -38,13 +38,6 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Trees;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the page assembler with a two-page keyframe and five real stream frames (a keyframe and four P frames),
- * reordered, repeated, corrupted, truncated or from another stream. The first input byte is reserved; after it, every four bytes are one step: what to do, which frame,
- * which of its pages, and an argument. A model of the assembler (frames pending by id, the oldest evicted beyond
- * {@link PageAssembler#MAXIMUM_PENDING}) says what every step must return: a changed, short or foreign page is always
- * rejected and changes nothing, and an intact page returns its frame, byte for byte, exactly when it completes it.
- */
 @Tag("fuzz")
 final class PageAssemblerFuzzTest {
 

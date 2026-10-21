@@ -28,7 +28,6 @@ import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import net.jqwik.api.constraints.IntRange;
 
-/** Integer kernels match an independent floating-point oracle, including saturated channels and signed node extrema. */
 final class Mcv2KernelPropertyTest {
 
   private static final String SEED = "20260925";
@@ -37,7 +36,6 @@ final class Mcv2KernelPropertyTest {
 
   private static final int BYTE_VALUE_COUNT = 256;
 
-  /** A byte biased to the ends of its range. */
   private static byte extremeByte(final Random random) {
     return switch (random.nextInt(4)) {
       case 0 -> Byte.MIN_VALUE;
@@ -121,7 +119,6 @@ final class Mcv2KernelPropertyTest {
     assertArrayEquals(expected, actual);
   }
 
-  /** The distortion the kernels measure between the source and a reconstruction of it. */
   private long distortion(final int[] source, final int[] out) {
     long sum = 0;
     for (int offset = 0; offset < source.length; offset += 3) {
@@ -137,10 +134,6 @@ final class Mcv2KernelPropertyTest {
     return sum;
   }
 
-  /**
-   * A kernel started the same way reconstructs the same block, and its distortion is the whole block's; it stops once
-   * its cost reaches the limit, and never before the whole block's cost does.
-   */
   private void assertMeasured(final Random random, final int size, final Kernel kernel) {
     final int[] source = new int[size * size * 3];
     for (int index = 0; index < source.length; index++) {
@@ -198,7 +191,6 @@ final class Mcv2KernelPropertyTest {
     this.assertMeasured(random, size, run);
   }
 
-  /** One kernel call: reconstruct into out, measured as the kernels were last started; returns whether it finished. */
   @FunctionalInterface
   private interface Kernel {
     boolean run(Kernels kernels, int[] out);

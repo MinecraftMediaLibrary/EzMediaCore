@@ -27,13 +27,6 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the map codec with what a player controls through the display commands, the size of the wall, where its
- * map ids start and the resolution, and with what a video controls, the pixels of its frames. The wall stays within the
- * 64 by 64 maps the commands accept, scaled down to keep every run fast. For every frame the patches name only maps of
- * the wall, lie inside the part of a map the picture covers, carry the pixels of that frame, and keep to the byte
- * budget unless a single map alone is larger.
- */
 @Tag("fuzz")
 final class MapPipelineFuzzTest {
 
@@ -61,9 +54,6 @@ final class MapPipelineFuzzTest {
     }
   }
 
-  /**
-   * Paints a few rectangles of one color each into the frame.
-   */
   private void paint(final FuzzedDataProvider data, final byte[] frame, final int width, final int height) {
     final int rectangles = data.consumeInt(0, 6);
     for (int rectangle = 0; rectangle < rectangles; rectangle++) {

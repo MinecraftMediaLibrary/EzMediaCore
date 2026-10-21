@@ -93,10 +93,6 @@ import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link Mcv2PackServer}: one pack for every screen, which changes only when a screen of a new size starts, is
- * swapped for the players once hosted, and is offered to the viewers of a screen, including those who join later.
- */
 final class Mcv2PackServerTest {
 
   private static final UUID ALICE = UUID.fromString("00000000-0000-0000-0000-00000000a11c");
@@ -132,7 +128,6 @@ final class Mcv2PackServerTest {
 
   private static final String ALICE_NAME = "Alice";
 
-  /** How long the slot of a stopped screen stays in the pack. */
   private static final long A_MINUTE = 60_000;
 
   @TempDir
@@ -190,7 +185,6 @@ final class Mcv2PackServerTest {
     return Mcv2ConfigurationTest.complete().viewers(viewers).video(width, SCREEN_HEIGHT).pageSlots(2).build();
   }
 
-  /** Runs the ticks and the writer until neither has anything left: every pack asked for is written and served. */
   private void settle() {
     this.settle(this.writer, this.server);
   }
@@ -222,7 +216,6 @@ final class Mcv2PackServerTest {
     this.packs.getViewers().onResourcePackStatus(new PlayerResourcePackStatusEvent(player, pack, Status.SUCCESSFULLY_LOADED));
   }
 
-  /** The slots of the pack hosted last, as its manifest names them: "stream id: width x height", in strip order. */
   private List<String> slotsOfTheLastPack() throws IOException {
     final Path zip = this.hostings.getLast().getZip();
     try (final ZipFile pack = new ZipFile(zip.toFile()); final InputStream manifest = pack.getInputStream(pack.getEntry(MANIFEST_ENTRY))) {
@@ -1532,7 +1525,6 @@ final class Mcv2PackServerTest {
     assertEquals(3, steppedBackStreamId);
   }
 
-  /** Runs what it is given only when the test drains it, like a writer thread that has not got to it yet. */
   private static final class QueuedExecutor extends AbstractExecutorService {
 
     private final Deque<Runnable> queue = new ArrayDeque<>();

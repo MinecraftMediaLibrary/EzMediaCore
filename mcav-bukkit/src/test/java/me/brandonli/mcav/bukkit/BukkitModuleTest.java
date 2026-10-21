@@ -47,9 +47,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link BukkitModule}.
- */
 final class BukkitModuleTest {
 
   private static final UUID PLAYER = UUID.fromString("00000000-0000-0000-0000-000000000001");

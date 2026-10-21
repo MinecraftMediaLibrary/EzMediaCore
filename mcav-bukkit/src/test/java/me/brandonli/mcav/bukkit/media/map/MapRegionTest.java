@@ -25,9 +25,6 @@ import java.util.Objects;
 import me.brandonli.mcav.bukkit.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link MapRegion}.
- */
 final class MapRegionTest {
 
   @Test

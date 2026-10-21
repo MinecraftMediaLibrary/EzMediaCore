@@ -38,9 +38,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * The frame parser: valid version 3 frames expose their header and leaves, and every header rule is enforced.
- */
 final class Mcv2ParserTest {
 
   private static final String INVALID_LENGTH_MESSAGE = "Invalid frame length!";

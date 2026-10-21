@@ -25,7 +25,6 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/** The six-bit map alphabet: symbol s is map colour s + 4, padded to whole rows with symbol 0. */
 final class MapAlphabetTest {
 
   @Test

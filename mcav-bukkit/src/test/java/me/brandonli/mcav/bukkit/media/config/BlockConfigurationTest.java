@@ -30,9 +30,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link BlockConfiguration}.
- */
 final class BlockConfigurationTest {
 
   // a location refers to its world only weakly, so the test keeps the world itself

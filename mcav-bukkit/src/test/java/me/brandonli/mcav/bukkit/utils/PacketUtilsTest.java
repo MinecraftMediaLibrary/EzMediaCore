@@ -69,9 +69,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link PacketUtils}.
- */
 final class PacketUtilsTest {
 
   private static final UUID FIRST = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -240,9 +237,6 @@ final class PacketUtilsTest {
     assertEquals(expected, packets);
   }
 
-  /**
-   * Gives the first player's packet listener a network connection of its own, without a channel.
-   */
   private Connection useConnection() {
     final Connection connection = FakeServer.connection();
     final CraftPlayer player = (CraftPlayer) Objects.requireNonNull(Bukkit.getPlayer(FIRST));

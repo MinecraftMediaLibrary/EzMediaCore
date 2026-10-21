@@ -53,13 +53,6 @@ import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 
-/**
- * Properties of {@link CompressedMapResult} for sequences of frames whose size changes, while a second viewer comes and
- * goes, checked on the packets the viewers actually receive: once the picture stops changing, every pixel the current
- * frame covers shows that frame, and every other pixel of the grid is transparent or was never sent anything. No pixel
- * keeps the colors of an earlier frame, not even on the maps a shrinking picture leaves. After a release, every map of
- * the grid is transparent.
- */
 final class CompressedMapResultPropertyTest {
 
   private static final String SEED = "20260925";
@@ -86,10 +79,7 @@ final class CompressedMapResultPropertyTest {
     this.server.close();
   }
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
+  // jqwik 1.10 shares a range between derived arbitraries, so each range starts from a fresh one
   private Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
     return integers.between(minimum, maximum);
@@ -115,10 +105,6 @@ final class CompressedMapResultPropertyTest {
     return scenarios.as(ResizeScenario::new);
   }
 
-  /**
-   * A frame of some size and color, or the second viewer joining or leaving. Sizes are thousandths of a little more
-   * than the grid, so the picture is sometimes larger than the grid and sometimes much smaller.
-   */
   private Arbitrary<Step> steps() {
     final Arbitrary<Integer> shares = this.between(1, PER_MILLE);
     final Arbitrary<Integer> colors = this.between(1, 60);
@@ -198,9 +184,6 @@ final class CompressedMapResultPropertyTest {
     models.disconnect(SECOND);
   }
 
-  /**
-   * Hands frames to the result the way a player does, with the dithering replaced by the palette indices of the scenario.
-   */
   private static final class FrameSource {
 
     private final DitherAlgorithm algorithm;
@@ -223,9 +206,6 @@ final class CompressedMapResultPropertyTest {
     }
   }
 
-  /**
-   * One step of a scenario.
-   */
   private static final class Step {
 
     private static final int FRAME = 0;
@@ -258,9 +238,6 @@ final class CompressedMapResultPropertyTest {
     }
   }
 
-  /**
-   * A grid, a byte budget and the steps played on it.
-   */
   private static final class ResizeScenario {
 
     private final int columns;
@@ -301,10 +278,7 @@ final class CompressedMapResultPropertyTest {
       return new MapLayout(START_MAP_ID, this.columns, this.rows, width, height);
     }
 
-    /**
-     * Creates the palette indices of a frame: the color of the step, with a stripe every eight rows, never 0, the
-     * transparent index, so a pixel that was cleared can always be told from a pixel of a picture.
-     */
+    // never 0, the transparent index, so a cleared pixel stands out
     private byte[] createPicture(final Step step) {
       final int width = this.widthOf(step);
       final int height = this.heightOf(step);
@@ -336,10 +310,6 @@ final class CompressedMapResultPropertyTest {
     }
   }
 
-  /**
-   * What every connected viewer displays, rebuilt from the map data packets the viewer received, in order. A viewer who
-   * connects starts with maps that were never sent anything, as a client that joins does.
-   */
   private static final class ViewerModels {
 
     private final ResizeScenario scenario;
@@ -360,11 +330,6 @@ final class CompressedMapResultPropertyTest {
       this.viewers.removeIf(viewer -> viewer.uuid.equals(uuid));
     }
 
-    /**
-     * Applies the packets every viewer received since the last call.
-     *
-     * @return whether any viewer received anything
-     */
     private boolean receive(final FakeServer server) {
       boolean received = false;
       for (final Viewer viewer : this.viewers) {
@@ -430,9 +395,6 @@ final class CompressedMapResultPropertyTest {
     }
   }
 
-  /**
-   * The maps of one viewer.
-   */
   private static final class Viewer {
 
     private final UUID uuid;

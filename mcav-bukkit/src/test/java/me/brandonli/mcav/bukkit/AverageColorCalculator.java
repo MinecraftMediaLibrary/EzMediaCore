@@ -31,10 +31,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import javax.imageio.ImageIO;
 
-/**
- * Regenerates {@code mcav/bukkit/blocks.json}, the average color of every block texture, from the textures in
- * {@code src/test/resources/colored-blocks}. Run it from the root of the repository.
- */
+// regenerates mcav/bukkit/blocks.json from src/test/resources/colored-blocks; run it from the repository root
 final class AverageColorCalculator {
 
   private static final Path TEXTURES = Path.of("mcav-bukkit/src/test/resources/colored-blocks");
@@ -49,11 +46,6 @@ final class AverageColorCalculator {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Writes the average color of every block texture to {@code mcav/bukkit/blocks.json}.
-   *
-   * @throws IOException if a texture cannot be read or the output cannot be written
-   */
   static void main() throws IOException {
     final Map<String, int[]> blockColors = calculateBlockColors();
     final GsonBuilder builder = new GsonBuilder();
@@ -105,9 +97,6 @@ final class AverageColorCalculator {
     return new int[] { averageRed, averageGreen, averageBlue };
   }
 
-  /**
-   * Sums the red, green, and blue channels of every pixel that is not fully transparent, and counts those pixels.
-   */
   private static long[] sumOpaquePixels(final BufferedImage image) {
     final long[] sums = new long[4];
     final int width = image.getWidth();

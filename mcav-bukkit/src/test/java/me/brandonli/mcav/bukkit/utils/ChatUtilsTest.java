@@ -38,9 +38,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ChatUtils}.
- */
 final class ChatUtilsTest {
 
   private static final int RED = 0xFFFF0000;
@@ -53,9 +50,6 @@ final class ChatUtilsTest {
 
   private static final String CHARACTER = "#";
 
-  /**
-   * Gets the color of every visible character of the component, skipping line breaks.
-   */
   private List<Integer> getCharacterColors(final Component component) {
     final List<Integer> colors = new ArrayList<>();
     final FormattedText.StyledContentConsumer<Void> consumer = (style, content) -> this.recordColors(colors, style, content);

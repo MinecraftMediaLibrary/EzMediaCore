@@ -149,7 +149,6 @@ final class Mcv2ChannelTest {
     );
   }
 
-  /** A frame of the 32x32 test video: one solid root in a keyframe, one motion root in a P frame. */
   static byte[] frame(final long id, final long reference, final Mcv2FrameKind kind) {
     final Node root =
       kind == Mcv2FrameKind.KEYFRAME
@@ -679,12 +678,10 @@ final class Mcv2ChannelTest {
     assertEquals(1, scheduledTasks);
   }
 
-  /** A wall of one map at (0, 64, 0) in a world of its own, watched by the viewer with the pack at a view distance of 6. */
   private Mcv2Channel watchedFrom(final World world, final AtomicReference<Location> position) {
     return this.watchedFrom(world, position, BlockFace.SOUTH, 1, 1);
   }
 
-  /** A wall of the given shape whose top-left block is at 0, 64, 0, watched by the viewer with the pack. */
   private Mcv2Channel watchedFrom(
     final World world,
     final AtomicReference<Location> position,
@@ -709,7 +706,6 @@ final class Mcv2ChannelTest {
     return new Mcv2Channel(wall, this.viewers, this.screen);
   }
 
-  /** Lets a second pass on the main thread measure the distances, show the screen and sort the viewers again. */
   private void tick(final Mcv2Channel channel) {
     this.server.runTasks();
     channel.update();
@@ -838,7 +834,6 @@ final class Mcv2ChannelTest {
     this.assertHiddenWhenRemovedAt(new Location(nether, 0, GROUND_LEVEL, 4));
   }
 
-  /** The screen of one map at (0, 64, 0), seen by the viewer with the pack from wherever the position is. */
   private Mcv2Channel seenFrom(final AtomicReference<Location> position) {
     final World world = this.configuration.getOrigin().getWorld();
     when(world.getUID()).thenReturn(UUID.fromString(OVERWORLD_ID));
@@ -848,10 +843,6 @@ final class Mcv2ChannelTest {
     return new Mcv2Channel(this.configuration, this.viewers, this.screen);
   }
 
-  /**
-   * Shows the screen to the viewer with the pack beside the wall, lets them go where the screen sends them nothing, and
-   * removes them from the screen there: the page frames and the team they were shown must not stay with them.
-   */
   private void assertHiddenWhenRemovedAt(final Location elsewhere) {
     final World world = this.configuration.getOrigin().getWorld();
     final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 0, GROUND_LEVEL, 4));
@@ -936,7 +927,6 @@ final class Mcv2ChannelTest {
     channel.close();
   }
 
-  /** Whether the viewer with the pack is sent the stream when they stand at a point, measured afresh. */
   private boolean receivesFrom(
     final BlockFace facing,
     final int columns,

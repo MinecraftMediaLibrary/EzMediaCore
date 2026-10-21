@@ -41,24 +41,14 @@ import net.jqwik.api.constraints.LongRange;
 import net.jqwik.api.constraints.Size;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * The parsers are total and the transport is lossless on generated inputs, not only on the committed corpus: frames of
- * every index form with up to eight mutations each (flipped bytes, header fields set to the values bounds checks turn
- * on, truncation, growth, runs spliced in from other frames), frames of random bytes behind a plausible header, and the
- * pages of real frames in any order. Whatever a frame's bytes, parsing succeeds or throws {@link Mcv2Exception}, and a
- * frame that parses decodes to a picture of its size or throws that exception; whatever the order of a frame's pages,
- * the assembler gives back exactly the frame once its last page arrives.
- */
 final class Mcv2ParserPropertyTest {
 
   private static final String SEED = "20260926";
 
   private static final String PATH_SEPARATOR = "/";
 
-  /** Keyframes and P frames of the v3 conformance and edge streams, plus a synthetic two-page frame. */
   private static final List<byte[]> FRAMES = frames();
 
-  /** Values the bounds checks of the header and the index turn on. */
   private static final long[] EDGES = {
     0,
     1,
@@ -161,7 +151,6 @@ final class Mcv2ParserPropertyTest {
     return bytes;
   }
 
-  /** Parses and decodes, accepting only a picture of the frame's size or the declared exception. */
   private void parseAndDecode(final byte[] bytes) {
     final Mcv2Decoder.Frame frame;
     try {
@@ -195,10 +184,6 @@ final class Mcv2ParserPropertyTest {
     this.parseAndDecode(this.mutate(FRAMES.get(frame % FRAMES.size()), mutations));
   }
 
-  /**
-   * Random bytes behind a header that passes the first checks - the magic, the configuration, dimensions, a root count
-   * that matches them, a frame length that is the real one - so that the index and record parsing see the bytes.
-   */
   @Property(seed = SEED, tries = 2000)
   void shouldParseOrRejectRandomFrames(
     @ForAll @IntRange(min = 1, max = 200) final int width,
@@ -225,11 +210,6 @@ final class Mcv2ParserPropertyTest {
     assertArrayEquals(data, carried);
   }
 
-  /**
-   * The pages of a frame, each read back alone, carry the frame's identity and, in page order, exactly its bytes; and
-   * pushed in any order, with duplicates, they assemble to the frame when the last missing page arrives and not
-   * before.
-   */
   @Property(seed = SEED, tries = 300)
   void shouldCarryTheFrameAcrossPagesInAnyOrder(
     @ForAll @IntRange(min = 0, max = 1000) final int index,
@@ -293,6 +273,5 @@ final class Mcv2ParserPropertyTest {
     }
   }
 
-  /** One change to a frame: its kind, where and with what, each reduced to the frame at hand when applied. */
   private record Mutation(int kind, int position, int value) {}
 }

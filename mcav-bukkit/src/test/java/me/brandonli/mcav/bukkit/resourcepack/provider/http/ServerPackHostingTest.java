@@ -47,11 +47,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link ServerPackHosting}, {@link FileHttpServer}, and {@link HttpServerException} with a real server on the
- * loopback interface. The servers listen on a free port picked by the operating system, which is read back after
- * they started, so no other process can take the port in between.
- */
 final class ServerPackHostingTest {
 
   private static final byte[] PACK = { 'P', 'K', 3, 4, 1 };
@@ -180,11 +175,6 @@ final class ServerPackHostingTest {
     }
   }
 
-  /**
-   * Gets the names of the Netty threads of the pack server that are still running.
-   *
-   * @return the names of the running server threads
-   */
   private List<String> runningServerThreadNames() {
     final Map<Thread, StackTraceElement[]> stackTraces = Thread.getAllStackTraces();
     final Set<Thread> threads = stackTraces.keySet();

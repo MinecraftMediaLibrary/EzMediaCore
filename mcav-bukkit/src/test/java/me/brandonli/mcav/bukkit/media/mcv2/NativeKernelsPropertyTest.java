@@ -29,12 +29,6 @@ import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * The native kernels against the Java ones, the oracle: at every level this processor runs, every kernel computes
- * exactly what Java computes on the same inputs, and an encoder with native kernels writes exactly the bytes of one with
- * Java's, in every live search. A level the processor lacks is skipped, never forced; where no library loads there is
- * nothing to compare, and where one should load and does not, the test fails ({@link NativeTesting}).
- */
 final class NativeKernelsPropertyTest {
 
   private static final String SEED = "20260927";

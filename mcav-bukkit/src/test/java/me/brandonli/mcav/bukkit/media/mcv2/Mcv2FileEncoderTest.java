@@ -53,10 +53,6 @@ import org.bytedeco.javacv.Frame;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Pre-encoding: a video file becomes the same stream a frame-by-frame encode gives, inside the budget, and every way
- * the video can fail to open, decode or close is reported.
- */
 final class Mcv2FileEncoderTest {
 
   private static final int WIDTH = 64;
@@ -66,7 +62,6 @@ final class Mcv2FileEncoderTest {
   @TempDir
   private Path directory;
 
-  /** Splits a stream into its frames. */
   private static List<byte[]> frames(final byte[] stream) {
     final List<byte[]> frames = new ArrayList<>();
     final ByteBuffer buffer = ByteBuffer.wrap(stream).order(ByteOrder.LITTLE_ENDIAN);

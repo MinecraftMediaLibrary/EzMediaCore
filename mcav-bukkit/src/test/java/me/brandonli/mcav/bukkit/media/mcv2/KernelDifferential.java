@@ -22,20 +22,11 @@ import java.util.Random;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Kernels;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * One kernel, run by two sets of kernels on the same inputs: the differential test of the native kernels against the
- * Java ones, which the property test drives from seeds and the fuzz test from fuzzed bytes. Every kernel gets inputs
- * in the ranges the encoder gives it - channels 0 to 255, predictions 0 to 255, any record bytes, blocks of
- * every size, the compact grid, limits that stop a candidate part way, pictures whose edges a block or a motion
- * vector crosses - and now and then values far outside a picture's, whose sums overflow an int in the clusterings and
- * that are no bytes in the motion search; every output, integer or floating-point, must be identical to the bit.
- */
 final class KernelDifferential {
 
-  /** The kernels one comparison chooses from. */
   static final int KERNELS = 13;
 
-  /** The widest values a {@link Values} can draw: the range's size must fit an int. */
+  // the widest a Values draws: the size of its range must fit an int
   private static final int EXTREME_LOW = -(1 << 30) + 1;
 
   private static final int EXTREME_HIGH = (1 << 30) - 1;
@@ -44,12 +35,6 @@ final class KernelDifferential {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Draws values from a random generator.
-   *
-   * @param random the generator
-   * @return the values
-   */
   static Values of(final Random random) {
     return new Values() {
       @Override
@@ -75,7 +60,6 @@ final class KernelDifferential {
     return values;
   }
 
-  /** Floats as the encoder's fits see them, now and then an extreme one. */
   private static float[] floats(final Values random, final int count) {
     final float[] values = new float[count];
     for (int index = 0; index < count; index++) {
@@ -90,7 +74,6 @@ final class KernelDifferential {
     return values;
   }
 
-  /** Nothing when the outputs are equal, else what differed. */
   private static @Nullable String unless(final boolean equal, final String what) {
     return equal ? null : what;
   }
@@ -109,34 +92,16 @@ final class KernelDifferential {
     return 8 << random.next(0, 2);
   }
 
-  /**
-   * Runs one kernel, chosen by the values, on inputs from them with both kernels.
-   *
-   * @param random the values
-   * @param java   the kernels the others are compared with
-   * @param other  the kernels compared
-   * @return the name of what differed, or null when nothing did
-   */
   static @Nullable String compare(final Values random, final Kernels java, final Kernels other) {
     return compare(random, java, other, random.next(0, KERNELS - 1));
   }
 
-  /**
-   * Runs one kernel on inputs from the values with both kernels.
-   *
-   * @param random the values
-   * @param java   the kernels the others are compared with
-   * @param other  the kernels compared
-   * @param kernel the kernel, 0 to {@link #KERNELS} - 1
-   * @return the name of what differed, or null when nothing did
-   */
   static @Nullable String compare(final Values random, final Kernels java, final Kernels other, final int kernel) {
     final int size = size(random);
     final int channels = size * size * 3;
     return kernel < 4 ? scored(random, java, other, kernel, size, channels) : unscored(random, java, other, kernel, size, channels);
   }
 
-  /** A scored reconstruction: whether it finished, its distortion and every value it wrote must agree. */
   private static @Nullable String scored(
     final Values random,
     final Kernels java,
@@ -368,23 +333,9 @@ final class KernelDifferential {
     };
   }
 
-  /** Where the inputs come from. */
   interface Values {
-    /**
-     * Gives an int in a range.
-     *
-     * @param low  the least value
-     * @param high the greatest value
-     * @return the value
-     */
     int next(int low, int high);
 
-    /**
-     * Gives bytes.
-     *
-     * @param count how many
-     * @return the bytes
-     */
     byte[] bytes(int count);
   }
 }

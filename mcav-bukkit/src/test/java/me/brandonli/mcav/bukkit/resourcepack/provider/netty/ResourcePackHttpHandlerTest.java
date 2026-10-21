@@ -64,9 +64,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link ResourcePackHttpHandler}.
- */
 final class ResourcePackHttpHandlerTest {
 
   private static final byte[] PACK = { 'P', 'K', 3, 4, 9 };
@@ -432,7 +429,6 @@ final class ResourcePackHttpHandlerTest {
     assertEquals("mcav_resource_pack_http", ResourcePackHttpHandler.NAME);
   }
 
-  /** The pipeline of a game connection: the slow client, this handler in front, then the game's 30-second read timeout. */
   private EmbeddedChannel gameConnection() {
     final EmbeddedChannel channel = new EmbeddedChannel();
     channel.freezeTime();
@@ -530,7 +526,6 @@ final class ResourcePackHttpHandlerTest {
     channel.finishAndReleaseAll();
   }
 
-  /** Holds back the pack's content, like a client that takes the download slowly, and fails it when the connection closes. */
   private static final class SlowClient extends ChannelDuplexHandler {
 
     private int writes;
@@ -563,18 +558,12 @@ final class ResourcePackHttpHandlerTest {
     }
   }
 
-  /**
-   * A connection whose client takes what is written to it only as fast as the test lets it, as a slow socket does: what
-   * it has not taken waits in the channel's outbound buffer, a write is complete once all of it is taken, and the
-   * channel is not writable while too much waits.
-   */
   private static final class SlowSocket extends EmbeddedChannel {
 
     private long allowance;
 
     private long taken;
 
-    /** Lets the client take more bytes, and writes as much as it takes. */
     private void take(final int bytes) {
       this.allowance += bytes;
       this.flushOutbound();

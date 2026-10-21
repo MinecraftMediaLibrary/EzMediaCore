@@ -24,9 +24,6 @@ import me.brandonli.mcav.bukkit.resourcepack.SimpleResourcePack;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import me.brandonli.mcav.utils.ffmpeg.AudioExtractor;
 
-/**
- * Builds a resource pack with the audio of a video as the sound {@code mcav:example}.
- */
 public final class PackBuilderExample {
 
   private static final URI VIDEO = URI.create("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
@@ -37,14 +34,6 @@ public final class PackBuilderExample {
     throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
 
-  /**
-   * Downloads the example video, extracts its audio, and writes the resource pack to {@code pack.zip}.
-   *
-   * @param args one argument: the resource-pack format required by the target Minecraft client
-   * @throws IOException if the pack cannot be written
-   * @throws me.brandonli.mcav.utils.runtime.ProcessException if the audio cannot be extracted
-   * @throws IllegalArgumentException if the resource-pack format is missing or invalid
-   */
   static void main(final String[] args) throws IOException {
     if (args.length != 1) {
       throw new IllegalArgumentException("Usage: PackBuilderExample <resource-pack-format>");
