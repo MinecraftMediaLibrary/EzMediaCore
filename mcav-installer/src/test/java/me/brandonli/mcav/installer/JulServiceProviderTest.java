@@ -68,20 +68,20 @@ final class JulServiceProviderTest {
     public void close() {}
   };
 
-  private final Logger jul = Logger.getLogger(NAME);
+  private final Logger recordedLogger = Logger.getLogger(NAME);
 
   @BeforeEach
   void listen() {
-    this.jul.setLevel(Level.ALL);
-    this.jul.setUseParentHandlers(false);
-    this.jul.addHandler(this.recorder);
+    this.recordedLogger.setLevel(Level.ALL);
+    this.recordedLogger.setUseParentHandlers(false);
+    this.recordedLogger.addHandler(this.recorder);
   }
 
   @AfterEach
   void stopListening() {
-    this.jul.removeHandler(this.recorder);
-    this.jul.setUseParentHandlers(true);
-    this.jul.setLevel(null);
+    this.recordedLogger.removeHandler(this.recorder);
+    this.recordedLogger.setUseParentHandlers(true);
+    this.recordedLogger.setLevel(null);
   }
 
   @Test
@@ -113,7 +113,7 @@ final class JulServiceProviderTest {
     final JulServiceProvider provider = new JulServiceProvider();
     final org.slf4j.Logger logger = provider.getLoggerFactory().getLogger(NAME); // fqn: SLF4J's logger beside java.util.logging's
     final Marker marker = provider.getMarkerFactory().getMarker("installer");
-    this.jul.setLevel(Level.INFO);
+    this.recordedLogger.setLevel(Level.INFO);
     final boolean traceAtInfo = logger.isTraceEnabled(marker);
     assertFalse(traceAtInfo);
     final boolean debugAtInfo = logger.isDebugEnabled();
@@ -125,13 +125,13 @@ final class JulServiceProviderTest {
     final boolean errorAtInfo = logger.isErrorEnabled();
     assertTrue(errorAtInfo);
 
-    this.jul.setLevel(Level.SEVERE);
+    this.recordedLogger.setLevel(Level.SEVERE);
     final boolean warnAtSevere = logger.isWarnEnabled();
     assertFalse(warnAtSevere);
     final boolean errorAtSevere = logger.isErrorEnabled(marker);
     assertTrue(errorAtSevere);
 
-    this.jul.setLevel(Level.ALL);
+    this.recordedLogger.setLevel(Level.ALL);
     final boolean traceAtAll = logger.isTraceEnabled();
     assertTrue(traceAtAll);
     final boolean debugAtAll = logger.isDebugEnabled(marker);

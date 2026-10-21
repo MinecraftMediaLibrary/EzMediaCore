@@ -32,7 +32,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * the reflective injector is denied. Unsafe is looked up by name, so the installer compiles without referencing
  * the unsupported API; newer Java versions print a warning the first time it is used.
  */
-final class UnsafeInjector extends URLClassLoaderInjector {
+final class UnsafeInjector extends UrlClassLoaderInjector {
 
   private static final String UNSAFE_CLASS = "sun.misc.Unsafe";
   /**
@@ -83,7 +83,7 @@ final class UnsafeInjector extends URLClassLoaderInjector {
   }
 
   @Override
-  void addURL(final URL url) {
+  void addUrl(final URL url) {
     // URLClassPath guards both collections with the lock of unopenedUrls
     synchronized (this.unopenedUrls) {
       final boolean known = this.path.contains(url);

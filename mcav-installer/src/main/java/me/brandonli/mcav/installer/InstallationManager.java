@@ -86,10 +86,10 @@ final class InstallationManager implements AutoCloseable {
   private static final List<String> EXCLUDED_SCOPES = List.of();
   private static final String PART_SUFFIX = ".part";
   private static final Pattern ARTIFACT_ID = Pattern.compile("(?!\\.{1,2}$)[A-Za-z0-9_.-]+");
-  private static final int CONNECT_TIMEOUT_MILLIS = 30_000;
-  private static final int REQUEST_TIMEOUT_MILLIS = 120_000;
-  private static final int MAX_COPY_THREADS = 8;
-  private static final long SHUTDOWN_TIMEOUT_MILLIS = 10_000;
+  private static final int CONNECT_TIMEOUT_MILLISECONDS = 30_000;
+  private static final int REQUEST_TIMEOUT_MILLISECONDS = 120_000;
+  private static final int MAXIMUM_COPY_THREADS = 8;
+  private static final long SHUTDOWN_TIMEOUT_MILLISECONDS = 10_000;
 
   private final RepositorySystem system;
   private final RepositorySystemSession.CloseableSession session;
@@ -125,7 +125,7 @@ final class InstallationManager implements AutoCloseable {
 
     final Runtime runtime = Runtime.getRuntime();
     final int processors = runtime.availableProcessors();
-    final int threads = Math.clamp(processors, 1, MAX_COPY_THREADS);
+    final int threads = Math.clamp(processors, 1, MAXIMUM_COPY_THREADS);
     this.executor = Executors.newFixedThreadPool(threads, InstallationManager::createCopyThread);
   }
 
@@ -172,17 +172,17 @@ final class InstallationManager implements AutoCloseable {
 
   private static RepositorySystemSession.CloseableSession createSession(final RepositorySystem system, final Path localRepository) {
     final Map<String, String> systemProperties = copySystemProperties();
-    final Map<String, String> configProperties = new HashMap<>();
-    final String connectTimeout = String.valueOf(CONNECT_TIMEOUT_MILLIS);
-    final String requestTimeout = String.valueOf(REQUEST_TIMEOUT_MILLIS);
-    configProperties.put("aether.connector.connectTimeout", connectTimeout);
-    configProperties.put("aether.connector.requestTimeout", requestTimeout);
+    final Map<String, String> configurationProperties = new HashMap<>();
+    final String connectTimeout = String.valueOf(CONNECT_TIMEOUT_MILLISECONDS);
+    final String requestTimeout = String.valueOf(REQUEST_TIMEOUT_MILLISECONDS);
+    configurationProperties.put("aether.connector.connectTimeout", connectTimeout);
+    configurationProperties.put("aether.connector.requestTimeout", requestTimeout);
 
     final SessionBuilderSupplier builderSupplier = new SessionBuilderSupplier(system);
     final RepositorySystemSession.SessionBuilder builder = builderSupplier.get();
     builder.withLocalRepositoryBaseDirectories(localRepository);
     builder.setSystemProperties(systemProperties);
-    builder.setConfigProperties(configProperties);
+    builder.setConfigProperties(configurationProperties);
     return builder.build();
   }
 
@@ -310,7 +310,7 @@ final class InstallationManager implements AutoCloseable {
     final Path source = Objects.requireNonNull(resolved, "Resolved artifacts must have a file!");
     final String groupId = artifact.getGroupId();
     final String artifactId = artifact.getArtifactId();
-    final String fileName = IOUtils.getFileName(source);
+    final String fileName = IoUtils.getFileName(source);
     final Path destination = destinationOf(target, groupId, artifactId, fileName);
 
     final boolean upToDate = hasSameContent(source, destination);
@@ -409,7 +409,7 @@ final class InstallationManager implements AutoCloseable {
    */
   @Override
   public void close() {
-    shutdown(this.executor, SHUTDOWN_TIMEOUT_MILLIS);
+    shutdown(this.executor, SHUTDOWN_TIMEOUT_MILLISECONDS);
     this.session.close();
     this.system.shutdown();
   }
@@ -426,13 +426,13 @@ final class InstallationManager implements AutoCloseable {
   /**
    * Shuts an executor down, waiting for running tasks and interrupting them after a timeout. Visible for testing.
    *
-   * @param executor      the executor
-   * @param timeoutMillis how long to wait for running tasks
+   * @param executor            the executor
+   * @param timeoutMilliseconds how long to wait for running tasks
    */
-  static void shutdown(final ExecutorService executor, final long timeoutMillis) {
+  static void shutdown(final ExecutorService executor, final long timeoutMilliseconds) {
     executor.shutdown();
     try {
-      final boolean terminated = executor.awaitTermination(timeoutMillis, TimeUnit.MILLISECONDS);
+      final boolean terminated = executor.awaitTermination(timeoutMilliseconds, TimeUnit.MILLISECONDS);
       if (!terminated) {
         executor.shutdownNow();
       }

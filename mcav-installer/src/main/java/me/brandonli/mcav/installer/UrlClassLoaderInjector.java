@@ -26,11 +26,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Calls the protected {@code addURL} method of a {@link URLClassLoader}. Two strategies exist because the
  * runtime may deny the reflective access the first one needs.
  */
-abstract class URLClassLoaderInjector {
+abstract class UrlClassLoaderInjector {
 
   private final URLClassLoader classLoader;
 
-  URLClassLoaderInjector(final URLClassLoader classLoader) {
+  UrlClassLoaderInjector(final URLClassLoader classLoader) {
     this.classLoader = classLoader;
   }
 
@@ -41,26 +41,26 @@ abstract class URLClassLoaderInjector {
    * @return the injector
    * @throws JarInjectorException if no strategy works on this runtime
    */
-  static URLClassLoaderInjector create(final URLClassLoader classLoader) {
+  static UrlClassLoaderInjector create(final URLClassLoader classLoader) {
     return create(classLoader, ReflectiveInjector.ADD_URL, UnsafeInjector.UNSAFE);
   }
 
   /**
    * Creates the first injector whose strategy is available. Visible for testing.
    *
-   * @param classLoader the class loader to add jars to
-   * @param addUrl      the {@code addURL} handle of the reflective strategy, or null if it is not available
-   * @param unsafe      the access of the Unsafe strategy, or null if it is not available
+   * @param classLoader  the class loader to add jars to
+   * @param addUrlHandle the {@code addURL} handle of the reflective strategy, or null if it is not available
+   * @param unsafe       the access of the Unsafe strategy, or null if it is not available
    * @return the injector
    * @throws JarInjectorException if neither strategy is available
    */
-  static URLClassLoaderInjector create(
+  static UrlClassLoaderInjector create(
     final URLClassLoader classLoader,
-    final @Nullable MethodHandle addUrl,
+    final @Nullable MethodHandle addUrlHandle,
     final UnsafeInjector.@Nullable UnsafeAccess unsafe
   ) {
-    if (addUrl != null) {
-      return new ReflectiveInjector(classLoader, addUrl);
+    if (addUrlHandle != null) {
+      return new ReflectiveInjector(classLoader, addUrlHandle);
     }
     if (unsafe != null) {
       return new UnsafeInjector(classLoader, unsafe);
@@ -75,7 +75,7 @@ abstract class URLClassLoaderInjector {
    *
    * @param url the URL of the jar
    */
-  abstract void addURL(final URL url);
+  abstract void addUrl(final URL url);
 
   /**
    * Returns the class loader jars are added to.

@@ -48,10 +48,10 @@ final class LoaderUtils {
    */
   static void loadJarPaths(final Collection<Path> jars, final ClassLoader loader) {
     final URLClassLoader target = resolveUrlClassLoader(loader);
-    final URLClassLoaderInjector injector = URLClassLoaderInjector.create(target);
+    final UrlClassLoaderInjector injector = UrlClassLoaderInjector.create(target);
     for (final Path jar : jars) {
       final URL url = toUrl(jar);
-      injector.addURL(url);
+      injector.addUrl(url);
     }
   }
 

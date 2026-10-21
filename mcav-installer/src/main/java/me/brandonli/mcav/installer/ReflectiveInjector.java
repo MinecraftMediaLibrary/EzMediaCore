@@ -28,24 +28,24 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Calls {@code URLClassLoader.addURL} through a private method handle. Works when {@code java.net} is open to the
  * installer, which is the case for most server launchers.
  */
-final class ReflectiveInjector extends URLClassLoaderInjector {
+final class ReflectiveInjector extends UrlClassLoaderInjector {
 
   /**
    * The {@code addURL} method of {@link URLClassLoader}, or null if {@code java.net} is not opened to this module.
    */
   static final @Nullable MethodHandle ADD_URL = findAddUrl();
 
-  private final MethodHandle addUrl;
+  private final MethodHandle addUrlHandle;
 
   /**
    * Creates an injector.
    *
-   * @param classLoader the class loader to add jars to
-   * @param addUrl      a handle that takes the class loader and the URL, normally {@link #ADD_URL}
+   * @param classLoader  the class loader to add jars to
+   * @param addUrlHandle a handle that takes the class loader and the URL, normally {@link #ADD_URL}
    */
-  ReflectiveInjector(final URLClassLoader classLoader, final MethodHandle addUrl) {
+  ReflectiveInjector(final URLClassLoader classLoader, final MethodHandle addUrlHandle) {
     super(classLoader);
-    this.addUrl = addUrl;
+    this.addUrlHandle = addUrlHandle;
   }
 
   private static @Nullable MethodHandle findAddUrl() {
@@ -70,10 +70,10 @@ final class ReflectiveInjector extends URLClassLoaderInjector {
   }
 
   @Override
-  void addURL(final URL url) {
+  void addUrl(final URL url) {
     final URLClassLoader loader = this.getClassLoader();
     try {
-      this.addUrl.invoke(loader, url);
+      this.addUrlHandle.invoke(loader, url);
     } catch (final RuntimeException | Error exception) {
       throw exception;
     } catch (final Throwable exception) {

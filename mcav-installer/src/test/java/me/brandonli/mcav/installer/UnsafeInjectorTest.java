@@ -144,8 +144,8 @@ final class UnsafeInjectorTest {
     final UnsafeInjector.UnsafeAccess unsafe = unsafe();
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
       final UnsafeInjector injector = new UnsafeInjector(loader, unsafe);
-      injector.addURL(jar);
-      injector.addURL(jar);
+      injector.addUrl(jar);
+      injector.addUrl(jar);
 
       final URL[] urls = loader.getURLs();
       final URL[] expected = { jar };

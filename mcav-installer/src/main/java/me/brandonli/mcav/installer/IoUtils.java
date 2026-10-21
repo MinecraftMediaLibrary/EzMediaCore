@@ -22,9 +22,9 @@ import java.nio.file.Path;
 /**
  * File helpers of the installer, which cannot depend on the library it installs.
  */
-final class IOUtils {
+final class IoUtils {
 
-  private IOUtils() {
+  private IoUtils() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 

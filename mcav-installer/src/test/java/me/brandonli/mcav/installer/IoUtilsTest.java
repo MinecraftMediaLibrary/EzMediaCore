@@ -26,9 +26,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Tests {@link IOUtils}.
+ * Tests {@link IoUtils}.
  */
-final class IOUtilsTest {
+final class IoUtilsTest {
 
   @TempDir
   private Path directory;
@@ -36,14 +36,14 @@ final class IOUtilsTest {
   @Test
   void shouldGetTheFileNameOfAPath() {
     final Path file = this.directory.resolve("library-1.0.jar");
-    final String name = IOUtils.getFileName(file);
+    final String name = IoUtils.getFileName(file);
     assertEquals("library-1.0.jar", name);
   }
 
   @Test
   void shouldRejectPathsWithoutAFileName() {
     final Path root = this.directory.getRoot();
-    final InstallationException error = assertThrows(InstallationException.class, () -> IOUtils.getFileName(root));
+    final InstallationException error = assertThrows(InstallationException.class, () -> IoUtils.getFileName(root));
     final String message = error.getMessage();
     final String expected = "Path %s has no file name!".formatted(root);
     assertEquals(expected, message);
@@ -51,6 +51,6 @@ final class IOUtilsTest {
 
   @Test
   void shouldNotBeInstantiable() {
-    UtilityClassAssertions.assertNotInstantiable(IOUtils.class);
+    UtilityClassAssertions.assertNotInstantiable(IoUtils.class);
   }
 }

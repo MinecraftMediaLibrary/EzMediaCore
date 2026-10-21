@@ -39,10 +39,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Tests {@link URLClassLoaderInjector} and {@link ReflectiveInjector}. The test JVM opens {@code java.net}, as the
+ * Tests {@link UrlClassLoaderInjector} and {@link ReflectiveInjector}. The test JVM opens {@code java.net}, as the
  * injector tells users to do, so the reflective strategy is available.
  */
-final class URLClassLoaderInjectorTest {
+final class UrlClassLoaderInjectorTest {
 
   private static final String RESOURCE = "library.txt";
 
@@ -79,10 +79,10 @@ final class URLClassLoaderInjectorTest {
 
   @Test
   void shouldPreferTheReflectiveStrategyWhenJavaNetIsOpen() throws IOException {
-    final MethodHandle addUrl = ReflectiveInjector.ADD_URL;
-    assertNotNull(addUrl);
+    final MethodHandle addUrlHandle = ReflectiveInjector.ADD_URL;
+    assertNotNull(addUrlHandle);
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
-      final URLClassLoaderInjector injector = URLClassLoaderInjector.create(loader);
+      final UrlClassLoaderInjector injector = UrlClassLoaderInjector.create(loader);
       final URLClassLoader target = injector.getClassLoader();
       assertInstanceOf(ReflectiveInjector.class, injector);
       assertSame(loader, target);
@@ -93,16 +93,16 @@ final class URLClassLoaderInjectorTest {
   void shouldFallBackToUnsafeAndFailWithoutAnyStrategy() throws IOException {
     final UnsafeInjector.UnsafeAccess unsafe = UnsafeInjector.UNSAFE;
     assertNotNull(unsafe);
-    final MethodHandle addUrl = ReflectiveInjector.ADD_URL;
-    assertNotNull(addUrl);
+    final MethodHandle addUrlHandle = ReflectiveInjector.ADD_URL;
+    assertNotNull(addUrlHandle);
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
-      final URLClassLoaderInjector reflective = URLClassLoaderInjector.create(loader, addUrl, unsafe);
-      final URLClassLoaderInjector fallback = URLClassLoaderInjector.create(loader, null, unsafe);
+      final UrlClassLoaderInjector reflective = UrlClassLoaderInjector.create(loader, addUrlHandle, unsafe);
+      final UrlClassLoaderInjector fallback = UrlClassLoaderInjector.create(loader, null, unsafe);
       assertInstanceOf(ReflectiveInjector.class, reflective);
       assertInstanceOf(UnsafeInjector.class, fallback);
 
       final JarInjectorException exception = assertThrows(JarInjectorException.class, () ->
-        URLClassLoaderInjector.create(loader, null, null)
+        UrlClassLoaderInjector.create(loader, null, null)
       );
       final String message = exception.getMessage();
       assertEquals(
@@ -125,11 +125,11 @@ final class URLClassLoaderInjectorTest {
   @Test
   void shouldAddJarsReflectively() throws IOException {
     final URL jar = this.writeJar();
-    final MethodHandle addUrl = ReflectiveInjector.ADD_URL;
-    assertNotNull(addUrl);
+    final MethodHandle addUrlHandle = ReflectiveInjector.ADD_URL;
+    assertNotNull(addUrlHandle);
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
-      final ReflectiveInjector injector = new ReflectiveInjector(loader, addUrl);
-      injector.addURL(jar);
+      final ReflectiveInjector injector = new ReflectiveInjector(loader, addUrlHandle);
+      injector.addUrl(jar);
       final URL[] urls = loader.getURLs();
       final URL[] expected = { jar };
       assertArrayEquals(expected, urls);
@@ -152,9 +152,9 @@ final class URLClassLoaderInjectorTest {
       final ReflectiveInjector runtimeInjector = new ReflectiveInjector(loader, runtimeHandle);
       final ReflectiveInjector errorInjector = new ReflectiveInjector(loader, errorHandle);
       final ReflectiveInjector checkedInjector = new ReflectiveInjector(loader, checkedHandle);
-      final IllegalStateException runtimeFailure = assertThrows(IllegalStateException.class, () -> runtimeInjector.addURL(jar));
-      final LinkageError errorFailure = assertThrows(LinkageError.class, () -> errorInjector.addURL(jar));
-      final JarInjectorException checkedFailure = assertThrows(JarInjectorException.class, () -> checkedInjector.addURL(jar));
+      final IllegalStateException runtimeFailure = assertThrows(IllegalStateException.class, () -> runtimeInjector.addUrl(jar));
+      final LinkageError errorFailure = assertThrows(LinkageError.class, () -> errorInjector.addUrl(jar));
+      final JarInjectorException checkedFailure = assertThrows(JarInjectorException.class, () -> checkedInjector.addUrl(jar));
       final String checkedMessage = checkedFailure.getMessage();
       final Throwable checkedCause = checkedFailure.getCause();
       assertSame(runtimeException, runtimeFailure);
