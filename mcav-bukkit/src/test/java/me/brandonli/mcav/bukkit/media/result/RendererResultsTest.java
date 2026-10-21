@@ -31,8 +31,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.BlockConfiguration;
+import me.brandonli.mcav.bukkit.media.config.BlockConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.config.EntityConfiguration;
+import me.brandonli.mcav.bukkit.media.config.EntityConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.config.ScoreboardConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ScoreboardConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.lookup.BlockPaletteLookup;
 import me.brandonli.mcav.bukkit.testing.FakeScoreboards;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
@@ -99,7 +102,7 @@ final class RendererResultsTest {
 
   @Test
   void shouldShowFramesAsBlocksAndRestoreTheWorldInBlockResults() {
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     final Location position = this.createPosition();
     builder.viewers(List.of(VIEWER));
     builder.position(position);
@@ -136,7 +139,7 @@ final class RendererResultsTest {
 
   @Test
   void shouldShowFramesInATextDisplayAndRemoveItInEntityResults() {
-    final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
+    final EntityConfigurationBuilder builder = EntityConfiguration.builder();
     final Location position = this.createPosition();
     builder.viewers(List.of(VIEWER));
     builder.character(CHARACTER);
@@ -186,7 +189,7 @@ final class RendererResultsTest {
     final FakeScoreboards scoreboards = FakeScoreboards.install(manager);
     final Scoreboard previous = mock(CraftScoreboard.class);
     FakeScoreboards.trackScoreboard(this.viewer, previous);
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.character(CHARACTER);
     builder.lines(1);

@@ -49,6 +49,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
+import me.brandonli.mcav.bukkit.media.config.MapConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.map.MapPacketFactory;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.Images;
@@ -110,7 +111,7 @@ final class CompressedMapResultTest {
   }
 
   private MapConfiguration createConfiguration(final int columns, final int rows, final Sizing sizing) {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(this.viewers);
     builder.map(3);
     builder.mapBlockWidth(columns);

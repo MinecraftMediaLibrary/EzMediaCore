@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.BlockConfiguration;
+import me.brandonli.mcav.bukkit.media.config.BlockConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.result.BlockResult;
 import me.brandonli.mcav.media.player.pipeline.filter.video.FunctionalVideoFilter;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
@@ -138,7 +139,7 @@ public final class VideoBlockCommand extends AbstractVideoCommand {
   ) {
     final int width = resolution.getFirst();
     final int height = resolution.getSecond();
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     builder.viewers(players);
     builder.blockWidth(width);
     builder.blockHeight(height);

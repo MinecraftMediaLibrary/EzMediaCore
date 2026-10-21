@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
+import me.brandonli.mcav.bukkit.media.config.MapConfigurationBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.DitherAlgorithm;
 import me.brandonli.mcav.plugin.utils.DitheringArgument;
 import me.brandonli.mcav.utils.immutable.Pair;
@@ -46,7 +47,7 @@ final class MapDisplaySettingsTest {
 
   @Test
   void keepsTheConfigurationAndSharesStatelessAlgorithms() {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     final UUID viewer = UUID.randomUUID();
     final List<UUID> viewers = List.of(viewer);
     builder.viewers(viewers);

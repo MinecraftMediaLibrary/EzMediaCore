@@ -33,10 +33,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.BlockConfiguration;
+import me.brandonli.mcav.bukkit.media.config.BlockConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.config.ChatConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ChatConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.config.EntityConfiguration;
+import me.brandonli.mcav.bukkit.media.config.EntityConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
+import me.brandonli.mcav.bukkit.media.config.MapConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.config.ScoreboardConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ScoreboardConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.lookup.BlockPaletteLookup;
 import me.brandonli.mcav.bukkit.testing.FakeScoreboards;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
@@ -113,7 +118,7 @@ final class DisplayableImageTest {
   }
 
   private MapConfiguration createMapConfiguration(final Sizing sizing) {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.map(2);
     builder.mapBlockWidth(1);
@@ -132,7 +137,7 @@ final class DisplayableImageTest {
    * @return the configuration
    */
   private MapConfiguration createMapGridConfiguration(final int columns, final int rows) {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.map(2);
     builder.mapBlockWidth(columns);
@@ -150,7 +155,7 @@ final class DisplayableImageTest {
   }
 
   private ChatConfiguration createChatConfiguration() {
-    final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
+    final ChatConfigurationBuilder builder = ChatConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.character(CHARACTER);
     builder.chatWidth(2);
@@ -161,7 +166,7 @@ final class DisplayableImageTest {
   private EntityConfiguration createEntityConfiguration() {
     final World configuredWorld = this.world.getWorld();
     final Location position = new Location(configuredWorld, 0, 64, 0);
-    final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
+    final EntityConfigurationBuilder builder = EntityConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.character(CHARACTER);
     builder.position(position);
@@ -171,7 +176,7 @@ final class DisplayableImageTest {
   }
 
   private ScoreboardConfiguration createScoreboardConfiguration() {
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.character(CHARACTER);
     builder.lines(1);
@@ -182,7 +187,7 @@ final class DisplayableImageTest {
   private BlockConfiguration createBlockConfiguration() {
     final World configuredWorld = this.world.getWorld();
     final Location position = new Location(configuredWorld, 0, 64, 0);
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.position(position);
     builder.blockWidth(1);

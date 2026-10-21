@@ -56,7 +56,7 @@ resolution frames are scaled to, and the players who see the maps.
 
 ```java
   public static MapConfiguration createMapWall(final Collection<UUID> viewers) {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.map(0);
     builder.mapBlockWidth(5);
     builder.mapBlockHeight(5);

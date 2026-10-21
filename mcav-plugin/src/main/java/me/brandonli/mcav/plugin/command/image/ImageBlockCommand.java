@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.BlockConfiguration;
+import me.brandonli.mcav.bukkit.media.config.BlockConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.image.DisplayableImage;
 import me.brandonli.mcav.plugin.MCAVSandbox;
 import me.brandonli.mcav.plugin.utils.ArgumentUtils;
@@ -122,7 +123,7 @@ public final class ImageBlockCommand extends AbstractImageCommand {
   ) {
     final int width = resolution.getFirst();
     final int height = resolution.getSecond();
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     builder.viewers(players);
     builder.blockWidth(width);
     builder.blockHeight(height);

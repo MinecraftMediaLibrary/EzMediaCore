@@ -26,7 +26,6 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -128,8 +127,8 @@ public final class Mcv2Configuration {
 
   private final int unsentLimit;
 
-  private Mcv2Configuration(
-    final Builder builder,
+  Mcv2Configuration(
+    final DefaultMcv2ConfigurationBuilder builder,
     final Collection<UUID> viewers,
     final Location origin,
     final BlockFace facing,
@@ -138,21 +137,21 @@ public final class Mcv2Configuration {
     this.viewers = viewers;
     this.origin = origin.clone();
     this.facing = facing;
-    this.map = builder.map;
-    this.columns = builder.columns;
-    this.rows = builder.rows;
-    this.videoWidth = videoSize(builder.videoWidth, builder.columns);
-    this.videoHeight = videoSize(builder.videoHeight, builder.rows);
-    this.pageMap = builder.pageMap;
+    this.map = builder.getMap();
+    this.columns = builder.getColumns();
+    this.rows = builder.getRows();
+    this.videoWidth = videoSize(builder.getVideoWidth(), this.columns);
+    this.videoHeight = videoSize(builder.getVideoHeight(), this.rows);
+    this.pageMap = builder.getPageMap();
     this.pageSlots = pageSlots;
-    this.streamId = builder.streamId;
-    this.firstFrameId = builder.firstFrameId;
-    this.maximumFrameRate = builder.maximumFrameRate;
-    this.settings = builder.settings;
-    this.outlineColor = builder.outlineColor;
-    this.backlogLimit = builder.backlogLimit;
-    this.encoderPool = builder.encoderPool;
-    this.unsentLimit = builder.unsentLimit;
+    this.streamId = builder.getStreamId();
+    this.firstFrameId = builder.getFirstFrameId();
+    this.maximumFrameRate = builder.getMaximumFrameRate();
+    this.settings = builder.getSettings();
+    this.outlineColor = builder.getOutlineColor();
+    this.backlogLimit = builder.getBacklogLimit();
+    this.encoderPool = builder.getEncoderPool();
+    this.unsentLimit = builder.getUnsentLimit();
   }
 
   /**
@@ -160,11 +159,11 @@ public final class Mcv2Configuration {
    *
    * @return a new builder
    */
-  public static Builder builder() {
-    return new Builder();
+  public static Mcv2ConfigurationBuilder builder() {
+    return new DefaultMcv2ConfigurationBuilder();
   }
 
-  private static int videoSize(final int size, final int maps) {
+  static int videoSize(final int size, final int maps) {
     return size > 0 ? size : MapLayout.MAP_SIZE * maps;
   }
 
@@ -234,8 +233,8 @@ public final class Mcv2Configuration {
     return this.toBuilder().streamId(streamId).pageMap(pageMap).firstFrameId(firstFrameId).build();
   }
 
-  private Builder toBuilder() {
-    final Builder builder = builder()
+  private Mcv2ConfigurationBuilder toBuilder() {
+    final Mcv2ConfigurationBuilder builder = builder()
       .viewers(this.viewers)
       .origin(this.origin)
       .facing(this.facing)
@@ -430,360 +429,5 @@ public final class Mcv2Configuration {
    */
   public int getUnsentLimit() {
     return this.unsentLimit;
-  }
-
-  /**
-   * Builds MCV2 screen configurations. The viewers, the origin, the facing, the map id and the wall size are
-   * required.
-   *
-   * <p>Builders are mutable and not thread-safe. Numeric setters generally defer validation to {@link #build()}.
-   * Origin, facing and outline-color setters validate immediately. A zero video dimension selects 128 times the
-   * corresponding wall dimension, which {@link #build()} refuses past the codec's 4096-pixel limit: a wall of more than
-   * 32 maps on a side needs a smaller video size.
-   */
-  public static final class Builder {
-
-    private @MonotonicNonNull Collection<UUID> viewers;
-
-    private @MonotonicNonNull Location origin;
-
-    private @MonotonicNonNull BlockFace facing;
-
-    private int map = -1;
-
-    private int columns;
-
-    private int rows;
-
-    private int videoWidth;
-
-    private int videoHeight;
-
-    private int pageMap = DEFAULT_PAGE_MAP;
-
-    private int pageSlots;
-
-    private long streamId = 1;
-
-    private long firstFrameId;
-
-    private double maximumFrameRate = DEFAULT_MAXIMUM_FRAME_RATE;
-
-    private long backlogLimit = DEFAULT_BACKLOG_LIMIT;
-
-    private @Nullable Pool encoderPool;
-
-    private int unsentLimit = DEFAULT_UNSENT_LIMIT;
-
-    private Settings settings = Settings.DEFAULT;
-
-    private NamedTextColor outlineColor = NamedTextColor.DARK_PURPLE;
-
-    private Builder() {}
-
-    /**
-     * Sets the players who watch the screen. The collection is not copied.
-     *
-     * @param viewers the UUIDs of the viewers
-     * @return this builder
-     * @throws NullPointerException if {@code viewers} is null
-     */
-    public Builder viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null!");
-
-      this.viewers = viewers;
-      return this;
-    }
-
-    /**
-     * Sets the block the top-left frame of the wall hangs in.
-     *
-     * <p>The location is copied to block coordinates; subsequent caller mutations do not move the screen.
-     *
-     * @param origin the location of that block, in a world
-     * @return this builder
-     * @throws IllegalArgumentException if the origin has no world
-     * @throws NullPointerException     if {@code origin} is null
-     */
-    public Builder origin(final Location origin) {
-      Preconditions.checkNotNull(origin, "Origin must not be null!");
-      Preconditions.checkArgument(origin.getWorld() != null, "Origin must be in a world!");
-
-      this.origin = origin.toBlockLocation();
-      return this;
-    }
-
-    /**
-     * Sets the direction the frames of the wall face.
-     *
-     * @param facing north, south, east or west
-     * @return this builder
-     * @throws IllegalArgumentException if the direction is not horizontal and cardinal
-     * @throws NullPointerException     if {@code facing} is null
-     */
-    public Builder facing(final BlockFace facing) {
-      Preconditions.checkNotNull(facing, "Facing must not be null!");
-      Preconditions.checkArgument(
-        facing.isCartesian() && facing.getModY() == 0,
-        "Facing %s is not horizontal, but frames must face a horizontal direction!",
-        facing
-      );
-      this.facing = facing;
-      return this;
-    }
-
-    /**
-     * Sets the id of the top-left map of the wall.
-     *
-     * @param map the first map id, not negative
-     * @return this builder
-     */
-    public Builder map(final int map) {
-      this.map = map;
-      return this;
-    }
-
-    /**
-     * Sets the width of the wall in maps.
-     *
-     * @param columns 1 to {@link #MAXIMUM_SIDE}
-     * @return this builder
-     */
-    public Builder columns(final int columns) {
-      this.columns = columns;
-      return this;
-    }
-
-    /**
-     * Sets the height of the wall in maps.
-     *
-     * @param rows 1 to {@link #MAXIMUM_SIDE}
-     * @return this builder
-     */
-    public Builder rows(final int rows) {
-      this.rows = rows;
-      return this;
-    }
-
-    /**
-     * Sets the size of the encoded video. Frames are resized to it before they are encoded.
-     *
-     * @param width  1 to 4096 pixels, or 0 for the wall's native width, 128 pixels a map, which a wall of more than 32
-     *               columns takes past 4096
-     * @param height 1 to 4096 pixels, or 0 for the wall's native height, 128 pixels a map, which a wall of more than 32
-     *               rows takes past 4096
-     * @return this builder
-     */
-    public Builder video(final int width, final int height) {
-      this.videoWidth = width;
-      this.videoHeight = height;
-      return this;
-    }
-
-    /**
-     * Sets the id of the map carrying the first page of every frame.
-     *
-     * @param pageMap the first page map id, not negative
-     * @return this builder
-     */
-    public Builder pageMap(final int pageMap) {
-      this.pageMap = pageMap;
-      return this;
-    }
-
-    /**
-     * Sets how many pages a frame may have. Behind every map of the wall hangs one page's frame, so a wall carries at
-     * most as many slots as it has maps; {@link #build()} refuses more.
-     *
-     * @param pageSlots 1 to {@link #MAXIMUM_PAGE_SLOTS} and at most the wall's maps, or 0 for the default:
-     *                  {@value #MAXIMUM_PAGE_SLOTS}, or the wall's maps when it has fewer
-     * @return this builder
-     */
-    public Builder pageSlots(final int pageSlots) {
-      this.pageSlots = pageSlots;
-      return this;
-    }
-
-    /**
-     * Sets the stream id every page and anchor carries, which tells the resource pack which of its screens they are.
-     *
-     * @param streamId 0 to {@value #MAXIMUM_STREAM_ID}: an anchor carries it in two six-bit symbols
-     * @return this builder
-     */
-    public Builder streamId(final long streamId) {
-      this.streamId = streamId;
-      return this;
-    }
-
-    /**
-     * Sets the id of the screen's first frame; defaults to 0.
-     *
-     * @param firstFrameId an unsigned 32-bit value
-     * @return this builder
-     */
-    public Builder firstFrameId(final long firstFrameId) {
-      this.firstFrameId = firstFrameId;
-      return this;
-    }
-
-    /**
-     * Sets the most frames a second the screen shows; defaults to {@link #DEFAULT_MAXIMUM_FRAME_RATE}.
-     *
-     * @param maximumFrameRate a finite rate from 0 through {@value #MAXIMUM_FRAME_RATE} frames per second;
-     *                         0 accepts every source frame
-     * @return this builder
-     */
-    public Builder maximumFrameRate(final double maximumFrameRate) {
-      this.maximumFrameRate = maximumFrameRate;
-      return this;
-    }
-
-    /**
-     * Sets the encoder profile; defaults to {@link Settings#DEFAULT}. A screen that falls behind steps to
-     * {@link Settings#FAST}, then lowers its frame rate and video size before using dithered maps.
-     *
-     * @param settings the settings
-     * @return this builder
-     * @throws NullPointerException if {@code settings} is null
-     */
-    public Builder settings(final Settings settings) {
-      Preconditions.checkNotNull(settings, "Settings must not be null!");
-
-      this.settings = settings;
-      return this;
-    }
-
-    /**
-     * Sets the team colour of the hidden page frames; defaults to dark purple.
-     *
-     * @param outlineColor the colour, not black: an outline colour of zero means no outline, so the client would not
-     *                     run the pack's post chain
-     * @return this builder
-     * @throws IllegalArgumentException if the color is black
-     * @throws NullPointerException     if {@code outlineColor} is null
-     */
-    public Builder outlineColor(final NamedTextColor outlineColor) {
-      Preconditions.checkNotNull(outlineColor, "Outline color must not be null!");
-      Preconditions.checkArgument(outlineColor.value() != 0, "The outline colour must not be black!");
-
-      this.outlineColor = outlineColor;
-      return this;
-    }
-
-    /**
-     * Sets how much video a viewer's connection may have left to write for the viewer to be sent another frame;
-     * defaults to {@link #DEFAULT_BACKLOG_LIMIT}.
-     *
-     * @param backlogLimit the nonnegative threshold in estimated map-update bytes, including patch overhead;
-     *                     zero allows a new frame only once the tracked backlog has drained
-     * @return this builder
-     */
-    public Builder backlogLimit(final long backlogLimit) {
-      this.backlogLimit = backlogLimit;
-      return this;
-    }
-
-    /**
-     * Sets the cap on the bytes a viewer's operating system may hold unsent, {@link #DEFAULT_UNSENT_LIMIT} unless set.
-     *
-     * @param unsentLimit the cap in bytes, or 0 to leave the system's own, for example with no backlog limit either
-     * @return this builder
-     */
-    public Builder unsentLimit(final int unsentLimit) {
-      this.unsentLimit = unsentLimit;
-      return this;
-    }
-
-    /**
-     * Sets the encoder budget the screen encodes in, instead of the server's shared budget, {@link Pool#shared()}.
-     * Screens that encode at the same time share a budget's threads.
-     *
-     * @param encoderPool the budget
-     * @return this builder
-     * @throws NullPointerException if {@code encoderPool} is null
-     */
-    public Builder encoderPool(final Pool encoderPool) {
-      this.encoderPool = Preconditions.checkNotNull(encoderPool, "Encoder pool must not be null!");
-      return this;
-    }
-
-    /**
-     * Builds the configuration. The builder is not changed.
-     *
-     * @return the configuration
-     * @throws NullPointerException     if the viewers, the origin or the facing were not set
-     * @throws IllegalArgumentException if a value is out of range, or the video, at the wall's native size where none was
-     *                                  set, is larger than 4096 pixels
-     */
-    public Mcv2Configuration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set!");
-      final Location configuredOrigin = Preconditions.checkNotNull(this.origin, "Origin must be set!");
-      final BlockFace configuredFacing = Preconditions.checkNotNull(this.facing, "Facing must be set!");
-      Preconditions.checkArgument(this.map >= 0, "Map id must be set and non-negative!");
-      Preconditions.checkArgument(
-        this.columns >= 1 && this.columns <= MAXIMUM_SIDE,
-        "Columns must be between 1 and %s inclusive!",
-        MAXIMUM_SIDE
-      );
-      Preconditions.checkArgument(this.rows >= 1 && this.rows <= MAXIMUM_SIDE, "Rows must be between 1 and %s inclusive!", MAXIMUM_SIDE);
-      Preconditions.checkArgument(
-        this.videoWidth >= 0 && this.videoWidth <= Mcv2Decoder.MAXIMUM_DIMENSION,
-        "Video width must be 0 to 4096!"
-      );
-      Preconditions.checkArgument(
-        this.videoHeight >= 0 && this.videoHeight <= Mcv2Decoder.MAXIMUM_DIMENSION,
-        "Video height must be 0 to 4096!"
-      );
-
-      final int width = videoSize(this.videoWidth, this.columns);
-      final int height = videoSize(this.videoHeight, this.rows);
-      Preconditions.checkArgument(
-        width <= Mcv2Decoder.MAXIMUM_DIMENSION && height <= Mcv2Decoder.MAXIMUM_DIMENSION,
-        "A wall of %s by %s maps is %s by %s pixels, more than the codec's %s: set a smaller video size!",
-        this.columns,
-        this.rows,
-        width,
-        height,
-        Mcv2Decoder.MAXIMUM_DIMENSION
-      );
-      Preconditions.checkArgument(
-        this.pageSlots >= 0 && this.pageSlots <= MAXIMUM_PAGE_SLOTS,
-        "Page slots must be between 0 and %s inclusive!",
-        MAXIMUM_PAGE_SLOTS
-      );
-      Preconditions.checkArgument(
-        this.streamId >= 0 && this.streamId <= MAXIMUM_STREAM_ID,
-        "Stream id must be between 0 and %s inclusive!",
-        MAXIMUM_STREAM_ID
-      );
-      Preconditions.checkArgument(
-        this.firstFrameId >= 0 && this.firstFrameId <= Mcv2Decoder.MAXIMUM_UNSIGNED_INT,
-        "First frame id must be an unsigned 32-bit value!"
-      );
-      Preconditions.checkArgument(
-        this.maximumFrameRate >= 0 && this.maximumFrameRate <= MAXIMUM_FRAME_RATE,
-        "Frame rate must be between 0 and %s inclusive!",
-        MAXIMUM_FRAME_RATE
-      );
-      Preconditions.checkArgument(this.backlogLimit >= 0, "Backlog limit must not be negative!");
-      Preconditions.checkArgument(this.unsentLimit >= 0, "Unsent limit must not be negative!");
-
-      final int maps = this.columns * this.rows;
-      final int slots = this.pageSlots > 0 ? this.pageSlots : defaultPageSlots(maps);
-      // A slot without a wall map is invisible to the client and prevents frame reassembly.
-      Preconditions.checkArgument(
-        slots <= maps,
-        "A wall of %s maps cannot carry %s page slots: one page frame hangs behind each map!",
-        maps,
-        slots
-      );
-      final long lastMap = (long) this.map + (long) this.columns * this.rows - 1;
-      final long lastPage = (long) this.pageMap + slots - 1;
-      Preconditions.checkArgument(this.pageMap >= 0 && lastPage <= Integer.MAX_VALUE, "Page map ids must be non-negative ints!");
-      Preconditions.checkArgument(lastMap <= Integer.MAX_VALUE, "Map ids exceed the integer range!");
-      Preconditions.checkArgument(lastPage < this.map || this.pageMap > lastMap, "Page maps must not be maps of the wall!");
-
-      return new Mcv2Configuration(this, configuredViewers, configuredOrigin, configuredFacing, slots);
-    }
   }
 }

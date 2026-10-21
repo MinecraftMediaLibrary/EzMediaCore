@@ -42,7 +42,7 @@ final class BlockConfigurationTest {
   @Test
   void shouldRejectPositionsWithoutAWorld() {
     final Location nowhere = new Location(null, 1, 2, 3);
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     builder.viewers(List.of());
     builder.position(nowhere);
     builder.blockWidth(1);
@@ -57,7 +57,7 @@ final class BlockConfigurationTest {
   @Test
   void shouldBuildAConfigurationWithEveryValue() {
     final List<UUID> viewers = new ArrayList<>();
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     builder.viewers(viewers);
     builder.position(POSITION);
     builder.blockWidth(4);
@@ -79,14 +79,14 @@ final class BlockConfigurationTest {
 
   @Test
   void shouldReturnTheSameBuilderFromSetters() {
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
     final Object afterPosition = builder.position(POSITION);
     final Object afterWidth = builder.blockWidth(1);
     final Object afterHeight = builder.blockHeight(1);
 
-    assertInstanceOf(BlockConfiguration.BlockResultBuilder.class, builder);
+    assertInstanceOf(DefaultBlockConfigurationBuilder.class, builder);
     assertSame(builder, afterViewers);
     assertSame(builder, afterPosition);
     assertSame(builder, afterWidth);
@@ -95,7 +95,7 @@ final class BlockConfigurationTest {
 
   @Test
   void shouldRejectNullInSetters() {
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
 
     assertThrows(NullPointerException.class, () -> builder.viewers(null));
     assertThrows(NullPointerException.class, () -> builder.position(null));
@@ -103,19 +103,19 @@ final class BlockConfigurationTest {
 
   @Test
   void shouldRejectMissingOrInvalidValues() {
-    final BlockConfiguration.Builder<?> noViewers = BlockConfiguration.builder();
+    final BlockConfigurationBuilder noViewers = BlockConfiguration.builder();
     noViewers.position(POSITION);
     noViewers.blockWidth(1);
     noViewers.blockHeight(1);
-    final BlockConfiguration.Builder<?> noPosition = BlockConfiguration.builder();
+    final BlockConfigurationBuilder noPosition = BlockConfiguration.builder();
     noPosition.viewers(List.of());
     noPosition.blockWidth(1);
     noPosition.blockHeight(1);
-    final BlockConfiguration.Builder<?> noWidth = BlockConfiguration.builder();
+    final BlockConfigurationBuilder noWidth = BlockConfiguration.builder();
     noWidth.viewers(List.of());
     noWidth.position(POSITION);
     noWidth.blockHeight(1);
-    final BlockConfiguration.Builder<?> noHeight = BlockConfiguration.builder();
+    final BlockConfigurationBuilder noHeight = BlockConfiguration.builder();
     noHeight.viewers(List.of());
     noHeight.position(POSITION);
     noHeight.blockWidth(1);

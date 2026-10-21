@@ -54,7 +54,7 @@ final class Mcv2ConfigurationTest {
 
   private static final int MAXIMUM_VIDEO_SIDE = 4096;
 
-  static Mcv2Configuration.Builder complete() {
+  static Mcv2ConfigurationBuilder complete() {
     return Mcv2Configuration.builder()
       .viewers(VIEWERS)
       .origin(new Location(WORLD, 10.7, 64.2, -3.5))
@@ -333,8 +333,8 @@ final class Mcv2ConfigurationTest {
     assertEquals(code, facingCode);
   }
 
-  private void refuses(final String message, final Consumer<Mcv2Configuration.Builder> change) {
-    final Mcv2Configuration.Builder builder = complete();
+  private void refuses(final String message, final Consumer<Mcv2ConfigurationBuilder> change) {
+    final Mcv2ConfigurationBuilder builder = complete();
     final IllegalArgumentException failure = assertThrows(IllegalArgumentException.class, () -> {
       change.accept(builder);
       builder.build();
@@ -512,7 +512,7 @@ final class Mcv2ConfigurationTest {
 
   @Test
   void shouldRefuseMorePageSlotsThanTheWallHasMaps() {
-    final Mcv2Configuration.Builder square = complete().columns(2).rows(2);
+    final Mcv2ConfigurationBuilder square = complete().columns(2).rows(2);
 
     final int defaultPageSlots = square.pageSlots(0).build().getPageSlots();
     assertEquals(4, defaultPageSlots, "the default of a wall of four maps");

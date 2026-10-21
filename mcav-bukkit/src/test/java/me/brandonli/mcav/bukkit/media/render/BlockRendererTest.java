@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import me.brandonli.mcav.bukkit.media.config.BlockConfiguration;
+import me.brandonli.mcav.bukkit.media.config.BlockConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.lookup.BlockPaletteLookup;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.FakeWorld;
@@ -91,7 +92,7 @@ final class BlockRendererTest {
   private BlockConfiguration createConfiguration() {
     final World configuredWorld = this.world.getWorld();
     final Location position = new Location(configuredWorld, 10.7, 64.2, -5.3);
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     builder.viewers(this.viewers);
     builder.position(position);
     builder.blockWidth(3);

@@ -42,8 +42,8 @@ final class EntityConfigurationTest {
   private static final World WORLD = mock(World.class);
   private static final Location POSITION = new Location(WORLD, 1, 2, 3);
 
-  private EntityConfiguration.Builder<?> completeBuilder() {
-    final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
+  private EntityConfigurationBuilder completeBuilder() {
+    final EntityConfigurationBuilder builder = EntityConfiguration.builder();
     builder.viewers(List.of());
     builder.character(Characters.FULL_CHARACTER);
     builder.position(POSITION);
@@ -55,7 +55,7 @@ final class EntityConfigurationTest {
   @Test
   void shouldBuildAConfigurationWithEveryValue() {
     final List<UUID> viewers = new ArrayList<>();
-    final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
+    final EntityConfigurationBuilder builder = EntityConfiguration.builder();
     builder.viewers(viewers);
     builder.character(Characters.WHITE_CIRCLE);
     builder.position(POSITION);
@@ -78,7 +78,7 @@ final class EntityConfigurationTest {
 
   @Test
   void shouldReturnTheSameBuilderFromSetters() {
-    final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
+    final EntityConfigurationBuilder builder = EntityConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
     final Object afterCharacter = builder.character(CHARACTER);
@@ -86,7 +86,7 @@ final class EntityConfigurationTest {
     final Object afterWidth = builder.entityWidth(1);
     final Object afterHeight = builder.entityHeight(1);
 
-    assertInstanceOf(EntityConfiguration.EntityResultBuilder.class, builder);
+    assertInstanceOf(DefaultEntityConfigurationBuilder.class, builder);
     assertSame(builder, afterViewers);
     assertSame(builder, afterCharacter);
     assertSame(builder, afterPosition);
@@ -96,7 +96,7 @@ final class EntityConfigurationTest {
 
   @Test
   void shouldRejectNullInSetters() {
-    final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
+    final EntityConfigurationBuilder builder = EntityConfiguration.builder();
 
     assertThrows(NullPointerException.class, () -> builder.viewers(null));
     assertThrows(NullPointerException.class, () -> builder.character(null));
@@ -105,17 +105,17 @@ final class EntityConfigurationTest {
 
   @Test
   void shouldRejectMissingValues() {
-    final EntityConfiguration.Builder<?> noViewers = EntityConfiguration.builder();
+    final EntityConfigurationBuilder noViewers = EntityConfiguration.builder();
     noViewers.character(CHARACTER);
     noViewers.position(POSITION);
     noViewers.entityWidth(1);
     noViewers.entityHeight(1);
-    final EntityConfiguration.Builder<?> noCharacter = EntityConfiguration.builder();
+    final EntityConfigurationBuilder noCharacter = EntityConfiguration.builder();
     noCharacter.viewers(List.of());
     noCharacter.position(POSITION);
     noCharacter.entityWidth(1);
     noCharacter.entityHeight(1);
-    final EntityConfiguration.Builder<?> noPosition = EntityConfiguration.builder();
+    final EntityConfigurationBuilder noPosition = EntityConfiguration.builder();
     noPosition.viewers(List.of());
     noPosition.character(CHARACTER);
     noPosition.entityWidth(1);
@@ -128,13 +128,13 @@ final class EntityConfigurationTest {
 
   @Test
   void shouldRejectInvalidValues() {
-    final EntityConfiguration.Builder<?> emptyCharacter = this.completeBuilder();
+    final EntityConfigurationBuilder emptyCharacter = this.completeBuilder();
     emptyCharacter.character("");
-    final EntityConfiguration.Builder<?> noWidth = this.completeBuilder();
+    final EntityConfigurationBuilder noWidth = this.completeBuilder();
     noWidth.entityWidth(0);
-    final EntityConfiguration.Builder<?> noHeight = this.completeBuilder();
+    final EntityConfigurationBuilder noHeight = this.completeBuilder();
     noHeight.entityHeight(0);
-    final EntityConfiguration.Builder<?> noWorld = this.completeBuilder();
+    final EntityConfigurationBuilder noWorld = this.completeBuilder();
     final Location nowhere = new Location(null, 1, 2, 3);
     noWorld.position(nowhere);
 

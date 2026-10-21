@@ -17,11 +17,9 @@
  */
 package me.brandonli.mcav.bukkit.media.config;
 
-import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.result.Characters;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /**
  * Describes an image drawn into the chat, for use with the chat image and chat result.
@@ -33,18 +31,18 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
  * <p>The viewers collection is not copied. It is read for every frame, so a concurrent collection can be passed
  * to add or remove viewers while media is playing.
  */
-public class ChatConfiguration {
+public final class ChatConfiguration {
 
   private final Collection<UUID> viewers;
   private final String character;
   private final int chatWidth;
   private final int chatHeight;
 
-  private ChatConfiguration(final Builder<?> builder, final Collection<UUID> viewers, final String character) {
+  ChatConfiguration(final Collection<UUID> viewers, final String character, final int chatWidth, final int chatHeight) {
     this.viewers = viewers;
     this.character = character;
-    this.chatWidth = builder.chatWidth;
-    this.chatHeight = builder.chatHeight;
+    this.chatWidth = chatWidth;
+    this.chatHeight = chatHeight;
   }
 
   /**
@@ -52,8 +50,8 @@ public class ChatConfiguration {
    *
    * @return a new builder
    */
-  public static Builder<?> builder() {
-    return new ChatResultBuilder();
+  public static ChatConfigurationBuilder builder() {
+    return new DefaultChatConfigurationBuilder();
   }
 
   /**
@@ -92,119 +90,5 @@ public class ChatConfiguration {
    */
   public int getChatHeight() {
     return this.chatHeight;
-  }
-
-  /**
-   * The builder returned by {@link #builder()}.
-   */
-  public static final class ChatResultBuilder extends Builder<ChatResultBuilder> {
-
-    ChatResultBuilder() {}
-
-    /**
-     * Returns this builder with its concrete type.
-     *
-     * @return this builder
-     */
-    @Override
-    protected ChatResultBuilder self() {
-      return this;
-    }
-  }
-
-  /**
-   * Builds chat configurations. Every value is required.
-   *
-   * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
-   * required fields are checked by {@link #build()}, which may be called again to create another configuration.
-   *
-   * @param <BuilderType> the type of the builder
-   */
-  public abstract static class Builder<BuilderType extends Builder<BuilderType>> {
-
-    private @MonotonicNonNull Collection<UUID> viewers;
-    private @MonotonicNonNull String character;
-    private int chatWidth;
-    private int chatHeight;
-
-    Builder() {}
-
-    /**
-     * Returns this builder with its concrete type, so the setters can be chained.
-     *
-     * @return this builder
-     */
-    abstract BuilderType self();
-
-    /**
-     * Sets the players who see the chat image. The collection is not copied, see {@link ChatConfiguration}.
-     *
-     * @param viewers the UUIDs of the viewers
-     * @return this builder
-     * @throws NullPointerException if the viewers are null
-     */
-    public BuilderType viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null!");
-
-      this.viewers = viewers;
-      return this.self();
-    }
-
-    /**
-     * Sets the text drawn for every pixel.
-     *
-     * <p>The text must be nonempty when {@link #build()} is called. Multiple characters are allowed, but
-     * change the visual width of a pixel; no font or character-width validation is performed.
-     *
-     * @param character the pixel text, usually a single character such as {@code █}
-     * @return this builder
-     * @throws NullPointerException if the character is null
-     */
-    public BuilderType character(final String character) {
-      Preconditions.checkNotNull(character, "Character must not be null!");
-
-      this.character = character;
-      return this.self();
-    }
-
-    /**
-     * Sets the width of the image in characters.
-     *
-     * @param chatWidth the width in characters, which must be positive
-     * @return this builder
-     */
-    public BuilderType chatWidth(final int chatWidth) {
-      this.chatWidth = chatWidth;
-      return this.self();
-    }
-
-    /**
-     * Sets the height of the image in lines.
-     *
-     * @param chatHeight the height in lines, which must be positive
-     * @return this builder
-     */
-    public BuilderType chatHeight(final int chatHeight) {
-      this.chatHeight = chatHeight;
-      return this.self();
-    }
-
-    /**
-     * Builds the chat configuration.
-     *
-     * @return the chat configuration
-     * @throws IllegalArgumentException if a size is not positive or the character is empty
-     * @throws NullPointerException     if the viewers or the character were not set
-     */
-    public ChatConfiguration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set!");
-      final String configuredCharacter = Preconditions.checkNotNull(this.character, "Character must be set!");
-
-      Preconditions.checkArgument(!configuredCharacter.isEmpty(), "Character must not be empty!");
-      Preconditions.checkArgument(this.chatWidth > 0, "Chat width must be positive!");
-      Preconditions.checkArgument(this.chatHeight > 0, "Chat height must be positive!");
-
-      return new ChatConfiguration(this, configuredViewers, configuredCharacter);
-    }
   }
 }

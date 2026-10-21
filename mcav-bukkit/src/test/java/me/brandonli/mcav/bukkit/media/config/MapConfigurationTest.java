@@ -40,8 +40,8 @@ final class MapConfigurationTest {
 
   private static final int MAP_SIZE = 128;
 
-  private MapConfiguration.Builder<?> completeBuilder() {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+  private MapConfigurationBuilder completeBuilder() {
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(List.of());
     builder.map(0);
     builder.mapBlockWidth(1);
@@ -52,7 +52,7 @@ final class MapConfigurationTest {
   @Test
   void shouldDefaultTheResolutionToTheNativeResolutionOfTheScreen() {
     final List<UUID> viewers = new ArrayList<>();
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(viewers);
     builder.map(12);
     builder.mapBlockWidth(5);
@@ -78,7 +78,7 @@ final class MapConfigurationTest {
 
   @Test
   void shouldKeepAnExplicitResolutionAndTheResizeFlag() {
-    final MapConfiguration.Builder<?> builder = this.completeBuilder();
+    final MapConfigurationBuilder builder = this.completeBuilder();
     builder.mapWidthResolution(100);
     builder.mapHeightResolution(50);
     builder.resize(true);
@@ -95,7 +95,7 @@ final class MapConfigurationTest {
 
   @Test
   void shouldReturnTheSameBuilderFromSetters() {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
     final Object afterMap = builder.map(0);
@@ -105,7 +105,7 @@ final class MapConfigurationTest {
     final Object afterHeightResolution = builder.mapHeightResolution(1);
     final Object afterResize = builder.resize(false);
 
-    assertInstanceOf(MapConfiguration.MapResultBuilder.class, builder);
+    assertInstanceOf(DefaultMapConfigurationBuilder.class, builder);
     assertSame(builder, afterViewers);
     assertSame(builder, afterMap);
     assertSame(builder, afterWidth);
@@ -117,26 +117,26 @@ final class MapConfigurationTest {
 
   @Test
   void shouldRejectNullInSetters() {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
 
     assertThrows(NullPointerException.class, () -> builder.viewers(null));
   }
 
   @Test
   void shouldRejectMissingOrInvalidValues() {
-    final MapConfiguration.Builder<?> noViewers = MapConfiguration.builder();
+    final MapConfigurationBuilder noViewers = MapConfiguration.builder();
     noViewers.map(0);
     noViewers.mapBlockWidth(1);
     noViewers.mapBlockHeight(1);
-    final MapConfiguration.Builder<?> noMap = MapConfiguration.builder();
+    final MapConfigurationBuilder noMap = MapConfiguration.builder();
     noMap.viewers(List.of());
     noMap.mapBlockWidth(1);
     noMap.mapBlockHeight(1);
-    final MapConfiguration.Builder<?> negativeMap = this.completeBuilder();
+    final MapConfigurationBuilder negativeMap = this.completeBuilder();
     negativeMap.map(-2);
-    final MapConfiguration.Builder<?> noWidth = this.completeBuilder();
+    final MapConfigurationBuilder noWidth = this.completeBuilder();
     noWidth.mapBlockWidth(0);
-    final MapConfiguration.Builder<?> noHeight = this.completeBuilder();
+    final MapConfigurationBuilder noHeight = this.completeBuilder();
     noHeight.mapBlockHeight(0);
 
     assertThrows(NullPointerException.class, noViewers::build);
@@ -148,9 +148,9 @@ final class MapConfigurationTest {
 
   @Test
   void shouldRejectNegativeResolutions() {
-    final MapConfiguration.Builder<?> negativeWidthResolution = this.completeBuilder();
+    final MapConfigurationBuilder negativeWidthResolution = this.completeBuilder();
     negativeWidthResolution.mapWidthResolution(-1);
-    final MapConfiguration.Builder<?> negativeHeightResolution = this.completeBuilder();
+    final MapConfigurationBuilder negativeHeightResolution = this.completeBuilder();
     negativeHeightResolution.mapHeightResolution(-1);
 
     final IllegalArgumentException widthException = assertThrows(IllegalArgumentException.class, negativeWidthResolution::build);
@@ -164,7 +164,7 @@ final class MapConfigurationTest {
 
   @Test
   void shouldRecomputeTheDefaultResolutionWhenReusingTheBuilder() {
-    final MapConfiguration.Builder<?> builder = this.completeBuilder();
+    final MapConfigurationBuilder builder = this.completeBuilder();
 
     final MapConfiguration small = builder.build();
     builder.mapBlockWidth(MAP_BLOCK_COUNT);
@@ -183,9 +183,9 @@ final class MapConfigurationTest {
 
   @Test
   void shouldRejectOverflowingNativeResolutions() {
-    final MapConfiguration.Builder<?> width = this.completeBuilder();
+    final MapConfigurationBuilder width = this.completeBuilder();
     width.mapBlockWidth(Integer.MAX_VALUE / MAP_SIZE + 1);
-    final MapConfiguration.Builder<?> height = this.completeBuilder();
+    final MapConfigurationBuilder height = this.completeBuilder();
     height.mapBlockHeight(Integer.MAX_VALUE / MAP_SIZE + 1);
     assertThrows(IllegalArgumentException.class, width::build);
     assertThrows(IllegalArgumentException.class, height::build);
@@ -194,7 +194,7 @@ final class MapConfigurationTest {
   @Test
   void shouldAcceptTheLargestRepresentableNativeResolution() {
     final int maps = Integer.MAX_VALUE / MAP_SIZE;
-    final MapConfiguration.Builder<?> builder = this.completeBuilder();
+    final MapConfigurationBuilder builder = this.completeBuilder();
     builder.mapBlockWidth(maps);
     final MapConfiguration configuration = builder.build();
     final int resolution = configuration.getMapWidthResolution();

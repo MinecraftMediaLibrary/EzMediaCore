@@ -35,8 +35,8 @@ final class ChatConfigurationTest {
 
   private static final String CHARACTER = "x";
 
-  private ChatConfiguration.Builder<?> completeBuilder() {
-    final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
+  private ChatConfigurationBuilder completeBuilder() {
+    final ChatConfigurationBuilder builder = ChatConfiguration.builder();
     builder.viewers(List.of());
     builder.character(Characters.FULL_CHARACTER);
     builder.chatWidth(1);
@@ -47,7 +47,7 @@ final class ChatConfigurationTest {
   @Test
   void shouldBuildAConfigurationWithEveryValue() {
     final List<UUID> viewers = new ArrayList<>();
-    final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
+    final ChatConfigurationBuilder builder = ChatConfiguration.builder();
     builder.viewers(viewers);
     builder.character(Characters.BLACK_SQUARE);
     builder.chatWidth(40);
@@ -67,14 +67,14 @@ final class ChatConfigurationTest {
 
   @Test
   void shouldReturnTheSameBuilderFromSetters() {
-    final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
+    final ChatConfigurationBuilder builder = ChatConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
     final Object afterCharacter = builder.character(CHARACTER);
     final Object afterWidth = builder.chatWidth(1);
     final Object afterHeight = builder.chatHeight(1);
 
-    assertInstanceOf(ChatConfiguration.ChatResultBuilder.class, builder);
+    assertInstanceOf(DefaultChatConfigurationBuilder.class, builder);
     assertSame(builder, afterViewers);
     assertSame(builder, afterCharacter);
     assertSame(builder, afterWidth);
@@ -83,7 +83,7 @@ final class ChatConfigurationTest {
 
   @Test
   void shouldRejectNullInSetters() {
-    final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
+    final ChatConfigurationBuilder builder = ChatConfiguration.builder();
 
     assertThrows(NullPointerException.class, () -> builder.viewers(null));
     assertThrows(NullPointerException.class, () -> builder.character(null));
@@ -91,19 +91,19 @@ final class ChatConfigurationTest {
 
   @Test
   void shouldRejectMissingOrInvalidValues() {
-    final ChatConfiguration.Builder<?> noViewers = ChatConfiguration.builder();
+    final ChatConfigurationBuilder noViewers = ChatConfiguration.builder();
     noViewers.character(CHARACTER);
     noViewers.chatWidth(1);
     noViewers.chatHeight(1);
-    final ChatConfiguration.Builder<?> noCharacter = ChatConfiguration.builder();
+    final ChatConfigurationBuilder noCharacter = ChatConfiguration.builder();
     noCharacter.viewers(List.of());
     noCharacter.chatWidth(1);
     noCharacter.chatHeight(1);
-    final ChatConfiguration.Builder<?> emptyCharacter = this.completeBuilder();
+    final ChatConfigurationBuilder emptyCharacter = this.completeBuilder();
     emptyCharacter.character("");
-    final ChatConfiguration.Builder<?> noWidth = this.completeBuilder();
+    final ChatConfigurationBuilder noWidth = this.completeBuilder();
     noWidth.chatWidth(0);
-    final ChatConfiguration.Builder<?> noHeight = this.completeBuilder();
+    final ChatConfigurationBuilder noHeight = this.completeBuilder();
     noHeight.chatHeight(0);
 
     assertThrows(NullPointerException.class, noViewers::build);

@@ -14,7 +14,7 @@ before `displayImage` returns, so the method below releases the buffer right awa
 
 ```java
   public static DisplayableImage showImageOnScoreboard(final Collection<UUID> viewers, final Path imageFile) {
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
     builder.character(Characters.BLACK_SQUARE);
     builder.lines(15);
     builder.width(16);

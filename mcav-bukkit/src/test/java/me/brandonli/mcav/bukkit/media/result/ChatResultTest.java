@@ -27,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import java.util.List;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.ChatConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ChatConfigurationBuilder;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.Images;
 import me.brandonli.mcav.media.image.ImageBuffer;
@@ -55,7 +56,7 @@ final class ChatResultTest {
     this.server = FakeServer.start();
     this.server.addPlayer(VIEWER);
     this.server.injectModule();
-    final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
+    final ChatConfigurationBuilder builder = ChatConfiguration.builder();
     builder.viewers(List.of(VIEWER, OFFLINE));
     builder.character("#");
     builder.chatWidth(2);

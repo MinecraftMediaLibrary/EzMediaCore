@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
+import me.brandonli.mcav.bukkit.media.config.MapConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.map.MapLayout;
 import me.brandonli.mcav.bukkit.media.map.MapRegion;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
@@ -275,7 +276,7 @@ final class CompressedMapResultPropertyTest {
     }
 
     private MapConfiguration createConfiguration(final List<UUID> viewers) {
-      final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+      final MapConfigurationBuilder builder = MapConfiguration.builder();
       builder.viewers(viewers);
       builder.map(START_MAP_ID);
       builder.mapBlockWidth(this.columns);

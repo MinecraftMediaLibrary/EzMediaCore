@@ -17,11 +17,9 @@
  */
 package me.brandonli.mcav.bukkit.media.config;
 
-import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.result.Characters;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /**
  * Describes an image drawn onto the sidebar scoreboard, for use with the scoreboard image and scoreboard result.
@@ -32,7 +30,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
  * <p>The viewers collection is not copied, so a concurrent collection can be passed. The renderer checks membership each server tick,
  * shows the board to new or returning online viewers, and restores removed viewers who still see its board.
  */
-public class ScoreboardConfiguration {
+public final class ScoreboardConfiguration {
 
   /**
    * The maximum number of lines the sidebar can show.
@@ -44,11 +42,11 @@ public class ScoreboardConfiguration {
   private final int lines;
   private final int width;
 
-  private ScoreboardConfiguration(final Builder<?> builder, final Collection<UUID> viewers, final String character) {
+  ScoreboardConfiguration(final Collection<UUID> viewers, final String character, final int lines, final int width) {
     this.viewers = viewers;
     this.character = character;
-    this.lines = builder.lines;
-    this.width = builder.width;
+    this.lines = lines;
+    this.width = width;
   }
 
   /**
@@ -56,8 +54,8 @@ public class ScoreboardConfiguration {
    *
    * @return a new builder
    */
-  public static Builder<?> builder() {
-    return new ScoreboardResultBuilder();
+  public static ScoreboardConfigurationBuilder builder() {
+    return new DefaultScoreboardConfigurationBuilder();
   }
 
   /**
@@ -96,124 +94,5 @@ public class ScoreboardConfiguration {
    */
   public int getWidth() {
     return this.width;
-  }
-
-  /**
-   * The builder returned by {@link #builder()}.
-   */
-  public static final class ScoreboardResultBuilder extends Builder<ScoreboardResultBuilder> {
-
-    ScoreboardResultBuilder() {}
-
-    /**
-     * Returns this builder with its concrete type.
-     *
-     * @return this builder
-     */
-    @Override
-    protected ScoreboardResultBuilder self() {
-      return this;
-    }
-  }
-
-  /**
-   * Builds scoreboard configurations. Every value is required.
-   *
-   * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
-   * required fields are checked by {@link #build()}, which may be called again to create another configuration.
-   *
-   * @param <BuilderType> the type of the builder
-   */
-  public abstract static class Builder<BuilderType extends Builder<BuilderType>> {
-
-    private @MonotonicNonNull Collection<UUID> viewers;
-    private @MonotonicNonNull String character;
-    private int lines;
-    private int width;
-
-    Builder() {}
-
-    /**
-     * Returns this builder with its concrete type, so the setters can be chained.
-     *
-     * @return this builder
-     */
-    abstract BuilderType self();
-
-    /**
-     * Sets the players who see the scoreboard. The collection is not copied, see {@link ScoreboardConfiguration}.
-     *
-     * @param viewers the UUIDs of the viewers
-     * @return this builder
-     * @throws NullPointerException if the viewers are null
-     */
-    public BuilderType viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null!");
-
-      this.viewers = viewers;
-      return this.self();
-    }
-
-    /**
-     * Sets the text drawn for every pixel.
-     *
-     * <p>The text must be nonempty when {@link #build()} is called. Multiple characters are allowed, but
-     * change the visual width of a pixel; no font or character-width validation is performed.
-     *
-     * @param character the pixel text, usually a single character such as {@code █}
-     * @return this builder
-     * @throws NullPointerException if the character is null
-     */
-    public BuilderType character(final String character) {
-      Preconditions.checkNotNull(character, "Character must not be null!");
-
-      this.character = character;
-      return this.self();
-    }
-
-    /**
-     * Sets the height of the image in lines.
-     *
-     * @param lines the number of lines, from 1 to {@link #MAXIMUM_LINES}
-     * @return this builder
-     */
-    public BuilderType lines(final int lines) {
-      this.lines = lines;
-      return this.self();
-    }
-
-    /**
-     * Sets the width of the image in characters.
-     *
-     * @param width the width in characters, which must be positive
-     * @return this builder
-     */
-    public BuilderType width(final int width) {
-      this.width = width;
-      return this.self();
-    }
-
-    /**
-     * Builds the scoreboard configuration.
-     *
-     * @return the scoreboard configuration
-     * @throws IllegalArgumentException if a size is out of range or the character is empty
-     * @throws NullPointerException     if the viewers or the character were not set
-     */
-    public ScoreboardConfiguration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set!");
-      final String configuredCharacter = Preconditions.checkNotNull(this.character, "Character must be set!");
-
-      Preconditions.checkArgument(!configuredCharacter.isEmpty(), "Character must not be empty!");
-      Preconditions.checkArgument(
-        this.lines > 0 && this.lines <= MAXIMUM_LINES,
-        "Lines %s must be between 1 and %s!",
-        this.lines,
-        MAXIMUM_LINES
-      );
-      Preconditions.checkArgument(this.width > 0, "Width must be positive!");
-
-      return new ScoreboardConfiguration(this, configuredViewers, configuredCharacter);
-    }
   }
 }

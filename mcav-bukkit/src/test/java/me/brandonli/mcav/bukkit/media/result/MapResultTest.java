@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
+import me.brandonli.mcav.bukkit.media.config.MapConfigurationBuilder;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.Images;
 import me.brandonli.mcav.bukkit.testing.MapPackets;
@@ -77,7 +78,7 @@ final class MapResultTest {
   }
 
   private MapConfiguration createConfiguration(final Sizing sizing) {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.map(5);
     builder.mapBlockWidth(1);
@@ -96,7 +97,7 @@ final class MapResultTest {
    * @return the configuration
    */
   private MapConfiguration createGridConfiguration(final int columns, final int rows) {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.map(5);
     builder.mapBlockWidth(columns);

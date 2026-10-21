@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.ScoreboardConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ScoreboardConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.image.DisplayableImage;
 import me.brandonli.mcav.bukkit.media.result.Characters;
 import me.brandonli.mcav.media.image.ImageBuffer;
@@ -46,7 +47,7 @@ public final class JavadocFormattingExample {
    */
   public static DisplayableImage showScoreboardImage(final UUID viewer, final Path file) {
     final Collection<UUID> viewers = List.of(viewer);
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
     builder.character(Characters.FULL_CHARACTER);
     builder.lines(15);
     builder.width(16);

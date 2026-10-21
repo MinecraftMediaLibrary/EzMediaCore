@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import me.brandonli.mcav.bukkit.media.config.EntityConfiguration;
+import me.brandonli.mcav.bukkit.media.config.EntityConfigurationBuilder;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.FakeWorld;
 import me.brandonli.mcav.media.image.ImageBuffer;
@@ -89,7 +90,7 @@ final class EntityRendererTest {
   }
 
   private EntityConfiguration createConfiguration(final Location configuredPosition) {
-    final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
+    final EntityConfigurationBuilder builder = EntityConfiguration.builder();
     builder.viewers(this.viewers);
     builder.character("#");
     builder.position(configuredPosition);
