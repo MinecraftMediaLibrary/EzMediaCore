@@ -1136,7 +1136,7 @@ final class Mcv2ResultTest {
     when(slow.finish(pending)).thenReturn(encoded);
     final Pool budget = mock(Pool.class);
     when(budget.encoder(any(), any())).thenReturn(slow);
-    when(budget.run(any())).thenAnswer(invocation -> invocation.<Callable<?>>getArgument(0).call());
+    when(budget.runInterruptibly(any())).thenAnswer(invocation -> invocation.<Callable<?>>getArgument(0).call());
     final Mcv2Configuration own = Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK, WITHOUT))
       .origin(new Location(mock(World.class), 0, 64, 0))

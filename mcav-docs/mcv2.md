@@ -1518,7 +1518,7 @@ import me.brandonli.mcav.bukkit.media.mcv2.MCV2;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2FileEncoder;
 
   // call off the main thread
-  public static Mcv2FileEncoder.Result preEncode(final Path video, final Path stream) throws IOException, InterruptedException {
+  public static Mcv2FileEncoder.Result preEncode(final Path video, final Path stream) throws IOException {
     final Mcv2.Pool budget = Mcv2.Pool.shared();
     try (
       Mcv2FileEncoder.FrameReader frames = Mcv2FileEncoder.ffmpeg(video, 1920, 1080);

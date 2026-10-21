@@ -158,7 +158,7 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
    */
   private record StoppableFrames(Mcv2FileEncoder.FrameReader frames, AtomicBoolean stopped) implements Mcv2FileEncoder.FrameReader {
     @Override
-    public boolean read(final byte[] rgb) throws IOException {
+    public boolean read(final byte[] rgb) {
       // before, so a read that waits is interrupted
       this.interruptIfStopped();
       final boolean more = this.frames.read(rgb);
@@ -167,7 +167,7 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
       this.frames.close();
     }
 
@@ -469,11 +469,12 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
       Files.move(partial, target, StandardCopyOption.REPLACE_EXISTING);
     } catch (final IOException | RuntimeException exception) {
       deleteQuietly(partial);
+      if (exception.getCause() instanceof InterruptedException) {
+        sender.sendMessage(Message.MCV2_ENCODE_CANCELLED.build());
+        return;
+      }
+
       sender.sendMessage(Message.MCV2_ENCODE_ERROR.build(String.valueOf(exception.getMessage())));
-      return;
-    } catch (final InterruptedException exception) {
-      deleteQuietly(partial);
-      sender.sendMessage(Message.MCV2_ENCODE_CANCELLED.build());
       return;
     }
     sender.sendMessage(

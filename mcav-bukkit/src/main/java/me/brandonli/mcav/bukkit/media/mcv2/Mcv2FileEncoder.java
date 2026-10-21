@@ -78,8 +78,8 @@ public final class Mcv2FileEncoder {
    * @param progress called synchronously on the calling thread after each complete frame write, with
    *                 the cumulative count starting at one; callback failures abort encoding
    * @return what the encode did
-   * @throws IOException                if the reader cannot read or close, or the output cannot be written
-   * @throws InterruptedException       if the calling thread is interrupted, which stops the encode
+   * @throws Mcv2Exception              if the reader cannot read or close, the output cannot be written, or the calling
+   *                                    thread is interrupted, which stops the encode and leaves the thread interrupted
    * @throws IllegalArgumentException   if a dimension is nonpositive, or an encoded frame exceeds the codec
    *                                    dimension/id range
    * @throws ArithmeticException        if the RGB allocation size overflows an int
@@ -94,7 +94,7 @@ public final class Mcv2FileEncoder {
     final Pool budget,
     final OutputStream output,
     final LongConsumer progress
-  ) throws IOException, InterruptedException {
+  ) {
     Preconditions.checkNotNull(frames, "Frames must not be null!");
     Preconditions.checkArgument(width > 0 && height > 0, SIZE_NOT_POSITIVE_MESSAGE);
     Preconditions.checkNotNull(settings, "Settings must not be null!");
@@ -118,8 +118,7 @@ public final class Mcv2FileEncoder {
         nanoseconds += System.nanoTime() - started;
         keyframes += encoder.getStatistics().orElseThrow().isKeyframe() ? 1 : 0;
         ByteBuffer.wrap(length).order(ByteOrder.LITTLE_ENDIAN).putInt(0, frame.length);
-        output.write(length);
-        output.write(frame);
+        writeFrame(output, length, frame);
         bytes += frame.length;
         count++;
         progress.accept(count);
@@ -141,6 +140,16 @@ public final class Mcv2FileEncoder {
     return Mcv2Configuration.defaultPageSlots(maps) * TransportPages.capacity();
   }
 
+  private static void writeFrame(final OutputStream output, final byte[] length, final byte[] frame) {
+    try {
+      output.write(length);
+      output.write(frame);
+    } catch (final IOException exception) {
+      final String message = "The MCV2 stream could not be written!";
+      throw new Mcv2Exception(message, exception);
+    }
+  }
+
   /**
    * Opens a video file with FFmpeg, its frames scaled to a size.
    *
@@ -151,18 +160,18 @@ public final class Mcv2FileEncoder {
    * @param width  the width of the frames
    * @param height the height of the frames
    * @return the frames
-   * @throws IOException              if the file cannot be opened
+   * @throws Mcv2Exception            if the file cannot be opened
    * @throws IllegalArgumentException if either dimension is nonpositive
    * @throws NullPointerException     if {@code video} is null
    */
-  public static FrameReader ffmpeg(final Path video, final int width, final int height) throws IOException {
+  public static FrameReader ffmpeg(final Path video, final int width, final int height) {
     Preconditions.checkNotNull(video, "Video must not be null!");
     Preconditions.checkArgument(width > 0 && height > 0, SIZE_NOT_POSITIVE_MESSAGE);
 
     return open(new FFmpegFrameGrabber(video.toFile()), video.toString(), width, height);
   }
 
-  static FrameReader open(final FFmpegFrameGrabber grabber, final String name, final int width, final int height) throws IOException {
+  static FrameReader open(final FFmpegFrameGrabber grabber, final String name, final int width, final int height) {
     grabber.setPixelFormat(avutil.AV_PIX_FMT_RGB24);
     grabber.setImageWidth(width);
     grabber.setImageHeight(height);
@@ -173,7 +182,7 @@ public final class Mcv2FileEncoder {
     } catch (final FFmpegFrameGrabber.Exception exception) {
       closeQuietly(grabber);
       final String message = "Cannot open %s (%s)!".formatted(name, exception.getMessage());
-      throw new IOException(message, exception);
+      throw new Mcv2Exception(message, exception);
     }
 
     return new GrabberReader(grabber, width, height);
@@ -205,17 +214,17 @@ public final class Mcv2FileEncoder {
      *
      * @param pictureBytes where the frame's pixels go, three bytes per pixel, row by row
      * @return false once the video has no more frames
-     * @throws IOException if the video cannot be read
+     * @throws Mcv2Exception if the video cannot be read
      */
-    boolean read(byte[] pictureBytes) throws IOException;
+    boolean read(byte[] pictureBytes);
 
     /**
      * Releases the video.
      *
-     * @throws IOException if the video cannot be released
+     * @throws Mcv2Exception if the video cannot be released
      */
     @Override
-    void close() throws IOException;
+    void close();
   }
 
   /**
@@ -360,13 +369,13 @@ public final class Mcv2FileEncoder {
     }
 
     @Override
-    public boolean read(final byte[] pictureBytes) throws IOException {
+    public boolean read(final byte[] pictureBytes) {
       final Frame frame;
       try {
         frame = this.grabber.grabImage();
       } catch (final FFmpegFrameGrabber.Exception exception) {
         final String message = "Cannot decode the video (%s)!".formatted(exception.getMessage());
-        throw new IOException(message, exception);
+        throw new Mcv2Exception(message, exception);
       }
 
       if (frame == null) {
@@ -379,12 +388,12 @@ public final class Mcv2FileEncoder {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
       try {
         this.grabber.close();
       } catch (final FrameGrabber.Exception exception) {
         final String message = "Cannot close the video (%s)!".formatted(exception.getMessage());
-        throw new IOException(message, exception);
+        throw new Mcv2Exception(message, exception);
       }
     }
   }

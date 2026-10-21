@@ -19,7 +19,6 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -84,7 +83,7 @@ final class Mcv2PoolTest {
   }
 
   @Test
-  void shouldRunOnLowPriorityDaemonThreadsOfItsOwn() throws InterruptedException {
+  void shouldRunOnLowPriorityDaemonThreadsOfItsOwn() {
     try (final Pool pool = new Pool(2)) {
       final int threads = pool.getThreads();
       assertEquals(2, threads);
@@ -135,12 +134,7 @@ final class Mcv2PoolTest {
   }
 
   private void runNestedLoops(final Pool pool, final Set<Thread> seen, final AtomicLong total) {
-    try {
-      pool.run(() -> this.runWorkerLoops(seen, total));
-    } catch (final InterruptedException exception) {
-      final Thread current = Thread.currentThread();
-      current.interrupt();
-    }
+    pool.run(() -> this.runWorkerLoops(seen, total));
   }
 
   private @Nullable Object runWorkerLoops(final Set<Thread> seen, final AtomicLong total) {
@@ -159,7 +153,7 @@ final class Mcv2PoolTest {
   }
 
   @Test
-  void shouldBlockAThreadInsteadOfStartingASpare() throws InterruptedException {
+  void shouldBlockAThreadInsteadOfStartingASpare() {
     try (final Pool pool = new Pool(1)) {
       final Set<Thread> seen = ConcurrentHashMap.newKeySet();
       final AtomicInteger blocks = new AtomicInteger();
@@ -187,7 +181,7 @@ final class Mcv2PoolTest {
   }
 
   @Test
-  void shouldRunANestedLoopOnASingleThread() throws InterruptedException {
+  void shouldRunANestedLoopOnASingleThread() {
     try (final Pool pool = new Pool(1)) {
       final int sum = pool.run(() ->
         ForkJoinTask.getPool()
@@ -199,7 +193,7 @@ final class Mcv2PoolTest {
   }
 
   @Test
-  void shouldEncodeInsideTheBudget() throws InterruptedException {
+  void shouldEncodeInsideTheBudget() {
     try (final Pool pool = new Pool(2)) {
       final Mcv2 encoder = pool.encoder(Mcv2.Settings.DEFAULT, Mcv2.Verification.VERIFIED);
       final byte[] rgb = new byte[32 * 16 * 3];
@@ -235,7 +229,7 @@ final class Mcv2PoolTest {
       assertTrue(passesOnError);
 
       final IOException checked = new IOException("checked!");
-      final IllegalStateException wrapped = assertThrows(IllegalStateException.class, () -> pool.run(() -> this.raise(checked)));
+      final Mcv2Exception wrapped = assertThrows(Mcv2Exception.class, () -> pool.run(() -> this.raise(checked)));
       final @Nullable Throwable cause = wrapped.getCause();
       assertInstanceOf(IOException.class, cause);
 
@@ -287,8 +281,8 @@ final class Mcv2PoolTest {
   ) {
     try {
       pool.run(() -> this.sleepUntilCancelled(started, cancelled));
-    } catch (final InterruptedException exception) {
-      thrown.set(exception);
+    } catch (final Mcv2Exception exception) {
+      thrown.set(exception.getCause());
     }
   }
 
@@ -308,9 +302,12 @@ final class Mcv2PoolTest {
     try (final Pool pool = new Pool(1)) {
       final AtomicReference<Thread> ran = new AtomicReference<>();
       Thread.currentThread().interrupt();
-      assertThrows(InterruptedException.class, () -> pool.run(() -> this.recordThread(ran)));
-      final boolean interrupted = Thread.currentThread().isInterrupted();
-      assertFalse(interrupted);
+      final Mcv2Exception thrown = assertThrows(Mcv2Exception.class, () -> pool.run(() -> this.recordThread(ran)));
+      final boolean interrupted = Thread.interrupted();
+      assertTrue(interrupted);
+
+      final @Nullable Throwable cause = thrown.getCause();
+      assertInstanceOf(InterruptedException.class, cause);
 
       final @Nullable Thread ranOn = ran.get();
       assertNull(ranOn);

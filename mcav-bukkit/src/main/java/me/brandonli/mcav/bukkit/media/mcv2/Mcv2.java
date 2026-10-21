@@ -3776,13 +3776,25 @@ public final class Mcv2 {
      * @param task         encoding job
      * @param <ResultType> result type
      * @return the job result
-     * @throws InterruptedException  if interrupted before or while awaiting the job
-     * @throws NullPointerException  if task is null
-     * @throws IllegalStateException if the job throws a checked exception
+     * @throws NullPointerException if task is null
+     * @throws Mcv2Exception        if the job throws a checked exception, or the calling thread is interrupted before or
+     *                              while awaiting the job, which cancels the job and leaves the thread interrupted
      */
-    public <ResultType> ResultType run(final Callable<ResultType> task) throws InterruptedException {
+    public <ResultType> ResultType run(final Callable<ResultType> task) {
       Preconditions.checkNotNull(task, "Task must not be null!");
 
+      try {
+        return this.runInterruptibly(task);
+      } catch (final InterruptedException exception) {
+        final Thread current = Thread.currentThread();
+        current.interrupt();
+
+        final String message = "The encode was interrupted!";
+        throw new Mcv2Exception(message, exception);
+      }
+    }
+
+    <ResultType> ResultType runInterruptibly(final Callable<ResultType> task) throws InterruptedException {
       if (Thread.interrupted()) {
         throw new InterruptedException("Interrupted before the task started!");
       }
@@ -3794,7 +3806,7 @@ public final class Mcv2 {
         job.cancel(true);
         throw exception;
       } catch (final ExecutionException exception) {
-        final Throwable cause = exception.getCause();
+        final Throwable cause = Objects.requireNonNull(exception.getCause()); // checker framework
         if (cause instanceof final RuntimeException runtime) {
           throw runtime;
         }
@@ -3803,7 +3815,8 @@ public final class Mcv2 {
           throw error;
         }
 
-        throw new IllegalStateException("An encode failed!", cause);
+        final String message = "An encode failed!";
+        throw new Mcv2Exception(message, cause);
       }
     }
 

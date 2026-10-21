@@ -633,7 +633,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       isKeyframe = statistics.isKeyframe();
       delivery = new Delivery(frame, statistics, frameId, arrival);
     } else {
-      final Mcv2.Pending pending = running.budget().run(() -> encoder.begin(arrival.pictureBytes, width, height, frameId));
+      final Mcv2.Pending pending = running.budget().runInterruptibly(() -> encoder.begin(arrival.pictureBytes, width, height, frameId));
       isKeyframe = pending.isKeyframe();
       // Count before handoff so drain cannot overlook a frame the sender already owns.
       synchronized (this.lock) {
@@ -720,7 +720,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
   private void deliverNext(final Pipeline running) throws InterruptedException {
     final Handoff handoff = running.queue().take();
-    final Mcv2.Encoded encoded = running.budget().run(() -> handoff.encoder().finish(handoff.pending()));
+    final Mcv2.Encoded encoded = running.budget().runInterruptibly(() -> handoff.encoder().finish(handoff.pending()));
     this.deliver(new Delivery(encoded.getData(), encoded.getStatistics(), handoff.frameId(), handoff.source()));
     synchronized (this.lock) {
       this.delivered++;
