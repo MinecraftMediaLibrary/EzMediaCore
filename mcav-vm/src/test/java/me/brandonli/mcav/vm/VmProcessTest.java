@@ -50,6 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.LongSupplier;
+import java.util.regex.Pattern;
 import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.vm.testing.FakeProcess;
@@ -71,7 +72,89 @@ import org.mockito.Mockito;
 final class VmProcessTest {
 
   private static final Path QEMU = Path.of("qemu-system-x86_64");
+
+  private static final String MISSING_KVM_DEVICE = "kvm";
+  private static final String WRITABLE_KVM_DEVICE = "writable-kvm";
+  private static final String MISSING_QEMU = "missing-qemu";
+
+  private static final String SECRET_FOLDER = "secret";
+  private static final String PASSWORD_FILE = "password";
+  private static final String OTHER_FILE = "other";
+  private static final String COMMA_FOLDER = "a,b";
+  private static final String ESCAPED_COMMA_FOLDER = "a,,b";
+
+  private static final String ZIP_FILE = "folders.zip";
+  private static final String ZIP_ROOT = "/";
+
+  private static final InetAddress LOOPBACK = InetAddress.ofLiteral("127.0.0.1");
+  private static final int CONNECTION_BACKLOG = 50;
+
+  private static final int WIDTH = 64;
+  private static final int HEIGHT = 48;
+  private static final int FRAME_RATE = 10;
+
+  private static final int DISPLAY_ONE_PORT = 5901;
+  private static final int DISPLAY_THREE_PORT = 5903;
+  private static final int DISPLAY_SEVEN_PORT = 5907;
+
+  private static final String VGA_ARGUMENT = "-vga";
+  private static final String DISPLAY_ARGUMENT = "-display";
+  private static final String NETWORK_ARGUMENT = "-nic";
+  private static final String OBJECT_ARGUMENT = "-object";
+  private static final String VNC_ARGUMENT = "-vnc";
+  private static final String USB_ARGUMENT = "-usb";
+  private static final String DEVICE_ARGUMENT = "-device";
+  private static final String MACHINE_ARGUMENT = "-machine";
+  private static final String SHORT_MACHINE_ARGUMENT = "-M";
+  private static final String ACCELERATOR_ARGUMENT = "-accel";
+  private static final String AUDIO_DEVICE_ARGUMENT = "-audiodev";
+
+  private static final String MACHINE_OPTION = "machine";
+  private static final String SHORT_MACHINE_OPTION = "M";
+  private static final String NAME_OPTION = "name";
+
+  private static final String STANDARD_VGA = "std";
+  private static final String NO_DISPLAY = "none";
+  private static final String RESTRICTED_NETWORK = "user,restrict=on";
+  private static final String TABLET_DEVICE = "usb-tablet";
+  private static final String SECRET_OBJECT_PREFIX = "secret,id=mcav-vnc-password,file=";
+  private static final String VNC_ON_DISPLAY_ONE = "127.0.0.1:1,share=force-shared,password-secret=mcav-vnc-password";
+
+  private static final String WINDOWS_ACCELERATOR = "whpx";
+  private static final String MAC_ACCELERATOR = "hvf";
+  private static final String KVM_ACCELERATOR = "kvm";
+  private static final String SOFTWARE_ACCELERATOR = "tcg";
+
+  private static final String Q35_MACHINE = "q35";
+  private static final String MICROVM_MACHINE = "microvm";
+  private static final String Q35_WITH_USB = "q35,usb=on";
+  private static final String Q35_WITHOUT_USB = "q35,usb=off";
+  private static final String USB_ON = "usb=on";
+  private static final String ROUTED_PC_MACHINE = "pc,pcspk-audiodev=snd0";
+  private static final String HOST_CPU = "host";
+
+  private static final String SPEAKER_ROUTE = "pcspk-audiodev=mcav-audio";
+  private static final String HDA_SOUND_CARD = "intel-hda,id=mcav-sound";
+  private static final String ICH9_SOUND_CARD = "ich9-intel-hda,id=mcav-sound";
+
+  private static final Pattern PASSWORD_PATTERN = Pattern.compile("[A-Za-z0-9]{8}");
+
+  private static final int FAILURE_EXIT_CODE = 1;
+  private static final int KILLED_EXIT_CODE = 137;
+
+  private static final String LINE_BREAK = "\n";
+  private static final String WHPX_FAILURE_OUTPUT = "WHPX: No accelerator found\n";
+  private static final String DISK_FAILURE_OUTPUT = "could not open disk image alpine.qcow2\n";
+
+  private static final String DRAIN_THREAD_NAME = "mcav-qemu-output";
+  private static final String OUTPUT_JOIN_METHOD = "awaitOutput";
+
   private static final long SHORT_TIMEOUT_MILLISECONDS = 400L;
+  private static final long TIMED_JOIN_DEADLINE_SECONDS = 1L;
+  private static final long SHUTDOWN_JOIN_MILLISECONDS = 3_000L;
+  private static final long POLL_PAUSE_MILLISECONDS = 1L;
+
+  private static final int BYTE_MASK = 0xFF;
 
   @TempDir
   private Path directory;
@@ -86,7 +169,7 @@ final class VmProcessTest {
   @BeforeEach
   void choosePort() {
     this.port = FreePorts.find();
-    this.missingKvm = this.directory.resolve("kvm");
+    this.missingKvm = this.directory.resolve(MISSING_KVM_DEVICE);
   }
 
   @AfterEach
@@ -97,8 +180,7 @@ final class VmProcessTest {
   }
 
   private ServerSocket listen(final int listenPort) throws IOException {
-    final InetAddress loopback = InetAddress.ofLiteral("127.0.0.1");
-    final ServerSocket socket = new ServerSocket(listenPort, 50, loopback);
+    final ServerSocket socket = new ServerSocket(listenPort, CONNECTION_BACKLOG, LOOPBACK);
     this.sockets.add(socket);
     return socket;
   }
@@ -110,27 +192,27 @@ final class VmProcessTest {
   }
 
   private Path secretFolder() throws IOException {
-    final Path folder = this.directory.resolve("secret");
+    final Path folder = this.directory.resolve(SECRET_FOLDER);
     return Files.createDirectories(folder);
   }
 
   private Path passwordFile() {
-    final Path folder = this.directory.resolve("secret");
-    return folder.resolve("password");
+    final Path folder = this.directory.resolve(SECRET_FOLDER);
+    return folder.resolve(PASSWORD_FILE);
   }
 
   private String secretObject() {
     final Path file = this.passwordFile();
-    return "secret,id=mcav-vnc-password,file=" + file;
+    return SECRET_OBJECT_PREFIX + file;
   }
 
   private VmSettings reachableSettings() {
-    return new VmSettings(this.port, 64, 48, 10);
+    return new VmSettings(this.port, WIDTH, HEIGHT, FRAME_RATE);
   }
 
   private static VmSettings unreachableSettings() {
     final int unusedPort = FreePorts.find();
-    return new VmSettings(unusedPort, 64, 48, 10);
+    return new VmSettings(unusedPort, WIDTH, HEIGHT, FRAME_RATE);
   }
 
   private VmProcess process(final VmSettings settings, final VmConfiguration configuration, final Os os, final Object... results) {
@@ -172,19 +254,19 @@ final class VmProcessTest {
   private List<String> defaults() {
     final int display = this.port - VmProcess.FIRST_VNC_PORT;
     return List.of(
-      "-vga",
-      "std",
-      "-display",
-      "none",
-      "-nic",
-      "user,restrict=on",
-      "-object",
+      VGA_ARGUMENT,
+      STANDARD_VGA,
+      DISPLAY_ARGUMENT,
+      NO_DISPLAY,
+      NETWORK_ARGUMENT,
+      RESTRICTED_NETWORK,
+      OBJECT_ARGUMENT,
       this.secretObject(),
-      "-vnc",
+      VNC_ARGUMENT,
       "127.0.0.1:" + display + ",share=force-shared,password-secret=mcav-vnc-password",
-      "-usb",
-      "-device",
-      "usb-tablet"
+      USB_ARGUMENT,
+      DEVICE_ARGUMENT,
+      TABLET_DEVICE
     );
   }
 
@@ -211,16 +293,16 @@ final class VmProcessTest {
   private List<String> expectedOnDisplayOne(final List<String> options, final List<String> usbOptions) {
     final String program = QEMU.toString();
     final List<String> displayDefaults = List.of(
-      "-vga",
-      "std",
-      "-display",
-      "none",
-      "-nic",
-      "user,restrict=on",
-      "-object",
+      VGA_ARGUMENT,
+      STANDARD_VGA,
+      DISPLAY_ARGUMENT,
+      NO_DISPLAY,
+      NETWORK_ARGUMENT,
+      RESTRICTED_NETWORK,
+      OBJECT_ARGUMENT,
       this.secretObject(),
-      "-vnc",
-      "127.0.0.1:1,share=force-shared,password-secret=mcav-vnc-password"
+      VNC_ARGUMENT,
+      VNC_ON_DISPLAY_ONE
     );
     final List<String> expected = new ArrayList<>();
     expected.add(program);
@@ -240,7 +322,7 @@ final class VmProcessTest {
     final boolean aliveBefore = process.isAlive();
     process.start();
     final boolean alive = process.isAlive();
-    final List<String> expected = this.command("-m", "64M", "-accel", "whpx");
+    final List<String> expected = this.command("-m", "64M", ACCELERATOR_ARGUMENT, WINDOWS_ACCELERATOR);
     assertFalse(aliveBefore);
     assertTrue(alive);
     final List<List<String>> expectedCommands = List.of(expected);
@@ -264,13 +346,13 @@ final class VmProcessTest {
     }
   )
   void shouldRetryWithSoftwareEmulationWhenTheAcceleratorFails(final String failure) {
-    final FakeProcess failed = FakeProcess.exited(1, failure + "\n");
+    final FakeProcess failed = FakeProcess.exited(FAILURE_EXIT_CODE, failure + LINE_BREAK);
     final FakeProcess working = FakeProcess.running("");
     final VmProcess process = this.reachable(Os.WINDOWS, failed, working);
     process.start();
     final boolean alive = process.isAlive();
-    final List<String> first = this.command("-accel", "whpx");
-    final List<String> second = this.command("-accel", "tcg");
+    final List<String> first = this.command(ACCELERATOR_ARGUMENT, WINDOWS_ACCELERATOR);
+    final List<String> second = this.command(ACCELERATOR_ARGUMENT, SOFTWARE_ACCELERATOR);
     assertTrue(alive);
     final List<List<String>> expectedCommands = List.of(first, second);
     assertEquals(expectedCommands, this.commands);
@@ -278,8 +360,8 @@ final class VmProcessTest {
 
   @Test
   void shouldForgetTheOutputOfTheAttemptThatFailed() {
-    final FakeProcess failed = FakeProcess.exited(1, "WHPX: No accelerator found\n");
-    final FakeProcess failedAgain = FakeProcess.exited(2, "could not open disk image alpine.qcow2\n");
+    final FakeProcess failed = FakeProcess.exited(FAILURE_EXIT_CODE, WHPX_FAILURE_OUTPUT);
+    final FakeProcess failedAgain = FakeProcess.exited(2, DISK_FAILURE_OUTPUT);
     final VmProcess process = this.reachable(Os.WINDOWS, failed, failedAgain);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
@@ -288,7 +370,7 @@ final class VmProcessTest {
 
   @Test
   void shouldFailWithoutRetryingWhenTheFailureIsUnrelatedToTheAccelerator() {
-    final FakeProcess failed = FakeProcess.exited(1, "could not open disk image alpine.qcow2\n");
+    final FakeProcess failed = FakeProcess.exited(FAILURE_EXIT_CODE, DISK_FAILURE_OUTPUT);
     final VmProcess process = this.reachable(Os.MAC, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
@@ -301,9 +383,9 @@ final class VmProcessTest {
 
   @Test
   void shouldWaitForTheOutputThatExplainsTheExit() {
-    final InputStream late = new DelayedStream("WHPX: No accelerator found\n", 300L);
+    final InputStream late = new DelayedStream(WHPX_FAILURE_OUTPUT, 300L);
     final FakeProcess failed = FakeProcess.running(late);
-    failed.exit(1);
+    failed.exit(FAILURE_EXIT_CODE);
     final FakeProcess working = FakeProcess.running("");
     final VmProcess process = this.reachable(Os.WINDOWS, failed, working);
     process.start();
@@ -316,7 +398,7 @@ final class VmProcessTest {
     final FakeProcess qemu = FakeProcess.running("");
     final VmProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
-    final List<String> expected = this.command("-accel", "tcg");
+    final List<String> expected = this.command(ACCELERATOR_ARGUMENT, SOFTWARE_ACCELERATOR);
     final List<List<String>> expectedCommands = List.of(expected);
     assertEquals(expectedCommands, this.commands);
   }
@@ -397,13 +479,13 @@ final class VmProcessTest {
 
   @Test
   void shouldKeepTheAcceleratorOfTheConfiguration() {
-    final FakeProcess failed = FakeProcess.exited(1, "kvm accel is not available\n");
+    final FakeProcess failed = FakeProcess.exited(FAILURE_EXIT_CODE, "kvm accel is not available\n");
     final VmSettings settings = this.reachableSettings();
     final VmConfiguration configuration = VmConfiguration.builder();
-    configuration.accelerator("kvm");
+    configuration.accelerator(KVM_ACCELERATOR);
     final VmProcess process = this.process(settings, configuration, Os.WINDOWS, failed);
     assertThrows(PlayerException.class, process::start);
-    final List<String> expected = this.command("-accel", "kvm");
+    final List<String> expected = this.command(ACCELERATOR_ARGUMENT, KVM_ACCELERATOR);
     final List<List<String>> expectedCommands = List.of(expected);
     assertEquals(expectedCommands, this.commands);
   }
@@ -427,14 +509,13 @@ final class VmProcessTest {
     final VmSettings settings = this.reachableSettings();
     final VmProcess.Launcher launcher = command -> {
       this.commands.add(command);
-      final int object = command.indexOf("-object");
+      final int object = command.indexOf(OBJECT_ARGUMENT);
       final boolean hasSecretObject = object > 0;
       assertTrue(hasSecretObject, () -> "a secret object in " + command);
       final String secret = command.get(object + 1);
-      final String prefix = "secret,id=mcav-vnc-password,file=";
-      final boolean prefixed = secret.startsWith(prefix);
+      final boolean prefixed = secret.startsWith(SECRET_OBJECT_PREFIX);
       assertTrue(prefixed, secret);
-      final Path file = Path.of(secret.substring(prefix.length()));
+      final Path file = Path.of(secret.substring(SECRET_OBJECT_PREFIX.length()));
       secrets.add(Files.readString(file, StandardCharsets.US_ASCII));
       this.openDisplay();
       return FakeProcess.running("");
@@ -453,16 +534,16 @@ final class VmProcessTest {
     process.start();
     try {
       final List<String> command = this.commands.getFirst();
-      final String vnc = command.get(command.indexOf("-vnc") + 1);
+      final String vnc = command.get(command.indexOf(VNC_ARGUMENT) + 1);
       final boolean protectedByPassword = vnc.endsWith(",password-secret=mcav-vnc-password");
       final int secretCount = secrets.size();
       assertTrue(protectedByPassword, vnc);
       assertEquals(1, secretCount);
       final String password = secrets.getFirst();
-      final boolean wellFormed = password.matches("[A-Za-z0-9]{8}");
+      final boolean wellFormed = PASSWORD_PATTERN.matcher(password).matches();
       assertTrue(wellFormed, password);
-      final String secret = command.get(command.indexOf("-object") + 1);
-      final Path file = Path.of(secret.substring(secret.indexOf("file=") + 5));
+      final String secret = command.get(command.indexOf(OBJECT_ARGUMENT) + 1);
+      final Path file = Path.of(secret.substring(SECRET_OBJECT_PREFIX.length()));
       final boolean leftOnDisk = Files.exists(file);
       assertFalse(leftOnDisk, "QEMU read the password, so it is not left on disk");
     } finally {
@@ -476,8 +557,8 @@ final class VmProcessTest {
     final VmProcess second = this.reachable(Os.LINUX);
     final String firstPassword = first.getPassword();
     final String secondPassword = second.getPassword();
-    final boolean firstWellFormed = firstPassword.matches("[A-Za-z0-9]{8}");
-    final boolean secondWellFormed = secondPassword.matches("[A-Za-z0-9]{8}");
+    final boolean firstWellFormed = PASSWORD_PATTERN.matcher(firstPassword).matches();
+    final boolean secondWellFormed = PASSWORD_PATTERN.matcher(secondPassword).matches();
     final boolean samePassword = firstPassword.equals(secondPassword);
     assertTrue(firstWellFormed, firstPassword);
     assertTrue(secondWellFormed, secondPassword);
@@ -487,11 +568,11 @@ final class VmProcessTest {
   @Test
   void shouldOpenThePasswordFolderOnlyToTheServersUser() throws IOException {
     final Map<String, String> posixZip = Map.of("create", "true", "enablePosixFileAttributes", "true");
-    try (final FileSystem zipped = FileSystems.newFileSystem(this.directory.resolve("folders.zip"), posixZip)) {
+    try (final FileSystem zipped = FileSystems.newFileSystem(this.directory.resolve(ZIP_FILE), posixZip)) {
       // Windows' own file system has no POSIX permissions (VmProcess asks for them only where it has), so there the
       // POSIX branch makes its folder in the zip file system, which has them
       final boolean posixHere = this.directory.getFileSystem().supportedFileAttributeViews().contains("posix");
-      final Path posix = VmProcess.createSecretFolder(posixHere ? this.directory : zipped.getPath("/"), true);
+      final Path posix = VmProcess.createSecretFolder(posixHere ? this.directory : zipped.getPath(ZIP_ROOT), true);
       final String permissions = PosixFilePermissions.toString(Files.getPosixFilePermissions(posix));
       assertEquals("rwx------", permissions);
       final Path windows = VmProcess.createSecretFolder(this.directory, false);
@@ -499,7 +580,7 @@ final class VmProcessTest {
       final boolean sameFolder = posix.equals(windows);
       assertTrue(windowsFolderMade);
       assertFalse(sameFolder, "a folder of its own for every start");
-      final Path zippedFolder = VmProcess.createSecretFolder(zipped.getPath("/"), true);
+      final Path zippedFolder = VmProcess.createSecretFolder(zipped.getPath(ZIP_ROOT), true);
       final String zippedPermissions = PosixFilePermissions.toString(Files.getPosixFilePermissions(zippedFolder));
       assertEquals("rwx------", zippedPermissions);
     }
@@ -544,7 +625,7 @@ final class VmProcessTest {
   @Test
   void shouldWriteACommaOfThePasswordPathTwice() throws IOException {
     final VmSettings settings = this.reachableSettings();
-    final Path folder = this.directory.resolve("a,b");
+    final Path folder = this.directory.resolve(COMMA_FOLDER);
     final VmProcess.Launcher launcher = command -> {
       this.commands.add(command);
       this.openDisplay();
@@ -564,8 +645,8 @@ final class VmProcessTest {
     process.start();
     process.shutdown();
     final List<String> command = this.commands.getFirst();
-    final String secret = command.get(command.indexOf("-object") + 1);
-    final String expected = "secret,id=mcav-vnc-password,file=" + this.directory.resolve("a,,b").resolve("password");
+    final String secret = command.get(command.indexOf(OBJECT_ARGUMENT) + 1);
+    final String expected = SECRET_OBJECT_PREFIX + this.directory.resolve(ESCAPED_COMMA_FOLDER).resolve(PASSWORD_FILE);
     assertEquals(expected, secret);
   }
 
@@ -599,7 +680,7 @@ final class VmProcessTest {
   void shouldDeleteThePasswordOfAFailedStart() {
     final VmProcess process = this.reachable(Os.LINUX, new IOException("no QEMU!"));
     assertThrows(PlayerException.class, process::start);
-    final Path folder = this.directory.resolve("secret");
+    final Path folder = this.directory.resolve(SECRET_FOLDER);
     final boolean folderLeft = Files.exists(folder);
     assertFalse(folderLeft, "the password and its folder are gone");
   }
@@ -607,9 +688,9 @@ final class VmProcessTest {
   @Test
   void shouldLeaveTheMachineRunningWhenThePasswordFolderCannotBeDeleted() throws IOException {
     final VmSettings settings = this.reachableSettings();
-    final Path folder = this.directory.resolve("secret");
+    final Path folder = this.directory.resolve(SECRET_FOLDER);
     final VmProcess.Launcher launcher = command -> {
-      Files.writeString(folder.resolve("other"), "kept");
+      Files.writeString(folder.resolve(OTHER_FILE), "kept");
       this.openDisplay();
       return FakeProcess.running("");
     };
@@ -627,8 +708,8 @@ final class VmProcessTest {
     process.start();
     try {
       final boolean alive = process.isAlive();
-      final boolean passwordLeft = Files.exists(folder.resolve("password"));
-      final boolean otherKept = Files.exists(folder.resolve("other"));
+      final boolean passwordLeft = Files.exists(folder.resolve(PASSWORD_FILE));
+      final boolean otherKept = Files.exists(folder.resolve(OTHER_FILE));
       assertTrue(alive);
       assertFalse(passwordLeft, "the password itself is deleted");
       assertTrue(otherKept);
@@ -639,42 +720,42 @@ final class VmProcessTest {
 
   @Test
   void shouldGiveAMachineThatChoseNoNetworkOneThatReachesNeitherTheServerNorTheInternet() {
-    final VmSettings settings = new VmSettings(5907, 64, 48, 10);
+    final VmSettings settings = new VmSettings(DISPLAY_SEVEN_PORT, WIDTH, HEIGHT, FRAME_RATE);
     final VmConfiguration configuration = VmConfiguration.builder();
     final List<String> command = this.commandWithoutAccelerator(settings, configuration);
-    final int network = command.indexOf("-nic");
+    final int network = command.indexOf(NETWORK_ARGUMENT);
     final boolean hasNetwork = network > 0;
     assertTrue(hasNetwork, () -> "a -nic option in " + command);
     final String networkValue = command.get(network + 1);
-    final int lastNetwork = command.lastIndexOf("-nic");
-    assertEquals("user,restrict=on", networkValue);
+    final int lastNetwork = command.lastIndexOf(NETWORK_ARGUMENT);
+    assertEquals(RESTRICTED_NETWORK, networkValue);
     assertEquals(network, lastNetwork, "one network");
   }
 
   @ParameterizedTest
   @ValueSource(strings = { "nic", "netdev", "net" })
   void shouldKeepTheNetworkAMachineChose(final String option) {
-    final VmSettings settings = new VmSettings(5907, 64, 48, 10);
+    final VmSettings settings = new VmSettings(DISPLAY_SEVEN_PORT, WIDTH, HEIGHT, FRAME_RATE);
     final VmConfiguration configuration = VmConfiguration.builder();
     configuration.option(option, "user,id=mine");
     final List<String> command = this.commandWithoutAccelerator(settings, configuration);
-    final boolean restricted = command.contains("user,restrict=on");
+    final boolean restricted = command.contains(RESTRICTED_NETWORK);
     assertFalse(restricted, () -> "no network added to " + command);
   }
 
   @Test
   void shouldGiveAMachineWithoutDefaultDevicesNoNetwork() {
-    final VmSettings settings = new VmSettings(5907, 64, 48, 10);
+    final VmSettings settings = new VmSettings(DISPLAY_SEVEN_PORT, WIDTH, HEIGHT, FRAME_RATE);
     final VmConfiguration configuration = VmConfiguration.builder();
     configuration.flag("nodefaults");
     final List<String> command = this.commandWithoutAccelerator(settings, configuration);
-    final boolean network = command.contains("-nic");
+    final boolean network = command.contains(NETWORK_ARGUMENT);
     assertFalse(network, () -> "no network added to " + command);
   }
 
   @Test
   void shouldLeaveOutTheDefaultsTheConfigurationSets() {
-    final VmSettings settings = new VmSettings(5907, 64, 48, 10);
+    final VmSettings settings = new VmSettings(DISPLAY_SEVEN_PORT, WIDTH, HEIGHT, FRAME_RATE);
     final VmConfiguration configuration = VmConfiguration.builder();
     configuration.vga("virtio");
     configuration.option("display", "gtk");
@@ -684,24 +765,24 @@ final class VmProcessTest {
     final String program = QEMU.toString();
     final List<String> expected = List.of(
       program,
-      "-vga",
+      VGA_ARGUMENT,
       "virtio",
-      "-display",
+      DISPLAY_ARGUMENT,
       "gtk",
       "-usbdevice",
       "tablet",
-      "-nic",
-      "user,restrict=on",
-      "-object",
+      NETWORK_ARGUMENT,
+      RESTRICTED_NETWORK,
+      OBJECT_ARGUMENT,
       this.secretObject(),
-      "-vnc",
+      VNC_ARGUMENT,
       "127.0.0.1:7,share=force-shared,password-secret=mcav-vnc-password"
     );
     assertEquals(expected, command);
   }
 
   private List<String> x86Command(final VmConfiguration configuration) {
-    final VmSettings settings = new VmSettings(5903, 64, 48, 10);
+    final VmSettings settings = new VmSettings(DISPLAY_THREE_PORT, WIDTH, HEIGHT, FRAME_RATE);
     final VmProcess.Launcher launcher = command -> {
       throw new IOException("not started!");
     };
@@ -724,27 +805,27 @@ final class VmProcessTest {
     final List<String> command = this.x86Command(VmConfiguration.builder());
     final List<String> expected = List.of(
       QEMU.toString(),
-      "-machine",
-      "pcspk-audiodev=mcav-audio",
-      "-vga",
-      "std",
-      "-display",
-      "none",
-      "-nic",
-      "user,restrict=on",
-      "-object",
+      MACHINE_ARGUMENT,
+      SPEAKER_ROUTE,
+      VGA_ARGUMENT,
+      STANDARD_VGA,
+      DISPLAY_ARGUMENT,
+      NO_DISPLAY,
+      NETWORK_ARGUMENT,
+      RESTRICTED_NETWORK,
+      OBJECT_ARGUMENT,
       this.secretObject(),
-      "-audiodev",
+      AUDIO_DEVICE_ARGUMENT,
       "none,id=mcav-audio,out.frequency=48000",
-      "-device",
-      "intel-hda,id=mcav-sound",
-      "-device",
+      DEVICE_ARGUMENT,
+      HDA_SOUND_CARD,
+      DEVICE_ARGUMENT,
       "hda-output,bus=mcav-sound.0,audiodev=mcav-audio",
-      "-vnc",
+      VNC_ARGUMENT,
       "127.0.0.1:3,share=force-shared,password-secret=mcav-vnc-password,audiodev=mcav-audio",
-      "-usb",
-      "-device",
-      "usb-tablet"
+      USB_ARGUMENT,
+      DEVICE_ARGUMENT,
+      TABLET_DEVICE
     );
     assertEquals(expected, command);
   }
@@ -754,74 +835,74 @@ final class VmProcessTest {
     final VmConfiguration q35 = VmConfiguration.builder();
     q35.machine("q35,accel=tcg");
     final List<String> command = this.x86Command(q35);
-    final boolean keepsTheMachine = command.containsAll(List.of("-machine", "q35,accel=tcg"));
+    final boolean keepsTheMachine = command.containsAll(List.of(MACHINE_ARGUMENT, "q35,accel=tcg"));
     assertTrue(keepsTheMachine, command::toString);
-    final int speaker = command.indexOf("pcspk-audiodev=mcav-audio");
+    final int speaker = command.indexOf(SPEAKER_ROUTE);
     final String speakerOption = command.get(speaker - 1);
-    assertEquals("-machine", speakerOption, command::toString);
-    final boolean ich9Card = command.contains("ich9-intel-hda,id=mcav-sound");
+    assertEquals(MACHINE_ARGUMENT, speakerOption, command::toString);
+    final boolean ich9Card = command.contains(ICH9_SOUND_CARD);
     assertTrue(ich9Card, command::toString);
     final VmConfiguration typed = VmConfiguration.builder();
     typed.machine("type=pc-q35-8.2,usb=on");
-    final boolean typedIch9Card = this.x86Command(typed).contains("ich9-intel-hda,id=mcav-sound");
+    final boolean typedIch9Card = this.x86Command(typed).contains(ICH9_SOUND_CARD);
     assertTrue(typedIch9Card);
     final VmConfiguration i440fx = VmConfiguration.builder();
     i440fx.machine("pc-i440fx-8.2");
-    final boolean i440fxCard = this.x86Command(i440fx).contains("intel-hda,id=mcav-sound");
+    final boolean i440fxCard = this.x86Command(i440fx).contains(HDA_SOUND_CARD);
     assertTrue(i440fxCard);
   }
 
   @Test
   void shouldGiveMachinesWithoutAPcSpeakerOrAPciBusNoSound() {
     final VmConfiguration microvm = VmConfiguration.builder();
-    microvm.machine("microvm");
+    microvm.machine(MICROVM_MACHINE);
     final List<String> command = this.x86Command(microvm);
-    final boolean audioDevice = command.contains("-audiodev");
+    final boolean audioDevice = command.contains(AUDIO_DEVICE_ARGUMENT);
     final boolean display = command.contains("127.0.0.1:3,share=force-shared,password-secret=mcav-vnc-password");
     assertFalse(audioDevice, command::toString);
     assertTrue(display, command::toString);
     final VmConfiguration twice = VmConfiguration.builder();
     twice.machine("type=pc,type=microvm,usb=off");
-    final boolean twiceAudioDevice = this.x86Command(twice).contains("-audiodev");
+    final boolean twiceAudioDevice = this.x86Command(twice).contains(AUDIO_DEVICE_ARGUMENT);
     assertFalse(twiceAudioDevice);
     final List<String> arm = this.commandWithoutAccelerator(this.reachableSettings(), VmConfiguration.builder());
-    final boolean armAudioDevice = arm.contains("-audiodev");
+    final boolean armAudioDevice = arm.contains(AUDIO_DEVICE_ARGUMENT);
     assertFalse(armAudioDevice);
   }
 
   @Test
   void shouldGiveAMachineNamedWithMSoundLikeOneNamedWithMachine() {
     final VmConfiguration legacy = VmConfiguration.builder();
-    legacy.option("M", "q35");
+    legacy.option(SHORT_MACHINE_OPTION, Q35_MACHINE);
     final List<String> command = this.x86Command(legacy);
-    final boolean ich9Card = command.contains("ich9-intel-hda,id=mcav-sound");
+    final boolean ich9Card = command.contains(ICH9_SOUND_CARD);
     assertTrue(ich9Card, command::toString);
-    final boolean speakerRouted = command.contains("pcspk-audiodev=mcav-audio");
+    final boolean speakerRouted = command.contains(SPEAKER_ROUTE);
     assertTrue(speakerRouted, command::toString);
     final VmConfiguration routed = VmConfiguration.builder();
-    routed.option("M", "pc,pcspk-audiodev=snd0");
+    routed.option(SHORT_MACHINE_OPTION, ROUTED_PC_MACHINE);
     assertThrows(PlayerException.class, () -> VmProcess.checkModuleOptions(routed));
     final VmConfiguration repeated = VmConfiguration.builder();
-    repeated.repeatable("machine", "pcspk-audiodev=snd0");
+    repeated.repeatable(MACHINE_OPTION, "pcspk-audiodev=snd0");
     assertThrows(PlayerException.class, () -> VmProcess.checkModuleOptions(repeated));
   }
 
   @Test
   void shouldNotConfuseTheSpeakerWithAValueThatLooksLikeTheMachineOption() {
     final VmConfiguration named = VmConfiguration.builder();
-    named.option("name", "-machine");
+    named.option(NAME_OPTION, MACHINE_ARGUMENT);
     final List<String> command = this.x86Command(named);
-    final boolean keepsTheName = command.containsAll(List.of("-name", "-machine"));
-    final String speakerOption = command.get(command.indexOf("pcspk-audiodev=mcav-audio") - 1);
+    final boolean keepsTheName = command.containsAll(List.of("-name", MACHINE_ARGUMENT));
+    final String speakerOption = command.get(command.indexOf(SPEAKER_ROUTE) - 1);
     assertTrue(keepsTheName, command::toString);
-    assertEquals("-machine", speakerOption, command::toString);
+    assertEquals(MACHINE_ARGUMENT, speakerOption, command::toString);
     final VmConfiguration followed = VmConfiguration.builder();
-    followed.machine("q35");
-    followed.option("name", "-M");
-    followed.cpu("host");
+    followed.machine(Q35_MACHINE);
+    followed.option(NAME_OPTION, SHORT_MACHINE_ARGUMENT);
+    followed.cpu(HOST_CPU);
     final List<String> sound = this.x86Command(followed);
-    final boolean ich9Card = sound.contains("ich9-intel-hda,id=mcav-sound");
-    final boolean speakerRouted = sound.contains("pcspk-audiodev=mcav-audio");
+    final boolean ich9Card = sound.contains(ICH9_SOUND_CARD);
+    final boolean speakerRouted = sound.contains(SPEAKER_ROUTE);
     assertTrue(ich9Card, sound::toString);
     assertTrue(speakerRouted, sound::toString);
   }
@@ -834,7 +915,7 @@ final class VmProcessTest {
     final VmConfiguration named = VmConfiguration.builder();
     named.machine("Q35,usb=on");
     final String namedType = VmProcess.machineType(named);
-    assertEquals("q35", namedType);
+    assertEquals(Q35_MACHINE, namedType);
     final VmConfiguration typed = VmConfiguration.builder();
     typed.machine("usb=on,type=PC");
     final String typedType = VmProcess.machineType(typed);
@@ -846,42 +927,42 @@ final class VmProcessTest {
     final VmConfiguration last = VmConfiguration.builder();
     last.machine("pc,type=q35");
     final String lastType = VmProcess.machineType(last);
-    assertEquals("q35", lastType);
+    assertEquals(Q35_MACHINE, lastType);
     final VmConfiguration both = VmConfiguration.builder();
     both.machine("pc");
-    both.option("M", "microvm");
-    both.repeatable("machine", "usb=on");
+    both.option(SHORT_MACHINE_OPTION, MICROVM_MACHINE);
+    both.repeatable(MACHINE_OPTION, USB_ON);
     final String bothType = VmProcess.machineType(both);
-    assertEquals("microvm", bothType);
+    assertEquals(MICROVM_MACHINE, bothType);
     final VmConfiguration aliases = VmConfiguration.builder();
-    aliases.option("M", "q35");
-    aliases.machine("microvm");
+    aliases.option(SHORT_MACHINE_OPTION, Q35_MACHINE);
+    aliases.machine(MICROVM_MACHINE);
     final String aliasesType = VmProcess.machineType(aliases);
-    assertEquals("microvm", aliasesType);
+    assertEquals(MICROVM_MACHINE, aliasesType);
     final VmConfiguration repeated = VmConfiguration.builder();
-    repeated.repeatable("M", "microvm");
-    repeated.repeatable("machine", "q35");
+    repeated.repeatable(SHORT_MACHINE_OPTION, MICROVM_MACHINE);
+    repeated.repeatable(MACHINE_OPTION, Q35_MACHINE);
     final String repeatedType = VmProcess.machineType(repeated);
-    assertEquals("q35", repeatedType);
+    assertEquals(Q35_MACHINE, repeatedType);
     final VmConfiguration empty = VmConfiguration.builder();
     empty.machine(",usb=on");
     final String emptyType = VmProcess.machineType(empty);
     assertEquals("", emptyType);
-    for (final String lookalike : List.of("-M", "-machine")) {
+    for (final String lookalike : List.of(SHORT_MACHINE_ARGUMENT, MACHINE_ARGUMENT)) {
       final VmConfiguration valued = VmConfiguration.builder();
-      valued.machine("q35");
-      valued.option("name", lookalike);
-      valued.cpu("host");
+      valued.machine(Q35_MACHINE);
+      valued.option(NAME_OPTION, lookalike);
+      valued.cpu(HOST_CPU);
       valued.repeatable("device", lookalike);
       valued.repeatable("device", "e1000");
       final String valuedType = VmProcess.machineType(valued);
-      assertEquals("q35", valuedType, valued::toString);
+      assertEquals(Q35_MACHINE, valuedType, valued::toString);
     }
     final boolean defaultIsPc = VmProcess.isPcMachine("");
     final boolean pcIsPc = VmProcess.isPcMachine("pc");
-    final boolean q35IsPc = VmProcess.isPcMachine("q35");
+    final boolean q35IsPc = VmProcess.isPcMachine(Q35_MACHINE);
     final boolean versionedQ35IsPc = VmProcess.isPcMachine("pc-q35-9.0");
-    final boolean microvmIsPc = VmProcess.isPcMachine("microvm");
+    final boolean microvmIsPc = VmProcess.isPcMachine(MICROVM_MACHINE);
     final boolean isapcIsPc = VmProcess.isPcMachine("isapc");
     assertTrue(defaultIsPc);
     assertTrue(pcIsPc);
@@ -902,12 +983,12 @@ final class VmProcessTest {
       assertEquals(expected, message);
     }
     final VmConfiguration speaker = VmConfiguration.builder();
-    speaker.machine("pc,pcspk-audiodev=snd0");
+    speaker.machine(ROUTED_PC_MACHINE);
     final PlayerException refused = assertThrows(PlayerException.class, () -> VmProcess.checkModuleOptions(speaker));
     final String message = refused.getMessage();
     assertEquals("PC speaker is routed by MCAV itself, so pcspk-audiodev must be removed from -machine!", message);
     final VmConfiguration fine = VmConfiguration.builder();
-    fine.machine("q35");
+    fine.machine(Q35_MACHINE);
     VmProcess.checkModuleOptions(fine);
     final VmSettings settings = this.reachableSettings();
     final VmConfiguration display = VmConfiguration.builder();
@@ -919,56 +1000,56 @@ final class VmProcessTest {
 
   @Test
   void shouldAddNoDisplayWhenTheMachineRunsWithoutGraphics() {
-    final VmSettings settings = new VmSettings(5901, 64, 48, 10);
+    final VmSettings settings = new VmSettings(DISPLAY_ONE_PORT, WIDTH, HEIGHT, FRAME_RATE);
     final VmConfiguration configuration = VmConfiguration.builder();
     configuration.flag("nographic");
     final VmProcess process = this.process(settings, configuration, Os.LINUX);
-    final List<String> command = process.buildCommand("tcg", this.passwordFile());
+    final List<String> command = process.buildCommand(SOFTWARE_ACCELERATOR, this.passwordFile());
     final String program = QEMU.toString();
     final List<String> expected = List.of(
       program,
       "-nographic",
-      "-accel",
-      "tcg",
-      "-vga",
-      "std",
-      "-nic",
-      "user,restrict=on",
-      "-object",
+      ACCELERATOR_ARGUMENT,
+      SOFTWARE_ACCELERATOR,
+      VGA_ARGUMENT,
+      STANDARD_VGA,
+      NETWORK_ARGUMENT,
+      RESTRICTED_NETWORK,
+      OBJECT_ARGUMENT,
       this.secretObject(),
-      "-vnc",
-      "127.0.0.1:1,share=force-shared,password-secret=mcav-vnc-password",
-      "-usb",
-      "-device",
-      "usb-tablet"
+      VNC_ARGUMENT,
+      VNC_ON_DISPLAY_ONE,
+      USB_ARGUMENT,
+      DEVICE_ARGUMENT,
+      TABLET_DEVICE
     );
     assertEquals(expected, command);
   }
 
   @Test
   void shouldPickTheAcceleratorOfEveryOperatingSystem() throws IOException {
-    final Path writableKvm = this.directory.resolve("writable-kvm");
+    final Path writableKvm = this.directory.resolve(WRITABLE_KVM_DEVICE);
     Files.writeString(writableKvm, "");
     final String windows = VmProcess.detectAccelerator(Os.WINDOWS, this.missingKvm);
     final String mac = VmProcess.detectAccelerator(Os.MAC, this.missingKvm);
     final String freeBsd = VmProcess.detectAccelerator(Os.FREEBSD, this.missingKvm);
     final String linuxWithoutKvm = VmProcess.detectAccelerator(Os.LINUX, this.missingKvm);
     final String linuxWithKvm = VmProcess.detectAccelerator(Os.LINUX, writableKvm);
-    assertEquals("whpx", windows);
-    assertEquals("hvf", mac);
-    assertEquals("tcg", freeBsd);
-    assertEquals("tcg", linuxWithoutKvm);
-    assertEquals("kvm", linuxWithKvm);
+    assertEquals(WINDOWS_ACCELERATOR, windows);
+    assertEquals(MAC_ACCELERATOR, mac);
+    assertEquals(SOFTWARE_ACCELERATOR, freeBsd);
+    assertEquals(SOFTWARE_ACCELERATOR, linuxWithoutKvm);
+    assertEquals(KVM_ACCELERATOR, linuxWithKvm);
   }
 
   @Test
   void shouldBlameTheAcceleratorOnlyForMessagesThatMentionIt() {
-    final boolean named = VmProcess.mentionsAccelerator("HVF: error", "hvf");
-    final boolean generic = VmProcess.mentionsAccelerator("no ACCEL", "hvf");
-    final boolean hypervisor = VmProcess.mentionsAccelerator("Hypervisor.framework missing", "hvf");
-    final boolean virtualization = VmProcess.mentionsAccelerator("enable VIRTUALIZATION", "hvf");
-    final boolean unrelated = VmProcess.mentionsAccelerator("disk not found", "hvf");
-    final boolean missing = VmProcess.mentionsAccelerator(null, "hvf");
+    final boolean named = VmProcess.mentionsAccelerator("HVF: error", MAC_ACCELERATOR);
+    final boolean generic = VmProcess.mentionsAccelerator("no ACCEL", MAC_ACCELERATOR);
+    final boolean hypervisor = VmProcess.mentionsAccelerator("Hypervisor.framework missing", MAC_ACCELERATOR);
+    final boolean virtualization = VmProcess.mentionsAccelerator("enable VIRTUALIZATION", MAC_ACCELERATOR);
+    final boolean unrelated = VmProcess.mentionsAccelerator("disk not found", MAC_ACCELERATOR);
+    final boolean missing = VmProcess.mentionsAccelerator(null, MAC_ACCELERATOR);
     assertTrue(named);
     assertTrue(generic);
     assertTrue(hypervisor);
@@ -993,7 +1074,7 @@ final class VmProcessTest {
   @Test
   void shouldFailToStartAProcessCreatedForAMissingProgram() {
     final VmSettings settings = this.reachableSettings();
-    final Path missing = this.directory.resolve("missing-qemu");
+    final Path missing = this.directory.resolve(MISSING_QEMU);
     final VmConfiguration configuration = VmConfiguration.builder();
     final VmProcess process = VmProcess.create(settings, VmPlayer.Architecture.X86_64, missing, configuration);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
@@ -1030,11 +1111,11 @@ final class VmProcessTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = { "", "\n" })
+  @ValueSource(strings = { "", LINE_BREAK })
   void shouldBoundLongDiagnosticLinesAndKeepTheirSuffix(final String ending) {
     final String discarded = "x".repeat(100_000);
     final String suffix = "z".repeat(4090) + "-tail!";
-    final FakeProcess failed = FakeProcess.exited(1, discarded + suffix + ending);
+    final FakeProcess failed = FakeProcess.exited(FAILURE_EXIT_CODE, discarded + suffix + ending);
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
@@ -1044,7 +1125,7 @@ final class VmProcessTest {
 
   @Test
   void shouldKeepTheLastLineWithoutALineBreak() {
-    final FakeProcess failed = FakeProcess.exited(1, "first\nlast words");
+    final FakeProcess failed = FakeProcess.exited(FAILURE_EXIT_CODE, "first\nlast words");
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
@@ -1057,7 +1138,7 @@ final class VmProcessTest {
   void shouldKeepTheOutputReadBeforeTheStreamFailed() {
     final InputStream broken = new FailingStream("first\nsecond");
     final FakeProcess failed = FakeProcess.running(broken);
-    failed.exit(1);
+    failed.exit(FAILURE_EXIT_CODE);
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
@@ -1070,7 +1151,7 @@ final class VmProcessTest {
   void shouldDecodeCharactersWhoseBytesArriveSeparately() {
     final InputStream trickle = new OneByteStream("Gerät nicht gefunden: 磁盘\n");
     final FakeProcess failed = FakeProcess.running(trickle);
-    failed.exit(1);
+    failed.exit(FAILURE_EXIT_CODE);
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
@@ -1228,7 +1309,7 @@ final class VmProcessTest {
       assertTrue(interrupted, "the forced-exit phase must preserve its own interruption");
     } finally {
       Thread.interrupted();
-      qemu.exit(137);
+      qemu.exit(KILLED_EXIT_CODE);
     }
   }
 
@@ -1250,7 +1331,7 @@ final class VmProcessTest {
       final boolean retained = process.isAlive();
       assertTrue(retained, "a live child remains owned after the deadline so shutdown can be retried");
     } finally {
-      qemu.exit(137);
+      qemu.exit(KILLED_EXIT_CODE);
       stopping.interrupt();
       stopping.join(2_000L);
       process.shutdown();
@@ -1270,14 +1351,14 @@ final class VmProcessTest {
     stopping.setDaemon(true);
     try {
       stopping.start();
-      final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
+      final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMED_JOIN_DEADLINE_SECONDS);
       boolean joined = false;
       while (System.nanoTime() < deadline && stopping.isAlive()) {
         if (stopping.getState() == Thread.State.TIMED_WAITING) {
           joined = true;
           break;
         }
-        Thread.sleep(1L);
+        Thread.sleep(POLL_PAUSE_MILLISECONDS);
       }
       assertTrue(joined, "shutdown must block in a timed join instead of spinning on reader liveness");
       stopping.join(4_000L);
@@ -1288,7 +1369,7 @@ final class VmProcessTest {
     } finally {
       finish.countDown();
       stopping.interrupt();
-      stopping.join(3_000L);
+      stopping.join(SHUTDOWN_JOIN_MILLISECONDS);
       process.shutdown();
     }
   }
@@ -1323,7 +1404,7 @@ final class VmProcessTest {
       final long pendingReturns = returned.getCount();
       assertEquals(1, pendingReturns, "interruption must not abandon the live output reader");
       finish.countDown();
-      stopping.join(3_000L);
+      stopping.join(SHUTDOWN_JOIN_MILLISECONDS);
       final boolean stoppingAlive = stopping.isAlive();
       final Throwable readerFailure = failure.get();
       final boolean interruptRestored = restored.get();
@@ -1335,13 +1416,13 @@ final class VmProcessTest {
     } finally {
       finish.countDown();
       stopping.interrupt();
-      stopping.join(3_000L);
+      stopping.join(SHUTDOWN_JOIN_MILLISECONDS);
       process.shutdown();
     }
   }
 
   private static void awaitOutputJoin(final Thread stopping) throws InterruptedException {
-    final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
+    final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMED_JOIN_DEADLINE_SECONDS);
     while (System.nanoTime() < deadline && stopping.isAlive()) {
       final Thread.State state = stopping.getState();
       if (state == Thread.State.TIMED_WAITING && !stopping.isInterrupted()) {
@@ -1349,12 +1430,12 @@ final class VmProcessTest {
         for (final StackTraceElement frame : stack) {
           final String owner = frame.getClassName();
           final String method = frame.getMethodName();
-          if (owner.equals(VmProcess.class.getName()) && method.equals("awaitOutput")) {
+          if (owner.equals(VmProcess.class.getName()) && method.equals(OUTPUT_JOIN_METHOD)) {
             return;
           }
         }
       }
-      Thread.sleep(1L);
+      Thread.sleep(POLL_PAUSE_MILLISECONDS);
     }
     fail("Shutdown must be waiting inside the timed join of awaitOutput!");
   }
@@ -1403,7 +1484,7 @@ final class VmProcessTest {
   @Test
   void shouldFailWhenQemuExitsRightAfterItsDisplayOpens() {
     final FakeProcess qemu = FakeProcess.running("Failed to start VNC server: address in use\n");
-    qemu.exitingWhenWaitedOn(1);
+    qemu.exitingWhenWaitedOn(FAILURE_EXIT_CODE);
     final VmProcess process = this.reachable(Os.FREEBSD, qemu);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
@@ -1414,9 +1495,9 @@ final class VmProcessTest {
 
   @Test
   void shouldLeaveOutTheDefaultTabletWhenTheConfigurationAddsOne() {
-    final VmSettings settings = new VmSettings(5901, 64, 48, 10);
+    final VmSettings settings = new VmSettings(DISPLAY_ONE_PORT, WIDTH, HEIGHT, FRAME_RATE);
     final VmConfiguration plain = VmConfiguration.builder();
-    plain.device("usb-tablet");
+    plain.device(TABLET_DEVICE);
     final VmConfiguration withBus = VmConfiguration.builder();
     withBus.device("usb-tablet,bus=usb-bus.0");
     final VmConfiguration otherDevice = VmConfiguration.builder();
@@ -1426,11 +1507,11 @@ final class VmProcessTest {
     final List<String> withBusCommand = this.commandWithoutAccelerator(settings, withBus);
     final List<String> otherCommand = this.commandWithoutAccelerator(settings, otherDevice);
 
-    final List<String> controllerOnly = List.of("-usb");
-    final List<String> controllerAndTablet = List.of("-usb", "-device", "usb-tablet");
-    final List<String> plainOptions = List.of("-device", "usb-tablet");
-    final List<String> withBusOptions = List.of("-device", "usb-tablet,bus=usb-bus.0");
-    final List<String> otherOptions = List.of("-device", "virtio-net-pci");
+    final List<String> controllerOnly = List.of(USB_ARGUMENT);
+    final List<String> controllerAndTablet = List.of(USB_ARGUMENT, DEVICE_ARGUMENT, TABLET_DEVICE);
+    final List<String> plainOptions = List.of(DEVICE_ARGUMENT, TABLET_DEVICE);
+    final List<String> withBusOptions = List.of(DEVICE_ARGUMENT, "usb-tablet,bus=usb-bus.0");
+    final List<String> otherOptions = List.of(DEVICE_ARGUMENT, "virtio-net-pci");
     final List<String> expectedPlain = this.expectedOnDisplayOne(plainOptions, controllerOnly);
     final List<String> expectedWithBus = this.expectedOnDisplayOne(withBusOptions, controllerOnly);
     final List<String> expectedOther = this.expectedOnDisplayOne(otherOptions, controllerAndTablet);
@@ -1441,26 +1522,26 @@ final class VmProcessTest {
 
   @Test
   void shouldHonorUsbOffThroughEitherMachineAliasAndItsLastOverride() {
-    final VmSettings settings = new VmSettings(5901, 64, 48, 10);
-    for (final String alias : List.of("M", "machine")) {
-      final String other = alias.equals("M") ? "machine" : "M";
+    final VmSettings settings = new VmSettings(DISPLAY_ONE_PORT, WIDTH, HEIGHT, FRAME_RATE);
+    for (final String alias : List.of(SHORT_MACHINE_OPTION, MACHINE_OPTION)) {
+      final String other = alias.equals(SHORT_MACHINE_OPTION) ? MACHINE_OPTION : SHORT_MACHINE_OPTION;
       final List<VmConfiguration> disabled = List.of(
-        VmConfiguration.builder().option(alias, "q35,usb=off"),
-        VmConfiguration.builder().option(other, "q35,usb=on").option(alias, "usb=off"),
-        VmConfiguration.builder().repeatable(alias, "q35,usb=on").repeatable(alias, "usb=off"),
+        VmConfiguration.builder().option(alias, Q35_WITHOUT_USB),
+        VmConfiguration.builder().option(other, Q35_WITH_USB).option(alias, "usb=off"),
+        VmConfiguration.builder().repeatable(alias, Q35_WITH_USB).repeatable(alias, "usb=off"),
         VmConfiguration.builder().option(alias, "q35,usb=on,usb=off")
       );
       for (final VmConfiguration configuration : disabled) {
         final List<String> command = this.commandWithoutAccelerator(settings, configuration);
-        final boolean usbBus = command.contains("-usb");
-        final boolean usbTablet = command.contains("usb-tablet");
+        final boolean usbBus = command.contains(USB_ARGUMENT);
+        final boolean usbTablet = command.contains(TABLET_DEVICE);
         assertFalse(usbBus, configuration::toString);
         assertFalse(usbTablet, configuration::toString);
       }
-      final VmConfiguration enabled = VmConfiguration.builder().option(other, "q35,usb=off").option(alias, "usb=on");
+      final VmConfiguration enabled = VmConfiguration.builder().option(other, Q35_WITHOUT_USB).option(alias, USB_ON);
       final List<String> enabledCommand = this.commandWithoutAccelerator(settings, enabled);
-      final boolean enabledUsbBus = enabledCommand.contains("-usb");
-      final boolean enabledUsbTablet = enabledCommand.contains("usb-tablet");
+      final boolean enabledUsbBus = enabledCommand.contains(USB_ARGUMENT);
+      final boolean enabledUsbTablet = enabledCommand.contains(TABLET_DEVICE);
       assertFalse(enabledUsbBus, enabled::toString);
       assertTrue(enabledUsbTablet, enabled::toString);
     }
@@ -1468,11 +1549,11 @@ final class VmProcessTest {
 
   @Test
   void shouldLetTheConfigurationChooseOrTurnOffUsb() {
-    final VmSettings settings = new VmSettings(5901, 64, 48, 10);
+    final VmSettings settings = new VmSettings(DISPLAY_ONE_PORT, WIDTH, HEIGHT, FRAME_RATE);
     final VmConfiguration usbOn = VmConfiguration.builder();
-    usbOn.machine("q35,usb=on");
+    usbOn.machine(Q35_WITH_USB);
     final VmConfiguration usbOff = VmConfiguration.builder();
-    usbOff.machine("q35,usb=off");
+    usbOff.machine(Q35_WITHOUT_USB);
     final VmConfiguration usbFlag = VmConfiguration.builder();
     usbFlag.flag("usb");
 
@@ -1480,11 +1561,11 @@ final class VmProcessTest {
     final List<String> offCommand = this.commandWithoutAccelerator(settings, usbOff);
     final List<String> flagCommand = this.commandWithoutAccelerator(settings, usbFlag);
 
-    final List<String> tabletOnly = List.of("-device", "usb-tablet");
+    final List<String> tabletOnly = List.of(DEVICE_ARGUMENT, TABLET_DEVICE);
     final List<String> nothing = List.of();
-    final List<String> onOptions = List.of("-machine", "q35,usb=on");
-    final List<String> offOptions = List.of("-machine", "q35,usb=off");
-    final List<String> flagOptions = List.of("-usb");
+    final List<String> onOptions = List.of(MACHINE_ARGUMENT, Q35_WITH_USB);
+    final List<String> offOptions = List.of(MACHINE_ARGUMENT, Q35_WITHOUT_USB);
+    final List<String> flagOptions = List.of(USB_ARGUMENT);
     final List<String> expectedOn = this.expectedOnDisplayOne(onOptions, tabletOnly);
     final List<String> expectedOff = this.expectedOnDisplayOne(offOptions, nothing);
     final List<String> expectedFlag = this.expectedOnDisplayOne(flagOptions, tabletOnly);
@@ -1552,7 +1633,7 @@ final class VmProcessTest {
     final List<Thread> running = new ArrayList<>();
     for (final Thread thread : threads) {
       final String name = thread.getName();
-      final boolean drain = name.equals("mcav-qemu-output");
+      final boolean drain = name.equals(DRAIN_THREAD_NAME);
       final boolean alive = thread.isAlive();
       if (drain && alive) {
         running.add(thread);
@@ -1638,7 +1719,7 @@ final class VmProcessTest {
     public int read() {
       final byte[] single = new byte[1];
       final int count = this.read(single, 0, 1);
-      return count < 0 ? -1 : single[0] & 0xFF;
+      return count < 0 ? -1 : single[0] & BYTE_MASK;
     }
 
     @Override
@@ -1678,7 +1759,7 @@ final class VmProcessTest {
       if (this.position >= this.content.length) {
         return -1;
       }
-      final int value = this.content[this.position] & 0xFF;
+      final int value = this.content[this.position] & BYTE_MASK;
       this.position++;
       return value;
     }

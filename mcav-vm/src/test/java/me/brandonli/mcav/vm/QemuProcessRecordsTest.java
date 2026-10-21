@@ -51,6 +51,29 @@ final class QemuProcessRecordsTest {
 
   private static final long GONE = Long.MAX_VALUE;
 
+  private static final String RECORDS_FOLDER = "records";
+  private static final String RECORD_SUFFIX = ".qemu";
+  private static final String GARBAGE_RECORD = "12.qemu";
+  private static final String UNNAMED_RECORD = "abc.qemu";
+  private static final String SHORT_RECORD = "13.qemu";
+  private static final String UNREADABLE_RECORD = "14.qemu";
+  private static final String INSIDE_FOLDER = "inside";
+  private static final String UNRELATED_FILE = "notes.txt";
+
+  private static final String SLEEPER_PREFIX = "Sleep";
+  private static final String JAVA_SUFFIX = ".java";
+
+  private static final String HOME_PROPERTY = "user.home";
+  private static final String MCAV_FOLDER = ".mcav";
+  private static final String VM_FOLDER = "vm";
+
+  private static final String RECORD_FORMAT = "%s\n%s\n%s\n";
+  private static final String LONG_AGO = "2001-01-01T00:00:00Z";
+
+  private static final Duration STOP_TIMEOUT = Duration.ofMillis(500);
+
+  private static final long TIMEOUT_SECONDS = 10L;
+
   @TempDir
   private Path directory;
 
@@ -60,7 +83,7 @@ final class QemuProcessRecordsTest {
   void stopChildren() throws InterruptedException {
     for (final Process child : this.children) {
       child.destroyForcibly();
-      child.waitFor(10, TimeUnit.SECONDS);
+      child.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
   }
 
@@ -94,15 +117,15 @@ final class QemuProcessRecordsTest {
       "public static void main(String[] arguments) { " +
       hook +
       " System.out.println(\"ready\"); System.out.flush(); sleep(); } }";
-    final Path file = this.directory.resolve("Sleep" + this.children.size() + ".java");
+    final Path file = this.directory.resolve(SLEEPER_PREFIX + this.children.size() + JAVA_SUFFIX);
     Files.writeString(file, source);
     final String java = ProcessHandle.current().info().command().orElseThrow();
     return List.of(java, file.toString());
   }
 
   private QemuProcessRecords records(final ProcessHandle owner) {
-    final Path folder = this.directory.resolve("records");
-    return new QemuProcessRecords(folder, owner, ProcessHandle::of, Duration.ofMillis(500));
+    final Path folder = this.directory.resolve(RECORDS_FOLDER);
+    return new QemuProcessRecords(folder, owner, ProcessHandle::of, STOP_TIMEOUT);
   }
 
   private static ProcessHandle goneServer() {
@@ -115,7 +138,7 @@ final class QemuProcessRecordsTest {
   }
 
   private Path recordOf(final long processId) {
-    return this.directory.resolve("records").resolve(processId + ".qemu");
+    return this.directory.resolve(RECORDS_FOLDER).resolve(processId + RECORD_SUFFIX);
   }
 
   @Test
@@ -125,7 +148,7 @@ final class QemuProcessRecordsTest {
     this.children.add(qemu);
     final boolean recorded = Files.isRegularFile(this.recordOf(qemu.pid()));
     qemu.destroyForcibly();
-    qemu.waitFor(10, TimeUnit.SECONDS);
+    qemu.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     launcher.ended(qemu);
 
     final boolean recordLeft = Files.exists(this.recordOf(qemu.pid()));
@@ -142,7 +165,7 @@ final class QemuProcessRecordsTest {
 
     final int stopped = this.records(ProcessHandle.current()).reap();
 
-    final boolean ended = qemu.onExit().completeOnTimeout(null, 10, TimeUnit.SECONDS).join() != null;
+    final boolean ended = qemu.onExit().completeOnTimeout(null, TIMEOUT_SECONDS, TimeUnit.SECONDS).join() != null;
     final boolean recordLeft = Files.exists(this.recordOf(qemu.pid()));
     assertEquals(1, stopped);
     assertTrue(ended, "the process ended");
@@ -156,7 +179,7 @@ final class QemuProcessRecordsTest {
 
     final int stopped = this.records(ProcessHandle.current()).reap();
 
-    final boolean killed = qemu.onExit().completeOnTimeout(null, 10, TimeUnit.SECONDS).join() != null;
+    final boolean killed = qemu.onExit().completeOnTimeout(null, TIMEOUT_SECONDS, TimeUnit.SECONDS).join() != null;
     assertEquals(1, stopped);
     assertTrue(killed, "the process was killed");
   }
@@ -186,11 +209,11 @@ final class QemuProcessRecordsTest {
     final Path record = this.recordOf(qemu.pid());
     Files.createDirectories(record.getParent());
     final long reused = ProcessHandle.current().pid();
-    Files.writeString(record, started + "\n" + reused + "\n2001-01-01T00:00:00Z\n");
+    Files.writeString(record, RECORD_FORMAT.formatted(started, reused, LONG_AGO));
 
     final int stopped = this.records(ProcessHandle.current()).reap();
 
-    final boolean ended = qemu.onExit().completeOnTimeout(null, 10, TimeUnit.SECONDS).join() != null;
+    final boolean ended = qemu.onExit().completeOnTimeout(null, TIMEOUT_SECONDS, TimeUnit.SECONDS).join() != null;
     assertEquals(1, stopped);
     assertTrue(ended, "the process ended");
   }
@@ -200,7 +223,7 @@ final class QemuProcessRecordsTest {
     final Process other = this.child(false);
     final Path record = this.recordOf(other.pid());
     Files.createDirectories(record.getParent());
-    Files.writeString(record, "2001-01-01T00:00:00Z\n" + GONE + "\n2001-01-01T00:00:00Z\n");
+    Files.writeString(record, RECORD_FORMAT.formatted(LONG_AGO, GONE, LONG_AGO));
 
     final int stopped = this.records(ProcessHandle.current()).reap();
 
@@ -213,19 +236,19 @@ final class QemuProcessRecordsTest {
 
   @Test
   void shouldDeleteRecordsItCannotReadAndKeepReapingTheOthers() throws IOException {
-    final Path folder = this.directory.resolve("records");
+    final Path folder = this.directory.resolve(RECORDS_FOLDER);
     Files.createDirectories(folder);
-    final Path garbage = folder.resolve("12.qemu");
+    final Path garbage = folder.resolve(GARBAGE_RECORD);
     Files.writeString(garbage, "not a record");
-    final Path unnamed = folder.resolve("abc.qemu");
-    Files.writeString(unnamed, "2001-01-01T00:00:00Z\n1\n2001-01-01T00:00:00Z\n");
-    final Path shortRecord = folder.resolve("13.qemu");
-    Files.writeString(shortRecord, "2001-01-01T00:00:00Z\n");
-    final Path unreadable = folder.resolve("14.qemu");
-    Files.createDirectories(unreadable.resolve("inside"));
+    final Path unnamed = folder.resolve(UNNAMED_RECORD);
+    Files.writeString(unnamed, RECORD_FORMAT.formatted(LONG_AGO, 1, LONG_AGO));
+    final Path shortRecord = folder.resolve(SHORT_RECORD);
+    Files.writeString(shortRecord, "%s\n".formatted(LONG_AGO));
+    final Path unreadable = folder.resolve(UNREADABLE_RECORD);
+    Files.createDirectories(unreadable.resolve(INSIDE_FOLDER));
     final Process qemu = this.child(false);
     this.records(goneServer()).add(qemu.toHandle());
-    final Path unrelated = folder.resolve("notes.txt");
+    final Path unrelated = folder.resolve(UNRELATED_FILE);
     Files.writeString(unrelated, "kept");
 
     final int stopped = this.records(ProcessHandle.current()).reap();
@@ -247,7 +270,7 @@ final class QemuProcessRecordsTest {
   void shouldHaveNothingToReapWithoutAFolder() throws IOException {
     final int stoppedWithoutAFolder = this.records(ProcessHandle.current()).reap();
     assertEquals(0, stoppedWithoutAFolder);
-    Files.writeString(this.directory.resolve("records"), "a file, not a folder");
+    Files.writeString(this.directory.resolve(RECORDS_FOLDER), "a file, not a folder");
     final int stoppedWithAFile = this.records(ProcessHandle.current()).reap();
     assertEquals(0, stoppedWithAFile);
   }
@@ -264,7 +287,7 @@ final class QemuProcessRecordsTest {
     when(provider.readAttributesIfExists(folder, BasicFileAttributes.class)).thenReturn(attributes);
     when(attributes.isDirectory()).thenReturn(true);
     when(provider.newDirectoryStream(eq(folder), any())).thenThrow(unlistable);
-    final QemuProcessRecords records = new QemuProcessRecords(folder, ProcessHandle.current(), ProcessHandle::of, Duration.ofMillis(500));
+    final QemuProcessRecords records = new QemuProcessRecords(folder, ProcessHandle.current(), ProcessHandle::of, STOP_TIMEOUT);
     final int stopped = records.reap();
     assertEquals(0, stopped);
   }
@@ -287,12 +310,12 @@ final class QemuProcessRecordsTest {
 
   @Test
   void shouldOnlyLogARecordThatCannotBeWrittenOrDeleted() throws IOException {
-    Files.writeString(this.directory.resolve("records"), "a file where the folder belongs");
+    Files.writeString(this.directory.resolve(RECORDS_FOLDER), "a file where the folder belongs");
     final Process qemu = this.child(false);
     this.records(goneServer()).add(qemu.toHandle());
-    Files.delete(this.directory.resolve("records"));
+    Files.delete(this.directory.resolve(RECORDS_FOLDER));
     final Path record = this.recordOf(7L);
-    Files.createDirectories(record.resolve("inside"));
+    Files.createDirectories(record.resolve(INSIDE_FOLDER));
     this.records(ProcessHandle.current()).remove(7L);
     final boolean kept = Files.isDirectory(record);
     assertTrue(kept, "a folder named like a record is not deleted");
@@ -300,23 +323,23 @@ final class QemuProcessRecordsTest {
 
   @Test
   void shouldKeepTheRecordsOfAUserInTheirHome() throws IOException {
-    final String previous = System.getProperty("user.home");
-    System.setProperty("user.home", this.directory.toString());
+    final String previous = System.getProperty(HOME_PROPERTY);
+    System.setProperty(HOME_PROPERTY, this.directory.toString());
     try {
       final QemuProcessRecords records = QemuProcessRecords.ofUser();
       final Process qemu = this.child(false);
       records.add(qemu.toHandle());
       final Path record = this.directory
-        .resolve(".mcav")
-        .resolve("vm")
-        .resolve(qemu.pid() + ".qemu");
+        .resolve(MCAV_FOLDER)
+        .resolve(VM_FOLDER)
+        .resolve(qemu.pid() + RECORD_SUFFIX);
       final boolean recorded = Files.exists(record);
       assertTrue(recorded);
       records.remove(qemu.pid());
       final boolean recordLeft = Files.exists(record);
       assertFalse(recordLeft);
     } finally {
-      System.setProperty("user.home", previous);
+      System.setProperty(HOME_PROPERTY, previous);
     }
   }
 }

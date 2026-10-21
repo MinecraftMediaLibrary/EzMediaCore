@@ -40,26 +40,34 @@ import org.junit.jupiter.api.io.TempDir;
  */
 final class VmModuleTest {
 
+  private static final String RECORDS_FOLDER = "records";
+  private static final String RECORD_SUFFIX = ".qemu";
+  private static final String NO_PATHS_FILE = "no-paths-file";
+  private static final String BIN_FOLDER = "bin";
+  private static final String EMPTY_FOLDER = "empty";
+  private static final String QEMU_EXECUTABLE = "qemu-system-x86_64";
+  private static final String SLEEPER_SOURCE = "Sleep.java";
+
   @TempDir
   private Path directory;
 
   private QemuProcessRecords records() {
-    final Path folder = this.directory.resolve("records");
+    final Path folder = this.directory.resolve(RECORDS_FOLDER);
     return new QemuProcessRecords(folder, ProcessHandle.current(), ProcessHandle::of, Duration.ofSeconds(10));
   }
 
   private ExecutableFinder finderWithPath(final Path folder) {
     final String path = folder.toString();
     final Map<String, String> environment = Map.of("PATH", path);
-    final Path macPaths = this.directory.resolve("no-paths-file");
+    final Path macPaths = this.directory.resolve(NO_PATHS_FILE);
     return new ExecutableFinder(Os.LINUX, environment, macPaths);
   }
 
   @Test
   void shouldFindQemuWhenStarted() throws IOException {
-    final Path folder = this.directory.resolve("bin");
+    final Path folder = this.directory.resolve(BIN_FOLDER);
     Files.createDirectories(folder);
-    final Path qemu = folder.resolve("qemu-system-x86_64");
+    final Path qemu = folder.resolve(QEMU_EXECUTABLE);
     Files.writeString(qemu, "qemu");
     final File file = qemu.toFile();
     final boolean madeExecutable = file.setExecutable(true);
@@ -77,15 +85,15 @@ final class VmModuleTest {
   @Test
   void shouldStopTheQemuOfAKilledServerWhenStarted() throws IOException, InterruptedException {
     final String java = ProcessHandle.current().info().command().orElseThrow();
-    final Path sleeper = this.directory.resolve("Sleep.java");
+    final Path sleeper = this.directory.resolve(SLEEPER_SOURCE);
     Files.writeString(sleeper, "class Sleep { public static void main(String[] a) throws Exception { Thread.sleep(300_000L); } }");
     final Process qemu = new ProcessBuilder(java, sleeper.toString()).start();
     try {
       final Instant started = qemu.toHandle().info().startInstant().orElseThrow();
-      final Path record = this.directory.resolve("records").resolve(qemu.pid() + ".qemu");
+      final Path record = this.directory.resolve(RECORDS_FOLDER).resolve(qemu.pid() + RECORD_SUFFIX);
       Files.createDirectories(record.getParent());
-      Files.writeString(record, started + "\n" + Long.MAX_VALUE + "\n" + started + "\n");
-      final Path empty = this.directory.resolve("empty");
+      Files.writeString(record, "%s\n%s\n%s\n".formatted(started, Long.MAX_VALUE, started));
+      final Path empty = this.directory.resolve(EMPTY_FOLDER);
       Files.createDirectories(empty);
       final VmModule module = new VmModule(this.finderWithPath(empty), this.records());
 
@@ -102,7 +110,7 @@ final class VmModuleTest {
 
   @Test
   void shouldReportAMissingQemu() throws IOException {
-    final Path empty = this.directory.resolve("empty");
+    final Path empty = this.directory.resolve(EMPTY_FOLDER);
     Files.createDirectories(empty);
     final ExecutableFinder finder = this.finderWithPath(empty);
     final VmModule module = new VmModule(finder, this.records());

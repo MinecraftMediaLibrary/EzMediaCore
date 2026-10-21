@@ -36,6 +36,11 @@ public final class FakeProcess extends Process {
 
   private static final String TEXT_NULL_MESSAGE = "Text must not be null!";
 
+  private static final int TERMINATED_EXIT_CODE = 143;
+  private static final int KILLED_EXIT_CODE = 137;
+
+  private static final String TERMINATION_THREAD_NAME = "fake-qemu-termination";
+
   private final InputStream output;
   private final CountDownLatch exited;
   private final AtomicInteger destroyCalls;
@@ -223,7 +228,7 @@ public final class FakeProcess extends Process {
   public void destroy() {
     this.destroyCalls.incrementAndGet();
     if (this.exitsOnDestroy) {
-      this.exit(143);
+      this.exit(TERMINATED_EXIT_CODE);
     }
   }
 
@@ -232,9 +237,9 @@ public final class FakeProcess extends Process {
     final int calls = this.forcibleDestroyCalls.incrementAndGet();
     final long delayMilliseconds = this.forcedExitDelayMilliseconds;
     if (delayMilliseconds == 0) {
-      this.exit(137);
+      this.exit(KILLED_EXIT_CODE);
     } else if (calls == 1) {
-      final Thread termination = new Thread(() -> this.exitAfterDelay(delayMilliseconds), "fake-qemu-termination");
+      final Thread termination = new Thread(() -> this.exitAfterDelay(delayMilliseconds), TERMINATION_THREAD_NAME);
       termination.setDaemon(true);
       termination.start();
     }
@@ -248,7 +253,7 @@ public final class FakeProcess extends Process {
       final Thread current = Thread.currentThread();
       current.interrupt();
     } finally {
-      this.exit(137);
+      this.exit(KILLED_EXIT_CODE);
     }
   }
 }

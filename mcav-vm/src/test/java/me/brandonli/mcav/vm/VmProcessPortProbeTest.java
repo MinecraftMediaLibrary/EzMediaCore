@@ -42,6 +42,9 @@ import org.mockito.MockedConstruction;
 /** Checks the port probe's explicit pre-bind socket policy independently of platform defaults. */
 final class VmProcessPortProbeTest {
 
+  private static final String UNUSED_EXECUTABLE = "unused-qemu";
+  private static final String UNUSED_KVM_DEVICE = "unused-kvm";
+
   @Test
   void shouldDisableAddressReuseBeforeProbingEvenWhenTheSocketInitiallyEnablesIt() throws IOException {
     // ServerSocket's API explicitly leaves the initial SO_REUSEADDR setting undefined. Model its allowed true case.
@@ -67,8 +70,8 @@ final class VmProcessPortProbeTest {
       ) {
         final VmSettings display = VmSettings.of(5905, 320, 240, 15);
         final VmConfiguration configuration = VmConfiguration.builder();
-        final Path executable = Path.of("unused-qemu");
-        final Path kvm = Path.of("unused-kvm");
+        final Path executable = Path.of(UNUSED_EXECUTABLE);
+        final Path kvm = Path.of(UNUSED_KVM_DEVICE);
         final VmProcess.Launcher launcher = _ -> {
           throw new AssertionError("QEMU must not launch after the port probe fails!");
         };

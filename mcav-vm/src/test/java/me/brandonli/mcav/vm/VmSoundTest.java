@@ -63,6 +63,26 @@ final class VmSoundTest {
   private static final int MINIMUM_MATCHED = 10;
   private static final int WINDOW_FRAMES = AudioFilter.SAMPLE_RATE / 200;
 
+  private static final String GUESTS_FOLDER = "/guests/";
+  private static final String BEEP_IMAGE = "beep.img";
+  private static final String TOGGLE_IMAGE = "toggle.img";
+
+  private static final int WIDTH = 320;
+  private static final int HEIGHT = 200;
+
+  private static final double TONE_SHARE = 0.5;
+
+  private static final long MATCH_WINDOW_MILLISECONDS = 165L;
+
+  private static final int TIGHT_LEAD_MILLISECONDS = 40;
+  private static final int TIGHT_LAG_MILLISECONDS = 80;
+
+  // ITU-R BT.1359: sound may lead the picture by 90 ms and lag it by 185 ms before viewers find it unacceptable
+  private static final int ACCEPTABLE_LEAD_MILLISECONDS = 90;
+  private static final int ACCEPTABLE_LAG_MILLISECONDS = 185;
+
+  private static final double IN_SYNC_SHARE = 0.9;
+
   @TempDir
   private Path directory;
 
@@ -74,7 +94,7 @@ final class VmSoundTest {
   private Path bootSector(final String name) throws IOException {
     final Path image = this.directory.resolve(name);
     final String message = "Guest image %s is missing from the test resources!".formatted(name);
-    try (final InputStream resource = Objects.requireNonNull(VmSoundTest.class.getResourceAsStream("/guests/" + name), message)) {
+    try (final InputStream resource = Objects.requireNonNull(VmSoundTest.class.getResourceAsStream(GUESTS_FOLDER + name), message)) {
       Files.copy(resource, image);
     }
     return image;
@@ -159,8 +179,8 @@ final class VmSoundTest {
     );
     try {
       final int port = FreePorts.find();
-      final VmSettings settings = VmSettings.of(port, 320, 200, 10);
-      final boolean started = player.start(settings, VmPlayer.Architecture.X86_64, floppy(this.bootSector("beep.img")));
+      final VmSettings settings = VmSettings.of(port, WIDTH, HEIGHT, 10);
+      final boolean started = player.start(settings, VmPlayer.Architecture.X86_64, floppy(this.bootSector(BEEP_IMAGE)));
       assertTrue(started);
       final int twoSeconds = 2 * AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE;
       waitUntil("two seconds of sound", 60, () -> {
@@ -190,7 +210,7 @@ final class VmSoundTest {
     int toneWindows = 0;
     final int windows = AudioFilter.SAMPLE_RATE / WINDOW_FRAMES;
     for (int window = 0; window < windows; window++) {
-      if (toneShare(left, start + window * WINDOW_FRAMES, WINDOW_FRAMES) > 0.5) {
+      if (toneShare(left, start + window * WINDOW_FRAMES, WINDOW_FRAMES) > TONE_SHARE) {
         toneWindows++;
       }
     }
@@ -216,7 +236,7 @@ final class VmSoundTest {
         final short[] left = leftChannel(copy);
         final int windows = left.length / WINDOW_FRAMES;
         for (int window = 0; window < windows; window++) {
-          final boolean hasTone = toneShare(left, window * WINDOW_FRAMES, WINDOW_FRAMES) > 0.5;
+          final boolean hasTone = toneShare(left, window * WINDOW_FRAMES, WINDOW_FRAMES) > TONE_SHARE;
           final long end = (long) (window + 1) * WINDOW_FRAMES;
           final long before = TimeUnit.SECONDS.toNanos(left.length - end) / AudioFilter.SAMPLE_RATE;
           sound.add(new long[] { arrival - before, hasTone ? 1 : 0 });
@@ -237,14 +257,14 @@ final class VmSoundTest {
     );
     try {
       final int port = FreePorts.find();
-      final VmSettings settings = VmSettings.of(port, 320, 200, 60);
-      final boolean started = player.start(settings, VmPlayer.Architecture.X86_64, floppy(this.bootSector("toggle.img")));
+      final VmSettings settings = VmSettings.of(port, WIDTH, HEIGHT, 60);
+      final boolean started = player.start(settings, VmPlayer.Architecture.X86_64, floppy(this.bootSector(TOGGLE_IMAGE)));
       assertTrue(started);
       waitUntil("20 seconds of sound", 90, () -> sound.size() >= 20 * 200);
     } finally {
       player.release();
     }
-    final long matchWindow = TimeUnit.MILLISECONDS.toNanos(165);
+    final long matchWindow = TimeUnit.MILLISECONDS.toNanos(MATCH_WINDOW_MILLISECONDS);
     final SyncJudgement judgement = SyncJudgement.of(onsets(picture), onsets(sound), matchWindow);
     final List<Double> offsets = judgement.offsets();
     final int changes = judgement.changes();
@@ -253,7 +273,7 @@ final class VmSoundTest {
     final int half = offsets.size() / 2;
     final double firstHalf = median(offsets.subList(0, half));
     final double secondHalf = median(offsets.subList(half, offsets.size()));
-    final long within = judgement.within(-40, 80);
+    final long within = judgement.within(-TIGHT_LEAD_MILLISECONDS, TIGHT_LAG_MILLISECONDS);
     System.out.printf(
       Locale.ROOT,
       "A/V sync: %d changes matched of %d, sound minus picture: median %.1f ms, p5 %.1f ms, p95 %.1f ms, %d within [-40, +80] ms; first half %.1f ms, second half %.1f ms%n",
@@ -266,8 +286,7 @@ final class VmSoundTest {
       firstHalf,
       secondHalf
     );
-    // ITU-R BT.1359: sound may lead the picture by 90 ms and lag it by 185 ms before viewers find it unacceptable
-    final long acceptable = judgement.within(-90, 185);
+    final long acceptable = judgement.within(-ACCEPTABLE_LEAD_MILLISECONDS, ACCEPTABLE_LAG_MILLISECONDS);
     System.out.printf(Locale.ROOT, "A/V sync: %d of %d within ITU-R BT.1359 acceptability [-90, +185] ms%n", acceptable, changes);
     assertInSync(judgement);
   }
@@ -282,15 +301,15 @@ final class VmSoundTest {
     final List<Double> offsets = judgement.offsets();
     final int changes = judgement.changes();
     final boolean enoughMatched = offsets.size() >= MINIMUM_MATCHED;
-    final boolean nearlyAllMatched = offsets.size() >= Math.ceil(changes * 0.9);
+    final boolean nearlyAllMatched = offsets.size() >= Math.ceil(changes * IN_SYNC_SHARE);
     assertTrue(enoughMatched, "matched " + offsets.size() + " changes of the picture, fewer than " + MINIMUM_MATCHED);
     assertTrue(nearlyAllMatched, "matched " + offsets.size() + " of " + changes + " changes of the picture");
     final List<Double> sorted = new ArrayList<>(offsets);
     Collections.sort(sorted);
     final boolean togetherInTheMiddle = Math.abs(median(sorted)) <= 40;
     assertTrue(togetherInTheMiddle, "the sound and the picture arrive together in the middle");
-    final long acceptable = judgement.within(-90, 185);
-    final boolean nearlyAllInSync = acceptable >= Math.ceil(changes * 0.9);
+    final long acceptable = judgement.within(-ACCEPTABLE_LEAD_MILLISECONDS, ACCEPTABLE_LAG_MILLISECONDS);
+    final boolean nearlyAllInSync = acceptable >= Math.ceil(changes * IN_SYNC_SHARE);
     assertTrue(nearlyAllInSync, acceptable + " of " + changes + " changes are in sync");
     final int half = offsets.size() / 2;
     final double drift = median(offsets.subList(half, offsets.size())) - median(offsets.subList(0, half));
@@ -342,17 +361,18 @@ final class VmSoundTest {
       picture.add(shown);
       sound.add(shown + TimeUnit.MILLISECONDS.toNanos(change < 10 ? 20 : 300));
     }
-    final SyncJudgement late = SyncJudgement.of(picture, sound, TimeUnit.MILLISECONDS.toNanos(165));
+    final SyncJudgement late = SyncJudgement.of(picture, sound, TimeUnit.MILLISECONDS.toNanos(MATCH_WINDOW_MILLISECONDS));
     final int lateChanges = late.changes();
-    final boolean tooFewInSync = late.within(-90, 185) < Math.ceil(late.changes() * 0.9);
+    final boolean tooFewInSync =
+      late.within(-ACCEPTABLE_LEAD_MILLISECONDS, ACCEPTABLE_LAG_MILLISECONDS) < Math.ceil(late.changes() * IN_SYNC_SHARE);
     assertEquals(50, lateChanges);
     assertTrue(tooFewInSync, "40 of 50 changes 300 ms late are not in sync");
     final List<Long> onTime = picture
       .stream()
       .map(shown -> shown + TimeUnit.MILLISECONDS.toNanos(20))
       .toList();
-    final SyncJudgement inSync = SyncJudgement.of(picture, onTime, TimeUnit.MILLISECONDS.toNanos(165));
-    final long onTimeWithin = inSync.within(-40, 80);
+    final SyncJudgement inSync = SyncJudgement.of(picture, onTime, TimeUnit.MILLISECONDS.toNanos(MATCH_WINDOW_MILLISECONDS));
+    final long onTimeWithin = inSync.within(-TIGHT_LEAD_MILLISECONDS, TIGHT_LAG_MILLISECONDS);
     assertEquals(50, onTimeWithin);
     assertInSync(inSync);
     assertThrows(AssertionFailedError.class, () -> assertInSync(late));
@@ -361,8 +381,8 @@ final class VmSoundTest {
       .stream()
       .map(shown -> shown + TimeUnit.MILLISECONDS.toNanos(20))
       .toList();
-    final SyncJudgement undersampled = SyncJudgement.of(twice, twiceHeard, TimeUnit.MILLISECONDS.toNanos(165));
-    final long undersampledWithin = undersampled.within(-90, 185);
+    final SyncJudgement undersampled = SyncJudgement.of(twice, twiceHeard, TimeUnit.MILLISECONDS.toNanos(MATCH_WINDOW_MILLISECONDS));
+    final long undersampledWithin = undersampled.within(-ACCEPTABLE_LEAD_MILLISECONDS, ACCEPTABLE_LAG_MILLISECONDS);
     assertEquals(2, undersampledWithin);
     assertThrows(AssertionFailedError.class, () -> assertInSync(undersampled));
   }
