@@ -82,9 +82,9 @@ namespace {
 constexpr struct {
   const char* name;
   int32_t bit;
-} KNOWN[] = {{"scalar", MCV2_LEVEL_SCALAR}, {"sse2", MCV2_LEVEL_SSE2},     {"sse41", MCV2_LEVEL_SSE41},
-             {"avx2", MCV2_LEVEL_AVX2},     {"avx512", MCV2_LEVEL_AVX512}, {"neon", MCV2_LEVEL_NEON},
-             {"sve256", MCV2_LEVEL_SVE256}, {"sve512", MCV2_LEVEL_SVE512}};
+} KNOWN_LEVELS[] = {{"scalar", MCV2_LEVEL_SCALAR}, {"sse2", MCV2_LEVEL_SSE2},     {"sse41", MCV2_LEVEL_SSE41},
+                    {"avx2", MCV2_LEVEL_AVX2},     {"avx512", MCV2_LEVEL_AVX512}, {"neon", MCV2_LEVEL_NEON},
+                    {"sve256", MCV2_LEVEL_SVE256}, {"sve512", MCV2_LEVEL_SVE512}};
 
 int64_t kernel_capabilities() {
 #if defined(__aarch64__) && defined(__linux__)
@@ -327,9 +327,9 @@ void run(const vector<Level>& levels, int trials) {
   printf("%-16s %016llx\n", "all", (unsigned long long)total.value);
 }
 
-const char* best(int32_t available) {
+const char* best_level_name(int32_t available) {
   const char* name = "none";
-  for (const auto& level : KNOWN) {
+  for (const auto& level : KNOWN_LEVELS) {
     if (available & level.bit) {
       name = level.name;
     }
@@ -363,7 +363,7 @@ int main(int argument_count, char** arguments) {
 #endif
   };
   for (const Level& level : linked) {
-    for (const auto& candidate : KNOWN) {
+    for (const auto& candidate : KNOWN_LEVELS) {
       if (strcmp(candidate.name, level.name) == 0 && (available & candidate.bit)) {
         levels.push_back(level);
       }
@@ -380,7 +380,7 @@ int main(int argument_count, char** arguments) {
     return 2;
   }
   const int32_t available = ((int32_t(*)(int64_t))dlsym(library, "mcv2_cpu_levels"))(kernel_capabilities());
-  for (const auto& candidate : KNOWN) {
+  for (const auto& candidate : KNOWN_LEVELS) {
     if (!(available & candidate.bit)) {
       continue;
     }
@@ -402,9 +402,9 @@ int main(int argument_count, char** arguments) {
   for (const Level& level : levels) {
     printf(" %s", level.name);
   }
-  printf("\ndispatched: %s\n", best(available));
-  if (expected != nullptr && strcmp(expected, best(available)) != 0) {
-    fprintf(stderr, "expected the %s level, the dispatcher takes %s\n", expected, best(available));
+  printf("\ndispatched: %s\n", best_level_name(available));
+  if (expected != nullptr && strcmp(expected, best_level_name(available)) != 0) {
+    fprintf(stderr, "expected the %s level, the dispatcher takes %s\n", expected, best_level_name(available));
     return 1;
   }
   run(levels, 400);
