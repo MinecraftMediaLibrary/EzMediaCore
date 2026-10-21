@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -477,7 +478,9 @@ public final class VirtualizeCommand extends AbstractInteractiveCommand<VmPlayer
    */
   static VmConfiguration parseOptions(final String commandLine, final Path imageFolder, final long maxMemoryBytes) {
     final VmConfiguration configuration = parseAllowedOptions(commandLine, imageFolder);
-    final String memory = Objects.requireNonNullElse(configuration.get("m"), "128");
+    final Optional<String> requestedMemory = configuration.find("m");
+    final @Nullable String requestedValue = requestedMemory.orElse(null);
+    final String memory = Objects.requireNonNullElse(requestedValue, "128");
     final long requested = QemuHardwareValues.memoryBytes(memory);
     if (requested > maxMemoryBytes) {
       throw new IllegalArgumentException(

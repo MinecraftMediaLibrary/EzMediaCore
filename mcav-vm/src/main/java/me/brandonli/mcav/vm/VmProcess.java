@@ -100,8 +100,8 @@ final class VmProcess {
   private static final String SECRET_FOLDER_PREFIX = "mcav-vm-";
   private static final Path TEMPORARY_FOLDER = Path.of(System.getProperty("java.io.tmpdir"));
   private static final String POSIX_ATTRIBUTE_VIEW = "posix";
-  private static final boolean POSIX;
-  private static final FileAttribute<Set<PosixFilePermission>> OWNER_ONLY = PosixFilePermissions.asFileAttribute(
+  private static final FolderAccess SECRET_FOLDER_ACCESS;
+  private static final FileAttribute<Set<PosixFilePermission>> OWNER_ONLY_PERMISSIONS = PosixFilePermissions.asFileAttribute(
     PosixFilePermissions.fromString("rwx------")
   );
 
@@ -165,7 +165,7 @@ final class VmProcess {
   static {
     final FileSystem fileSystem = FileSystems.getDefault();
     final Set<String> views = fileSystem.supportedFileAttributeViews();
-    POSIX = views.contains(POSIX_ATTRIBUTE_VIEW);
+    SECRET_FOLDER_ACCESS = chooseSecretFolderAccess(views);
   }
 
   private final VmSettings settings;
@@ -278,7 +278,7 @@ final class VmProcess {
       currentOs,
       KVM_DEVICE,
       START_TIMEOUT_MILLISECONDS,
-      () -> createSecretFolder(TEMPORARY_FOLDER, POSIX)
+      () -> createSecretFolder(TEMPORARY_FOLDER, SECRET_FOLDER_ACCESS)
     );
   }
 
@@ -294,22 +294,27 @@ final class VmProcess {
     return password.toString();
   }
 
+  @VisibleForTesting
+  static FolderAccess chooseSecretFolderAccess(final Set<String> attributeViews) {
+    final boolean posix = attributeViews.contains(POSIX_ATTRIBUTE_VIEW);
+    return posix ? FolderAccess.OWNER_ONLY : FolderAccess.INHERITED;
+  }
+
   /**
    * Creates an empty folder that only the server's user can open. A file system without POSIX permissions is Windows,
    * whose temporary folder of a user is private to that user already.
    *
    * @param parent the folder to create it in
-   * @param posix  whether the file system has POSIX permissions
+   * @param access how the folder is kept private
    * @return the folder
    * @throws IOException if it cannot be created
    */
   @VisibleForTesting
-  static Path createSecretFolder(final Path parent, final boolean posix) throws IOException {
-    if (posix) {
-      return Files.createTempDirectory(parent, SECRET_FOLDER_PREFIX, OWNER_ONLY);
-    }
-
-    return Files.createTempDirectory(parent, SECRET_FOLDER_PREFIX);
+  static Path createSecretFolder(final Path parent, final FolderAccess access) throws IOException {
+    return switch (access) {
+      case OWNER_ONLY -> Files.createTempDirectory(parent, SECRET_FOLDER_PREFIX, OWNER_ONLY_PERMISSIONS);
+      case INHERITED -> Files.createTempDirectory(parent, SECRET_FOLDER_PREFIX);
+    };
   }
 
   /**
@@ -1006,6 +1011,11 @@ final class VmProcess {
      * @throws IOException if it cannot be created
      */
     Path create() throws IOException;
+  }
+
+  enum FolderAccess {
+    OWNER_ONLY,
+    INHERITED,
   }
 
   /**

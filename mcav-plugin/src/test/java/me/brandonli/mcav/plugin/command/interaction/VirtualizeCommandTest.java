@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.RejectedExecutionException;
@@ -808,7 +809,7 @@ final class VirtualizeCommandTest {
     );
     assertEquals("The QEMU option -m 64G asks for more memory than a machine may have on this server, 4096 MiB", failure.getMessage());
     assertThrows(IllegalArgumentException.class, () -> VirtualizeCommand.parseOptions("-m size=5G,slots=2", this.imageFolder, limit));
-    assertEquals("4G", VirtualizeCommand.parseOptions("-m 4G", this.imageFolder, limit).get("m"));
+    assertEquals(Optional.of("4G"), VirtualizeCommand.parseOptions("-m 4G", this.imageFolder, limit).find("m"));
     assertEquals(List.of(), VirtualizeCommand.parseOptions("", this.imageFolder, limit).getArguments(), "QEMU's default of 128 MiB");
   }
 

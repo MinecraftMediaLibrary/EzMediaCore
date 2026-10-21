@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.Objects;
 import me.brandonli.mcav.vm.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -111,7 +112,7 @@ final class VmSettingsTest {
   void shouldBuildTheHashCodeFromEveryValueInOrder() {
     final VmSettings settings = VmSettings.of(PORT, WIDTH, HEIGHT, FRAME_RATE);
     final int hash = settings.hashCode();
-    final int expected = ((PORT * 31 + WIDTH) * 31 + HEIGHT) * 31 + FRAME_RATE;
+    final int expected = Objects.hash(PORT, WIDTH, HEIGHT, FRAME_RATE);
     assertEquals(expected, hash);
   }
 
@@ -137,6 +138,6 @@ final class VmSettingsTest {
   void shouldDescribeItself() {
     final VmSettings settings = VmSettings.of(PORT, WIDTH, HEIGHT, FRAME_RATE);
     final String text = settings.toString();
-    assertEquals("VmSettings[port=5901, 640x480@30]", text);
+    assertEquals("VmSettings{port=5901, width=640, height=480, targetFrameRate=30}", text);
   }
 }

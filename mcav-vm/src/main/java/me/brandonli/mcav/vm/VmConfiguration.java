@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -440,13 +441,14 @@ public final class VmConfiguration {
    * Returns the value of an option. Repeatable options are read with {@link #getAll(String)}.
    *
    * @param key the option name without the leading dash
-   * @return the value, or null if the option is not set
+   * @return the value, or empty if the option is not set
    * @throws NullPointerException if {@code key} is null
    */
-  public @Nullable String get(final String key) {
+  public Optional<String> find(final String key) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
 
-    return this.options.get(key);
+    final @Nullable String value = this.options.get(key);
+    return Optional.ofNullable(value);
   }
 
   /**

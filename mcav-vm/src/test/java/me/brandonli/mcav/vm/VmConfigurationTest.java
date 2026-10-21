@@ -21,12 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.Test;
 
@@ -131,8 +131,9 @@ final class VmConfigurationTest {
   void shouldSetMemoryWithAUnit() {
     final VmConfiguration configuration = VmConfiguration.builder();
     configuration.memory(2, GIGABYTES);
-    final String memory = configuration.get(MEMORY_OPTION);
-    assertEquals("2G", memory);
+    final Optional<String> memory = configuration.find(MEMORY_OPTION);
+    final Optional<String> expected = Optional.of("2G");
+    assertEquals(expected, memory);
   }
 
   @Test
@@ -198,16 +199,18 @@ final class VmConfigurationTest {
     final boolean hasSnapshot = configuration.has(SNAPSHOT_FLAG);
     final boolean hasDevice = configuration.has(DEVICE_OPTION);
     final boolean hasMemory = configuration.has(MEMORY_OPTION);
-    final String cdrom = configuration.get(CDROM_OPTION);
-    final String snapshot = configuration.get(SNAPSHOT_FLAG);
-    final String memory = configuration.get(MEMORY_OPTION);
+    final Optional<String> cdrom = configuration.find(CDROM_OPTION);
+    final Optional<String> snapshot = configuration.find(SNAPSHOT_FLAG);
+    final Optional<String> memory = configuration.find(MEMORY_OPTION);
+    final Optional<String> expectedCdrom = Optional.of(CDROM_IMAGE);
+    final Optional<String> nothing = Optional.empty();
     assertTrue(hasCdrom);
     assertTrue(hasSnapshot);
     assertTrue(hasDevice);
     assertFalse(hasMemory);
-    assertEquals(CDROM_IMAGE, cdrom);
-    assertNull(snapshot);
-    assertNull(memory);
+    assertEquals(expectedCdrom, cdrom);
+    assertEquals(nothing, snapshot);
+    assertEquals(nothing, memory);
   }
 
   @Test
@@ -220,14 +223,15 @@ final class VmConfigurationTest {
     final List<String> devices = configuration.getAll(DEVICE_OPTION);
     final List<String> drives = configuration.getAll(DRIVE_OPTION);
     final List<String> none = configuration.getAll("chardev");
-    final String single = configuration.get(DEVICE_OPTION);
+    final Optional<String> single = configuration.find(DEVICE_OPTION);
+    final Optional<String> expectedSingle = Optional.of("not-repeatable");
     final List<String> expectedDevices = List.of(TABLET_DEVICE, NETWORK_DEVICE);
     final List<String> expectedDrives = List.of(DISK_DRIVE);
     final boolean noneIsEmpty = none.isEmpty();
     assertEquals(expectedDevices, devices);
     assertEquals(expectedDrives, drives);
     assertTrue(noneIsEmpty);
-    assertEquals("not-repeatable", single);
+    assertEquals(expectedSingle, single);
     assertThrows(UnsupportedOperationException.class, devices::clear);
     assertThrows(NullPointerException.class, () -> configuration.getAll(null));
   }
@@ -347,7 +351,7 @@ final class VmConfigurationTest {
     assertThrows(IllegalArgumentException.class, () -> configuration.flag(" "));
     assertThrows(NullPointerException.class, () -> configuration.remove(null));
     assertThrows(NullPointerException.class, () -> configuration.has(null));
-    assertThrows(NullPointerException.class, () -> configuration.get(null));
+    assertThrows(NullPointerException.class, () -> configuration.find(null));
 
     final List<String> arguments = configuration.getArguments();
     final boolean argumentsIsEmpty = arguments.isEmpty();

@@ -17,7 +17,9 @@
  */
 package me.brandonli.mcav.vm;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import java.util.Objects;
 import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -137,15 +139,16 @@ public final class VmSettings {
 
   @Override
   public int hashCode() {
-    int result = this.port;
-    result = result * 31 + this.width;
-    result = result * 31 + this.height;
-    result = result * 31 + this.targetFrameRate;
-    return result;
+    return Objects.hash(this.port, this.width, this.height, this.targetFrameRate);
   }
 
   @Override
   public String toString() {
-    return "VmSettings[port=" + this.port + ", " + this.width + "x" + this.height + "@" + this.targetFrameRate + "]";
+    return MoreObjects.toStringHelper(this)
+      .add("port", this.port)
+      .add("width", this.width)
+      .add("height", this.height)
+      .add("targetFrameRate", this.targetFrameRate)
+      .toString();
   }
 }

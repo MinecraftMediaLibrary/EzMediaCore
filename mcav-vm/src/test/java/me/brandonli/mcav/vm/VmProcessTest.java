@@ -583,24 +583,33 @@ final class VmProcessTest {
     final Map<String, String> posixZip = Map.of("create", "true", "enablePosixFileAttributes", "true");
     try (final FileSystem zipped = FileSystems.newFileSystem(this.directory.resolve(ZIP_FILE), posixZip)) {
       // Windows' own file system has no POSIX permissions (VmProcess asks for them only where it has), so there the
-      // POSIX branch makes its folder in the zip file system, which has them
+      // owner-only branch makes its folder in the zip file system, which has them
       final FileSystem fileSystem = this.directory.getFileSystem();
       final Set<String> views = fileSystem.supportedFileAttributeViews();
       final boolean posixHere = views.contains("posix");
-      final Path posix = VmProcess.createSecretFolder(posixHere ? this.directory : zipped.getPath(ZIP_ROOT), true);
+      final Path posix = VmProcess.createSecretFolder(
+        posixHere ? this.directory : zipped.getPath(ZIP_ROOT),
+        VmProcess.FolderAccess.OWNER_ONLY
+      );
       final String permissions = PosixFilePermissions.toString(Files.getPosixFilePermissions(posix));
       assertEquals("rwx------", permissions);
 
-      final Path windows = VmProcess.createSecretFolder(this.directory, false);
+      final Path windows = VmProcess.createSecretFolder(this.directory, VmProcess.FolderAccess.INHERITED);
       final boolean windowsFolderMade = Files.isDirectory(windows);
       final boolean sameFolder = posix.equals(windows);
       assertTrue(windowsFolderMade);
       assertFalse(sameFolder, "a folder of its own for every start");
 
-      final Path zippedFolder = VmProcess.createSecretFolder(zipped.getPath(ZIP_ROOT), true);
+      final Path zippedFolder = VmProcess.createSecretFolder(zipped.getPath(ZIP_ROOT), VmProcess.FolderAccess.OWNER_ONLY);
       final String zippedPermissions = PosixFilePermissions.toString(Files.getPosixFilePermissions(zippedFolder));
       assertEquals("rwx------", zippedPermissions);
     }
+  }
+
+  @Test
+  void shouldLetThePasswordFolderInheritItsAccessWithoutPosixPermissions() {
+    final VmProcess.FolderAccess access = VmProcess.chooseSecretFolderAccess(Set.of("acl", "basic", "dos", "owner", "user"));
+    assertEquals(VmProcess.FolderAccess.INHERITED, access);
   }
 
   @Test
