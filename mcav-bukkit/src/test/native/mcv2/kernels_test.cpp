@@ -37,7 +37,7 @@ using std::vector;
 
 namespace {
 
-struct Level {
+struct level_kernels {
   const char* name;
 #define MCV2_FIELD(type, name, parameters) type(*name) parameters;
   MCV2_KERNELS(MCV2_FIELD)
@@ -79,12 +79,15 @@ MCV2_DECLARE_LEVEL(sve512)
 namespace {
 #endif
 
-constexpr struct {
+struct known_level {
   const char* name;
   int32_t bit;
-} KNOWN_LEVELS[] = {{"scalar", MCV2_LEVEL_SCALAR}, {"sse2", MCV2_LEVEL_SSE2},     {"sse41", MCV2_LEVEL_SSE41},
-                    {"avx2", MCV2_LEVEL_AVX2},     {"avx512", MCV2_LEVEL_AVX512}, {"neon", MCV2_LEVEL_NEON},
-                    {"sve256", MCV2_LEVEL_SVE256}, {"sve512", MCV2_LEVEL_SVE512}};
+};
+
+constexpr known_level KNOWN_LEVELS[] = {{"scalar", MCV2_LEVEL_SCALAR}, {"sse2", MCV2_LEVEL_SSE2},
+                                        {"sse41", MCV2_LEVEL_SSE41},   {"avx2", MCV2_LEVEL_AVX2},
+                                        {"avx512", MCV2_LEVEL_AVX512}, {"neon", MCV2_LEVEL_NEON},
+                                        {"sve256", MCV2_LEVEL_SVE256}, {"sve512", MCV2_LEVEL_SVE512}};
 
 int64_t kernel_capabilities() {
 #if defined(__aarch64__) && defined(__linux__)
@@ -94,7 +97,7 @@ int64_t kernel_capabilities() {
 #endif
 }
 
-struct Random {
+struct random_generator {
   uint64_t state;
   uint64_t next() {
     uint64_t mixed_value = (state += 0x9E3779B97F4A7C15ull);
@@ -148,7 +151,7 @@ struct Random {
   }
 };
 
-struct Digest {
+struct fnv_digest {
   uint64_t value = 0xCBF29CE484222325ull;
   void add(const void* data, size_t length) {
     const uint8_t* bytes = (const uint8_t*)data;
@@ -172,20 +175,20 @@ template <class ValueType> bool same(const vector<ValueType>& actual, const vect
          (actual.empty() || memcmp(actual.data(), expected.data(), actual.size() * sizeof(ValueType)) == 0);
 }
 
-void report(bool equal, const char* kernel, const Level& level, int trial) {
+void report(bool equal, const char* kernel, const level_kernels& level, int trial) {
   if (!equal && failures++ < 20) {
     fprintf(stderr, "%s differs at %s, trial %d\n", kernel, level.name, trial);
   }
 }
 
-void run(const vector<Level>& levels, int trials) {
-  const Level& scalar = levels[0];
+void run(const vector<level_kernels>& levels, int trials) {
+  const level_kernels& scalar = levels[0];
   const char* names[] = {"predicted", "solid",  "palette",     "compact", "predict",        "fit", "cluster", "assign",
                          "pattern",   "seeded", "load_source", "halve",   "residual_target"};
-  Digest total;
+  fnv_digest total;
   for (int kernel = 0; kernel < 13; kernel++) {
-    Random random{0x6D637632ull * (kernel + 1)};
-    Digest digest;
+    random_generator random{0x6D637632ull * (kernel + 1)};
+    fnv_digest digest;
     for (int trial = 0; trial < trials; trial++) {
       const int32_t size = 8 << random.range(0, 2);
       const size_t channels = (size_t)size * size * 3;
@@ -193,8 +196,8 @@ void run(const vector<Level>& levels, int trials) {
       const vector<int32_t> prediction = random.integers(channels, 0, 255);
       const double rate = random.range(0, 100000) / 7.0;
       const double limit = random.range(0, 3) == 0 ? INFINITY : rate + random.range(0, size * size * 3000);
-      for (const Level& level : levels) {
-        Random inputs = random;
+      for (const level_kernels& level : levels) {
+        random_generator inputs = random;
         vector<int32_t> output(channels, 0);
         int64_t measured = 0;
         vector<int32_t> integers;
@@ -339,7 +342,7 @@ const char* best_level_name(int32_t available) {
 }
 
 int main(int argument_count, char** arguments) {
-  vector<Level> levels;
+  vector<level_kernels> levels;
 
   const char* expected = nullptr;
   if (argument_count > 1 && strncmp(arguments[argument_count - 1], "expect=", 7) == 0) {
@@ -351,7 +354,7 @@ int main(int argument_count, char** arguments) {
     return 2;
   }
   const int32_t available = mcv2_cpu_levels(kernel_capabilities());
-  const Level linked[] = {
+  const level_kernels linked[] = {
       {"scalar", MCV2_KERNELS(MCV2_ENTRY_scalar)},
 #if defined(__x86_64__)
       {"sse2", MCV2_KERNELS(MCV2_ENTRY_sse2)},     {"sse41", MCV2_KERNELS(MCV2_ENTRY_sse41)},
@@ -362,7 +365,7 @@ int main(int argument_count, char** arguments) {
       {"sve512", MCV2_KERNELS(MCV2_ENTRY_sve512)},
 #endif
   };
-  for (const Level& level : linked) {
+  for (const level_kernels& level : linked) {
     for (const auto& candidate : KNOWN_LEVELS) {
       if (strcmp(candidate.name, level.name) == 0 && (available & candidate.bit)) {
         levels.push_back(level);
@@ -384,7 +387,7 @@ int main(int argument_count, char** arguments) {
     if (!(available & candidate.bit)) {
       continue;
     }
-    Level level{};
+    level_kernels level{};
     level.name = candidate.name;
     char symbol[64];
 #define MCV2_LOAD(type, kernel, parameters)                                                                            \
@@ -399,7 +402,7 @@ int main(int argument_count, char** arguments) {
   }
 #endif
   printf("levels:");
-  for (const Level& level : levels) {
+  for (const level_kernels& level : levels) {
     printf(" %s", level.name);
   }
   printf("\ndispatched: %s\n", best_level_name(available));
