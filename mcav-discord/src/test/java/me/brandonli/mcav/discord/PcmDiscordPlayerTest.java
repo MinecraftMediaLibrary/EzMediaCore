@@ -49,9 +49,9 @@ import org.mockito.Mockito;
 import org.mockito.verification.VerificationMode;
 
 /**
- * Tests {@link DiscordPlayerImpl} and the {@link DiscordPlayer} factory.
+ * Tests {@link PcmDiscordPlayer} and the {@link DiscordPlayer} factory.
  */
-final class DiscordPlayerImplTest {
+final class PcmDiscordPlayerTest {
 
   private static final int FRAME_BYTES = 3840;
   private static final int MAXIMUM_FRAMES = 150;
@@ -62,9 +62,9 @@ final class DiscordPlayerImplTest {
   private final Presence presence = Mockito.mock(Presence.class);
   private final OriginalAudioMetadata metadata = Mockito.mock(OriginalAudioMetadata.class);
 
-  private DiscordPlayerImpl createPlayer() {
+  private PcmDiscordPlayer createPlayer() {
     Mockito.when(this.jda.getPresence()).thenReturn(this.presence);
-    return new DiscordPlayerImpl(this.jda);
+    return new PcmDiscordPlayer(this.jda);
   }
 
   private static ByteBuffer filledBuffer(final int size, final byte value) {
@@ -123,20 +123,20 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldHoldTwentyMillisecondsOfStereoSixteenBitAudioInAFrame() {
-    final int frameBytes = DiscordPlayerImpl.FRAME_BYTES;
+    final int frameBytes = PcmDiscordPlayer.FRAME_BYTES;
     assertEquals(FRAME_BYTES, frameBytes);
   }
 
   @Test
   void shouldCreateTheDefaultPlayerAndRejectNull() {
     final DiscordPlayer player = DiscordPlayer.voice(this.jda);
-    assertInstanceOf(DiscordPlayerImpl.class, player);
+    assertInstanceOf(PcmDiscordPlayer.class, player);
     assertThrows(NullPointerException.class, () -> DiscordPlayer.voice(null));
   }
 
   @Test
   void shouldStartEmptyAndSendPcmRatherThanOpus() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final boolean canProvide = player.canProvide();
     final ByteBuffer frame = player.provide20MsAudio();
     final long queued = player.getQueuedMilliseconds();
@@ -149,7 +149,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldConvertLittleEndianSamplesToBigEndianFrames() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final ByteBuffer samples = ByteBuffer.allocate(FRAME_BYTES);
     samples.order(ByteOrder.LITTLE_ENDIAN);
     final int sampleCount = FRAME_BYTES / Short.BYTES;
@@ -175,7 +175,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldTreatSamplesAsLittleEndianWhateverOrderTheBufferReports() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final ByteBuffer samples = ByteBuffer.allocate(FRAME_BYTES);
     samples.order(ByteOrder.LITTLE_ENDIAN);
     final int sampleCount = FRAME_BYTES / Short.BYTES;
@@ -201,7 +201,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldStripSurroundingWhitespaceFromTheTitle() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     player.setPlaying("  \t Song \n");
     final String name = this.shownActivityName();
     assertEquals("Song", name);
@@ -209,7 +209,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldShowUnknownTitleForBlankTitles() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final List<String> blanks = List.of("", "   ", "\n\t");
     for (final String blank : blanks) {
       player.setPlaying(blank);
@@ -220,7 +220,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldKeepTitlesOfExactlyTheMaximumLength() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final String title = "a".repeat(128);
     player.setPlaying("  " + title + "  ");
     final String name = this.shownActivityName();
@@ -231,7 +231,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldCutTitlesLongerThanTheMaximumLengthAndEndThemWithAnEllipsis() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final StringBuilder builder = new StringBuilder();
     for (int index = 0; index < 300; index++) {
       builder.append((char) ('a' + (index % 26)));
@@ -254,7 +254,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldCutLongTitlesWithoutSplittingAnEmoji() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final String emoji = "😀";
     final String tail = "b".repeat(10);
     final String splitPrefix = "a".repeat(126);
@@ -272,7 +272,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldCollectPartialInputUntilAFrameIsComplete() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final ByteBuffer first = filledBuffer(1000, (byte) 1);
     player.applyFilter(first, this.metadata);
     final boolean providesAfterFirst = player.canProvide();
@@ -298,7 +298,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldSplitLargeInputIntoSeveralFrames() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final ByteBuffer samples = filledBuffer(FRAME_BYTES * 3 + 10, (byte) 7);
     player.applyFilter(samples, this.metadata);
     final long queued = player.getQueuedMilliseconds();
@@ -315,7 +315,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldDropTheOldestFramesWhenThreeSecondsAreQueued() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     for (int index = 0; index < MAXIMUM_FRAMES + 2; index++) {
       final ByteBuffer frame = filledBuffer(FRAME_BYTES, (byte) index);
       player.applyFilter(frame, this.metadata);
@@ -333,7 +333,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldDropQueuedFramesAndThePartialFrameOnFlush() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final ByteBuffer frames = filledBuffer(FRAME_BYTES * 2 + 500, (byte) 5);
     player.applyFilter(frames, this.metadata);
     player.flush();
@@ -358,7 +358,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldAcceptEmptyInput() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final ByteBuffer empty = ByteBuffer.allocate(0);
     final boolean changed = player.applyFilter(empty, this.metadata);
     final boolean canProvide = player.canProvide();
@@ -368,7 +368,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldRejectNullSamplesAndMetadata() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final ByteBuffer samples = ByteBuffer.allocate(FRAME_BYTES);
     assertThrows(NullPointerException.class, () -> player.applyFilter(null, this.metadata));
     assertThrows(NullPointerException.class, () -> player.applyFilter(samples, null));
@@ -379,7 +379,7 @@ final class DiscordPlayerImplTest {
   /**
    * Lets several threads apply frames at the same time, each frame filled with the index of its thread.
    */
-  private void produceConcurrently(final DiscordPlayerImpl player) throws Exception {
+  private void produceConcurrently(final PcmDiscordPlayer player) throws Exception {
     final CountDownLatch start = new CountDownLatch(1);
     try (final ExecutorService executor = Executors.newFixedThreadPool(PRODUCERS)) {
       final List<Future<?>> futures = new ArrayList<>();
@@ -402,7 +402,7 @@ final class DiscordPlayerImplTest {
     }
   }
 
-  private static int[] countFramesPerProducer(final DiscordPlayerImpl player) {
+  private static int[] countFramesPerProducer(final PcmDiscordPlayer player) {
     final int[] counts = new int[PRODUCERS];
     ByteBuffer frame = player.provide20MsAudio();
     while (frame != null) {
@@ -419,7 +419,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldQueueEveryFrameFromConcurrentProducers() throws Exception {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     this.produceConcurrently(player);
     final long queued = player.getQueuedMilliseconds();
     assertEquals((long) PRODUCERS * FRAMES_PER_PRODUCER * 20, queued);
@@ -432,7 +432,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldShowTheTitleAsTheActivityOfTheBot() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     player.setPlaying("Never Gonna Give You Up");
     final ArgumentCaptor<Activity> captor = ArgumentCaptor.forClass(Activity.class);
     final InOrder order = Mockito.inOrder(this.presence);
@@ -452,7 +452,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldShowTheTitleOfTheDump() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final UrlParseDump dump = UrlParseDump.of("Some Video");
     player.setCurrentMedia(dump);
     final VerificationMode once = Mockito.times(1);
@@ -464,7 +464,7 @@ final class DiscordPlayerImplTest {
 
   @Test
   void shouldShowUnknownTitleForMissingOrBlankTitlesOfTheDump() {
-    final DiscordPlayerImpl player = this.createPlayer();
+    final PcmDiscordPlayer player = this.createPlayer();
     final UrlParseDump missing = GsonProvider.getSimple().fromJson("{}", UrlParseDump.class);
     final UrlParseDump blank = UrlParseDump.of("   ");
     player.setCurrentMedia(missing);

@@ -40,7 +40,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The player sends PCM, so it keeps the {@link #isOpus()} of {@link net.dv8tion.jda.api.audio.AudioSendHandler},
  * which returns false.
  */
-public final class DiscordPlayerImpl implements DiscordPlayer {
+public final class PcmDiscordPlayer implements DiscordPlayer {
 
   /**
    * The size of one 20 millisecond frame of 48 kHz 16-bit stereo audio in bytes.
@@ -69,7 +69,7 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
    *
    * @param jda the logged-in bot whose presence shows the current title
    */
-  DiscordPlayerImpl(final JDA jda) {
+  PcmDiscordPlayer(final JDA jda) {
     Preconditions.checkNotNull(jda, "JDA must not be null!");
     this.jda = jda;
     this.frames = new ArrayDeque<>(MAXIMUM_QUEUED_FRAMES);
