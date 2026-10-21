@@ -77,8 +77,8 @@ does the same with the title yt-dlp resolved. Any title is accepted and adjusted
 
 The player converts the little-endian samples of the pipeline to the big-endian order Discord expects and queues up to
 three seconds of audio; when the pipeline runs ahead of Discord, the oldest audio is dropped. Call `flush()` after
-seeking or switching media to drop the queued audio immediately, and `getQueuedMillis()` to see how many milliseconds
-of audio are waiting to be sent.
+seeking or switching media to drop the queued audio immediately, and `getQueuedMilliseconds()` to see how many
+milliseconds of audio are waiting to be sent.
 
 ```{warning}
 Never put a bot token into your source code or configuration files that you share. Anyone with the token can control

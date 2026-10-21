@@ -57,8 +57,8 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
    */
   private static final String ELLIPSIS = "…";
 
-  private static final int MAX_QUEUED_FRAMES = 150;
-  private static final int FRAME_MILLIS = 20;
+  private static final int MAXIMUM_QUEUED_FRAMES = 150;
+  private static final int FRAME_MILLISECONDS = 20;
 
   private final JDA jda;
   private final Deque<ByteBuffer> frames;
@@ -72,7 +72,7 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
   DiscordPlayerImpl(final JDA jda) {
     Preconditions.checkNotNull(jda, "JDA must not be null!");
     this.jda = jda;
-    this.frames = new ArrayDeque<>(MAX_QUEUED_FRAMES);
+    this.frames = new ArrayDeque<>(MAXIMUM_QUEUED_FRAMES);
     this.partial = ByteBuffer.allocate(FRAME_BYTES);
   }
 
@@ -131,7 +131,7 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
     this.partial.clear();
 
     final ByteBuffer frame = ByteBuffer.wrap(copy);
-    if (this.frames.size() >= MAX_QUEUED_FRAMES) {
+    if (this.frames.size() >= MAXIMUM_QUEUED_FRAMES) {
       this.frames.pollFirst();
     }
     this.frames.addLast(frame);
@@ -181,10 +181,10 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
    * @return the queued duration in milliseconds, from 0 to 3000 in multiples of 20
    */
   @Override
-  public long getQueuedMillis() {
+  public long getQueuedMilliseconds() {
     synchronized (this.frames) {
       final int count = this.frames.size();
-      return (long) count * FRAME_MILLIS;
+      return (long) count * FRAME_MILLISECONDS;
     }
   }
 

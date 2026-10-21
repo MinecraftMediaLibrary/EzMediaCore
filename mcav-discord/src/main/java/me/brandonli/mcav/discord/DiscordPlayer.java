@@ -93,5 +93,5 @@ public interface DiscordPlayer extends AudioFilter, AudioSendHandler {
    * @return the duration of complete frames in milliseconds, from 0 to 3000 in multiples of 20;
    *         the incomplete frame is not counted
    */
-  long getQueuedMillis();
+  long getQueuedMilliseconds();
 }

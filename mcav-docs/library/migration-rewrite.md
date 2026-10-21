@@ -214,7 +214,7 @@ and the old `LocationData` type are removed; use the current map configuration a
 injection hooks and several resource-pack exception constructors changed as well.
 
 Custom `HttpResult` implementations must now supply `getCurrentMedia`, `setCurrentMedia`, `getListenerCount` and
-`isRunning`. Custom `DiscordPlayer` implementations must supply `flush`, `getQueuedMillis` and `setPlaying`.
+`isRunning`. Custom `DiscordPlayer` implementations must supply `flush`, `getQueuedMilliseconds` and `setPlaying`.
 Custom `SVCFilter` implementations must supply `getQueuedFrames`. Existing factory users usually need only to
 recompile, while implementation subclasses may also be affected by the new final modifiers.
 

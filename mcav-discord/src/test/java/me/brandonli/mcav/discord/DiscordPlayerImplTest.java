@@ -54,7 +54,7 @@ import org.mockito.verification.VerificationMode;
 final class DiscordPlayerImplTest {
 
   private static final int FRAME_BYTES = 3840;
-  private static final int MAX_FRAMES = 150;
+  private static final int MAXIMUM_FRAMES = 150;
   private static final int PRODUCERS = 4;
   private static final int FRAMES_PER_PRODUCER = 25;
 
@@ -139,7 +139,7 @@ final class DiscordPlayerImplTest {
     final DiscordPlayerImpl player = this.createPlayer();
     final boolean canProvide = player.canProvide();
     final ByteBuffer frame = player.provide20MsAudio();
-    final long queued = player.getQueuedMillis();
+    final long queued = player.getQueuedMilliseconds();
     final boolean opus = player.isOpus();
     assertFalse(canProvide);
     assertNull(frame);
@@ -276,11 +276,11 @@ final class DiscordPlayerImplTest {
     final ByteBuffer first = filledBuffer(1000, (byte) 1);
     player.applyFilter(first, this.metadata);
     final boolean providesAfterFirst = player.canProvide();
-    final long queuedAfterFirst = player.getQueuedMillis();
+    final long queuedAfterFirst = player.getQueuedMilliseconds();
     final ByteBuffer second = filledBuffer(FRAME_BYTES - 1000 + 100, (byte) 2);
     player.applyFilter(second, this.metadata);
     final boolean providesAfterSecond = player.canProvide();
-    final long queuedAfterSecond = player.getQueuedMillis();
+    final long queuedAfterSecond = player.getQueuedMilliseconds();
     assertFalse(providesAfterFirst);
     assertEquals(0L, queuedAfterFirst);
     assertTrue(providesAfterSecond);
@@ -301,7 +301,7 @@ final class DiscordPlayerImplTest {
     final DiscordPlayerImpl player = this.createPlayer();
     final ByteBuffer samples = filledBuffer(FRAME_BYTES * 3 + 10, (byte) 7);
     player.applyFilter(samples, this.metadata);
-    final long queued = player.getQueuedMillis();
+    final long queued = player.getQueuedMilliseconds();
     assertEquals(60L, queued);
     for (int index = 0; index < 3; index++) {
       final ByteBuffer frame = player.provide20MsAudio();
@@ -316,18 +316,18 @@ final class DiscordPlayerImplTest {
   @Test
   void shouldDropTheOldestFramesWhenThreeSecondsAreQueued() {
     final DiscordPlayerImpl player = this.createPlayer();
-    for (int index = 0; index < MAX_FRAMES + 2; index++) {
+    for (int index = 0; index < MAXIMUM_FRAMES + 2; index++) {
       final ByteBuffer frame = filledBuffer(FRAME_BYTES, (byte) index);
       player.applyFilter(frame, this.metadata);
     }
-    final long queued = player.getQueuedMillis();
+    final long queued = player.getQueuedMilliseconds();
     assertEquals(3000L, queued);
 
     final ByteBuffer oldest = player.provide20MsAudio();
     assertNotNull(oldest);
     final byte first = oldest.get(0);
     assertEquals((byte) 2, first);
-    final long afterPoll = player.getQueuedMillis();
+    final long afterPoll = player.getQueuedMilliseconds();
     assertEquals(2980L, afterPoll);
   }
 
@@ -338,7 +338,7 @@ final class DiscordPlayerImplTest {
     player.applyFilter(frames, this.metadata);
     player.flush();
     final boolean canProvide = player.canProvide();
-    final long queued = player.getQueuedMillis();
+    final long queued = player.getQueuedMilliseconds();
     assertFalse(canProvide);
     assertEquals(0L, queued);
 
@@ -421,7 +421,7 @@ final class DiscordPlayerImplTest {
   void shouldQueueEveryFrameFromConcurrentProducers() throws Exception {
     final DiscordPlayerImpl player = this.createPlayer();
     this.produceConcurrently(player);
-    final long queued = player.getQueuedMillis();
+    final long queued = player.getQueuedMilliseconds();
     assertEquals((long) PRODUCERS * FRAMES_PER_PRODUCER * 20, queued);
 
     final int[] counts = countFramesPerProducer(player);

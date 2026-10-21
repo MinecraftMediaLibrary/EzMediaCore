@@ -51,10 +51,10 @@ public final class JDAAudioExample {
    * @throws InterruptedException if interrupted while the bot logs in
    */
   static void main() throws InterruptedException {
-    final String token = require("DISCORD_TOKEN");
-    final String guildId = require("DISCORD_GUILD");
-    final String channelId = require("DISCORD_CHANNEL");
-    final String file = require("MEDIA_FILE");
+    final String token = getEnvironmentVariable("DISCORD_TOKEN");
+    final String guildId = getEnvironmentVariable("DISCORD_GUILD");
+    final String channelId = getEnvironmentVariable("DISCORD_CHANNEL");
+    final String file = getEnvironmentVariable("MEDIA_FILE");
     final MCAVApi api = MCAV.api();
     api.install(JDAModule.class);
 
@@ -115,7 +115,7 @@ public final class JDAAudioExample {
     return multiplexer;
   }
 
-  private static String require(final String variable) {
+  private static String getEnvironmentVariable(final String variable) {
     final String value = System.getenv(variable);
     if (value == null || value.isBlank()) {
       final String message = "Environment variable %s must be set!".formatted(variable);
