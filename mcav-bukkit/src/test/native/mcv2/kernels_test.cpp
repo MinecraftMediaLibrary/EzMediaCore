@@ -38,7 +38,7 @@ using std::vector;
 namespace {
 
 struct Level {
-  const char *name;
+  const char* name;
 #define MCV2_FIELD(type, name, parameters) type(*name) parameters;
   MCV2_KERNELS(MCV2_FIELD)
 };
@@ -80,7 +80,7 @@ namespace {
 #endif
 
 constexpr struct {
-  const char *name;
+  const char* name;
   int32_t bit;
 } KNOWN[] = {{"scalar", MCV2_LEVEL_SCALAR}, {"sse2", MCV2_LEVEL_SSE2},     {"sse41", MCV2_LEVEL_SSE41},
              {"avx2", MCV2_LEVEL_AVX2},     {"avx512", MCV2_LEVEL_AVX512}, {"neon", MCV2_LEVEL_NEON},
@@ -107,21 +107,21 @@ struct Random {
   }
   vector<int32_t> integers(size_t count, int32_t low, int32_t high) {
     vector<int32_t> values(count);
-    for (auto &value : values) {
+    for (auto& value : values) {
       value = range(low, high);
     }
     return values;
   }
   vector<int8_t> bytes(size_t count) {
     vector<int8_t> values(count);
-    for (auto &value : values) {
+    for (auto& value : values) {
       value = (int8_t)next();
     }
     return values;
   }
   vector<uint8_t> unsigned_bytes(size_t count) {
     vector<uint8_t> values(count);
-    for (auto &value : values) {
+    for (auto& value : values) {
       value = (uint8_t)next();
     }
     return values;
@@ -129,7 +129,7 @@ struct Random {
 
   vector<float> floats(size_t count) {
     vector<float> values(count);
-    for (auto &value : values) {
+    for (auto& value : values) {
       switch (range(0, 15)) {
       case 0:
         value = -0.0f;
@@ -150,13 +150,13 @@ struct Random {
 
 struct Digest {
   uint64_t value = 0xCBF29CE484222325ull;
-  void add(const void *data, size_t length) {
-    const uint8_t *bytes = (const uint8_t *)data;
+  void add(const void* data, size_t length) {
+    const uint8_t* bytes = (const uint8_t*)data;
     for (size_t index = 0; index < length; index++) {
       value = (value ^ bytes[index]) * 0x100000001B3ull;
     }
   }
-  template <class ValueType> void add(const vector<ValueType> &values) {
+  template <class ValueType> void add(const vector<ValueType>& values) {
     add(values.data(), values.size() * sizeof(ValueType));
   }
   template <class ValueType> void add(ValueType value) {
@@ -166,21 +166,21 @@ struct Digest {
 
 int failures = 0;
 
-template <class ValueType> bool same(const vector<ValueType> &actual, const vector<ValueType> &expected) {
+template <class ValueType> bool same(const vector<ValueType>& actual, const vector<ValueType>& expected) {
   // An empty vector may return null data, which memcmp cannot accept.
   return actual.size() == expected.size() &&
          (actual.empty() || memcmp(actual.data(), expected.data(), actual.size() * sizeof(ValueType)) == 0);
 }
 
-void report(bool equal, const char *kernel, const Level &level, int trial) {
+void report(bool equal, const char* kernel, const Level& level, int trial) {
   if (!equal && failures++ < 20) {
     fprintf(stderr, "%s differs at %s, trial %d\n", kernel, level.name, trial);
   }
 }
 
-void run(const vector<Level> &levels, int trials) {
-  const Level &scalar = levels[0];
-  const char *names[] = {"predicted", "solid",  "palette",     "compact", "predict",        "fit", "cluster", "assign",
+void run(const vector<Level>& levels, int trials) {
+  const Level& scalar = levels[0];
+  const char* names[] = {"predicted", "solid",  "palette",     "compact", "predict",        "fit", "cluster", "assign",
                          "pattern",   "seeded", "load_source", "halve",   "residual_target"};
   Digest total;
   for (int kernel = 0; kernel < 13; kernel++) {
@@ -193,7 +193,7 @@ void run(const vector<Level> &levels, int trials) {
       const vector<int32_t> prediction = random.integers(channels, 0, 255);
       const double rate = random.range(0, 100000) / 7.0;
       const double limit = random.range(0, 3) == 0 ? INFINITY : rate + random.range(0, size * size * 3000);
-      for (const Level &level : levels) {
+      for (const Level& level : levels) {
         Random inputs = random;
         vector<int32_t> output(channels, 0);
         int64_t measured = 0;
@@ -240,7 +240,7 @@ void run(const vector<Level> &levels, int trials) {
           const int32_t spread = inputs.range(0, 1) ? 8 : 255;
           vector<int32_t> block = inputs.integers(channels, low, low + spread > 255 ? 255 : low + spread);
           if (inputs.range(0, 7) == 0) {
-            for (auto &value : block) {
+            for (auto& value : block) {
               value = (int32_t)inputs.next();
             }
           }
@@ -264,7 +264,7 @@ void run(const vector<Level> &levels, int trials) {
           const int32_t height = inputs.range(1, 90);
           const vector<uint8_t> reference = inputs.unsigned_bytes((size_t)width * height * 3);
           vector<int32_t> seeds((size_t)inputs.range(0, 6));
-          for (auto &seed : seeds) {
+          for (auto& seed : seeds) {
             seed = (int32_t)((uint32_t)inputs.range(-40, 40) << 16) | (inputs.range(-40, 40) & 0xFFFF);
           }
 
@@ -327,9 +327,9 @@ void run(const vector<Level> &levels, int trials) {
   printf("%-16s %016llx\n", "all", (unsigned long long)total.value);
 }
 
-const char *best(int32_t available) {
-  const char *name = "none";
-  for (const auto &level : KNOWN) {
+const char* best(int32_t available) {
+  const char* name = "none";
+  for (const auto& level : KNOWN) {
     if (available & level.bit) {
       name = level.name;
     }
@@ -338,10 +338,10 @@ const char *best(int32_t available) {
 }
 }
 
-int main(int argument_count, char **arguments) {
+int main(int argument_count, char** arguments) {
   vector<Level> levels;
 
-  const char *expected = nullptr;
+  const char* expected = nullptr;
   if (argument_count > 1 && strncmp(arguments[argument_count - 1], "expect=", 7) == 0) {
     expected = arguments[--argument_count] + 7;
   }
@@ -362,8 +362,8 @@ int main(int argument_count, char **arguments) {
       {"sve512", MCV2_KERNELS(MCV2_ENTRY_sve512)},
 #endif
   };
-  for (const Level &level : linked) {
-    for (const auto &candidate : KNOWN) {
+  for (const Level& level : linked) {
+    for (const auto& candidate : KNOWN) {
       if (strcmp(candidate.name, level.name) == 0 && (available & candidate.bit)) {
         levels.push_back(level);
       }
@@ -374,13 +374,13 @@ int main(int argument_count, char **arguments) {
     fprintf(stderr, "usage: %s library [expect=level]\n", arguments[0]);
     return 2;
   }
-  void *library = dlopen(arguments[1], RTLD_NOW | RTLD_LOCAL);
+  void* library = dlopen(arguments[1], RTLD_NOW | RTLD_LOCAL);
   if (library == nullptr) {
     fprintf(stderr, "cannot load %s: %s\n", arguments[1], dlerror());
     return 2;
   }
   const int32_t available = ((int32_t(*)(int64_t))dlsym(library, "mcv2_cpu_levels"))(kernel_capabilities());
-  for (const auto &candidate : KNOWN) {
+  for (const auto& candidate : KNOWN) {
     if (!(available & candidate.bit)) {
       continue;
     }
@@ -399,7 +399,7 @@ int main(int argument_count, char **arguments) {
   }
 #endif
   printf("levels:");
-  for (const Level &level : levels) {
+  for (const Level& level : levels) {
     printf(" %s", level.name);
   }
   printf("\ndispatched: %s\n", best(available));
