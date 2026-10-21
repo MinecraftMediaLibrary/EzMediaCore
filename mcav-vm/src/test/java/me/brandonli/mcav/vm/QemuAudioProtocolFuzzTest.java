@@ -58,7 +58,7 @@ final class QemuAudioProtocolFuzzTest {
         final QemuAudioProtocol.Message message = QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
         final int length = message.getLength();
         final boolean wholeFramesWithinTheLimit = length >= 0 && length <= QemuAudioProtocol.MAXIMUM_AUDIO_BYTES && length % FRAME == 0;
-        assertTrue(wholeFramesWithinTheLimit, () -> "length " + length);
+        assertTrue(wholeFramesWithinTheLimit, () -> "length %s".formatted(length));
       }
     } catch (final IOException exception) {
       // malformed, cut short, or not expected: the connection ends

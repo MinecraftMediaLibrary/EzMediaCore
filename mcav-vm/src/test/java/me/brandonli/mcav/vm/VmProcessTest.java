@@ -263,7 +263,7 @@ final class VmProcessTest {
       OBJECT_ARGUMENT,
       this.secretObject(),
       VNC_ARGUMENT,
-      "127.0.0.1:" + display + ",share=force-shared,password-secret=mcav-vnc-password",
+      "127.0.0.1:%s,share=force-shared,password-secret=mcav-vnc-password".formatted(display),
       USB_ARGUMENT,
       DEVICE_ARGUMENT,
       TABLET_DEVICE
@@ -511,7 +511,7 @@ final class VmProcessTest {
       this.commands.add(command);
       final int object = command.indexOf(OBJECT_ARGUMENT);
       final boolean hasSecretObject = object > 0;
-      assertTrue(hasSecretObject, () -> "a secret object in " + command);
+      assertTrue(hasSecretObject, () -> "a secret object in %s".formatted(command));
       final String secret = command.get(object + 1);
       final boolean prefixed = secret.startsWith(SECRET_OBJECT_PREFIX);
       assertTrue(prefixed, secret);
@@ -725,7 +725,7 @@ final class VmProcessTest {
     final List<String> command = this.commandWithoutAccelerator(settings, configuration);
     final int network = command.indexOf(NETWORK_ARGUMENT);
     final boolean hasNetwork = network > 0;
-    assertTrue(hasNetwork, () -> "a -nic option in " + command);
+    assertTrue(hasNetwork, () -> "a -nic option in %s".formatted(command));
     final String networkValue = command.get(network + 1);
     final int lastNetwork = command.lastIndexOf(NETWORK_ARGUMENT);
     assertEquals(RESTRICTED_NETWORK, networkValue);
@@ -740,7 +740,7 @@ final class VmProcessTest {
     configuration.option(option, "user,id=mine");
     final List<String> command = this.commandWithoutAccelerator(settings, configuration);
     final boolean restricted = command.contains(RESTRICTED_NETWORK);
-    assertFalse(restricted, () -> "no network added to " + command);
+    assertFalse(restricted, () -> "no network added to %s".formatted(command));
   }
 
   @Test
@@ -750,7 +750,7 @@ final class VmProcessTest {
     configuration.flag("nodefaults");
     final List<String> command = this.commandWithoutAccelerator(settings, configuration);
     final boolean network = command.contains(NETWORK_ARGUMENT);
-    assertFalse(network, () -> "no network added to " + command);
+    assertFalse(network, () -> "no network added to %s".formatted(command));
   }
 
   @Test
@@ -1102,7 +1102,8 @@ final class VmProcessTest {
     final List<String> kept = new ArrayList<>();
     for (int line = 6; line <= 45; line++) {
       final String number = String.format(Locale.ROOT, "%02d", line);
-      kept.add("line-" + number);
+      final String keptLine = "line-%s".formatted(number);
+      kept.add(keptLine);
     }
     final String separator = System.lineSeparator();
     final String lines = String.join(separator, kept);
@@ -1474,7 +1475,7 @@ final class VmProcessTest {
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final int launches = this.commands.size();
-    final boolean namesPort = message.startsWith("VNC port " + this.port + " is already in use");
+    final boolean namesPort = message.startsWith("VNC port %s is already in use".formatted(this.port));
     final boolean otherOpen = !other.isClosed();
     assertTrue(namesPort, message);
     assertEquals(0, launches);

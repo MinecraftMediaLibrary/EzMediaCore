@@ -61,7 +61,6 @@ final class QemuProcessRecords {
   private static final String SUFFIX = ".qemu";
   private static final String RECORD_GLOB = "*" + SUFFIX;
 
-  private static final String LINE_SEPARATOR = "\n";
   private static final int STARTED_LINE = 0;
   private static final int OWNER_PROCESS_ID_LINE = 1;
   private static final int OWNER_STARTED_LINE = 2;
@@ -120,7 +119,7 @@ final class QemuProcessRecords {
       LOGGER.warn(NOT_RECORDED, processId);
       return;
     }
-    final String record = started.get() + LINE_SEPARATOR + this.owner.pid() + LINE_SEPARATOR + ownerStarted.get() + LINE_SEPARATOR;
+    final String record = "%s\n%s\n%s\n".formatted(started.get(), this.owner.pid(), ownerStarted.get());
     try {
       Files.createDirectories(this.folder);
       Files.writeString(this.fileOf(processId), record, StandardCharsets.US_ASCII);

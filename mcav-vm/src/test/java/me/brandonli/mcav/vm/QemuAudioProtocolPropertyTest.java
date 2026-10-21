@@ -126,7 +126,7 @@ final class QemuAudioProtocolPropertyTest {
 
     @Override
     public String toString() {
-      return this.kind + "(" + this.samples.length + ")";
+      return "%s(%s)".formatted(this.kind, this.samples.length);
     }
   }
 

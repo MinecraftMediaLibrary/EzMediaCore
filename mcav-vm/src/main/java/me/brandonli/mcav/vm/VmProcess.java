@@ -104,7 +104,6 @@ final class VmProcess {
 
   static final String LOCALHOST = "127.0.0.1";
   static final InetAddress LOOPBACK = InetAddress.ofLiteral(LOCALHOST);
-  private static final String DISPLAY_SEPARATOR = ":";
 
   private static final String ARGUMENT_SEPARATOR = " ";
 
@@ -602,13 +601,15 @@ final class VmProcess {
     final int display = port - FIRST_VNC_PORT;
     // QEMU splits its option values at commas, so a comma of the path is written twice
     final String secretFile = passwordFile.toString().replace(PROPERTY_SEPARATOR, ESCAPED_PROPERTY_SEPARATOR);
+    final String secret = "secret,id=%s,file=%s".formatted(PASSWORD_ID, secretFile);
     command.add("-object");
-    command.add("secret,id=" + PASSWORD_ID + ",file=" + secretFile);
-    final String vnc = LOCALHOST + DISPLAY_SEPARATOR + display + ",share=force-shared,password-secret=" + PASSWORD_ID;
+    command.add(secret);
+    final String vnc = "%s:%s,share=force-shared,password-secret=%s".formatted(LOCALHOST, display, PASSWORD_ID);
     if (this.hasAudio()) {
       this.addAudio(command);
+      final String vncWithAudio = "%s,audiodev=%s".formatted(vnc, AUDIO_ID);
       command.add(VNC_OPTION);
-      command.add(vnc + ",audiodev=" + AUDIO_ID);
+      command.add(vncWithAudio);
     } else {
       command.add(VNC_OPTION);
       command.add(vnc);
@@ -623,13 +624,16 @@ final class VmProcess {
    * @param command the command line so far
    */
   private void addAudio(final List<String> command) {
+    final String backend = "none,id=%s,out.frequency=%s".formatted(AUDIO_ID, AudioFilter.SAMPLE_RATE);
     command.add("-audiodev");
-    command.add("none,id=" + AUDIO_ID + ",out.frequency=" + AudioFilter.SAMPLE_RATE);
+    command.add(backend);
     final String card = isQ35(machineType(this.configuration)) ? ICH9_SOUND_CARD : SOUND_CARD;
+    final String soundCard = "%s,id=%s".formatted(card, SOUND_CARD_ID);
     command.add(DEVICE_OPTION);
-    command.add(card + ",id=" + SOUND_CARD_ID);
+    command.add(soundCard);
+    final String output = "hda-output,bus=%s.0,audiodev=%s".formatted(SOUND_CARD_ID, AUDIO_ID);
     command.add(DEVICE_OPTION);
-    command.add("hda-output,bus=" + SOUND_CARD_ID + ".0,audiodev=" + AUDIO_ID);
+    command.add(output);
   }
 
   /**

@@ -240,7 +240,8 @@ class VmAudioClientTest {
     final VmAudioClient.Sink sink = new VmAudioClient.Sink() {
       @Override
       public void accept(final byte[] samples, final int length) {
-        heard.add("sound " + length);
+        final String sound = "sound %s".formatted(length);
+        heard.add(sound);
       }
 
       @Override
@@ -384,7 +385,7 @@ class VmAudioClientTest {
     final long seconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
     final long deadlineSeconds = TimeUnit.MILLISECONDS.toSeconds(VmAudioClient.HANDSHAKE_TIMEOUT_MILLISECONDS);
     final boolean withinTheDeadline = seconds < deadlineSeconds + 3;
-    assertTrue(withinTheDeadline, "the handshake took " + seconds + " s");
+    assertTrue(withinTheDeadline, "the handshake took %s s".formatted(seconds));
     served.get(20, TimeUnit.SECONDS);
   }
 

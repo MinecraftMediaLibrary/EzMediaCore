@@ -103,7 +103,8 @@ final class VmSoundTest {
   private static VmConfiguration floppy(final Path image) {
     final VmConfiguration configuration = VmConfiguration.builder();
     configuration.memory(16);
-    configuration.option("drive", "file=" + image + ",format=raw,if=floppy");
+    final String drive = "file=%s,format=raw,if=floppy".formatted(image);
+    configuration.option("drive", drive);
     configuration.boot("a");
     return configuration;
   }
@@ -112,7 +113,7 @@ final class VmSoundTest {
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
     while (!condition.getAsBoolean()) {
       final boolean beforeTheDeadline = System.nanoTime() < deadline;
-      assertTrue(beforeTheDeadline, "timed out waiting for " + description);
+      assertTrue(beforeTheDeadline, "timed out waiting for %s".formatted(description));
       try {
         Thread.sleep(20L);
       } catch (final InterruptedException exception) {
@@ -206,7 +207,7 @@ final class VmSoundTest {
     final double frequency = crossings / 2.0;
     System.out.printf(Locale.ROOT, "captured %d bytes, zero crossings say %.1f Hz%n", captured.length, frequency);
     final boolean nearTheTone = Math.abs(frequency - TONE_HERTZ) < 20;
-    assertTrue(nearTheTone, "the tone has " + frequency + " Hz");
+    assertTrue(nearTheTone, "the tone has %s Hz".formatted(frequency));
     int toneWindows = 0;
     final int windows = AudioFilter.SAMPLE_RATE / WINDOW_FRAMES;
     for (int window = 0; window < windows; window++) {
@@ -215,7 +216,7 @@ final class VmSoundTest {
       }
     }
     final boolean mostlyTone = toneWindows > (windows * 9) / 10;
-    assertTrue(mostlyTone, toneWindows + " of " + windows + " windows hold the tone");
+    assertTrue(mostlyTone, "%s of %s windows hold the tone".formatted(toneWindows, windows));
   }
 
   @Test
@@ -302,15 +303,15 @@ final class VmSoundTest {
     final int changes = judgement.changes();
     final boolean enoughMatched = offsets.size() >= MINIMUM_MATCHED;
     final boolean nearlyAllMatched = offsets.size() >= Math.ceil(changes * IN_SYNC_SHARE);
-    assertTrue(enoughMatched, "matched " + offsets.size() + " changes of the picture, fewer than " + MINIMUM_MATCHED);
-    assertTrue(nearlyAllMatched, "matched " + offsets.size() + " of " + changes + " changes of the picture");
+    assertTrue(enoughMatched, "matched %s changes of the picture, fewer than %s".formatted(offsets.size(), MINIMUM_MATCHED));
+    assertTrue(nearlyAllMatched, "matched %s of %s changes of the picture".formatted(offsets.size(), changes));
     final List<Double> sorted = new ArrayList<>(offsets);
     Collections.sort(sorted);
     final boolean togetherInTheMiddle = Math.abs(median(sorted)) <= 40;
     assertTrue(togetherInTheMiddle, "the sound and the picture arrive together in the middle");
     final long acceptable = judgement.within(-ACCEPTABLE_LEAD_MILLISECONDS, ACCEPTABLE_LAG_MILLISECONDS);
     final boolean nearlyAllInSync = acceptable >= Math.ceil(changes * IN_SYNC_SHARE);
-    assertTrue(nearlyAllInSync, acceptable + " of " + changes + " changes are in sync");
+    assertTrue(nearlyAllInSync, "%s of %s changes are in sync".formatted(acceptable, changes));
     final int half = offsets.size() / 2;
     final double drift = median(offsets.subList(half, offsets.size())) - median(offsets.subList(0, half));
     final boolean steady = Math.abs(drift) < 25;
