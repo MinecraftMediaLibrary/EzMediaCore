@@ -70,7 +70,7 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
    * @param jda the logged-in bot whose presence shows the current title
    */
   DiscordPlayerImpl(final JDA jda) {
-    Preconditions.checkNotNull(jda, "JDA must not be null");
+    Preconditions.checkNotNull(jda, "JDA must not be null!");
     this.jda = jda;
     this.frames = new ArrayDeque<>(MAX_QUEUED_FRAMES);
     this.partial = ByteBuffer.allocate(FRAME_BYTES);
@@ -88,8 +88,8 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
 
     // the pipeline always carries little-endian samples, even in a buffer whose order was never set
     final ByteBuffer littleEndian = samples.duplicate();
@@ -197,7 +197,7 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
    */
   @Override
   public void setCurrentMedia(final UrlParseDump dump) {
-    Preconditions.checkNotNull(dump, "Dump must not be null");
+    Preconditions.checkNotNull(dump, "Dump must not be null!");
     final Optional<String> titleValue = dump.getTitle();
     final @Nullable String title = titleValue.orElse(null);
     this.showPlaying(title);
@@ -212,7 +212,7 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
    */
   @Override
   public void setPlaying(final String title) {
-    Preconditions.checkNotNull(title, "Title must not be null");
+    Preconditions.checkNotNull(title, "Title must not be null!");
     this.showPlaying(title);
   }
 

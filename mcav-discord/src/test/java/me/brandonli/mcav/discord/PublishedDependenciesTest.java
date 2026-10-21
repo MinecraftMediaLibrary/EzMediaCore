@@ -63,7 +63,8 @@ final class PublishedDependenciesTest {
     final String dependency = "/project/dependencies/dependency[groupId='%s' and artifactId='%s']".formatted(group, artifact);
     final String publishedVersion = value(document, dependency + "/version");
     final String scope = value(document, dependency + "/scope");
-    assertEquals(version, publishedVersion, "Maven consumers need the resolved version of " + artifact);
+    final String message = "The resolved version of %s is what Maven consumers need".formatted(artifact);
+    assertEquals(version, publishedVersion, message);
     assertEquals("runtime", scope);
   }
 

@@ -57,7 +57,7 @@ public interface DiscordPlayer extends AudioFilter, AudioSendHandler {
    * @throws NullPointerException if {@code jda} is null
    */
   static DiscordPlayer voice(final JDA jda) {
-    Preconditions.checkNotNull(jda, "JDA must not be null");
+    Preconditions.checkNotNull(jda, "JDA must not be null!");
     return new DiscordPlayerImpl(jda);
   }
 

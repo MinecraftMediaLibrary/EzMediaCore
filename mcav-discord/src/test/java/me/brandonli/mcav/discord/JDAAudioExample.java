@@ -42,7 +42,7 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 public final class JDAAudioExample {
 
   private JDAAudioExample() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -89,7 +89,8 @@ public final class JDAAudioExample {
   private static Guild findGuild(final JDA jda, final String guildId) {
     final Guild guild = jda.getGuildById(guildId);
     if (guild == null) {
-      throw new IllegalStateException("The bot is not a member of guild " + guildId);
+      final String message = "Guild %s does not have the bot as a member!".formatted(guildId);
+      throw new IllegalStateException(message);
     }
     return guild;
   }
@@ -97,7 +98,8 @@ public final class JDAAudioExample {
   private static VoiceChannel findVoiceChannel(final Guild guild, final String channelId) {
     final VoiceChannel channel = guild.getVoiceChannelById(channelId);
     if (channel == null) {
-      throw new IllegalStateException("Voice channel " + channelId + " does not exist");
+      final String message = "Voice channel %s does not exist!".formatted(channelId);
+      throw new IllegalStateException(message);
     }
     return channel;
   }
@@ -116,7 +118,8 @@ public final class JDAAudioExample {
   private static String require(final String variable) {
     final String value = System.getenv(variable);
     if (value == null || value.isBlank()) {
-      throw new IllegalStateException("Set the " + variable + " environment variable");
+      final String message = "Environment variable %s must be set!".formatted(variable);
+      throw new IllegalStateException(message);
     }
     return value;
   }
