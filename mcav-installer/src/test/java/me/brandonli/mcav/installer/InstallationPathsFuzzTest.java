@@ -49,7 +49,7 @@ final class InstallationPathsFuzzTest {
   private static final Workspace WORKSPACE = new Workspace();
 
   @FuzzTest(maxDuration = "30s")
-  void writesOnlyWhereTheCoordinatesAllow(final FuzzedDataProvider data) throws IOException {
+  void shouldWriteOnlyWhereTheCoordinatesAllow(final FuzzedDataProvider data) throws IOException {
     final String artifactId = data.consumeString(40);
     final String groupId = data.consumeString(30);
     final String artifact = data.consumeString(30);

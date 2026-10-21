@@ -112,7 +112,7 @@ final class InstallationPathsPropertyTest {
   }
 
   @Property(seed = SEED, tries = 80)
-  void noArtifactIdCreatesAnythingOutsideTheInstallationFolder(@ForAll("hostileIds") final String artifactId) throws IOException {
+  void shouldCreateNothingOutsideTheInstallationFolderForAnyArtifactId(@ForAll("hostileIds") final String artifactId) throws IOException {
     this.completeTree.assertArtifactFolder(artifactId);
     final Path installed = this.folder.toAbsolutePath();
     final Path cache = this.localRepository.toAbsolutePath();
@@ -161,7 +161,7 @@ final class InstallationPathsPropertyTest {
    * name rather than a folder the name climbs to.
    */
   @Property(seed = SEED)
-  void everyJarDestinationLiesStrictlyInsideTheArtifactFolder(
+  void shouldPlaceEveryJarDestinationStrictlyInsideTheArtifactFolder(
     @ForAll("coordinates") final String groupId,
     @ForAll("coordinates") final String artifactId,
     @ForAll("coordinates") final String fileName

@@ -140,7 +140,7 @@ final class UnsafeInjectorTest {
   }
 
   @Test
-  void addsJarsThroughTheClassPathOfTheLoader() throws IOException {
+  void shouldAddJarsThroughTheClassPathOfTheLoader() throws IOException {
     final URL jar = this.writeJar();
     final UnsafeInjector.UnsafeAccess unsafe = unsafe();
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
@@ -159,7 +159,7 @@ final class UnsafeInjectorTest {
   }
 
   @Test
-  void findsTheUnsafeOfTheRuntimeOnly() {
+  void shouldFindTheUnsafeOfTheRuntimeOnly() {
     assertNull(UnsafeWithoutInstance.theUnsafe, "the look-alike declares theUnsafe but has no instance");
     assertNotNull(UnsafeWithoutMethods.theUnsafe, "the look-alike has an instance but no Unsafe methods");
     final String withoutInstanceName = UnsafeWithoutInstance.class.getName();
@@ -176,7 +176,7 @@ final class UnsafeInjectorTest {
   }
 
   @Test
-  void readsInstanceFieldsRegardlessOfAccess() {
+  void shouldReadInstanceFieldsRegardlessOfAccess() {
     final UnsafeInjector.UnsafeAccess unsafe = unsafe();
     final Holder holder = new Holder();
     final Object text = unsafe.readField(Holder.class, holder, "text");
@@ -184,7 +184,7 @@ final class UnsafeInjectorTest {
   }
 
   @Test
-  void reportsFieldsThatAreMissingNullOrStatic() {
+  void shouldReportFieldsThatAreMissingNullOrStatic() {
     final UnsafeInjector.UnsafeAccess unsafe = unsafe();
     final Holder holder = new Holder();
     final String typeName = Holder.class.getName();
@@ -209,7 +209,7 @@ final class UnsafeInjectorTest {
   }
 
   @Test
-  void readsOnlyCollectionFieldsAsCollections() {
+  void shouldReadOnlyCollectionFieldsAsCollections() {
     final UnsafeInjector.UnsafeAccess unsafe = unsafe();
     final Holder holder = new Holder();
     final Collection<?> urls = UnsafeInjector.readCollection(unsafe, Holder.class, holder, "urls");
@@ -224,7 +224,7 @@ final class UnsafeInjectorTest {
   }
 
   @Test
-  void hasALookAlikeWhoseReadsFail() throws NoSuchFieldException {
+  void shouldHaveALookAlikeWhoseReadsFail() throws NoSuchFieldException {
     final UnsafeWithFailingReads lookAlike = UnsafeWithFailingReads.theUnsafe;
     final Holder holder = new Holder();
     final Field textField = Holder.class.getDeclaredField("text");
@@ -242,7 +242,7 @@ final class UnsafeInjectorTest {
   }
 
   @Test
-  void passesErrorsOfTheVirtualMachineOnAndWrapsEveryOtherReadFailure() {
+  void shouldPassErrorsOfTheVirtualMachineOnAndWrapEveryOtherReadFailure() {
     final String className = UnsafeWithFailingReads.class.getName();
     final UnsafeInjector.UnsafeAccess failing = UnsafeInjector.UnsafeAccess.find(className);
     assertNotNull(failing, "the look-alike has an instance and both Unsafe methods");

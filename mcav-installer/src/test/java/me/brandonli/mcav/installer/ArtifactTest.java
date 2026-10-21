@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 final class ArtifactTest {
 
   @Test
-  void listsEveryModuleWithItsArtifactId() {
+  void shouldListEveryModuleWithItsArtifactId() {
     final Artifact[] values = Artifact.values();
     final List<String> artifactIds = new ArrayList<>();
     for (final Artifact artifact : values) {
@@ -59,13 +59,13 @@ final class ArtifactTest {
   }
 
   @Test
-  void usesTheGroupAndVersionOfThePublishedModules() {
+  void shouldUseTheGroupAndVersionOfThePublishedModules() {
     assertEquals("me.brandonli", Artifact.GROUP_ID);
     assertEquals("1.0.0-SNAPSHOT", Artifact.DEFAULT_VERSION);
   }
 
   @Test
-  void installationExceptionsKeepTheMessage() {
+  void shouldKeepTheMessageOfInstallationExceptions() {
     final InstallationException exception = new InstallationException("cannot copy");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -74,7 +74,7 @@ final class ArtifactTest {
   }
 
   @Test
-  void installationExceptionsKeepTheMessageAndTheCause() {
+  void shouldKeepTheMessageAndTheCauseOfInstallationExceptions() {
     final IOException copyFailure = new IOException("disk full");
     final InstallationException exception = new InstallationException("cannot copy", copyFailure);
     final String message = exception.getMessage();
@@ -84,13 +84,13 @@ final class ArtifactTest {
   }
 
   @Test
-  void installationExceptionsAreRuntimeExceptions() {
+  void shouldMakeInstallationExceptionsRuntimeExceptions() {
     final InstallationException exception = new InstallationException("cannot copy");
     assertInstanceOf(RuntimeException.class, exception, "a failed installation is recoverable, so it is no Error");
   }
 
   @Test
-  void injectorExceptionsCarryMessageAndCause() {
+  void shouldCarryTheMessageAndCauseOfInjectorExceptions() {
     final IllegalAccessException cause = new IllegalAccessException("closed module");
     final JarInjectorException withCause = new JarInjectorException("cannot inject", cause);
     final JarInjectorException withoutCause = new JarInjectorException("cannot inject");

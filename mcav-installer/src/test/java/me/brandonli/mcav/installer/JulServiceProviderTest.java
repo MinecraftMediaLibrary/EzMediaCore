@@ -38,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Marker;
 import org.slf4j.helpers.NOPMDCAdapter;
+import org.slf4j.spi.MDCAdapter;
 
 /**
  * Tests {@link JulServiceProvider}: the installer's messages reach {@code java.util.logging}, from its classes and from
@@ -84,7 +85,7 @@ final class JulServiceProviderTest {
   }
 
   @Test
-  void writesEveryLevelToJavaUtilLoggingWithItsArgumentsFormatted() {
+  void shouldWriteEveryLevelToJavaUtilLoggingWithItsArgumentsFormatted() {
     final JulServiceProvider provider = new JulServiceProvider();
     provider.initialize();
     final org.slf4j.Logger logger = provider.getLoggerFactory().getLogger(NAME); // fqn: SLF4J's logger beside java.util.logging's
@@ -99,36 +100,57 @@ final class JulServiceProviderTest {
     assertEquals(List.of(Level.FINEST, Level.FINE, Level.INFO, Level.WARNING, Level.SEVERE), levels);
     final List<String> messages = this.records.stream().map(LogRecord::getMessage).toList();
     assertEquals(List.of("trace 1", "debug 2", "info 3 4", "warn", "error 5"), messages);
-    assertSame(failure, this.records.getLast().getThrown());
-    assertEquals(NAME, this.records.getFirst().getLoggerName());
+    final LogRecord last = this.records.getLast();
+    final Throwable thrown = last.getThrown();
+    assertSame(failure, thrown);
+    final LogRecord first = this.records.getFirst();
+    final String loggerName = first.getLoggerName();
+    assertEquals(NAME, loggerName);
   }
 
   @Test
-  void isEnabledWhereJavaUtilLoggingIsAndKeepsNoContext() {
+  void shouldBeEnabledWhereJavaUtilLoggingIsAndKeepNoContext() {
     final JulServiceProvider provider = new JulServiceProvider();
     final org.slf4j.Logger logger = provider.getLoggerFactory().getLogger(NAME); // fqn: SLF4J's logger beside java.util.logging's
     final Marker marker = provider.getMarkerFactory().getMarker("installer");
     this.jul.setLevel(Level.INFO);
-    assertFalse(logger.isTraceEnabled(marker));
-    assertFalse(logger.isDebugEnabled());
-    assertTrue(logger.isInfoEnabled());
-    assertTrue(logger.isWarnEnabled());
-    assertTrue(logger.isErrorEnabled());
-    this.jul.setLevel(Level.SEVERE);
-    assertFalse(logger.isWarnEnabled());
-    assertTrue(logger.isErrorEnabled(marker));
-    this.jul.setLevel(Level.ALL);
-    assertTrue(logger.isTraceEnabled());
-    assertTrue(logger.isDebugEnabled(marker));
+    final boolean traceAtInfo = logger.isTraceEnabled(marker);
+    assertFalse(traceAtInfo);
+    final boolean debugAtInfo = logger.isDebugEnabled();
+    assertFalse(debugAtInfo);
+    final boolean infoAtInfo = logger.isInfoEnabled();
+    assertTrue(infoAtInfo);
+    final boolean warnAtInfo = logger.isWarnEnabled();
+    assertTrue(warnAtInfo);
+    final boolean errorAtInfo = logger.isErrorEnabled();
+    assertTrue(errorAtInfo);
 
-    assertEquals("installer", marker.getName());
-    assertInstanceOf(NOPMDCAdapter.class, provider.getMDCAdapter());
-    assertEquals(JulServiceProvider.API_VERSION, provider.getRequestedApiVersion());
-    assertEquals(JulLogger.class.getName(), new JulLogger(NAME).getFullyQualifiedCallerName());
+    this.jul.setLevel(Level.SEVERE);
+    final boolean warnAtSevere = logger.isWarnEnabled();
+    assertFalse(warnAtSevere);
+    final boolean errorAtSevere = logger.isErrorEnabled(marker);
+    assertTrue(errorAtSevere);
+
+    this.jul.setLevel(Level.ALL);
+    final boolean traceAtAll = logger.isTraceEnabled();
+    assertTrue(traceAtAll);
+    final boolean debugAtAll = logger.isDebugEnabled(marker);
+    assertTrue(debugAtAll);
+
+    final String markerName = marker.getName();
+    assertEquals("installer", markerName);
+    final MDCAdapter context = provider.getMDCAdapter();
+    assertInstanceOf(NOPMDCAdapter.class, context);
+    final String apiVersion = provider.getRequestedApiVersion();
+    assertEquals(JulServiceProvider.API_VERSION, apiVersion);
+    final JulLogger julLogger = new JulLogger(NAME);
+    final String callerName = julLogger.getFullyQualifiedCallerName();
+    final String expectedCallerName = JulLogger.class.getName();
+    assertEquals(expectedCallerName, callerName);
   }
 
   @Test
-  void theJarOfTheInstallerHandsItsMessagesToJavaUtilLogging() throws Exception {
+  void shouldHandTheMessagesOfTheInstallerJarToJavaUtilLogging() throws Exception {
     final String path = System.getProperty("mcav.installer.jar");
     assertNotNull(path, "the build passes the jar it built");
     final URL[] jar = { Path.of(path).toUri().toURL() };

@@ -34,14 +34,14 @@ final class IOUtilsTest {
   private Path directory;
 
   @Test
-  void getsTheFileNameOfAPath() {
+  void shouldGetTheFileNameOfAPath() {
     final Path file = this.directory.resolve("library-1.0.jar");
     final String name = IOUtils.getFileName(file);
     assertEquals("library-1.0.jar", name);
   }
 
   @Test
-  void rejectsPathsWithoutAFileName() {
+  void shouldRejectPathsWithoutAFileName() {
     final Path root = this.directory.getRoot();
     final InstallationException error = assertThrows(InstallationException.class, () -> IOUtils.getFileName(root));
     final String message = error.getMessage();
@@ -49,7 +49,7 @@ final class IOUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(IOUtils.class);
   }
 }

@@ -120,7 +120,7 @@ final class MCAVInstallerTest {
   }
 
   @Test
-  void injectorKeepsTheFolderAndClassLoader() {
+  void shouldKeepTheFolderAndClassLoaderOfTheInjector() {
     final ClassLoader loader = MCAVInstallerTest.class.getClassLoader();
     final MCAVInstaller installer = MCAVInstaller.injector(this.folder, loader);
     final Path installerFolder = installer.getFolder();
@@ -130,7 +130,7 @@ final class MCAVInstallerTest {
   }
 
   @Test
-  void injectorForAnOwnerUsesTheClassLoaderOfItsClass() {
+  void shouldInjectIntoTheClassLoaderOfTheOwnersClass() {
     final Object owner = this;
     final MCAVInstaller installer = MCAVInstaller.injector(this.folder, owner);
     final ClassLoader installerLoader = installer.getClassLoader();
@@ -139,7 +139,7 @@ final class MCAVInstallerTest {
   }
 
   @Test
-  void injectorRejectsOwnersOfTheBootstrapClassLoader() {
+  void shouldRejectInjectorOwnersOfTheBootstrapClassLoader() {
     final Object owner = "a string, loaded by the bootstrap class loader";
     final JarInjectorException exception = assertThrows(JarInjectorException.class, () -> MCAVInstaller.injector(this.folder, owner));
     final String message = exception.getMessage();
@@ -147,7 +147,7 @@ final class MCAVInstallerTest {
   }
 
   @Test
-  void injectorRejectsNulls() {
+  void shouldRejectNullInjectorArguments() {
     final ClassLoader loader = MCAVInstallerTest.class.getClassLoader();
     final Object owner = this;
     assertThrows(NullPointerException.class, () -> MCAVInstaller.injector(null, loader));
@@ -157,7 +157,7 @@ final class MCAVInstallerTest {
   }
 
   @Test
-  void loadsAModuleWithItsDependenciesIntoAUrlClassLoader() throws IOException {
+  void shouldLoadAModuleWithItsDependenciesIntoAUrlClassLoader() throws IOException {
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
       final MCAVInstaller installer = this.createInstaller(loader);
       installer.loadMCAVDependencies(Artifact.COMMON);
@@ -174,7 +174,7 @@ final class MCAVInstallerTest {
   }
 
   @Test
-  void loadsAModuleWithACustomLoader() {
+  void shouldLoadAModuleWithACustomLoader() {
     final ClassLoader classLoader = MCAVInstallerTest.class.getClassLoader();
     final MCAVInstaller installer = this.createInstaller(classLoader);
     final RecordingLoader recording = new RecordingLoader();
@@ -187,7 +187,7 @@ final class MCAVInstallerTest {
   }
 
   @Test
-  void loadsAnyArtifactAndReturnsTheAddedJars() {
+  void shouldLoadAnyArtifactAndReturnTheAddedJars() {
     final ClassLoader classLoader = MCAVInstallerTest.class.getClassLoader();
     final MCAVInstaller installer = this.createInstaller(classLoader);
     final RecordingLoader recording = new RecordingLoader();
@@ -204,7 +204,7 @@ final class MCAVInstallerTest {
   }
 
   @Test
-  void doesNotLoadAnythingWhenTheDownloadFails() {
+  void shouldNotLoadAnythingWhenTheDownloadFails() {
     final ClassLoader classLoader = MCAVInstallerTest.class.getClassLoader();
     final MCAVInstaller installer = this.createInstaller(classLoader);
     final RecordingLoader recording = new RecordingLoader();
@@ -214,7 +214,7 @@ final class MCAVInstallerTest {
   }
 
   @Test
-  void reportsElapsedInstallationTimeRatherThanEpochTime() {
+  void shouldReportElapsedInstallationTimeRatherThanEpochTime() {
     final ClassLoader classLoader = MCAVInstallerTest.class.getClassLoader();
     final InstallationManager manager = mock(InstallationManager.class);
     final Logger logger = mock(Logger.class);
@@ -235,7 +235,7 @@ final class MCAVInstallerTest {
   }
 
   @Test
-  void rejectsNullArguments() {
+  void shouldRejectNullArguments() {
     final ClassLoader classLoader = MCAVInstallerTest.class.getClassLoader();
     final MCAVInstaller installer = this.createInstaller(classLoader);
     final RecordingLoader recording = new RecordingLoader();

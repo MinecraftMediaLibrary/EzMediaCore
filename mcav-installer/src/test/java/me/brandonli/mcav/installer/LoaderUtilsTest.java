@@ -148,7 +148,7 @@ final class LoaderUtilsTest {
   }
 
   @Test
-  void addsJarsToAUrlClassLoaderWithNormalizedAbsolutePaths() throws IOException {
+  void shouldAddJarsToAUrlClassLoaderWithNormalizedAbsolutePaths() throws IOException {
     final Path emptyPath = Path.of("");
     final Path workingDirectory = emptyPath.toAbsolutePath();
     final Path relativeSecond = workingDirectory.relativize(this.secondJar);
@@ -160,7 +160,7 @@ final class LoaderUtilsTest {
   }
 
   @Test
-  void theDefaultLoaderAddsJarsToAUrlClassLoader() throws IOException {
+  void shouldAddJarsToAUrlClassLoaderWithTheDefaultLoader() throws IOException {
     final List<Path> jars = List.of(this.firstJar, this.secondJar);
     final JarLoader defaultLoader = JarLoader.DEFAULT_URL_LOADER;
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
@@ -170,7 +170,7 @@ final class LoaderUtilsTest {
   }
 
   @Test
-  void addsJarsToTheUrlLoaderOfTheFabricClassLoader() throws IOException {
+  void shouldAddJarsToTheUrlLoaderOfTheFabricClassLoader() throws IOException {
     final List<Path> jars = List.of(this.firstJar, this.secondJar);
     try (final URLClassLoader urlLoader = new URLClassLoader(new URL[0], null)) {
       final KnotClassLoader knot = new KnotClassLoader(urlLoader);
@@ -180,7 +180,7 @@ final class LoaderUtilsTest {
   }
 
   @Test
-  void findsTheFabricClassLoaderAmongTheSuperclasses() throws IOException {
+  void shouldFindTheFabricClassLoaderAmongTheSuperclasses() throws IOException {
     final List<Path> jars = List.of(this.firstJar, this.secondJar);
     try (final URLClassLoader urlLoader = new URLClassLoader(new URL[0], null)) {
       final DerivedKnotClassLoader knot = new DerivedKnotClassLoader(urlLoader);
@@ -190,7 +190,7 @@ final class LoaderUtilsTest {
   }
 
   @Test
-  void rejectsAFabricClassLoaderWithoutUrlLoader() {
+  void shouldRejectAFabricClassLoaderWithoutUrlLoader() {
     final List<Path> jars = List.of(this.firstJar);
     final KnotClassLoader withoutLoader = new KnotClassLoader(null);
     final KnotClassLoader withOtherValue = new KnotClassLoader("not a class loader");
@@ -203,7 +203,7 @@ final class LoaderUtilsTest {
   }
 
   @Test
-  void reportsAFabricClassLoaderOfAnUnknownVersion() throws ReflectiveOperationException {
+  void shouldReportAFabricClassLoaderOfAnUnknownVersion() throws ReflectiveOperationException {
     final byte[] bytes = knotClassWithoutField();
     final KnotDefiningClassLoader definer = new KnotDefiningClassLoader();
     final Class<?> knotWithoutField = definer.defineKnot(bytes);
@@ -219,7 +219,7 @@ final class LoaderUtilsTest {
   }
 
   @Test
-  void rejectsOtherClassLoaders() {
+  void shouldRejectOtherClassLoaders() {
     final List<Path> jars = List.of(this.firstJar);
     final PlainClassLoader loader = new PlainClassLoader();
     final JarInjectorException exception = assertThrows(JarInjectorException.class, () -> LoaderUtils.loadJarPaths(jars, loader));
@@ -229,7 +229,7 @@ final class LoaderUtilsTest {
   }
 
   @Test
-  void rejectsPathsThatHaveNoUrl() throws IOException {
+  void shouldRejectPathsThatHaveNoUrl() throws IOException {
     final Path jar = Mockito.mock(Path.class);
     final Path absolute = Mockito.mock(Path.class);
     final URI unknownScheme = URI.create("unknown-scheme:/library.jar");
@@ -252,7 +252,7 @@ final class LoaderUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(LoaderUtils.class);
   }
 }

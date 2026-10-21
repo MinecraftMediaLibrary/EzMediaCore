@@ -168,10 +168,11 @@ final class InstallationManagerTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "", ".", "..", "../escape", "nested/artifact", "nested\\artifact", "/absolute", "C:\\escape", "white space" })
-  void rejectsUnsafeRootArtifactIdsBeforeCreatingDirectories(final String artifactId) throws IOException {
+  void shouldRejectUnsafeRootArtifactIdsBeforeCreatingDirectories(final String artifactId) throws IOException {
     final InstallationException failure = assertThrows(InstallationException.class, () -> this.download(artifactId));
     final String message = failure.getMessage();
-    assertTrue(message.startsWith("Artifact id must contain only"));
+    final boolean rejectedId = message.startsWith("Artifact id must contain only");
+    assertTrue(rejectedId);
     try (final Stream<Path> entries = Files.list(this.folder)) {
       final long count = entries.count();
       assertEquals(0, count, "invalid coordinates must not create an installation tree");
@@ -259,7 +260,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void usesTheRepositoriesOfTheLibraryAndItsDependencies() {
+  void shouldUseTheRepositoriesOfTheLibraryAndItsDependencies() {
     final List<String> ids = new ArrayList<>();
     final List<String> urls = new ArrayList<>();
     for (final RemoteRepository remote : InstallationManager.REPOSITORIES) {
@@ -284,7 +285,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void everyRepositoryFailsOnBadChecksumsAndChecksForUpdatesDaily() {
+  void shouldFailOnBadChecksumsAndCheckForUpdatesDailyInEveryRepository() {
     final RemoteRepository created = InstallationManager.createRepository("test", "file:///repository/");
     final List<RemoteRepository> repositories = new ArrayList<>(InstallationManager.REPOSITORIES);
     repositories.add(created);
@@ -297,14 +298,14 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void returnsTheSameJarsWhenTheyAreAlreadyUpToDate() {
+  void shouldReturnTheSameJarsWhenTheyAreAlreadyUpToDate() {
     final List<Path> first = this.download("app");
     final List<Path> second = this.download("app");
     assertEquals(first, second, "jars that are already up to date are returned like freshly copied ones");
   }
 
   @Test
-  void stopsItsCopyThreadsWhenClosed() {
+  void shouldStopItsCopyThreadsWhenClosed() {
     final InstallationManager manager = this.createManager();
     manager.downloadDependencies(GROUP, "app", VERSION);
     final boolean stoppedBeforeClose = manager.isStopped();
@@ -315,7 +316,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void closesTheOwnedRepositorySystem() {
+  void shouldCloseTheOwnedRepositorySystem() {
     final RepositorySystemSupplier supplier = new RepositorySystemSupplier();
     final RepositorySystem system = supplier.get();
     final AtomicBoolean ended = new AtomicBoolean();
@@ -333,7 +334,8 @@ final class InstallationManagerTest {
         final boolean endedAfter = ended.get();
         assertTrue(endedAfter, "closing a manager must release its repository system, including registered services");
         final List<RepositorySystemSupplier> constructed = suppliers.constructed();
-        assertEquals(1, constructed.size());
+        final int constructedCount = constructed.size();
+        assertEquals(1, constructedCount);
       } finally {
         manager.close();
       }
@@ -343,7 +345,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void copiesOnDaemonThreadsSoTheyNeverKeepTheJvmAlive() {
+  void shouldCopyOnDaemonThreadsSoTheyNeverKeepTheJvmAlive() {
     final Runnable noWork = () -> {};
     final Thread thread = InstallationManager.createCopyThread(noWork);
     final boolean isDaemon = thread.isDaemon();
@@ -353,7 +355,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void passesTheSystemPropertiesOfTheJvmToTheResolver() {
+  void shouldPassTheSystemPropertiesOfTheJvmToTheResolver() {
     final Map<String, String> copied = InstallationManager.copySystemProperties();
     final String javaVersion = System.getProperty("java.version");
     final String copiedVersion = copied.get("java.version");
@@ -361,7 +363,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void createsAndClosesTheDefaultManagerWithoutTouchingTheFolder() throws IOException {
+  void shouldCreateAndCloseTheDefaultManagerWithoutTouchingTheFolder() throws IOException {
     final InstallationManager manager = new InstallationManager(this.folder);
     manager.close();
     try (final Stream<Path> listing = Files.list(this.folder)) {
@@ -371,7 +373,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void copiesTheArtifactWithItsCompileAndRuntimeDependenciesOnly() throws IOException {
+  void shouldCopyTheArtifactWithItsCompileAndRuntimeDependenciesOnly() throws IOException {
     final List<Path> jars = this.download("app");
     final Path target = this.folder.resolve("app");
     final List<String> names = relativeNames(target, jars);
@@ -399,7 +401,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void copiesClassifierJarsAndEqualArtifactIdsOfOtherGroupsToSeparateFiles() throws IOException {
+  void shouldCopyClassifierJarsAndEqualArtifactIdsOfOtherGroupsToSeparateFiles() throws IOException {
     final Map<String, Path> expectedSources = this.publishPlatform();
 
     final List<Path> jars = this.download("platform");
@@ -427,7 +429,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void recopiesChangedJarsAndKeepsUpToDateOnes() throws IOException {
+  void shouldRecopyChangedJarsAndKeepUpToDateOnes() throws IOException {
     this.download("app");
     final Path tampered = this.copiedJar("app", "app");
     final Path untouched = this.copiedJar("app", "compile-dep");
@@ -449,7 +451,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void deletesTheChecksumFilesOfEarlierVersions() throws IOException {
+  void shouldDeleteTheChecksumFilesOfEarlierVersions() throws IOException {
     final List<String> expectedNames = List.of("hash.properties", "hashes.properties");
     final List<String> obsoleteNames = InstallationManager.OBSOLETE_FILE_NAMES;
     assertEquals(expectedNames, obsoleteNames);
@@ -470,7 +472,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void installsEvenWhenAnObsoleteFileCannotBeDeleted() throws IOException {
+  void shouldInstallEvenWhenAnObsoleteFileCannotBeDeleted() throws IOException {
     final Path blocked = this.folder.resolve("hash.properties");
     Files.createDirectories(blocked);
     final Path content = blocked.resolve("content.txt");
@@ -485,7 +487,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void rejectsDownloadsWhoseChecksumDoesNotMatch() throws IOException {
+  void shouldRejectDownloadsWhoseChecksumDoesNotMatch() throws IOException {
     final Path jar = this.publishedJar("runtime-dep");
     final Path checksum = LocalMavenRepository.checksumFileOf(jar);
     Files.writeString(checksum, "0000000000000000000000000000000000000000");
@@ -503,7 +505,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void rejectsDownloadsWithoutAChecksum() throws IOException {
+  void shouldRejectDownloadsWithoutAChecksum() throws IOException {
     final Path jar = this.publishedJar("runtime-dep");
     final Path checksum = LocalMavenRepository.checksumFileOf(jar);
     Files.delete(checksum);
@@ -513,7 +515,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void reportsArtifactsThatCannotBeResolved() {
+  void shouldReportArtifactsThatCannotBeResolved() {
     final InstallationException error = assertThrows(InstallationException.class, () -> this.download("missing"));
     final String message = error.getMessage();
     final Throwable cause = error.getCause();
@@ -523,7 +525,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void reportsATargetFolderThatIsAFile() throws IOException {
+  void shouldReportATargetFolderThatIsAFile() throws IOException {
     final Path target = this.folder.resolve("app");
     Files.writeString(target, "in the way");
     final InstallationException error = assertThrows(InstallationException.class, () -> this.download("app"));
@@ -535,7 +537,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void reportsJarsThatCannotBeMovedIntoPlace() throws IOException {
+  void shouldReportJarsThatCannotBeMovedIntoPlace() throws IOException {
     final Path blocked = this.copiedJar("runtime-dep", "runtime-dep");
     Files.createDirectories(blocked);
     final Path content = blocked.resolve("content.txt");
@@ -550,7 +552,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void placesEveryJarInTheFolderOfItsGroupAndArtifact() throws IOException {
+  void shouldPlaceEveryJarInTheFolderOfItsGroupAndArtifact() throws IOException {
     final Path target = this.directory.resolve("target");
     final Path destination = InstallationManager.destinationOf(target, "org.bytedeco", "javacpp", "javacpp-1.5.14-linux-x86_64.jar");
     final Path expected = target.resolve("org.bytedeco/javacpp/javacpp-1.5.14-linux-x86_64.jar");
@@ -558,7 +560,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void refusesCoordinatesThatWouldLeaveTheTargetFolder() {
+  void shouldRefuseCoordinatesThatWouldLeaveTheTargetFolder() {
     final Path target = this.directory.resolve("target");
     final Path absolute = this.directory.resolve("elsewhere");
     final String absoluteGroup = absolute.toString();
@@ -580,7 +582,7 @@ final class InstallationManagerTest {
    */
   @ParameterizedTest
   @CsvSource({ "'', '', ''", "., ., .", "group, artifact, ..", "group, artifact, ''", "group, artifact, nested/inner.jar" })
-  void refusesCoordinatesThatWouldNotPutTheJarUnderItsOwnName(final String groupId, final String artifactId, final String fileName) {
+  void shouldRefuseCoordinatesThatWouldNotPutTheJarUnderItsOwnName(final String groupId, final String artifactId, final String fileName) {
     final Path target = this.directory.resolve("target");
     final Path root = this.directory.getRoot();
 
@@ -589,7 +591,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void awaitsCopiesInTaskOrder() throws IOException {
+  void shouldAwaitCopiesInTaskOrder() throws IOException {
     final Path first = this.directory.resolve("first.jar");
     final Path second = this.directory.resolve("second.jar");
     final CompletableFuture<Path> firstFuture = CompletableFuture.completedFuture(first);
@@ -602,7 +604,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void rethrowsCopyFailures() {
+  void shouldRethrowCopyFailures() {
     final IOException ioFailure = new IOException("disk full");
     final CompletableFuture<Path> ioFuture = CompletableFuture.failedFuture(ioFailure);
     final List<Future<Path>> ioFutures = List.of(ioFuture);
@@ -618,7 +620,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void stopsWaitingWhenInterruptedAndKeepsTheInterruptFlag() {
+  void shouldStopWaitingWhenInterruptedAndKeepTheInterruptFlag() {
     final CompletableFuture<Path> never = new CompletableFuture<>();
     final List<Future<Path>> futures = List.of(never);
     final Thread current = Thread.currentThread();
@@ -634,7 +636,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void shutdownWaitsForFinishedTasks() {
+  void shouldWaitForFinishedTasksOnShutdown() {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final Future<?> task = executor.submit(() -> {});
     InstallationManager.shutdown(executor, 10_000);
@@ -670,7 +672,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void shutdownInterruptsTasksThatRunTooLong() throws InterruptedException {
+  void shouldInterruptTasksThatRunTooLongOnShutdown() throws InterruptedException {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch interrupted = new CountDownLatch(1);
     final Future<?> task = submitBlockingTask(executor, interrupted);
@@ -684,7 +686,7 @@ final class InstallationManagerTest {
   }
 
   @Test
-  void shutdownStopsWaitingWhenInterruptedAndKeepsTheInterruptFlag() throws InterruptedException {
+  void shouldStopWaitingOnShutdownWhenInterruptedAndKeepTheInterruptFlag() throws InterruptedException {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch interrupted = new CountDownLatch(1);
     final Future<?> task = submitBlockingTask(executor, interrupted);

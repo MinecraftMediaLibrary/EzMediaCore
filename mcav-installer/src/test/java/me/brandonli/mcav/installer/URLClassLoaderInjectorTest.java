@@ -78,7 +78,7 @@ final class URLClassLoaderInjectorTest {
   }
 
   @Test
-  void prefersTheReflectiveStrategyWhenJavaNetIsOpen() throws IOException {
+  void shouldPreferTheReflectiveStrategyWhenJavaNetIsOpen() throws IOException {
     final MethodHandle addUrl = ReflectiveInjector.ADD_URL;
     assertNotNull(addUrl);
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
@@ -90,7 +90,7 @@ final class URLClassLoaderInjectorTest {
   }
 
   @Test
-  void fallsBackToUnsafeAndFailsWithoutAnyStrategy() throws IOException {
+  void shouldFallBackToUnsafeAndFailWithoutAnyStrategy() throws IOException {
     final UnsafeInjector.UnsafeAccess unsafe = UnsafeInjector.UNSAFE;
     assertNotNull(unsafe);
     final MethodHandle addUrl = ReflectiveInjector.ADD_URL;
@@ -110,7 +110,7 @@ final class URLClassLoaderInjectorTest {
   }
 
   @Test
-  void findsAddUrlOnlyWithPrivateAccess() {
+  void shouldFindAddUrlOnlyWithPrivateAccess() {
     final MethodHandles.Lookup fullLookup = MethodHandles.lookup();
     final MethodHandles.Lookup publicLookup = MethodHandles.publicLookup();
     final MethodHandle found = ReflectiveInjector.findAddUrl(fullLookup);
@@ -120,7 +120,7 @@ final class URLClassLoaderInjectorTest {
   }
 
   @Test
-  void addsJarsReflectively() throws IOException {
+  void shouldAddJarsReflectively() throws IOException {
     final URL jar = this.writeJar();
     final MethodHandle addUrl = ReflectiveInjector.ADD_URL;
     assertNotNull(addUrl);
@@ -136,7 +136,7 @@ final class URLClassLoaderInjectorTest {
   }
 
   @Test
-  void passesUncheckedFailuresThroughAndWrapsCheckedOnes() throws IOException {
+  void shouldPassUncheckedFailuresThroughAndWrapCheckedOnes() throws IOException {
     final URL jar = this.writeJar();
     final IllegalStateException runtimeException = new IllegalStateException("runtime failure");
     final LinkageError linkageError = new LinkageError("linkage failure");
