@@ -7,17 +7,18 @@ To show a still image, create the configuration of the display you want, such as
 Map images are dithered, so `DisplayableImage.map` also takes a `DitherAlgorithm`.
 ```
 
-Scoreboard, block, entity, and chat displays resize the `ImageBuffer` in place. Map displays resize it only when
-the map configuration enables resizing; otherwise, they center or crop it to the map wall. The scoreboard reads the image
-before `displayImage` returns, so the method below releases the buffer right away. Call `release()` on the returned
+Scoreboard, block, entity, and chat displays resize the `ImageBuffer` in place. Map displays resize it only when the map
+configuration enables resizing; otherwise, they center or crop it to the map wall. The scoreboard reads the image before
+`displayImage` returns, so the method below releases the buffer right away. Call `release()` on the returned
 `DisplayableImage` when the image should disappear.
 
 ```java
   public static DisplayableImage showImageOnScoreboard(final Collection<UUID> viewers, final Path imageFile) {
+    final int width = 16;
     final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
     builder.character(Characters.BLACK_SQUARE);
-    builder.lines(15);
-    builder.width(16);
+    builder.lines(ScoreboardConfiguration.MAXIMUM_LINES);
+    builder.width(width);
     builder.viewers(viewers);
     final ScoreboardConfiguration configuration = builder.build();
 
@@ -26,6 +27,7 @@ before `displayImage` returns, so the method below releases the buffer right awa
     try (final ImageBuffer image = ImageBuffer.path(file)) {
       display.displayImage(image);
     }
+
     return display;
   }
 ```

@@ -338,8 +338,9 @@ Here is the whole trip of one frame, in five steps. The rest of the page goes th
 ## Part 6: The MCV2 Format, Piece by Piece
 
 This part is the full specification of an MCV2 frame, version 3: enough to write your own decoder. The normative
-definition is this text together with the independent Python reference decoder in `mcav-bukkit/src/test/python/mcv2_reference.py`; MCAV's Java
-decoder (`Mcv2Decoder`) and the resource pack's shader decode every test frame to exactly the same pictures.
+definition is this text together with the independent Python reference decoder in
+`mcav-bukkit/src/test/python/mcv2_reference.py`; MCAV's Java decoder (`Mcv2Decoder`) and the resource pack's shader
+decode every test frame to exactly the same pictures.
 
 A few conventions first. All numbers are whole numbers. A number of more than one byte is stored with its lowest byte
 first (that's called **little-endian**): the two bytes `0x34 0x12` are the number `0x1234` = 4,660. Numbers are
@@ -391,8 +392,9 @@ quiet area, one 32x32 leaf covers 1,024 pixels; around a busy edge, the encoder 
 *A piece of two frames of the gameplay clip as MCV2 coded them. Top: the decoded picture with every leaf outlined;
 bottom: every leaf coloured by its mode. In the keyframe (left), the sky and the dark mass of leaves are mostly SOLID
 leaves, big ones in the sky, and where the trees meet the sky the squares are split smaller and many become palettes.
-Twelve frames later (right), the camera has turned: most squares are unchanged (SKIP), moved copies of the last
-picture (MOTION) or corrected ones (COMPACT), and only the detail coming into view gets palettes and patterns. The whole keyframe is 61,275 bytes in 6,471 leaves; the P frame 27,501 bytes in 3,345.*
+Twelve frames later (right), the camera has turned: most squares are unchanged (SKIP), moved copies of the last picture
+(MOTION) or corrected ones (COMPACT), and only the detail coming into view gets palettes and patterns. The whole
+keyframe is 61,275 bytes in 6,471 leaves; the P frame 27,501 bytes in 3,345.*
 
 ### The Leaf Types
 
@@ -452,11 +454,12 @@ leaf. To decode bit for bit the same pictures as every other MCV2 decoder, follo
 
 - **Prediction** (SKIP in a P frame, MOTION, COMPACT): pixel (X, Y) with vector (dx, dy) takes the reference's pixel at
   (clamp(X + dx, 0, w - 1), clamp(Y + dy, 0, h - 1)), each colour channel a whole number from 0 to 255.
-- **The grid** (COMPACT): node n of the 4x4 grid is in row n div 4, column n mod 4; node 2j is the low four bits of
-  the record's byte 2 + j and node 2j + 1 the high four bits, read as s4. For a pixel at position p (0 to s - 1) along one
+- **The grid** (COMPACT): node n of the 4x4 grid is in row n div 4, column n mod 4; node 2j is the low four bits of the
+  record's byte 2 + j and node 2j + 1 the high four bits, read as s4. For a pixel at position p (0 to s - 1) along one
   side of the leaf, take t = (p + 0.5) × 4 / s - 0.5, clamped to 0 to 3; i0 = the whole part of t, i1 = min(i0 + 1, 3),
-  f = t - i0. Do that for x and for y, and blend the four nodes around the pixel: Y = (1 - fy) × ((1 - fx) × N[iy0][ix0]
-  + fx × N[iy0][ix1]) + fy × ((1 - fx) × N[iy1][ix0] + fx × N[iy1][ix1]). This is called **bilinear interpolation**.
+  f = t - i0. Do that for x and for y, and blend the four nodes around the pixel:
+  Y = (1 - fy) × ((1 - fx) × N[iy0][ix0] + fx × N[iy0][ix1]) + fy × ((1 - fx) × N[iy1][ix0] + fx × N[iy1][ix1]). This
+  is called **bilinear interpolation**.
 - **The colour**: each of red, green and blue becomes v = P + 2^q × Y, with P that channel of the prediction; the
   output is v rounded to the nearest whole number, halves rounded up (floor(v + 0.5)), then clamped to 0 to 255.
 - **Why it's exact**: f is always a multiple of 1/(2s), so every Y is a multiple of 1/(4s²) (at most 1/4,096), and no
@@ -492,11 +495,12 @@ and the leaf records begin right after it, at 20 + 4G + 4C + 12 + D + 4 × ceil(
 after another with no gaps; the last one ends exactly at the end of the frame.
 
 **Presence.** A superblock whose bit is 0 isn't stored at all: it's one 32x32 SKIP. On a still picture most bits are 0,
-and a whole 1080p P frame where nothing moved is just the header and a 300-byte index: 320 bytes. To find where a present superblock's
-descriptor is, count how many present superblocks come before it: the directory gives the count up to the start of its
-group of eight, then add the number of 1 bits (the **popcount**) of at most seven whole masks, and of the bits of its
-own mask below its bit. Counting the 1 bits of a 32-bit number takes the shader a handful of operations (a classic
-bit trick, since the GLSL version Minecraft uses has no function for it), so seven masks cost almost nothing.
+and a whole 1080p P frame where nothing moved is just the header and a 300-byte index: 320 bytes. To find where a
+present superblock's descriptor is, count how many present superblocks come before it: the directory gives the count up
+to the start of its group of eight, then add the number of 1 bits (the **popcount**) of at most seven whole masks, and
+of the bits of its own mask below its bit. Counting the 1 bits of a 32-bit number takes the shader a handful of
+operations (a classic bit trick, since the GLSL version Minecraft uses has no function for it), so seven masks cost
+almost nothing.
 
 **Descriptors.** A descriptor is one byte, `mode + 32 × q`: the mode in the low five bits and the quantizer q in the
 high three (q is zero unless the mode is COMPACT). The descriptors are stored in **level order**: first one for every
@@ -505,13 +509,13 @@ present superblock (level 0, n0 of them), then the four children of every level-
 size: 32 if d < n0, 16 if d < n0 + n1, else 8. And the four children of the split with number d start at
 n0 + 4 × (the number of splits among descriptors 0 to d - 1). No pointers anywhere: just counting.
 
-**Walk checkpoints.** Two things still need counting: the splits before a descriptor (for its children), and the
-total length of the records before it (for where its record starts). Counting from the start would be too slow, so
-every eighth descriptor has a **checkpoint**: one 32-bit number holding the record bytes before it (the **cursor**, in
-the low 17 bits) and the splits before it (in the high 15 bits). From the checkpoint just before it, a pixel walks
-over at most seven descriptors, adding up their record lengths and counting their splits. A record's length always
-follows from its mode and its size alone, so the walk reads one byte per descriptor: the descriptor itself. Since a frame is at most 131,071 bytes, the cursor
-always fits in 17 bits, and there are always fewer than 32,768 splits.
+**Walk checkpoints.** Two things still need counting: the splits before a descriptor (for its children), and the total
+length of the records before it (for where its record starts). Counting from the start would be too slow, so every
+eighth descriptor has a **checkpoint**: one 32-bit number holding the record bytes before it (the **cursor**, in the low
+17 bits) and the splits before it (in the high 15 bits). From the checkpoint just before it, a pixel walks over at most
+seven descriptors, adding up their record lengths and counting their splits. A record's length always follows from its
+mode and its size alone, so the walk reads one byte per descriptor: the descriptor itself. Since a frame is at most
+131,071 bytes, the cursor always fits in 17 bits, and there are always fewer than 32,768 splits.
 
 Here's a worked example: a 96x64 picture with 6 superblocks (3 columns, 2 rows). Superblocks 0, 2, 3 and 5 are present,
 so the one presence mask is the bits 0, 2, 3 and 5: 1 + 4 + 8 + 32 = 45, and n0 = 4. Superblock 2 is split, and its
@@ -1055,19 +1059,18 @@ was, each saves less than 5 %. Every tool MCV2 has now saves more than 5 % on av
 [Results](#how-much-each-feature-saves) shows how much.
 
 Last, I went over every option the codec still had, the small switches inside the tools that stayed, the same way: one
-at a time, then together, because some of them stand in for each other. These went: the **default colour** (a
-keyframe's most common solid colour, sent once in the header so its squares could be skips: 0.0 %), **scene-cut
-keyframes** (0.0 % on these clips: a cut is just a P frame of new pictures now), COMPACT's **quantizers above 2**
-(2.7 %), two of COMPACT's three **classes** (one brightness value for the whole block: 0.0 %; a grid with a colour
-change: 0.2 %), its two shorter ways of **storing the vector** (two 4-bit numbers: 0.6 %, and no vector at all, once
-those were gone: 1.1 %, so the vector is always two bytes and the record always ten), and the `ADAPTIVE` **preset**
-(-0.1 %: it saved nothing). With them, the header lost every field a decoder can work out for itself and went from 32
-bytes to 20. Two options cost rate but stayed, because the speed test needs them: the `FAST` preset (6.2 % more rate
-than `DEFAULT` on average: 13.6 % more on the proxy, 1.2 % less on gameplay) keeps 1080p gameplay inside its time on a
-busy machine, and rate control by motion costs 1.1 % more rate, but without it the encoder needs about 40 % more processor time on
-gameplay. Together, these
-last removals cost 1.7 % on average: 4.9 % more on gameplay, mostly the cap on the quantizer, and 1.5 % less on the
-proxy, where the shorter COMPACT record more than pays for what went.
+at a time, then together, because some of them stand in for each other. These went: the **default colour** (a keyframe's
+most common solid colour, sent once in the header so its squares could be skips: 0.0 %), **scene-cut keyframes** (0.0 %
+on these clips: a cut is just a P frame of new pictures now), COMPACT's **quantizers above 2** (2.7 %), two of COMPACT's
+three **classes** (one brightness value for the whole block: 0.0 %; a grid with a colour change: 0.2 %), its two shorter
+ways of **storing the vector** (two 4-bit numbers: 0.6 %, and no vector at all, once those were gone: 1.1 %, so the
+vector is always two bytes and the record always ten), and the `ADAPTIVE` **preset** (-0.1 %: it saved nothing). With
+them, the header lost every field a decoder can work out for itself and went from 32 bytes to 20. Two options cost rate
+but stayed, because the speed test needs them: the `FAST` preset (6.2 % more rate than `DEFAULT` on average: 13.6 % more
+on the proxy, 1.2 % less on gameplay) keeps 1080p gameplay inside its time on a busy machine, and rate control by motion
+costs 1.1 % more rate, but without it the encoder needs about 40 % more processor time on gameplay. Together, these last
+removals cost 1.7 % on average: 4.9 % more on gameplay, mostly the cap on the quantizer, and 1.5 % less on the proxy,
+where the shorter COMPACT record more than pays for what went.
 
 What does all that removal cost on the wire? Against the old MCV2's live search, the one its screens used, the
 simplified MCV2 needs 16.4 % more rate on the proxy and 5.8 % more on gameplay for the same VMAF; against its slow
@@ -1388,10 +1391,16 @@ import me.brandonli.mcav.bukkit.resourcepack.provider.PackHosting;
 
   // call on the main thread, in onEnable
   public static Mcv2PackServer setUpMcv2(final Path dataFolder) {
-    Mcv2.Pool.setSharedThreads(0);
-    Mcv2.installNatives(dataFolder.resolve("natives"), "auto");
+    final int defaultThreads = 0;
+    Mcv2.Pool.setSharedThreads(defaultThreads);
 
-    final Path packFolder = dataFolder.resolve("mcv2-pack");
+    final String nativesFolderName = "natives";
+    final String nativeMode = "auto";
+    final Path nativesFolder = dataFolder.resolve(nativesFolderName);
+    Mcv2.installNatives(nativesFolder, nativeMode);
+
+    final String packFolderName = "mcv2-pack";
+    final Path packFolder = dataFolder.resolve(packFolderName);
     final Mcv2Pack.DebugView debugView = Mcv2Pack.DebugView.HIDDEN;
     final Mcv2PackServer packs = new Mcv2PackServer(
       packFolder,
@@ -1401,6 +1410,7 @@ import me.brandonli.mcav.bukkit.resourcepack.provider.PackHosting;
       player -> player.sendMessage("Without the pack, you see the dithered picture")
     );
     packs.start();
+
     return packs;
   }
 ```
@@ -1427,51 +1437,64 @@ pipeline:
 ```java
 import java.util.Collection;
 import java.util.UUID;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Configuration;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2ConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2PackServer;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Result;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Viewers;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.multimedia.VideoPlayerMultiplexer;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.DitherAlgorithm;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
+import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ItemFrame;
 
   // the result and the lease of one wall: release() the result, then close() the lease, on the main thread
-  public record Mcv2Wall(Mcv2Result result, Mcv2PackServer.Lease lease) {}
+  private record Mcv2Wall(Mcv2Result result, Mcv2PackServer.Lease lease) {}
 
   // call on the main thread; topLeft is the item frame holding the wall's first map
-  public static Mcv2Wall showOnMcv2Wall(
+  private static Mcv2Wall showOnMcv2Wall(
     final Mcv2PackServer packs,
     final ItemFrame topLeft,
     final int firstMapId,
     final Collection<UUID> viewers,
     final VideoPlayerMultiplexer player
   ) {
-    final Mcv2Configuration requested = Mcv2Configuration.builder()
+    final int columns = 15;
+    final int rows = 9;
+    final int videoWidth = 1920;
+    final int videoHeight = 1080;
+    final Location origin = topLeft.getLocation();
+    final BlockFace facing = topLeft.getFacing();
+    final Mcv2ConfigurationBuilder builder = Mcv2Configuration.builder();
+    final Mcv2Configuration requested = builder
       .viewers(viewers)
-      .origin(topLeft.getLocation())
-      .facing(topLeft.getFacing())
+      .origin(origin)
+      .facing(facing)
       .map(firstMapId)
-      .columns(15)
-      .rows(9)
-      .video(1920, 1080)
+      .columns(columns)
+      .rows(rows)
+      .video(videoWidth, videoHeight)
       .settings(Mcv2.Settings.DEFAULT)
       .build();
     final Mcv2PackServer.Lease lease = packs.open(requested);
     final Mcv2Configuration configuration = lease.getConfiguration();
     final DitherAlgorithm fallback = DitherAlgorithm.filterLite();
-    final Mcv2Result result = new Mcv2Result(configuration, packs.getViewers(), fallback);
+    final Mcv2Viewers packViewers = packs.getViewers();
+    final Mcv2Result result = new Mcv2Result(configuration, packViewers, fallback);
     try {
       result.start();
       final VideoPipelineStep pipeline = VideoPipelineStep.of(result);
       final VideoAttachableCallback videoCallback = player.getVideoAttachableCallback();
       videoCallback.attach(pipeline);
-    } catch (final RuntimeException failure) {
+    } catch (final RuntimeException exception) {
       result.release();
       lease.close(); // otherwise the slot stays taken until the server stops
-      throw failure;
+      throw exception;
     }
+
     return new Mcv2Wall(result, lease);
   }
 ```
@@ -1514,17 +1537,21 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2FileEncoder;
 
   // call off the main thread
   public static Mcv2FileEncoder.Result preEncode(final Path video, final Path stream) throws IOException {
+    final int width = 1920;
+    final int height = 1080;
+    final Mcv2.Settings settings = Mcv2.Settings.DEFAULT;
     final Mcv2.Pool budget = Mcv2.Pool.shared();
     try (
-      Mcv2FileEncoder.FrameReader frames = Mcv2FileEncoder.ffmpeg(video, 1920, 1080);
-      OutputStream output = new BufferedOutputStream(Files.newOutputStream(stream))
+      final Mcv2FileEncoder.FrameReader frames = Mcv2FileEncoder.ffmpeg(video, width, height);
+      final OutputStream file = Files.newOutputStream(stream);
+      final OutputStream output = new BufferedOutputStream(file)
     ) {
-      return Mcv2FileEncoder.encode(frames, 1920, 1080, Mcv2.Settings.DEFAULT, budget, output, frame -> {});
+      return Mcv2FileEncoder.encode(frames, width, height, settings, budget, output, frame -> {});
     }
   }
 ```
@@ -1641,8 +1668,9 @@ decoder the class `Mcv2Decoder`, both in `me.brandonli.mcav.bukkit.media.mcv2`, 
 - [Map](https://minecraft.wiki/w/Map), [Map item format](https://minecraft.wiki/w/Map_item_format),
   [Shader](https://minecraft.wiki/w/Shader) and [Pack format](https://minecraft.wiki/w/Pack_format), Minecraft Wiki
 - [AV1 Bitstream & Decoding Process Specification](https://aomediacodec.github.io/av1-spec/)
-- [Toward A Practical Perceptual Video Quality Metric](https://netflixtechblog.com/toward-a-practical-perceptual-video-quality-metric-653f208b9652),
-  the VMAF post from Netflix
+- [Toward A Practical Perceptual Video Quality
+  Metric](https://netflixtechblog.com/toward-a-practical-perceptual-video-quality-metric-653f208b9652), the VMAF post
+  from Netflix
 - Z. Wang, A. C. Bovik, H. R. Sheikh and E. P. Simoncelli, Image Quality Assessment: From Error Visibility to
   Structural Similarity, 2004 (SSIM)
 - G. Bjontegaard, Calculation of Average PSNR Differences between RD-curves, VCEG-M33, 2001
@@ -1653,7 +1681,8 @@ decoder the class `Mcv2Decoder`, both in `me.brandonli.mcav.bukkit.media.mcv2`, 
 - [PIT](https://pitest.org/), the mutation tester, and [jqwik](https://jqwik.net/), the property-test engine, of MCAV's
   tests
 
-The measurements behind every chart are in `mcav-bukkit/src/test/resources/mcv2/data`, and the `charts` subcommand draws the charts again.
+The measurements behind every chart are in `mcav-bukkit/src/test/resources/mcv2/data`, and the `charts` subcommand draws
+the charts again.
 
 ### Reproducing the Measurements and Figures
 
@@ -1724,9 +1753,10 @@ Use `natives=off` for the Java comparison. The `mcv2.native` system property sti
 `conformance/digests.json` and `conformance/pages.json` in the Java generator's own format. Run Python
 `fixtures FIXTURE_FOLDER all` afterwards to restore the independent digest and page manifests.
 
-The fixture root contains `conformance/`, `edge/`, `encoder/`, `writer-canonical/`, the measured curves in `data/`, and the
-three Graphviz sources in `figures/`. Jazzer's `*FuzzTestInputs/` directories stay beneath the fuzz tests' Java package paths because
-Jazzer discovers their seeds there. The resource pack and chain template live under `mcav/mcv2/` in main resources.
+The fixture root contains `conformance/`, `edge/`, `encoder/`, `writer-canonical/`, the measured curves in `data/`, and
+the three Graphviz sources in `figures/`. Jazzer's `*FuzzTestInputs/` directories stay beneath the fuzz tests' Java
+package paths because Jazzer discovers their seeds there. The resource pack and chain template live under `mcav/mcv2/`
+in main resources.
 
 Render the diagrams and charts with Graphviz 14.1.2 and Python:
 

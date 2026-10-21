@@ -213,6 +213,13 @@ The Bukkit rewrite targets Minecraft 26.3. The old `ServerVersion` enumeration, 
 and the old `LocationData` type are removed; use the current map configuration and result APIs. Internal resource-pack
 injection hooks and several resource-pack exception constructors changed as well.
 
+Types of `mcav-bukkit` whose names held an upper-case acronym now case it as a word:
+
+| Former name | Current name |
+| --- | --- |
+| `MCPackHosting` | `McPackHosting` |
+| `MCPacksException` | `McPacksException` |
+
 The configuration builders are now top-level interfaces with internal implementations. Declare builder variables as
 `MapConfigurationBuilder`, `BlockConfigurationBuilder`, `ChatConfigurationBuilder`, `EntityConfigurationBuilder` or
 `ScoreboardConfigurationBuilder` rather than `MapConfiguration.Builder<?>` and the other nested builders; the nested
