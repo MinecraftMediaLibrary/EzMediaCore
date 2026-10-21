@@ -242,7 +242,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void rejectsInvalidDistances() {
+  void shouldRejectInvalidDistances() {
     assertThrows(IllegalArgumentException.class, () -> SVCFilter.withDistance(0.0f, "alice"));
     assertThrows(IllegalArgumentException.class, () -> SVCFilter.withDistance(-1.0f, "alice"));
     assertThrows(IllegalArgumentException.class, () -> SVCFilter.withDistance(Float.NaN, "alice"));
@@ -250,14 +250,14 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void rejectsMissingOrNullEntities() {
+  void shouldRejectMissingOrNullEntities() {
     assertThrows(NullPointerException.class, () -> SVCFilter.svc((Object[]) null));
     assertThrows(IllegalArgumentException.class, SVCFilter::svc);
     assertThrows(NullPointerException.class, () -> SVCFilter.svc("alice", null));
   }
 
   @Test
-  void rejectsNullSamplesAndMetadata() {
+  void shouldRejectNullSamplesAndMetadata() {
     final SVCFilter filter = SVCFilter.svc("alice");
     final short[] silence = new short[FRAME_SAMPLES];
     final ByteBuffer stereo = stereoOf(silence);
@@ -266,13 +266,13 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void refusesToBeCreatedWithoutTheVoiceChatApi() {
+  void shouldRefuseToBeCreatedWithoutTheVoiceChatApi() {
     this.module.stop();
     assertThrows(IllegalStateException.class, () -> SVCFilter.svc("alice"));
   }
 
   @Test
-  void refusesToStartWhenTheApiWasRemovedAfterCreation() {
+  void shouldRefuseToStartWhenTheApiWasRemovedAfterCreation() {
     final SVCFilter filter = SVCFilter.svc("alice");
     this.module.stop();
     assertThrows(IllegalStateException.class, filter::start);
@@ -283,7 +283,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void createsOneSpeakerPerEntityWithTheDefaultDistance() {
+  void shouldCreateOneSpeakerPerEntityWithTheDefaultDistance() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     assertInstanceOf(SVCFilterImpl.class, filter);
     filter.start();
@@ -306,12 +306,13 @@ final class SVCFilterImplTest {
       final AudioPlayer verifiedPlayer = Mockito.verify(player);
       verifiedPlayer.startPlaying();
     }
-    assertEquals(32.0f, SVCFilter.DEFAULT_DISTANCE);
+    final float defaultDistance = SVCFilter.DEFAULT_DISTANCE;
+    assertEquals(32.0f, defaultDistance);
     filter.release();
   }
 
   @Test
-  void passesACustomDistanceAndTheConvertedEntityToVoiceChat() {
+  void shouldPassACustomDistanceAndTheConvertedEntityToVoiceChat() {
     final SVCFilter filter = SVCFilter.withDistance(12.5f, "alice");
     filter.start();
     final EntityAudioChannel channel = this.channels.getFirst();
@@ -336,7 +337,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void copiesTheEntitiesOnCreation() {
+  void shouldCopyTheEntitiesOnCreation() {
     final Object[] entities = { "alice" };
     final SVCFilter filter = SVCFilter.svc(entities);
     entities[0] = "mallory";
@@ -347,7 +348,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void startingTwiceKeepsTheExistingSpeakers() {
+  void shouldKeepTheExistingSpeakersWhenStartedTwice() {
     final SVCFilter filter = SVCFilter.svc("alice");
     filter.start();
     filter.start();
@@ -357,7 +358,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void passesSamplesOnWithoutPlayingThemUntilStartedAndAfterRelease() {
+  void shouldPassSamplesOnWithoutPlayingThemUntilStartedAndAfterRelease() {
     final SVCFilter filter = SVCFilter.svc("alice");
     final short[] silence = new short[FRAME_SAMPLES];
     this.assertStoppedFilterQueuesNothing(filter, silence);
@@ -370,7 +371,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void everySpeakerPlaysEveryDownmixedFrame() {
+  void shouldPlayEveryDownmixedFrameOnEverySpeaker() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
     final short[] mono = ramp(FRAME_SAMPLES, -100);
@@ -392,7 +393,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void averagesStereoChannelsIntoTheFrame() {
+  void shouldAverageStereoChannelsIntoTheFrame() {
     final SVCFilter filter = SVCFilter.svc("alice");
     filter.start();
     final ByteBuffer stereo = ByteBuffer.allocate(FRAME_SAMPLES * 4);
@@ -411,7 +412,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void collectsPartialInputUntilAFrameIsComplete() {
+  void shouldCollectPartialInputUntilAFrameIsComplete() {
     final SVCFilter filter = SVCFilter.svc("alice");
     filter.start();
     final short[] first = constant(500, 1);
@@ -439,7 +440,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void splitsLargeInputIntoSeveralFrames() {
+  void shouldSplitLargeInputIntoSeveralFrames() {
     final SVCFilter filter = SVCFilter.svc("alice");
     filter.start();
     final short[] mono = ramp(FRAME_SAMPLES * 3 + 7, 0);
@@ -457,7 +458,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void playsSilenceInsteadOfEndingWhenNoFrameIsQueued() {
+  void shouldPlaySilenceInsteadOfEndingWhenNoFrameIsQueued() {
     final SVCFilter filter = SVCFilter.svc("alice");
     filter.start();
     final short[] frame = this.nextFrameOf(0);
@@ -469,7 +470,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void dropsTheOldestFramesOfASpeakerThatFallsBehind() {
+  void shouldDropTheOldestFramesOfASpeakerThatFallsBehind() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
     for (int frameIndex = 0; frameIndex < MAX_FRAMES + 2; frameIndex++) {
@@ -489,7 +490,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void releaseStopsEveryPlayerClosesEveryEncoderAndDropsQueuedAudio() {
+  void shouldStopEveryPlayerCloseEveryEncoderAndDropQueuedAudioOnRelease() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
     final short[] input = constant(FRAME_SAMPLES + 10, 4);
@@ -511,7 +512,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void releaseAttemptsEveryResourceAndPreservesCleanupFailures() {
+  void shouldAttemptEveryResourceAndPreserveCleanupFailuresOnRelease() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
     final short[] input = constant(FRAME_SAMPLES + 10, 4);
@@ -559,7 +560,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void preservesTheStartFailureWhenRollingBackSpeakersAlsoFails() {
+  void shouldPreserveTheStartFailureWhenRollingBackSpeakersAlsoFails() {
     this.failingEntity = "bob";
     this.failingStep = "createEncoder";
     final IllegalArgumentException cleanupFailure = new IllegalArgumentException("stop failed");
@@ -587,7 +588,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void neverSuppressesACleanupExceptionOntoItself() {
+  void shouldNeverSuppressACleanupExceptionOntoItself() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
     final IllegalStateException sharedFailure = new IllegalStateException("shared cleanup failure");
@@ -603,14 +604,15 @@ final class SVCFilterImplTest {
     }
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, filter::release);
     final Throwable[] suppressed = thrown.getSuppressed();
+    final int suppressedCount = suppressed.length;
     assertSame(sharedFailure, thrown);
-    assertEquals(0, suppressed.length);
+    assertEquals(0, suppressedCount);
     this.assertEverySpeakerStopped();
     filter.release();
   }
 
   @Test
-  void rethrowsTheFirstRecoverableCleanupErrorAfterStoppingEverySpeaker() {
+  void shouldRethrowTheFirstRecoverableCleanupErrorAfterStoppingEverySpeaker() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
     final UnsatisfiedLinkError failure = new UnsatisfiedLinkError("native encoder cleanup failed");
@@ -621,7 +623,8 @@ final class SVCFilterImplTest {
     final UnsatisfiedLinkError thrown = assertThrows(UnsatisfiedLinkError.class, filter::release);
     assertSame(failure, thrown);
     this.assertEverySpeakerStopped();
-    assertEquals(0, filter.getQueuedFrames());
+    final int queued = filter.getQueuedFrames();
+    assertEquals(0, queued);
     filter.release();
     final VerificationMode once = Mockito.times(1);
     final OpusEncoder checked = Mockito.verify(first, once);
@@ -629,7 +632,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void propagatesFatalCleanupErrorsWithoutAttemptingMoreThirdPartyCalls() {
+  void shouldPropagateFatalCleanupErrorsWithoutAttemptingMoreThirdPartyCalls() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
     final InternalError fatal = new InternalError("the VM cannot continue cleanup");
@@ -650,7 +653,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void restartingCreatesNewSpeakersAndForgetsThePartialFrame() {
+  void shouldCreateNewSpeakersAndForgetThePartialFrameWhenRestarted() {
     final SVCFilter filter = SVCFilter.svc("alice");
     filter.start();
     final short[] almostAFrame = constant(FRAME_SAMPLES - 1, 8);
@@ -673,7 +676,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void stopsTheCreatedSpeakersWhenVoiceChatRefusesAChannel() {
+  void shouldStopTheCreatedSpeakersWhenVoiceChatRefusesAChannel() {
     this.refusedEntity = "bob";
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     final PlayerException exception = assertThrows(PlayerException.class, filter::start);
@@ -696,7 +699,7 @@ final class SVCFilterImplTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "fromEntity", "createEncoder", "createAudioPlayer", "startPlaying" })
-  void releasesEverythingItCreatedWhenStartingFailsAndCanStartAgain(final String step) {
+  void shouldReleaseEverythingItCreatedWhenStartingFailsAndStartAgain(final String step) {
     this.failingEntity = "bob";
     this.failingStep = step;
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
@@ -716,7 +719,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void releasesEverythingItCreatedWhenVoiceChatCannotLinkItsCodec() {
+  void shouldReleaseEverythingItCreatedWhenVoiceChatCannotLinkItsCodec() {
     final UnsatisfiedLinkError linkFailure = new UnsatisfiedLinkError("no opus in java.library.path");
     this.failEncoderCreationForBob(linkFailure);
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
@@ -730,7 +733,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void passesErrorsOfTheVirtualMachineOnUnchanged() {
+  void shouldPassErrorsOfTheVirtualMachineOnUnchanged() {
     final InternalError fatal = new InternalError("out of native memory");
     this.failEncoderCreationForBob(fatal);
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
@@ -756,7 +759,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void leavesTheSpeakerAloneWhenStartingItsPlayerFailsFatally() {
+  void shouldLeaveTheSpeakerAloneWhenStartingItsPlayerFailsFatally() {
     final InternalError fatal = new InternalError("the codec died");
     this.failPlayerCreationForBob(fatal);
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
@@ -821,7 +824,7 @@ final class SVCFilterImplTest {
   }
 
   @Test
-  void deliversFramesInOrderWhileVoiceChatPullsConcurrently() throws Exception {
+  void shouldDeliverFramesInOrderWhileVoiceChatPullsConcurrently() throws Exception {
     final SVCFilter filter = SVCFilter.svc("alice");
     filter.start();
     final Supplier<short[]> supplier = this.suppliers.getFirst();

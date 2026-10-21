@@ -40,13 +40,13 @@ final class SVCModuleTest {
   }
 
   @Test
-  void isNamedSvc() {
+  void shouldBeNamedSvc() {
     final String name = this.module.getModuleName();
     assertEquals("svc", name);
   }
 
   @Test
-  void hasNoApiUntilOneIsInjected() {
+  void shouldHaveNoApiUntilOneIsInjected() {
     this.module.start();
     final VoicechatServerApi api = SVCModule.getVoiceChatApi();
     assertNull(api);
@@ -56,7 +56,7 @@ final class SVCModuleTest {
   }
 
   @Test
-  void keepsTheInjectedApiUntilStopped() {
+  void shouldKeepTheInjectedApiUntilStopped() {
     final VoicechatServerApi api = Mockito.mock(VoicechatServerApi.class);
     this.module.inject(api);
     final VoicechatServerApi injected = SVCModule.getVoiceChatApi();
@@ -70,7 +70,7 @@ final class SVCModuleTest {
   }
 
   @Test
-  void replacesAPreviouslyInjectedApi() {
+  void shouldReplaceAPreviouslyInjectedApi() {
     final VoicechatServerApi first = Mockito.mock(VoicechatServerApi.class);
     final VoicechatServerApi second = Mockito.mock(VoicechatServerApi.class);
     this.module.inject(first);
@@ -80,7 +80,7 @@ final class SVCModuleTest {
   }
 
   @Test
-  void rejectsANullApiAndKeepsThePreviousOne() {
+  void shouldRejectANullApiAndKeepThePreviousOne() {
     final VoicechatServerApi api = Mockito.mock(VoicechatServerApi.class);
     this.module.inject(api);
     assertThrows(NullPointerException.class, () -> this.module.inject(null));
