@@ -34,18 +34,52 @@ from io import StringIO
 from pathlib import Path
 from unittest import mock
 
+import mcv2_reference
 import mcv2_tools
 
+PROGRAM = "mcv2_tools.py shader_timing"
+STREAM_NAME = "stream.mcs"
+TIMINGS_NAME = "timings.json"
+BASELINE_NAME = "baseline.json"
+JSON_OPTION = "--json"
 
-def frame(keyframe, version=3):
+WIDTH = 64
+HEIGHT = 32
+KEYFRAME_ID = 1
+PREDICTED_FRAME_ID = 2
+
+VERSION_TWO = 2
+VERSION_TWO_HEADER_BYTES = 32
+VERSION_TWO_FLAGS_OFFSET = 6
+DIMENSIONS = struct.Struct("<HH")
+
+DECODE_MILLISECONDS = 1.0
+SCREEN_MILLISECONDS = 2.0
+
+MODERNGL_MODULE = "moderngl"
+GL_VERSION = "3.3"
+
+STREAMS_KEY = "streams"
+NEW_KEYFRAME_KEY = "new_keyframe"
+NEW_PREDICTED_KEY = "new_p"
+TOTAL_KEY = "total"
+COUNT_KEY = "n"
+
+PACKAGE = "mcvideo"
+PACKAGE_INIT = "__init__.py"
+TRANSPORT_MODULE = "transport.py"
+
+
+def frame(keyframe, version=mcv2_reference.VERSION):
     """The header of a 64x32 frame, which is all shader_timing reads of a frame itself."""
-    if version == 3:
-        return struct.pack("<4sIHHII", b"MCV2", 3, 64, 32, 1 if keyframe else 2, 1)
-    data = bytearray(32)
-    data[:4] = b"MCV2"
-    data[4] = version
-    data[6] = int(keyframe)
-    struct.pack_into("<HH", data, 8, 64, 32)
+    if version == mcv2_reference.VERSION:
+        frame_id = KEYFRAME_ID if keyframe else PREDICTED_FRAME_ID
+        return mcv2_reference.HEADER.pack(mcv2_reference.MAGIC, mcv2_reference.VERSION, WIDTH, HEIGHT, frame_id, KEYFRAME_ID)
+    data = bytearray(VERSION_TWO_HEADER_BYTES)
+    data[:len(mcv2_reference.MAGIC)] = mcv2_reference.MAGIC
+    data[mcv2_reference.VERSION_OFFSET] = version
+    data[VERSION_TWO_FLAGS_OFFSET] = int(keyframe)
+    DIMENSIONS.pack_into(data, mcv2_reference.WIDTH_OFFSET, WIDTH, HEIGHT)
     return bytes(data)
 
 
@@ -75,7 +109,7 @@ class FakeChain:
     def timed_frame(self, repeats):
         # each frame is shown twice: with its new pages, which decode it, then with the same pages again
         key = (self.round, self.index)
-        times = {"mcv2_decode": 1.0, "mcv2_screen": 2.0}
+        times = {"mcv2_decode": DECODE_MILLISECONDS, "mcv2_screen": SCREEN_MILLISECONDS}
         if self.first:
             self.first = False
             return key not in self.missed, times
@@ -89,19 +123,19 @@ class FakeChain:
         return types.SimpleNamespace(read=lambda: picture)
 
 
-def run(*options, missed=(), again=(), changed=(), version=3, received=None):
+def run(*options, missed=(), again=(), changed=(), version=mcv2_reference.VERSION, received=None):
     """Runs main() on a stream of a keyframe and a P frame, and returns its exit code; 0 when it returns."""
-    context = types.SimpleNamespace(info={"GL_RENDERER": "fake", "GL_VERSION": "3.3"})
-    moderngl = types.ModuleType("moderngl")
+    context = types.SimpleNamespace(info={"GL_RENDERER": "fake", "GL_VERSION": GL_VERSION})
+    moderngl = types.ModuleType(MODERNGL_MODULE)
     moderngl.create_standalone_context = lambda **_: context
     chain = type(
         "Chain",
         (FakeChain,),
         dict(missed=frozenset(missed), again=frozenset(again), changed=frozenset(changed), received=received),
     )
-    argv = ["mcv2_tools.py shader_timing", "stream.mcs", *options]
+    argv = [PROGRAM, STREAM_NAME, *options]
     with (
-        mock.patch.dict(sys.modules, {"moderngl": moderngl}),
+        mock.patch.dict(sys.modules, {MODERNGL_MODULE: moderngl}),
         mock.patch.object(sys, "argv", argv),
         mock.patch.object(mcv2_tools, "make_pages", lambda data, stream_id, symbol_bits: [data]),
         mock.patch.object(mcv2_tools, "TimedShaderChain", chain),
@@ -178,51 +212,51 @@ class TimerAccountingTest(unittest.TestCase):
 
     def test_should_classify_keyframes_and_predicted_frames_separately_by_their_version_three_ids(self):
         with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "timings.json"
-            status = run("--json", str(path))
+            path = Path(directory) / TIMINGS_NAME
+            status = run(JSON_OPTION, str(path))
             self.assertEqual(0, status)
 
-            stream = json.loads(path.read_text())["streams"]["stream.mcs"]
-            keyframes = stream["new_keyframe"]["total"]["n"]
+            stream = json.loads(path.read_text())[STREAMS_KEY][STREAM_NAME]
+            keyframes = stream[NEW_KEYFRAME_KEY][TOTAL_KEY][COUNT_KEY]
             self.assertEqual(2, keyframes)
 
-            predicted_frames = stream["new_p"]["total"]["n"]
+            predicted_frames = stream[NEW_PREDICTED_KEY][TOTAL_KEY][COUNT_KEY]
             self.assertEqual(2, predicted_frames)
 
-            idle = stream["idle"]["total"]["n"]
+            idle = stream["idle"][TOTAL_KEY][COUNT_KEY]
             self.assertEqual(4, idle)
 
     def test_should_still_classify_frames_by_the_flags_of_the_archived_version_two_baseline(self):
         with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "baseline.json"
-            status = run("--json", str(path), version=2)
+            path = Path(directory) / BASELINE_NAME
+            status = run(JSON_OPTION, str(path), version=VERSION_TWO)
             self.assertEqual(0, status)
 
-            stream = json.loads(path.read_text())["streams"]["stream.mcs"]
-            keyframes = stream["new_keyframe"]["total"]["n"]
+            stream = json.loads(path.read_text())[STREAMS_KEY][STREAM_NAME]
+            keyframes = stream[NEW_KEYFRAME_KEY][TOTAL_KEY][COUNT_KEY]
             self.assertEqual(2, keyframes)
 
-            predicted_frames = stream["new_p"]["total"]["n"]
+            predicted_frames = stream[NEW_PREDICTED_KEY][TOTAL_KEY][COUNT_KEY]
             self.assertEqual(2, predicted_frames)
 
     def test_should_import_the_transport_of_the_reference_option_from_the_archived_package_directory(self):
         with tempfile.TemporaryDirectory() as directory:
-            package = Path(directory) / "mcvideo"
+            package = Path(directory) / PACKAGE
             package.mkdir()
-            (package / "__init__.py").write_text("")
-            (package / "transport.py").write_text(
+            (package / PACKAGE_INIT).write_text("")
+            (package / TRANSPORT_MODULE).write_text(
                 "def make_pages(data, stream_id, symbol_bits):\n"
                 "    return [b'archived-v2:' + bytes((stream_id, symbol_bits)) + data]\n"
             )
             received = []
             with mock.patch.object(sys, "path", sys.path.copy()), mock.patch.dict(sys.modules):
-                sys.modules.pop("mcvideo", None)
-                sys.modules.pop("mcvideo.transport", None)
-                status = run("--reference", directory, version=2, received=received)
+                sys.modules.pop(PACKAGE, None)
+                sys.modules.pop(f"{PACKAGE}.transport", None)
+                status = run("--reference", directory, version=VERSION_TWO, received=received)
                 self.assertEqual(0, status)
 
             expected = [
-                [b"archived-v2:\x07\x06" + frame(keyframe, 2)] for keyframe in (True, True, False, False)
+                [b"archived-v2:\x07\x06" + frame(keyframe, VERSION_TWO)] for keyframe in (True, True, False, False)
             ]
             self.assertEqual(expected * 3, received)
 

@@ -31,6 +31,21 @@ import numpy
 
 import mcv2_tools
 
+PROGRAM = "mcv2_tools.py"
+STRIP_FIT_CHECK = "strip_fit_check"
+CHARTS = "charts"
+
+RGBA_CHANNELS = 4
+
+FAILURES_KEY = "failures"
+CHECKS_KEY = "checks"
+CHECK_COUNT = 7
+
+MATPLOTLIB_VERSION = "3.11.2"
+CHART_FONT = "Liberation Sans"
+COMMITTED_CHARTS = Path(__file__).resolve().parents[4] / "mcav-docs/images/mcv2"
+CHART_SUFFIX = ".png"
+
 
 class HelpCommandTest(unittest.TestCase):
     def test_should_name_each_subcommand_and_describe_its_exit_status_in_the_usage(self):
@@ -46,15 +61,15 @@ class HelpCommandTest(unittest.TestCase):
             "shader_check",
             "shader_timing",
             "strip_check",
-            "strip_fit_check",
+            STRIP_FIT_CHECK,
             "latency",
-            "charts",
+            CHARTS,
             "samples",
         )
         for command in commands:
             with self.subTest(command=command):
                 output = StringIO()
-                with patch.object(sys, "argv", ["mcv2_tools.py", command, "--help"]), redirect_stdout(output):
+                with patch.object(sys, "argv", [PROGRAM, command, "--help"]), redirect_stdout(output):
                     with self.assertRaises(SystemExit) as status:
                         mcv2_tools.main()
 
@@ -62,7 +77,7 @@ class HelpCommandTest(unittest.TestCase):
                 self.assertEqual(0, code)
 
                 usage = output.getvalue()
-                self.assertIn(f"usage: mcv2_tools.py {command} ", usage)
+                self.assertIn(f"usage: {PROGRAM} {command} ", usage)
                 self.assertIn("Exit 1", usage)
                 self.assertNotIn(mcv2_tools.__doc__, usage)
 
@@ -70,7 +85,7 @@ class HelpCommandTest(unittest.TestCase):
 class StripCommandTest(unittest.TestCase):
     def run_command(self, damaged):
         def frame(context, screen, spirv, screen_index=0):
-            scene = numpy.zeros((screen[1], screen[0], 4), numpy.uint8)
+            scene = numpy.zeros((screen[1], screen[0], RGBA_CHANNELS), numpy.uint8)
             after = scene.copy()
             if (screen, screen_index) == damaged:
                 after[0, 0, 0] = 1
@@ -81,7 +96,7 @@ class StripCommandTest(unittest.TestCase):
         output = StringIO()
         with (
             patch.dict(sys.modules, {"moderngl": moderngl}),
-            patch.object(sys, "argv", ["mcv2_tools.py", "strip_fit_check", "--backend", "egl"]),
+            patch.object(sys, "argv", [PROGRAM, STRIP_FIT_CHECK, "--backend", "egl"]),
             patch.object(mcv2_tools, "strip_fit_check_frame", side_effect=frame),
             redirect_stdout(output),
         ):
@@ -92,36 +107,36 @@ class StripCommandTest(unittest.TestCase):
         status, result = self.run_command(((160, 90), 0))
         self.assertEqual(1, status)
 
-        failures = result["failures"]
+        failures = result[FAILURES_KEY]
         self.assertEqual(
             ["160x90, where the strip does not fit: 1 pixels of the scene changed"], failures
         )
 
-        checks = result["checks"]
-        self.assertEqual(7, checks)
+        checks = result[CHECKS_KEY]
+        self.assertEqual(CHECK_COUNT, checks)
 
     def test_should_fail_the_subcommand_when_the_second_screen_changes_the_pixels_of_the_first(self):
         status, result = self.run_command(((854, 480), 1))
         self.assertEqual(1, status)
 
-        failures = result["failures"]
+        failures = result[FAILURES_KEY]
         self.assertEqual(
             ["854x480, second screen: the screen pass changed 1 pixels the first screen's pass drew"],
             failures,
         )
 
-        checks = result["checks"]
-        self.assertEqual(7, checks)
+        checks = result[CHECKS_KEY]
+        self.assertEqual(CHECK_COUNT, checks)
 
     def test_should_pass_the_subcommand_when_the_scene_is_unchanged(self):
         status, result = self.run_command(None)
         self.assertEqual(0, status)
 
-        failures = result["failures"]
+        failures = result[FAILURES_KEY]
         self.assertEqual([], failures)
 
-        checks = result["checks"]
-        self.assertEqual(7, checks)
+        checks = result[CHECKS_KEY]
+        self.assertEqual(CHECK_COUNT, checks)
 
 
 class ChartCommandTest(unittest.TestCase):
@@ -130,29 +145,29 @@ class ChartCommandTest(unittest.TestCase):
             import matplotlib
             from matplotlib import font_manager
         except ImportError:
-            message: str = "Matplotlib is missing, but the chart pixels need matplotlib 3.11.2 and the Liberation Sans font!"
+            message: str = f"Matplotlib is missing, but the chart pixels need matplotlib {MATPLOTLIB_VERSION} and the {CHART_FONT} font!"
             self.skipTest(message)
         font_path = font_manager.findfont(font_manager.FontProperties(family=mcv2_tools.CHARTS_FONT))
         font = font_manager.FontProperties(fname=font_path).get_name()
-        if matplotlib.__version__ != "3.11.2" or font != "Liberation Sans":
+        if matplotlib.__version__ != MATPLOTLIB_VERSION or font != CHART_FONT:
             version: str = matplotlib.__version__
-            message: str = f"Found matplotlib {version} and font {font}, but the chart pixels need matplotlib 3.11.2 and Liberation Sans!"
+            needed: str = f"matplotlib {MATPLOTLIB_VERSION} and {CHART_FONT}"
+            message: str = f"Found matplotlib {version} and font {font}, but the chart pixels need {needed}!"
             self.skipTest(message)
         from PIL import Image
 
-        root = Path(__file__).resolve().parents[4]
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)
             with (
-                patch.object(sys, "argv", ["mcv2_tools.py", "charts"]),
+                patch.object(sys, "argv", [PROGRAM, CHARTS]),
                 patch.object(mcv2_tools, "IMAGES", output),
             ):
                 mcv2_tools.main()
             for name in ("codecs", "features"):
                 with (
                     self.subTest(figure=name),
-                    Image.open(root / "mcav-docs/images/mcv2" / f"{name}.png") as expected,
-                    Image.open(output / f"{name}.png") as actual,
+                    Image.open(COMMITTED_CHARTS / (name + CHART_SUFFIX)) as expected,
+                    Image.open(output / (name + CHART_SUFFIX)) as actual,
                 ):
                     pixels = numpy.array(actual)
                     numpy.testing.assert_array_equal(numpy.array(expected), pixels)

@@ -25,6 +25,9 @@ import numpy
 
 MAGIC = b"MCV2"
 VERSION = 3
+VERSION_1_MAGIC = b"MCV1"
+VERSION_2_PREFIX = b"MCV2\x02"
+
 HEADER = struct.Struct("<4sIHHII")
 HEADER_BYTES = 20
 MAGIC_OFFSET = 0
@@ -33,30 +36,83 @@ WIDTH_OFFSET = 8
 HEIGHT_OFFSET = 10
 FRAME_ID_OFFSET = 12
 REFERENCE_ID_OFFSET = 16
+
+WORD_BYTES = 4
+WORDS_FORMAT = "<{}I"
+LEVEL_COUNTS = struct.Struct("<III")
+
+BITS_PER_BYTE = 8
+BIT_ORDER = "little"
+
 KEYFRAME = 1
+
 MINIMUM_DIMENSION = 1
 MAXIMUM_DIMENSION = 4096
+
 MINIMUM_FRAME_BYTES = 20
 MAXIMUM_FRAME_BYTES = 131071
+
 ID_MASK = 0xFFFFFFFF
 ID_HALF_RANGE = 0x80000000
+
 SUPERBLOCK_SIZE = 32
-LEAF_SIZES = (32, 16, 8)
+LEVEL_ONE_SIZE = 16
+SMALLEST_LEAF_SIZE = 8
+LEAF_SIZES = (SUPERBLOCK_SIZE, LEVEL_ONE_SIZE, SMALLEST_LEAF_SIZE)
+
+SPLIT_CHILDREN = 4
+QUADRANTS_PER_SIDE = 2
+QUADRANT_OFFSETS = ((0, 0), (1, 0), (0, 1), (1, 1))
+
 MASK_BITS = 32
 DIRECTORY_GROUPS = 8
 WALK_STRIDE = 8
 WALK_CURSOR_BITS = 17
-MAXIMUM_QUANTIZER = 2
+
 SKIP, MOTION, SOLID, PALETTE, PATTERN, COMPACT, SPLIT = range(7)
 MODE_MASK = 31
 QUANTIZER_SHIFT = 5
+MAXIMUM_QUANTIZER = 2
+
+CHANNELS = 3
+MAXIMUM_CHANNEL = 255
+ROUNDING_OFFSET = 0.5
+
+MOTION_BYTES = 2
+SOLID_BYTES = CHANNELS
+RECORD_COLORS = 2
+COLORS_BYTES = RECORD_COLORS * CHANNELS
+PATTERN_ORIENTATION_INDEX = COLORS_BYTES
+PATTERN_HEADER_BYTES = COLORS_BYTES + 1
+VERTICAL_STRIPES = 0
+HORIZONTAL_STRIPES = 1
 COMPACT_BYTES = 10
+
+GRID_SIDE = 4
+NIBBLE_BITS = 4
+NIBBLE_MASK = (1 << NIBBLE_BITS) - 1
+NIBBLE_SIGN = 1 << (NIBBLE_BITS - 1)
+NIBBLE_RANGE = 1 << NIBBLE_BITS
+GRID_BYTES = GRID_SIDE * GRID_SIDE * NIBBLE_BITS // BITS_PER_BYTE
+HALF_PIXEL = 0.5
+
 PAGE_MAGIC = b"MCP1"
 PAGE_VERSION = 1
-SYMBOL_BITS = 6
-PAGE_SYMBOLS = 128 * 128
+PAGE_HEADER = struct.Struct("<4sBBHIIHHIII")
 PAGE_HEADER_BYTES = 32
-PAGE_CAPACITY = 12256
+PAGE_CRC = struct.Struct("<I")
+PAGE_CRC_OFFSET = 28
+MAXIMUM_PAGE_FLAGS = KEYFRAME
+DEFAULT_STREAM_ID = 1
+
+SYMBOL_BITS = 6
+ALPHABET_SIZE = 1 << SYMBOL_BITS
+MAP_SIDE = 128
+PAGE_SYMBOLS = MAP_SIDE * MAP_SIDE
+PAGE_HEADER_SYMBOLS = (PAGE_HEADER_BYTES * BITS_PER_BYTE + SYMBOL_BITS - 1) // SYMBOL_BITS
+PAGE_CAPACITY = PAGE_SYMBOLS * SYMBOL_BITS // BITS_PER_BYTE - PAGE_HEADER_BYTES
+PACKET_OVERHEAD = 18
+
 MAXIMUM_PENDING = 4
 MAXIMUM_PAGE_SLOTS = 8
 SCREEN_CAPACITY = MAXIMUM_PAGE_SLOTS * PAGE_CAPACITY
@@ -120,73 +176,78 @@ def _record_length(mode: int, size: int) -> int:
     if mode in (SKIP, SPLIT):
         return 0
     if mode == MOTION:
-        return 2
+        return MOTION_BYTES
     if mode == SOLID:
-        return 3
+        return SOLID_BYTES
     if mode == PALETTE:
-        return 6 + size * size // 8
+        return COLORS_BYTES + size * size // BITS_PER_BYTE
     if mode == PATTERN:
-        return 7 + size // 8
+        return PATTERN_HEADER_BYTES + size // BITS_PER_BYTE
     return COMPACT_BYTES
 
 
 def parse_frame(data: bytes) -> Frame:
     """Accept exactly spec section 9 syntax; check each field extent before reading it, or raise ValueError."""
-    if data[:4] == b"MCV1":
+    if data[: len(VERSION_1_MAGIC)] == VERSION_1_MAGIC:
         message: str = "MCV1 version 1 is no longer supported; re-encode the video!"
         raise ValueError(message)
-    if data[:5] == b"MCV2\x02":
+    if data[: len(VERSION_2_PREFIX)] == VERSION_2_PREFIX:
         message: str = "MCV2 version 2 is no longer supported; re-encode the video!"
         raise ValueError(message)
     total = len(data)
     _require(MINIMUM_FRAME_BYTES <= total <= MAXIMUM_FRAME_BYTES, "The frame length is invalid!")
     magic, version, width, height, frame_id, reference_id = HEADER.unpack_from(data)
     _require(magic == MAGIC and version == VERSION, "The data is not an MCV2 version 3 frame!")
-    _require(1 <= width <= MAXIMUM_DIMENSION and 1 <= height <= MAXIMUM_DIMENSION, INVALID_DIMENSIONS_MESSAGE)
+    _require(
+        MINIMUM_DIMENSION <= width <= MAXIMUM_DIMENSION and MINIMUM_DIMENSION <= height <= MAXIMUM_DIMENSION,
+        INVALID_DIMENSIONS_MESSAGE,
+    )
     keyframe = frame_id == reference_id
-    columns = (width + 31) // 32
-    root_count = columns * ((height + 31) // 32)
-    groups = (root_count + 31) // 32
-    checkpoints = (groups + 7) // 8
-    counts_offset = HEADER_BYTES + 4 * groups + 4 * checkpoints
-    _require(counts_offset + 12 <= total, "The frame has a truncated index!")
-    masks = struct.unpack_from(f"<{groups}I", data, HEADER_BYTES)
-    directory = struct.unpack_from(f"<{checkpoints}I", data, HEADER_BYTES + 4 * groups)
-    _require(masks[-1] >> (((root_count - 1) % 32) + 1) == 0, "A presence mask has out-of-picture superblocks!")
+    columns = (width + SUPERBLOCK_SIZE - 1) // SUPERBLOCK_SIZE
+    root_count = columns * ((height + SUPERBLOCK_SIZE - 1) // SUPERBLOCK_SIZE)
+    groups = (root_count + MASK_BITS - 1) // MASK_BITS
+    checkpoints = (groups + DIRECTORY_GROUPS - 1) // DIRECTORY_GROUPS
+    counts_offset = HEADER_BYTES + WORD_BYTES * groups + WORD_BYTES * checkpoints
+    _require(counts_offset + LEVEL_COUNTS.size <= total, "The frame has a truncated index!")
+    masks = struct.unpack_from(WORDS_FORMAT.format(groups), data, HEADER_BYTES)
+    directory = struct.unpack_from(WORDS_FORMAT.format(checkpoints), data, HEADER_BYTES + WORD_BYTES * groups)
+    _require(masks[-1] >> (((root_count - 1) % MASK_BITS) + 1) == 0, "A presence mask has out-of-picture superblocks!")
     present = 0
     for index, mask in enumerate(masks):
-        if index % 8 == 0:
-            _require(directory[index // 8] == present, "A directory prefix does not match the presence masks!")
+        if index % DIRECTORY_GROUPS == 0:
+            _require(directory[index // DIRECTORY_GROUPS] == present, "A directory prefix does not match the presence masks!")
         present += mask.bit_count()
-    level_zero_count, level_one_count, level_two_count = levels = struct.unpack_from(
-        "<III", data, counts_offset
-    )
+    level_zero_count, level_one_count, level_two_count = levels = LEVEL_COUNTS.unpack_from(data, counts_offset)
     _require(level_zero_count == present, "The level 0 count differs from the presence masks!")
     count = level_zero_count + level_one_count + level_two_count
-    walk_count = (count + 7) // 8
-    descriptor_offset = counts_offset + 12
-    payload = descriptor_offset + count + 4 * walk_count
+    walk_count = (count + WALK_STRIDE - 1) // WALK_STRIDE
+    descriptor_offset = counts_offset + LEVEL_COUNTS.size
+    payload = descriptor_offset + count + WORD_BYTES * walk_count
     _require(payload <= total, "The frame has truncated descriptors or walk!")
     descriptors = data[descriptor_offset : descriptor_offset + count]
-    walk = struct.unpack_from(f"<{walk_count}I", data, descriptor_offset + count)
+    walk = struct.unpack_from(WORDS_FORMAT.format(walk_count), data, descriptor_offset + count)
     offsets, records = ([], [])
     cursor = splits = level_zero_splits = level_one_splits = 0
     for index, descriptor in enumerate(descriptors):
-        if index % 8 == 0:
-            _require(walk[index // 8] == (cursor | (splits << 17)), "The frame has a walk checkpoint mismatch!")
-        size = 32 if index < level_zero_count else 16 if index < level_zero_count + level_one_count else 8
-        mode, quantizer = (descriptor & 31, descriptor >> 5)
+        if index % WALK_STRIDE == 0:
+            _require(walk[index // WALK_STRIDE] == (cursor | (splits << WALK_CURSOR_BITS)), "The frame has a walk checkpoint mismatch!")
+        size = (
+            SUPERBLOCK_SIZE
+            if index < level_zero_count
+            else LEVEL_ONE_SIZE if index < level_zero_count + level_one_count else SMALLEST_LEAF_SIZE
+        )
+        mode, quantizer = (descriptor & MODE_MASK, descriptor >> QUANTIZER_SHIFT)
         _require(mode <= SPLIT, "The frame has an invalid descriptor mode!")
         _require(mode == COMPACT or quantizer == 0, NONZERO_QUANTIZER_MESSAGE)
         _require(quantizer <= MAXIMUM_QUANTIZER, "The frame has a COMPACT quantizer above 2!")
         _require(not keyframe or mode not in (MOTION, COMPACT), TEMPORAL_KEYFRAME_MESSAGE)
-        _require(mode != SPLIT or size != 8, "The frame has a SPLIT in level 2!")
+        _require(mode != SPLIT or size != SMALLEST_LEAF_SIZE, "The frame has a SPLIT in level 2!")
         offset = payload + cursor
         length = _record_length(mode, size)
         _require(offset + length <= total, "A record exceeds the frame!")
         record = data[offset : offset + length]
         if mode == PATTERN:
-            _require(record[6] <= 1, "A record has an invalid PATTERN orientation!")
+            _require(record[PATTERN_ORIENTATION_INDEX] <= HORIZONTAL_STRIPES, "A record has an invalid PATTERN orientation!")
         offsets.append(offset)
         records.append(record)
         cursor += length
@@ -194,36 +255,38 @@ def parse_frame(data: bytes) -> Frame:
             splits += 1
             level_zero_splits += index < level_zero_count
             level_one_splits += level_zero_count <= index < level_zero_count + level_one_count
-    _require(level_one_count == 4 * level_zero_splits, "The level 1 count differs from the SPLIT children!")
-    _require(level_two_count == 4 * level_one_splits, "The level 2 count differs from the SPLIT children!")
+    _require(level_one_count == SPLIT_CHILDREN * level_zero_splits, "The level 1 count differs from the SPLIT children!")
+    _require(level_two_count == SPLIT_CHILDREN * level_one_splits, "The level 2 count differs from the SPLIT children!")
     _require(payload + cursor == total, "The records do not end at the end of the frame!")
-    root_indexes = [index for index in range(root_count) if (masks[index // 32] >> (index % 32)) & 1]
-    coordinates = [(32 * (index % columns), 32 * (index // columns), 32) for index in root_indexes]
+    root_indexes = [index for index in range(root_count) if (masks[index // MASK_BITS] >> (index % MASK_BITS)) & 1]
+    coordinates = [(SUPERBLOCK_SIZE * (index % columns), SUPERBLOCK_SIZE * (index // columns), SUPERBLOCK_SIZE) for index in root_indexes]
     leaves, children = ([], {})
     for index, descriptor in enumerate(descriptors):
         pixel_x, pixel_y, size = coordinates[index]
-        mode, quantizer = (descriptor & 31, descriptor >> 5)
+        mode, quantizer = (descriptor & MODE_MASK, descriptor >> QUANTIZER_SHIFT)
         if mode == SPLIT:
-            half = size // 2
+            half = size // QUADRANTS_PER_SIDE
             children[index] = len(coordinates)
             coordinates.extend(
                 (pixel_x + delta_x * half, pixel_y + delta_y * half, half)
-                for delta_x, delta_y in ((0, 0), (1, 0), (0, 1), (1, 1))
+                for delta_x, delta_y in QUADRANT_OFFSETS
             )
         else:
             leaves.append(
                 Leaf(pixel_x, pixel_y, size, mode, quantizer, offsets[index], records[index], index)
             )
     for index in range(root_count):
-        if not ((masks[index // 32] >> (index % 32)) & 1):
-            leaves.append(Leaf(32 * (index % columns), 32 * (index // columns), 32, SKIP, 0, None, b"", None))
+        if not ((masks[index // MASK_BITS] >> (index % MASK_BITS)) & 1):
+            leaves.append(
+                Leaf(SUPERBLOCK_SIZE * (index % columns), SUPERBLOCK_SIZE * (index // columns), SUPERBLOCK_SIZE, SKIP, 0, None, b"", None)
+            )
     nodes = {}
     for index in reversed(range(count)):
         descriptor = descriptors[index]
-        mode, quantizer = (descriptor & 31, descriptor >> 5)
+        mode, quantizer = (descriptor & MODE_MASK, descriptor >> QUANTIZER_SHIFT)
         if mode == SPLIT:
             nodes[index] = Node(
-                mode, children=tuple(nodes[children[index] + entry_index] for entry_index in range(4))
+                mode, children=tuple(nodes[children[index] + entry_index] for entry_index in range(SPLIT_CHILDREN))
             )
         else:
             nodes[index] = Node(mode, quantizer, records[index])
@@ -248,19 +311,22 @@ def parse_frame(data: bytes) -> Frame:
 
 def pack_frame(width: int, height: int, frame_id: int, reference_id: int, roots: Mapping[int, Node]) -> bytes:
     """Serialize a tree canonically. Absent roots stay absent; a frame is a keyframe when its ids are equal."""
-    _require(1 <= width <= MAXIMUM_DIMENSION and 1 <= height <= MAXIMUM_DIMENSION, INVALID_DIMENSIONS_MESSAGE)
+    _require(
+        MINIMUM_DIMENSION <= width <= MAXIMUM_DIMENSION and MINIMUM_DIMENSION <= height <= MAXIMUM_DIMENSION,
+        INVALID_DIMENSIONS_MESSAGE,
+    )
     _require(0 <= frame_id <= ID_MASK and 0 <= reference_id <= ID_MASK, "The frame and reference ids must be u32!")
     keyframe = frame_id == reference_id
-    root_count = (width + 31) // 32 * ((height + 31) // 32)
+    root_count = (width + SUPERBLOCK_SIZE - 1) // SUPERBLOCK_SIZE * ((height + SUPERBLOCK_SIZE - 1) // SUPERBLOCK_SIZE)
     _require(
         all(isinstance(index, int) and 0 <= index < root_count for index in roots), "A root index is out of range!"
     )
-    masks = [0] * ((root_count + 31) // 32)
+    masks = [0] * ((root_count + MASK_BITS - 1) // MASK_BITS)
     for index in roots:
-        masks[index // 32] |= 1 << (index % 32)
+        masks[index // MASK_BITS] |= 1 << (index % MASK_BITS)
     directory, present = ([], 0)
     for index, mask in enumerate(masks):
-        if index % 8 == 0:
+        if index % DIRECTORY_GROUPS == 0:
             directory.append(present)
         present += mask.bit_count()
     levels, descriptors, records, walk = ([], bytearray(), bytearray(), [])
@@ -275,55 +341,62 @@ def pack_frame(width: int, height: int, frame_id: int, reference_id: int, roots:
             )
             _require(node.mode == COMPACT or node.quantizer == 0, NONZERO_QUANTIZER_MESSAGE)
             _require(not keyframe or node.mode not in (MOTION, COMPACT), TEMPORAL_KEYFRAME_MESSAGE)
-            if len(descriptors) % 8 == 0:
-                walk.append(len(records) | (splits << 17))
-            descriptors.append(node.mode | (node.quantizer << 5))
+            if len(descriptors) % WALK_STRIDE == 0:
+                walk.append(len(records) | (splits << WALK_CURSOR_BITS))
+            descriptors.append(node.mode | (node.quantizer << QUANTIZER_SHIFT))
             if node.mode == SPLIT:
-                _require(size > 8 and len(node.children) == 4 and (not node.record), "A SPLIT node is invalid!")
+                _require(
+                    size > SMALLEST_LEAF_SIZE and len(node.children) == SPLIT_CHILDREN and (not node.record),
+                    "A SPLIT node is invalid!",
+                )
                 following.extend(node.children)
                 splits += 1
                 continue
             _require(not node.children, "A leaf must not have children!")
             record = node.record
             if node.mode == PATTERN:
-                _require(len(record) == 7 + size // 8 and record[6] <= 1, "A PATTERN record is invalid!")
+                _require(
+                    len(record) == PATTERN_HEADER_BYTES + size // BITS_PER_BYTE
+                    and record[PATTERN_ORIENTATION_INDEX] <= HORIZONTAL_STRIPES,
+                    "A PATTERN record is invalid!",
+                )
             length = _record_length(node.mode, size)
             _require(len(record) == length, "A leaf record has an invalid length!")
             records.extend(record)
         current = following
         _require(len(records) + len(descriptors) <= MAXIMUM_FRAME_BYTES, LENGTH_LIMIT_MESSAGE)
     index = (
-        struct.pack(f"<{len(masks)}I", *masks)
-        + struct.pack(f"<{len(directory)}I", *directory)
-        + struct.pack("<III", *levels)
+        struct.pack(WORDS_FORMAT.format(len(masks)), *masks)
+        + struct.pack(WORDS_FORMAT.format(len(directory)), *directory)
+        + LEVEL_COUNTS.pack(*levels)
         + descriptors
-        + struct.pack(f"<{len(walk)}I", *walk)
+        + struct.pack(WORDS_FORMAT.format(len(walk)), *walk)
     )
     total = HEADER_BYTES + len(index) + len(records)
     _require(total <= MAXIMUM_FRAME_BYTES, LENGTH_LIMIT_MESSAGE)
     return HEADER.pack(MAGIC, VERSION, width, height, frame_id, reference_id) + index + records
 
 
-def _signed(value: int, bits: int = 8) -> int:
+def _signed(value: int, bits: int = BITS_PER_BYTE) -> int:
     return value - (1 << bits) if value & (1 << (bits - 1)) else value
 
 
 def _prediction(
     reference: numpy.ndarray, pixel_x: int, pixel_y: int, size: int, delta_x: int, delta_y: int
 ) -> numpy.ndarray:
-    height, width = reference.shape[:2]
+    height, width, _ = reference.shape
     columns = numpy.clip(numpy.arange(size) + pixel_x + delta_x, 0, width - 1)
     rows = numpy.clip(numpy.arange(size) + pixel_y + delta_y, 0, height - 1)
     return reference[rows[:, None], columns]
 
 
 def _grid(body: bytes, size: int) -> numpy.ndarray:
-    packed = numpy.frombuffer(body[:8], numpy.uint8)
-    nibbles = numpy.stack((packed & 15, packed >> 4), axis=1).astype(numpy.int32).ravel()
-    nodes = numpy.where(nibbles >= 8, nibbles - 16, nibbles).reshape(4, 4)
-    position = numpy.clip((numpy.arange(size) + 0.5) * 4 / size - 0.5, 0, 3)
+    packed = numpy.frombuffer(body[:GRID_BYTES], numpy.uint8)
+    nibbles = numpy.stack((packed & NIBBLE_MASK, packed >> NIBBLE_BITS), axis=1).astype(numpy.int32).ravel()
+    nodes = numpy.where(nibbles >= NIBBLE_SIGN, nibbles - NIBBLE_RANGE, nibbles).reshape(GRID_SIDE, GRID_SIDE)
+    position = numpy.clip((numpy.arange(size) + HALF_PIXEL) * GRID_SIDE / size - HALF_PIXEL, 0, GRID_SIDE - 1)
     lower = position.astype(numpy.int32)
-    upper = numpy.minimum(lower + 1, 3)
+    upper = numpy.minimum(lower + 1, GRID_SIDE - 1)
     fraction = position - lower
     horizontal = nodes[:, lower] * (1 - fraction) + nodes[:, upper] * fraction
     return horizontal[lower] * (1 - fraction[:, None]) + horizontal[upper] * fraction[:, None]
@@ -334,31 +407,31 @@ def _decode(frame: Frame, reference: numpy.ndarray | None, reference_id: int | N
         if reference is None or reference_id != frame.reference_id:
             message: str = "The reference id is missing or does not match!"
             raise ValueError(message)
-        if reference.shape != (frame.height, frame.width, 3) or reference.dtype != numpy.uint8:
+        if reference.shape != (frame.height, frame.width, CHANNELS) or reference.dtype != numpy.uint8:
             message: str = "The reference must be a matching height x width x 3 uint8 picture!"
             raise ValueError(message)
-    picture = numpy.empty((frame.height, frame.width, 3), numpy.uint8)
+    picture = numpy.empty((frame.height, frame.width, CHANNELS), numpy.uint8)
     for leaf in frame.leaves:
         pixel_x, pixel_y, size, mode, record = (leaf.pixel_x, leaf.pixel_y, leaf.size, leaf.mode, leaf.record)
         if mode == SKIP:
             block = (
-                numpy.zeros((size, size, 3), numpy.uint8)
+                numpy.zeros((size, size, CHANNELS), numpy.uint8)
                 if frame.keyframe
                 else _prediction(reference, pixel_x, pixel_y, size, 0, 0)
             )
         elif mode == SOLID:
-            block = numpy.broadcast_to(numpy.frombuffer(record, numpy.uint8), (size, size, 3))
+            block = numpy.broadcast_to(numpy.frombuffer(record, numpy.uint8), (size, size, CHANNELS))
         elif mode in (PALETTE, PATTERN):
             if mode == PATTERN:
-                axis = numpy.unpackbits(numpy.frombuffer(record[7:], numpy.uint8), bitorder="little")
+                axis = numpy.unpackbits(numpy.frombuffer(record[PATTERN_HEADER_BYTES:], numpy.uint8), bitorder=BIT_ORDER)
                 selectors = numpy.broadcast_to(
-                    axis[None, :] if record[6] == 0 else axis[:, None], (size, size)
+                    axis[None, :] if record[PATTERN_ORIENTATION_INDEX] == VERTICAL_STRIPES else axis[:, None], (size, size)
                 )
             else:
                 selectors = numpy.unpackbits(
-                    numpy.frombuffer(record[6:], numpy.uint8), bitorder="little"
+                    numpy.frombuffer(record[COLORS_BYTES:], numpy.uint8), bitorder=BIT_ORDER
                 ).reshape(size, size)
-            colors = numpy.frombuffer(record[:6], numpy.uint8).reshape(2, 3)
+            colors = numpy.frombuffer(record[:COLORS_BYTES], numpy.uint8).reshape(RECORD_COLORS, CHANNELS)
             block = colors[selectors]
         elif mode == MOTION:
             block = _prediction(reference, pixel_x, pixel_y, size, _signed(record[0]), _signed(record[1]))
@@ -366,9 +439,9 @@ def _decode(frame: Frame, reference: numpy.ndarray | None, reference_id: int | N
             prediction = _prediction(
                 reference, pixel_x, pixel_y, size, _signed(record[0]), _signed(record[1])
             ).astype(numpy.float64)
-            residual = _grid(record[2:], size)[..., None]
+            residual = _grid(record[MOTION_BYTES:], size)[..., None]
             block = numpy.clip(
-                numpy.floor(prediction + (1 << leaf.quantizer) * residual + 0.5), 0, 255
+                numpy.floor(prediction + (1 << leaf.quantizer) * residual + ROUNDING_OFFSET), 0, MAXIMUM_CHANNEL
             ).astype(numpy.uint8)
         shown_width, shown_height = (min(size, frame.width - pixel_x), min(size, frame.height - pixel_y))
         if shown_width > 0 and shown_height > 0:
@@ -409,43 +482,41 @@ class Decoder:
         return picture
 
 
-PAGE_HEADER = struct.Struct("<4sBBHIIHHIII")
 
-
-def page_capacity(symbol_bits: int = 6) -> int:
+def page_capacity(symbol_bits: int = SYMBOL_BITS) -> int:
     if symbol_bits != SYMBOL_BITS:
         message: str = "Only 6-bit transport symbols are supported!"
         raise ValueError(message)
     return PAGE_CAPACITY
 
 
-def to_symbols(data: bytes, symbol_bits: int = 6) -> bytes:
+def to_symbols(data: bytes, symbol_bits: int = SYMBOL_BITS) -> bytes:
     """Return exact, unpadded map symbol bytes (map colours are these values plus four)."""
     page_capacity(symbol_bits)
-    bits = numpy.unpackbits(numpy.frombuffer(data, numpy.uint8), bitorder="little")
-    bits = numpy.pad(bits, (0, -len(bits) % 6)).reshape(-1, 6)
-    return (bits @ (1 << numpy.arange(6))).astype(numpy.uint8).tobytes()
+    bits = numpy.unpackbits(numpy.frombuffer(data, numpy.uint8), bitorder=BIT_ORDER)
+    bits = numpy.pad(bits, (0, -len(bits) % SYMBOL_BITS)).reshape(-1, SYMBOL_BITS)
+    return (bits @ (1 << numpy.arange(SYMBOL_BITS))).astype(numpy.uint8).tobytes()
 
 
 def from_symbols(symbols: bytes, symbol_bits: int, byte_count: int) -> bytes:
     page_capacity(symbol_bits)
-    if byte_count < 0 or len(symbols) != (byte_count * 8 + 5) // 6:
+    if byte_count < 0 or len(symbols) != (byte_count * BITS_PER_BYTE + SYMBOL_BITS - 1) // SYMBOL_BITS:
         message: str = "The symbol extent is invalid!"
         raise ValueError(message)
     values = numpy.frombuffer(symbols, numpy.uint8)
-    if numpy.any(values >= 64):
+    if numpy.any(values >= ALPHABET_SIZE):
         message: str = "A symbol is out of the alphabet!"
         raise ValueError(message)
-    bits = (values[:, None] >> numpy.arange(6) & 1).astype(numpy.uint8).ravel()
-    if numpy.any(bits[byte_count * 8 :]):
+    bits = (values[:, None] >> numpy.arange(SYMBOL_BITS) & 1).astype(numpy.uint8).ravel()
+    if numpy.any(bits[byte_count * BITS_PER_BYTE :]):
         message: str = "The symbol padding is not zero!"
         raise ValueError(message)
-    return numpy.packbits(bits[: byte_count * 8], bitorder="little").tobytes()
+    return numpy.packbits(bits[: byte_count * BITS_PER_BYTE], bitorder=BIT_ORDER).tobytes()
 
 
-def make_pages(frame_data: bytes, stream_id: int = 1, symbol_bits: int = 6) -> list[bytes]:
+def make_pages(frame_data: bytes, stream_id: int = DEFAULT_STREAM_ID, symbol_bits: int = SYMBOL_BITS) -> list[bytes]:
     capacity = page_capacity(symbol_bits)
-    if not 0 <= stream_id <= 0xFFFFFFFF:
+    if not 0 <= stream_id <= ID_MASK:
         message: str = "The stream id must be u32!"
         raise ValueError(message)
     frame = parse_frame(frame_data)
@@ -455,8 +526,8 @@ def make_pages(frame_data: bytes, stream_id: int = 1, symbol_bits: int = 6) -> l
         payload = frame_data[number * capacity : (number + 1) * capacity]
         header = PAGE_HEADER.pack(
             PAGE_MAGIC,
-            1,
-            6,
+            PAGE_VERSION,
+            SYMBOL_BITS,
             frame.flags,
             stream_id,
             frame.frame_id,
@@ -467,7 +538,7 @@ def make_pages(frame_data: bytes, stream_id: int = 1, symbol_bits: int = 6) -> l
             0,
         )
         crc = zlib.crc32(header + payload)
-        pages.append(to_symbols(header[:28] + struct.pack("<I", crc) + payload))
+        pages.append(to_symbols(header[:PAGE_CRC_OFFSET] + PAGE_CRC.pack(crc) + payload))
     return pages
 
 
@@ -484,19 +555,19 @@ class Page:
     payload: bytes
 
 
-def read_page(symbols: bytes, symbol_bits: int = 6) -> Page:
+def read_page(symbols: bytes, symbol_bits: int = SYMBOL_BITS) -> Page:
     page_capacity(symbol_bits)
-    if not 43 <= len(symbols) <= PAGE_SYMBOLS:
+    if not PAGE_HEADER_SYMBOLS <= len(symbols) <= PAGE_SYMBOLS:
         message: str = "The map page extent is invalid!"
         raise ValueError(message)
-    values = numpy.frombuffer(symbols[:43], numpy.uint8)
+    values = numpy.frombuffer(symbols[:PAGE_HEADER_SYMBOLS], numpy.uint8)
     # The 43rd symbol also holds the first two payload bits; it is not header padding.
-    bits = (values[:, None] >> numpy.arange(6) & 1).astype(numpy.uint8).ravel()
-    header = numpy.packbits(bits[:256], bitorder="little").tobytes()
+    bits = (values[:, None] >> numpy.arange(SYMBOL_BITS) & 1).astype(numpy.uint8).ravel()
+    header = numpy.packbits(bits[: PAGE_HEADER_BYTES * BITS_PER_BYTE], bitorder=BIT_ORDER).tobytes()
     magic, version, width, flags, stream, frame, number, count, reference, total, crc = PAGE_HEADER.unpack(
         header
     )
-    if magic != PAGE_MAGIC or version != 1 or width != 6 or (flags > 1):
+    if magic != PAGE_MAGIC or version != PAGE_VERSION or width != SYMBOL_BITS or (flags > MAXIMUM_PAGE_FLAGS):
         message: str = "The page header is not supported!"
         raise ValueError(message)
     if (
@@ -507,24 +578,24 @@ def read_page(symbols: bytes, symbol_bits: int = 6) -> Page:
         message: str = "The page metadata is invalid!"
         raise ValueError(message)
     size = min(PAGE_CAPACITY, total - number * PAGE_CAPACITY)
-    raw = from_symbols(symbols, 6, PAGE_HEADER.size + size)
-    if zlib.crc32(raw[:28] + bytes(4) + raw[32:]) != crc:
+    raw = from_symbols(symbols, SYMBOL_BITS, PAGE_HEADER.size + size)
+    if zlib.crc32(raw[:PAGE_CRC_OFFSET] + bytes(PAGE_CRC.size) + raw[PAGE_HEADER_BYTES:]) != crc:
         message: str = "The page CRC does not match!"
         raise ValueError(message)
-    return Page(stream, frame, number, count, reference, total, flags, width, raw[32:])
+    return Page(stream, frame, number, count, reference, total, flags, width, raw[PAGE_HEADER_BYTES:])
 
 
-def wire_bytes(pages: list[bytes], full_maps: bool = False, packet_overhead: int = 18) -> int:
+def wire_bytes(pages: list[bytes], full_maps: bool = False, packet_overhead: int = PACKET_OVERHEAD) -> int:
     """Charge map colour bytes rounded to 128-colour rows (or full maps), plus each page's packet allowance."""
     return sum(
-        (PAGE_SYMBOLS if full_maps else (len(page) + 127) // 128 * 128) + packet_overhead for page in pages
+        (PAGE_SYMBOLS if full_maps else (len(page) + MAP_SIDE - 1) // MAP_SIDE * MAP_SIDE) + packet_overhead for page in pages
     )
 
 
 class Assembler:
     """Keep at most four pending frames; identical duplicates are safe, a conflict discards that pending frame."""
 
-    def __init__(self, stream_id: int = 1, symbol_bits: int = 6):
+    def __init__(self, stream_id: int = DEFAULT_STREAM_ID, symbol_bits: int = SYMBOL_BITS):
         page_capacity(symbol_bits)
         self.stream_id = stream_id
         self.symbol_bits = symbol_bits

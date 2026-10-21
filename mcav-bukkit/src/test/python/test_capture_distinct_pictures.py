@@ -29,7 +29,21 @@ from unittest.mock import patch
 import numpy
 from PIL import Image
 
+import mcv2_reference
 import mcv2_tools
+
+PROGRAM = "mcv2_tools.py"
+REFERENCE_NAME = "reference.rgb"
+CAPTURE_NAME = "capture-%02d.png"
+
+SIDE = 8
+PICTURE_SHAPE = (SIDE, SIDE, mcv2_reference.CHANNELS)
+
+FIRST_GRAY = 37
+SECOND_GRAY = 92
+
+EXACT_CAPTURES_KEY = "exact_captures"
+AMBIGUOUS_REFERENCE_FRAMES_KEY = "ambiguous_reference_frames"
 
 
 class CaptureCheckTest(unittest.TestCase):
@@ -37,23 +51,23 @@ class CaptureCheckTest(unittest.TestCase):
     def report(self, references, captures):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            reference = root / "reference.rgb"
+            reference = root / REFERENCE_NAME
             reference.write_bytes(b"".join(picture.tobytes() for picture in references))
             for index, picture in enumerate(captures):
-                Image.fromarray(picture).save(root / ("capture-%02d.png" % index))
-            height, width = references[0].shape[:2]
-            arguments = ["mcv2_tools.py", str(reference), str(width), str(height), str(root), "--top", "0"]
+                Image.fromarray(picture).save(root / (CAPTURE_NAME % index))
+            height, width, _ = references[0].shape
+            arguments = [PROGRAM, str(reference), str(width), str(height), str(root), "--top", "0"]
             output = StringIO()
             with patch.object(sys, "argv", arguments), redirect_stdout(output), self.assertRaises(SystemExit) as ended:
                 mcv2_tools.capture_check_main()
             return ended.exception.code, json.loads(output.getvalue().splitlines()[-1]), output.getvalue()
 
     def test_should_not_count_identical_reference_frames_as_unmatchable_missing_pictures(self):
-        picture = numpy.full((8, 8, 3), 37, numpy.uint8)
+        picture = numpy.full(PICTURE_SHAPE, FIRST_GRAY, numpy.uint8)
         status, result, text = self.report([picture, picture], [picture, picture])
         self.assertEqual(0, status)
 
-        exact_captures = result["exact_captures"]
+        exact_captures = result[EXACT_CAPTURES_KEY]
         self.assertEqual(2, exact_captures)
 
         pictures_seen_exactly = result["pictures_seen_exactly"]
@@ -62,7 +76,7 @@ class CaptureCheckTest(unittest.TestCase):
         distinct_pictures = result["distinct_pictures"]
         self.assertEqual(1, distinct_pictures)
 
-        ambiguous_reference_frames = result["ambiguous_reference_frames"]
+        ambiguous_reference_frames = result[AMBIGUOUS_REFERENCE_FRAMES_KEY]
         self.assertEqual(2, ambiguous_reference_frames)
 
         frames_seen_exactly = result["frames_seen_exactly"]
@@ -71,22 +85,22 @@ class CaptureCheckTest(unittest.TestCase):
         self.assertIn("indistinguishable", text)
 
     def test_should_fail_when_a_distinct_picture_is_missing(self):
-        first = numpy.full((8, 8, 3), 37, numpy.uint8)
-        second = numpy.full((8, 8, 3), 92, numpy.uint8)
+        first = numpy.full(PICTURE_SHAPE, FIRST_GRAY, numpy.uint8)
+        second = numpy.full(PICTURE_SHAPE, SECOND_GRAY, numpy.uint8)
         status, result, _ = self.report([first, first, second], [first, first])
         self.assertEqual(1, status)
 
-        exact_captures = result["exact_captures"]
+        exact_captures = result[EXACT_CAPTURES_KEY]
         self.assertEqual(2, exact_captures)
 
     def test_should_find_different_frames_indistinguishable_when_the_visible_crop_hides_the_difference(self):
-        first = numpy.full((16, 8, 3), 37, numpy.uint8)
+        first = numpy.full((2 * SIDE, SIDE, mcv2_reference.CHANNELS), FIRST_GRAY, numpy.uint8)
         second = first.copy()
-        second[8:] = 92
-        status, result, _ = self.report([first, second], [first[:8], second[:8]])
+        second[SIDE:] = SECOND_GRAY
+        status, result, _ = self.report([first, second], [first[:SIDE], second[:SIDE]])
         self.assertEqual(0, status)
 
-        ambiguous_reference_frames = result["ambiguous_reference_frames"]
+        ambiguous_reference_frames = result[AMBIGUOUS_REFERENCE_FRAMES_KEY]
         self.assertEqual(2, ambiguous_reference_frames)
 
 
