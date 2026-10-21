@@ -56,7 +56,7 @@ public final class SVCModule implements MCAVModule {
   }
 
   /**
-   * Gets the injected server API.
+   * Returns the injected server API.
    *
    * @return the shared API snapshot, or null before injection or after {@link #stop()}
    */
@@ -65,7 +65,7 @@ public final class SVCModule implements MCAVModule {
   }
 
   /**
-   * Gets the injected server API, failing if it is missing.
+   * Returns the injected server API, failing if it is missing.
    *
    * @return the API
    * @throws IllegalStateException if {@link #inject(VoicechatServerApi)} was not called yet
@@ -96,7 +96,7 @@ public final class SVCModule implements MCAVModule {
   }
 
   /**
-   * Gets the name of the module.
+   * Returns the name of the module.
    *
    * @return {@code "svc"}
    */

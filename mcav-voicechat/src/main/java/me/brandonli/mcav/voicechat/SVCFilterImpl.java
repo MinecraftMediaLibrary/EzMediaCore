@@ -145,7 +145,7 @@ public final class SVCFilterImpl implements SVCFilter {
    * failures and rethrows the first with later failures suppressed. Fatal VM failures propagate immediately.
    *
    * @throws RuntimeException if a voice chat player or encoder fails during cleanup
-   * @throws Error if a voice chat player or encoder reports an error during cleanup
+   * @throws Error            if a voice chat player or encoder reports an error during cleanup
    */
   @Override
   public synchronized void release() {
@@ -174,7 +174,7 @@ public final class SVCFilterImpl implements SVCFilter {
    * Attempts an independent cleanup, preserving the first recoverable failure and suppressing later ones.
    *
    * @param previous the earlier failure, if any
-   * @param cleanup the cleanup to attempt
+   * @param cleanup  the cleanup to attempt
    * @return the first failure, or null if every cleanup has succeeded
    */
   private static @Nullable Throwable cleanup(final @Nullable Throwable previous, final Runnable cleanup) {
@@ -245,7 +245,7 @@ public final class SVCFilterImpl implements SVCFilter {
   }
 
   /**
-   * Gets the number of 20 millisecond frames the slowest speaker still has to play.
+   * Returns the number of 20 millisecond frames the slowest speaker still has to play.
    *
    * @return the largest complete-frame queue length, from 0 to 25, or 0 while stopped; partially collected
    *         audio is not counted

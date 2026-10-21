@@ -53,8 +53,8 @@ public interface SVCFilter extends FunctionalAudioFilter {
    * @param entities a non-null, nonempty array of non-null platform entities, such as Bukkit {@code Player}s;
    *                 the array is copied, while the entities are borrowed
    * @return a new stopped filter using {@link #DEFAULT_DISTANCE}
-   * @throws IllegalStateException if the voice chat API was not injected into {@link SVCModule}
-   * @throws NullPointerException if the array or any entity is null
+   * @throws IllegalStateException    if the voice chat API was not injected into {@link SVCModule}
+   * @throws NullPointerException     if the array or any entity is null
    * @throws IllegalArgumentException if no entities are supplied
    */
   static SVCFilter svc(final Object... entities) {
@@ -68,8 +68,8 @@ public interface SVCFilter extends FunctionalAudioFilter {
    * @param entities a non-null, nonempty array of non-null platform entities, such as Bukkit {@code Player}s;
    *                 the array is copied, while the entities are borrowed
    * @return a new stopped filter; call {@link #start()} to allocate and start its speakers
-   * @throws IllegalStateException if the voice chat API was not injected into {@link SVCModule}
-   * @throws NullPointerException if the array or any entity is null
+   * @throws IllegalStateException    if the voice chat API was not injected into {@link SVCModule}
+   * @throws NullPointerException     if the array or any entity is null
    * @throws IllegalArgumentException if the distance is nonpositive or nonfinite, or no entities are supplied
    */
   static SVCFilter withDistance(final float distance, final Object... entities) {
@@ -87,7 +87,7 @@ public interface SVCFilter extends FunctionalAudioFilter {
   }
 
   /**
-   * Gets the number of 20 millisecond frames waiting to be played by the slowest speaker.
+   * Returns the number of 20 millisecond frames waiting to be played by the slowest speaker.
    *
    * @return the largest complete-frame queue length, from 0 to 25, or 0 while stopped; a partial frame
    *         is excluded, and consumers may drain the queues while this snapshot is collected
