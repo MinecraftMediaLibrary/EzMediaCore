@@ -65,8 +65,8 @@ import org.mockito.verification.VerificationMode;
 final class SVCFilterImplTest {
 
   private static final int FRAME_SAMPLES = 960;
-  private static final int MAX_FRAMES = 25;
-  private static final int CONCURRENT_FRAMES = MAX_FRAMES - 5;
+  private static final int MAXIMUM_FRAMES = 25;
+  private static final int CONCURRENT_FRAMES = MAXIMUM_FRAMES - 5;
 
   private final SVCModule module = new SVCModule();
   private final VoicechatServerApi api = Mockito.mock(VoicechatServerApi.class);
@@ -473,14 +473,14 @@ final class SVCFilterImplTest {
   void shouldDropTheOldestFramesOfASpeakerThatFallsBehind() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
-    for (int frameIndex = 0; frameIndex < MAX_FRAMES + 2; frameIndex++) {
+    for (int frameIndex = 0; frameIndex < MAXIMUM_FRAMES + 2; frameIndex++) {
       final short[] frame = constant(FRAME_SAMPLES, frameIndex);
       this.feed(filter, frame);
       this.nextFrameOf(1);
     }
 
     final int queued = filter.getQueuedFrames();
-    assertEquals(MAX_FRAMES, queued);
+    assertEquals(MAXIMUM_FRAMES, queued);
     final short[] oldest = this.nextFrameOf(0);
     assertEquals(2, oldest[0]);
     final short[] bobFrame = this.nextFrameOf(1);

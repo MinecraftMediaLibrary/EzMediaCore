@@ -53,7 +53,7 @@ public final class SVCFilterImpl implements SVCFilter {
    */
   private static final int FRAME_SAMPLES = 960;
 
-  private static final int MAX_QUEUED_FRAMES = 25;
+  private static final int MAXIMUM_QUEUED_FRAMES = 25;
   private static final short[] SILENCE = new short[FRAME_SAMPLES];
 
   private final float distance;
@@ -272,7 +272,7 @@ public final class SVCFilterImpl implements SVCFilter {
 
     Speaker(final OpusEncoder encoder) {
       this.encoder = encoder;
-      this.frames = new ArrayDeque<>(MAX_QUEUED_FRAMES);
+      this.frames = new ArrayDeque<>(MAXIMUM_QUEUED_FRAMES);
     }
 
     private void setPlayer(final AudioPlayer player) {
@@ -281,7 +281,7 @@ public final class SVCFilterImpl implements SVCFilter {
 
     private void enqueue(final short[] frame) {
       synchronized (this.frames) {
-        if (this.frames.size() >= MAX_QUEUED_FRAMES) {
+        if (this.frames.size() >= MAXIMUM_QUEUED_FRAMES) {
           this.frames.pollFirst();
         }
         this.frames.addLast(frame);
