@@ -72,9 +72,6 @@ import org.slf4j.LoggerFactory;
 final class InstallationManager implements AutoCloseable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstallationManager.class);
-  private static final String RESOLVED = "Resolved {} artifacts for {}";
-  private static final String COPIED = "Copied {}";
-  private static final String OBSOLETE_FILE_NOT_DELETED = "Could not delete the obsolete file {}";
   /**
    * The repositories artifacts are downloaded from.
    */
@@ -220,7 +217,8 @@ final class InstallationManager implements AutoCloseable {
     final Matcher matcher = ARTIFACT_ID.matcher(artifactId);
     final boolean validId = matcher.matches();
     if (!validId) {
-      throw new InstallationException("Artifact id must contain only letters, digits, dots, underscores or hyphens: " + artifactId);
+      final String message = "Artifact id %s must contain only letters, digits, dots, underscores or hyphens!".formatted(artifactId);
+      throw new InstallationException(message);
     }
     final Path target = this.folder.resolve(artifactId);
     try {
@@ -230,11 +228,11 @@ final class InstallationManager implements AutoCloseable {
       deleteObsoleteFiles(this.folder);
       return jars;
     } catch (final DependencyResolutionException exception) {
-      final String message = exception.getMessage();
-      throw new InstallationException("Failed to resolve " + groupId + ":" + artifactId + ":" + version + ": " + message, exception);
+      final String message = "Artifact %s:%s:%s could not be resolved!".formatted(groupId, artifactId, version);
+      throw new InstallationException(message, exception);
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new InstallationException("Failed to copy the dependencies of " + artifactId + ": " + message, exception);
+      final String message = "Dependencies of %s could not be copied!".formatted(artifactId);
+      throw new InstallationException(message, exception);
     }
   }
 
@@ -246,12 +244,12 @@ final class InstallationManager implements AutoCloseable {
     final List<Artifact> artifacts = new ArrayList<>();
     for (final ArtifactResult artifactResult : results) {
       final Artifact resolved = artifactResult.getArtifact();
-      final Artifact artifact = Objects.requireNonNull(resolved, "Resolved artifacts are present");
+      final Artifact artifact = Objects.requireNonNull(resolved, "Resolved artifacts must be present!");
       artifacts.add(artifact);
     }
 
     final int count = artifacts.size();
-    LOGGER.info(RESOLVED, count, artifactId);
+    LOGGER.debug("Resolved {} artifacts for {}.", count, artifactId);
     return artifacts;
   }
 
@@ -294,7 +292,8 @@ final class InstallationManager implements AutoCloseable {
       } catch (final InterruptedException exception) {
         final Thread current = Thread.currentThread();
         current.interrupt();
-        throw new IOException("Interrupted while copying dependencies", exception);
+        final String message = "Copying the dependencies was interrupted!";
+        throw new IOException(message, exception);
       } catch (final ExecutionException exception) {
         final Throwable cause = exception.getCause();
         if (cause instanceof final IOException ioException) {
@@ -308,7 +307,7 @@ final class InstallationManager implements AutoCloseable {
 
   private static Path copy(final Artifact artifact, final Path target) throws IOException {
     final Path resolved = artifact.getPath();
-    final Path source = Objects.requireNonNull(resolved, "Resolved artifacts have a file");
+    final Path source = Objects.requireNonNull(resolved, "Resolved artifacts must have a file!");
     final String groupId = artifact.getGroupId();
     final String artifactId = artifact.getArtifactId();
     final String fileName = IOUtils.getFileName(source);
@@ -320,11 +319,11 @@ final class InstallationManager implements AutoCloseable {
     }
 
     final Path parent = destination.getParent();
-    final Path directory = Objects.requireNonNull(parent, "Destinations have a parent folder");
+    final Path directory = Objects.requireNonNull(parent, "Destinations must have a parent folder!");
     Files.createDirectories(directory);
     final Path partial = destination.resolveSibling(fileName + PART_SUFFIX);
     copyAtomically(source, partial, destination);
-    LOGGER.debug(COPIED, artifact);
+    LOGGER.debug("Copied {}.", artifact);
     return destination;
   }
 
@@ -349,7 +348,8 @@ final class InstallationManager implements AutoCloseable {
     final Path normalizedDestination = destination.normalize();
     final boolean inside = normalizedDestination.startsWith(normalizedTarget);
     if (!inside) {
-      throw new IOException("The jar " + groupId + ":" + artifactId + " (" + fileName + ") would be copied outside " + target);
+      final String message = "Jar %s:%s (%s) would land outside %s when copied!".formatted(groupId, artifactId, fileName, target);
+      throw new IOException(message);
     }
     // A path starts with itself; empty, dot and parent elements must not resolve the jar to a directory.
     final Path destinationName = normalizedDestination.getFileName();
@@ -357,9 +357,13 @@ final class InstallationManager implements AutoCloseable {
     final boolean isTarget = normalizedDestination.equals(normalizedTarget);
     final boolean keepsItsName = !isTarget && name.equals(fileName);
     if (!keepsItsName) {
-      throw new IOException(
-        "The jar " + groupId + ":" + artifactId + " (" + fileName + ") would not be copied as a file of that name into " + target
+      final String message = "Jar %s:%s (%s) would not be copied into %s as a file of that name!".formatted(
+        groupId,
+        artifactId,
+        fileName,
+        target
       );
+      throw new IOException(message);
     }
     return destination;
   }
@@ -394,7 +398,7 @@ final class InstallationManager implements AutoCloseable {
       try {
         Files.deleteIfExists(file);
       } catch (final IOException exception) {
-        LOGGER.warn(OBSOLETE_FILE_NOT_DELETED, file, exception);
+        LOGGER.warn("Could not delete the obsolete file {}.", file, exception);
       }
     }
   }

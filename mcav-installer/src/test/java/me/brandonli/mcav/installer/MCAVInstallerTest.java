@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,13 +36,17 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import me.brandonli.mcav.installer.testing.LocalMavenRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.ArgumentCaptor;
-import org.slf4j.Logger;
 
 /**
  * Tests {@link MCAVInstaller} against a Maven repository on the file system.
@@ -52,6 +55,9 @@ final class MCAVInstallerTest {
 
   private static final String SNAPSHOT = "1.0.0-SNAPSHOT";
   private static final List<String> NO_DEPENDENCIES = List.of();
+
+  private static final Pattern LOADED_MESSAGE = Pattern.compile("Loaded 0 jars for helper in (\\d+) ms\\.");
+  private static final int ELAPSED_GROUP = 1;
 
   @TempDir
   private Path directory;
@@ -143,7 +149,7 @@ final class MCAVInstallerTest {
     final Object owner = "a string, loaded by the bootstrap class loader";
     final JarInjectorException exception = assertThrows(JarInjectorException.class, () -> MCAVInstaller.injector(this.folder, owner));
     final String message = exception.getMessage();
-    assertEquals("Classes of the bootstrap class loader cannot receive jars", message);
+    assertEquals("Classes of the bootstrap class loader cannot receive jars!", message);
   }
 
   @Test
@@ -217,17 +223,26 @@ final class MCAVInstallerTest {
   void shouldReportElapsedInstallationTimeRatherThanEpochTime() {
     final ClassLoader classLoader = MCAVInstallerTest.class.getClassLoader();
     final InstallationManager manager = mock(InstallationManager.class);
-    final Logger logger = mock(Logger.class);
     final List<Path> downloaded = List.of();
     when(manager.downloadDependencies("me.test", "helper", "1.0")).thenReturn(downloaded);
-    final MCAVInstaller installer = new MCAVInstaller(this.folder, classLoader, _ -> manager, logger);
+    final MCAVInstaller installer = new MCAVInstaller(this.folder, classLoader, _ -> manager);
     final RecordingLoader recording = new RecordingLoader();
+    final String loggerName = MCAVInstaller.class.getName();
+    final Logger logger = Logger.getLogger(loggerName);
+    final RecordingHandler handler = new RecordingHandler();
+    logger.addHandler(handler);
     final long before = System.currentTimeMillis();
     final List<Path> jars = installer.loadDependencies("me.test", "helper", "1.0", recording);
     final long after = System.currentTimeMillis();
-    final ArgumentCaptor<Long> timing = ArgumentCaptor.forClass(Long.class);
-    verify(logger).info(eq("Loaded {} jars for {} in {} ms"), eq(0), eq("helper"), timing.capture());
-    final long elapsed = timing.getValue();
+    logger.removeHandler(handler);
+
+    final List<String> messages = handler.getMessages();
+    final String message = messages.stream().filter(LOADED_MESSAGE.asMatchPredicate()).findFirst().orElseThrow();
+    final Matcher matcher = LOADED_MESSAGE.matcher(message);
+    final boolean loaded = matcher.matches();
+    assertTrue(loaded, message);
+    final String elapsedText = matcher.group(ELAPSED_GROUP);
+    final long elapsed = Long.parseLong(elapsedText);
     final long total = after - before;
     assertTrue(elapsed >= 0 && elapsed <= total, "reported duration must fit within the observed call duration");
     assertSame(downloaded, jars);
@@ -248,5 +263,30 @@ final class MCAVInstallerTest {
     assertThrows(NullPointerException.class, () -> installer.loadDependencies("me.test", "helper", "1.0", null));
     final boolean nothingLoaded = recording.isEmpty();
     assertTrue(nothingLoaded);
+  }
+
+  private static final class RecordingHandler extends Handler {
+
+    private final List<String> messages;
+
+    private RecordingHandler() {
+      this.messages = new CopyOnWriteArrayList<>();
+    }
+
+    @Override
+    public void publish(final LogRecord logRecord) {
+      final String message = logRecord.getMessage();
+      this.messages.add(message);
+    }
+
+    @Override
+    public void flush() {}
+
+    @Override
+    public void close() {}
+
+    private List<String> getMessages() {
+      return this.messages;
+    }
   }
 }

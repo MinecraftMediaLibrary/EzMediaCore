@@ -45,7 +45,8 @@ final class IOUtilsTest {
     final Path root = this.directory.getRoot();
     final InstallationException error = assertThrows(InstallationException.class, () -> IOUtils.getFileName(root));
     final String message = error.getMessage();
-    assertEquals("Path " + root + " has no file name", message);
+    final String expected = "Path %s has no file name!".formatted(root);
+    assertEquals(expected, message);
   }
 
   @Test

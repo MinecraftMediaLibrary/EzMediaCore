@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -95,12 +94,12 @@ final class UnsafeInjectorTest {
     }
 
     Object getObject(final Object owner, final long offset) {
-      Objects.requireNonNull(owner, "Unsafe always reads the field of an owner");
+      Objects.requireNonNull(owner, "Unsafe always reads the field of an owner!");
       if (offset == FATAL_OFFSET) {
-        throw new InternalError("out of native memory");
+        throw new InternalError("Out of native memory!");
       }
       if (offset == LINKAGE_OFFSET) {
-        throw new LinkageError("unsafe is gone");
+        throw new LinkageError("Unsafe is gone!");
       }
       return owner;
     }
@@ -199,12 +198,13 @@ final class UnsafeInjectorTest {
     final String absentMessage = absent.getMessage();
     final String sharedMessage = shared.getMessage();
     final Throwable sharedCause = shared.getCause();
-    final boolean sharedReadFailed = sharedMessage.startsWith("Failed to read SHARED: ");
 
-    assertEquals("This Java version has no field missing in " + typeName, missingMessage);
+    final String expectedMissing = "Field missing is missing from %s in this Java version!".formatted(typeName);
+    assertEquals(expectedMissing, missingMessage);
     assertInstanceOf(NoSuchFieldException.class, missingCause);
-    assertEquals("The field absent of " + typeName + " is null", absentMessage);
-    assertTrue(sharedReadFailed, sharedMessage);
+    final String expectedAbsent = "Field absent of %s is null!".formatted(typeName);
+    assertEquals(expectedAbsent, absentMessage);
+    assertEquals("Field SHARED could not be read!", sharedMessage);
     assertNotNull(sharedCause);
   }
 
@@ -220,7 +220,8 @@ final class UnsafeInjectorTest {
     );
     final String message = exception.getMessage();
     final String typeName = Holder.class.getName();
-    assertEquals("The field text of " + typeName + " is not a collection", message);
+    final String expected = "Field text of %s is not a collection!".formatted(typeName);
+    assertEquals(expected, message);
   }
 
   @Test
@@ -254,8 +255,8 @@ final class UnsafeInjectorTest {
     final String linkageMessage = linkage.getMessage();
     final Throwable linkageCause = linkage.getCause();
 
-    assertEquals("out of native memory", fatalMessage, "an error of the virtual machine is never wrapped");
-    assertEquals("Failed to read urls: unsafe is gone", linkageMessage);
+    assertEquals("Out of native memory!", fatalMessage, "an error of the virtual machine is never wrapped");
+    assertEquals("Field urls could not be read!", linkageMessage);
     assertInstanceOf(LinkageError.class, linkageCause);
   }
 }

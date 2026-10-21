@@ -89,7 +89,7 @@ final class JulServiceProviderTest {
     final JulServiceProvider provider = new JulServiceProvider();
     provider.initialize();
     final org.slf4j.Logger logger = provider.getLoggerFactory().getLogger(NAME); // fqn: SLF4J's logger beside java.util.logging's
-    final IllegalStateException failure = new IllegalStateException("broken");
+    final IllegalStateException failure = new IllegalStateException("Broken!");
     logger.trace(TRACE, 1);
     logger.debug(DEBUG, 2);
     logger.info(INFO, 3, 4);

@@ -66,7 +66,7 @@ final class InstallationPathsFuzzTest {
       WORKSPACE.manager.downloadDependencies("me.fuzz", artifactId, "1.0");
     } catch (final InstallationException failure) {
       final String message = failure.getMessage();
-      refused = message.startsWith("Artifact id must contain only");
+      refused = message.endsWith(" must contain only letters, digits, dots, underscores or hyphens!");
     }
     final List<Path> created = new ArrayList<>(WORKSPACE.list());
     created.removeAll(before);

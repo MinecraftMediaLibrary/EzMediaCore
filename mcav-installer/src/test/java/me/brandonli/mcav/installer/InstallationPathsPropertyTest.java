@@ -51,7 +51,7 @@ import org.eclipse.aether.repository.RemoteRepository;
 final class InstallationPathsPropertyTest {
 
   private static final String SEED = "20260925";
-  private static final String REFUSED = "Artifact id must contain only";
+  private static final String REFUSED = " must contain only letters, digits, dots, underscores or hyphens!";
 
   private Path root;
   private Path folder;
@@ -122,7 +122,7 @@ final class InstallationPathsPropertyTest {
       this.manager.downloadDependencies("me.test", artifactId, "1.0");
     } catch (final InstallationException failure) {
       final String message = failure.getMessage();
-      refused = message.startsWith(REFUSED);
+      refused = message.endsWith(REFUSED);
     }
     final List<Path> after = listTree(this.root);
     final List<Path> created = new ArrayList<>(after);

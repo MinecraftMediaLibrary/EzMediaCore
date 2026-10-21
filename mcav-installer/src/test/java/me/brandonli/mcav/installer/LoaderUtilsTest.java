@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -198,8 +197,8 @@ final class LoaderUtilsTest {
     final JarInjectorException other = assertThrows(JarInjectorException.class, () -> LoaderUtils.loadJarPaths(jars, withOtherValue));
     final String missingMessage = missing.getMessage();
     final String otherMessage = other.getMessage();
-    assertEquals("The Fabric class loader has no URL class loader", missingMessage);
-    assertEquals("The Fabric class loader has no URL class loader", otherMessage);
+    assertEquals("The Fabric class loader has no URL class loader!", missingMessage);
+    assertEquals("The Fabric class loader has no URL class loader!", otherMessage);
   }
 
   @Test
@@ -214,7 +213,7 @@ final class LoaderUtilsTest {
     final JarInjectorException exception = assertThrows(JarInjectorException.class, () -> LoaderUtils.loadJarPaths(jars, knot));
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Cannot access the Fabric class loader: urlLoader", message);
+    assertEquals("The Fabric class loader cannot be accessed!", message);
     assertInstanceOf(NoSuchFieldException.class, cause);
   }
 
@@ -225,7 +224,9 @@ final class LoaderUtilsTest {
     final JarInjectorException exception = assertThrows(JarInjectorException.class, () -> LoaderUtils.loadJarPaths(jars, loader));
     final String message = exception.getMessage();
     final String name = PlainClassLoader.class.getName();
-    assertEquals("Cannot add jars to a " + name + "; put the dependencies on the class path or load them from a URLClassLoader", message);
+    final String expected =
+      "Jars cannot be added to a %s; put the dependencies on the class path or load them from a URLClassLoader!".formatted(name);
+    assertEquals(expected, message);
   }
 
   @Test
@@ -243,8 +244,7 @@ final class LoaderUtilsTest {
       final JarInjectorException exception = assertThrows(JarInjectorException.class, () -> LoaderUtils.loadJarPaths(jars, loader));
       final String message = exception.getMessage();
       final Throwable cause = exception.getCause();
-      final boolean describesThePath = message.startsWith("Invalid jar path library.jar: ");
-      assertTrue(describesThePath, message);
+      assertEquals("Jar path library.jar is not a valid URL!", message);
       assertInstanceOf(MalformedURLException.class, cause);
       final URL[] urls = loader.getURLs();
       assertEquals(0, urls.length);

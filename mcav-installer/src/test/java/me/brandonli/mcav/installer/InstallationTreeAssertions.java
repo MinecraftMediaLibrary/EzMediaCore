@@ -56,7 +56,8 @@ final class InstallationTreeAssertions implements AutoCloseable {
     try {
       this.manager.downloadDependencies("me.test", artifactId, "1.0");
     } catch (final InstallationException failure) {
-      refused = failure.getMessage().startsWith("Artifact id must contain only");
+      final String message = failure.getMessage();
+      refused = message.endsWith(" must contain only letters, digits, dots, underscores or hyphens!");
     }
     final Map<Path, StoredEntry> after = this.snapshot();
     for (final Map.Entry<Path, StoredEntry> entry : before.entrySet()) {

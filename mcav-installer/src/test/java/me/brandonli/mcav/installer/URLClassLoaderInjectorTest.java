@@ -105,7 +105,10 @@ final class URLClassLoaderInjectorTest {
         URLClassLoaderInjector.create(loader, null, null)
       );
       final String message = exception.getMessage();
-      assertEquals("No way to add jars to a URLClassLoader on this runtime; add --add-opens java.base/java.net=ALL-UNNAMED", message);
+      assertEquals(
+        "Jars cannot be added to a URLClassLoader on this runtime; add --add-opens java.base/java.net=ALL-UNNAMED to allow it!",
+        message
+      );
     }
   }
 
@@ -138,9 +141,9 @@ final class URLClassLoaderInjectorTest {
   @Test
   void shouldPassUncheckedFailuresThroughAndWrapCheckedOnes() throws IOException {
     final URL jar = this.writeJar();
-    final IllegalStateException runtimeException = new IllegalStateException("runtime failure");
-    final LinkageError linkageError = new LinkageError("linkage failure");
-    final Exception checkedException = new Exception("checked failure");
+    final IllegalStateException runtimeException = new IllegalStateException("Runtime failure!");
+    final LinkageError linkageError = new LinkageError("Linkage failure!");
+    final Exception checkedException = new Exception("Checked failure!");
     final MethodHandle runtimeHandle = failingHandle(runtimeException);
     final MethodHandle errorHandle = failingHandle(linkageError);
     final MethodHandle checkedHandle = failingHandle(checkedException);
@@ -156,7 +159,8 @@ final class URLClassLoaderInjectorTest {
       final Throwable checkedCause = checkedFailure.getCause();
       assertSame(runtimeException, runtimeFailure);
       assertSame(linkageError, errorFailure);
-      assertEquals("Failed to add " + jar + ": checked failure", checkedMessage);
+      final String expectedMessage = "Jar %s could not be added to the class loader!".formatted(jar);
+      assertEquals(expectedMessage, checkedMessage);
       assertSame(checkedException, checkedCause);
 
       final URL[] urls = loader.getURLs();

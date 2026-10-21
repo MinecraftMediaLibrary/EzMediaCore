@@ -25,7 +25,7 @@ import java.nio.file.Path;
 final class IOUtils {
 
   private IOUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -37,7 +37,8 @@ final class IOUtils {
   static String getFileName(final Path file) {
     final Path name = file.getFileName();
     if (name == null) {
-      throw new InstallationException("Path " + file + " has no file name");
+      final String message = "Path %s has no file name!".formatted(file);
+      throw new InstallationException(message);
     }
     return name.toString();
   }

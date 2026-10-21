@@ -171,8 +171,8 @@ final class InstallationManagerTest {
   void shouldRejectUnsafeRootArtifactIdsBeforeCreatingDirectories(final String artifactId) throws IOException {
     final InstallationException failure = assertThrows(InstallationException.class, () -> this.download(artifactId));
     final String message = failure.getMessage();
-    final boolean rejectedId = message.startsWith("Artifact id must contain only");
-    assertTrue(rejectedId);
+    final String expected = "Artifact id %s must contain only letters, digits, dots, underscores or hyphens!".formatted(artifactId);
+    assertEquals(expected, message);
     try (final Stream<Path> entries = Files.list(this.folder)) {
       final long count = entries.count();
       assertEquals(0, count, "invalid coordinates must not create an installation tree");
@@ -494,9 +494,8 @@ final class InstallationManagerTest {
 
     final InstallationException error = assertThrows(InstallationException.class, () -> this.download("runtime-dep"));
     final String message = error.getMessage();
-    final boolean describesTheArtifact = message.startsWith("Failed to resolve me.test:runtime-dep:1.0: ");
     final boolean checksumFailure = hasChecksumFailure(error);
-    assertTrue(describesTheArtifact, message);
+    assertEquals("Artifact me.test:runtime-dep:1.0 could not be resolved!", message);
     assertTrue(checksumFailure, "the checksum mismatch fails the download instead of only warning");
 
     final Path copied = this.copiedJar("runtime-dep", "runtime-dep");
@@ -519,8 +518,7 @@ final class InstallationManagerTest {
     final InstallationException error = assertThrows(InstallationException.class, () -> this.download("missing"));
     final String message = error.getMessage();
     final Throwable cause = error.getCause();
-    final boolean describesTheArtifact = message.startsWith("Failed to resolve me.test:missing:1.0: ");
-    assertTrue(describesTheArtifact, message);
+    assertEquals("Artifact me.test:missing:1.0 could not be resolved!", message);
     assertInstanceOf(DependencyResolutionException.class, cause);
   }
 
@@ -531,8 +529,7 @@ final class InstallationManagerTest {
     final InstallationException error = assertThrows(InstallationException.class, () -> this.download("app"));
     final String message = error.getMessage();
     final Throwable cause = error.getCause();
-    final boolean describesTheCopy = message.startsWith("Failed to copy the dependencies of app: ");
-    assertTrue(describesTheCopy, message);
+    assertEquals("Dependencies of app could not be copied!", message);
     assertInstanceOf(FileAlreadyExistsException.class, cause);
   }
 
@@ -546,8 +543,7 @@ final class InstallationManagerTest {
     final InstallationException error = assertThrows(InstallationException.class, () -> this.download("runtime-dep"));
     final String message = error.getMessage();
     final Throwable cause = error.getCause();
-    final boolean describesTheCopy = message.startsWith("Failed to copy the dependencies of runtime-dep: ");
-    assertTrue(describesTheCopy, message);
+    assertEquals("Dependencies of runtime-dep could not be copied!", message);
     assertInstanceOf(IOException.class, cause);
   }
 
@@ -571,8 +567,8 @@ final class InstallationManagerTest {
       InstallationManager.destinationOf(target, absoluteGroup, "artifact", "escape.jar")
     );
     final String message = exception.getMessage();
-    final boolean namesTheTarget = message.contains("would be copied outside " + target);
-    assertTrue(namesTheTarget, message);
+    final String expected = "Jar %s:artifact (escape.jar) would land outside %s when copied!".formatted(absoluteGroup, target);
+    assertEquals(expected, message);
   }
 
   /**
@@ -605,13 +601,13 @@ final class InstallationManagerTest {
 
   @Test
   void shouldRethrowCopyFailures() {
-    final IOException ioFailure = new IOException("disk full");
+    final IOException ioFailure = new IOException("Disk is full!");
     final CompletableFuture<Path> ioFuture = CompletableFuture.failedFuture(ioFailure);
     final List<Future<Path>> ioFutures = List.of(ioFuture);
     final IOException rethrown = assertThrows(IOException.class, () -> InstallationManager.awaitAll(ioFutures));
     assertSame(ioFailure, rethrown);
 
-    final IllegalStateException otherFailure = new IllegalStateException("bug");
+    final IllegalStateException otherFailure = new IllegalStateException("Copy failed!");
     final CompletableFuture<Path> otherFuture = CompletableFuture.failedFuture(otherFailure);
     final List<Future<Path>> otherFutures = List.of(otherFuture);
     final IOException wrapped = assertThrows(IOException.class, () -> InstallationManager.awaitAll(otherFutures));
@@ -631,7 +627,7 @@ final class InstallationManagerTest {
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
     assertTrue(interrupted);
-    assertEquals("Interrupted while copying dependencies", message);
+    assertEquals("Copying the dependencies was interrupted!", message);
     assertInstanceOf(InterruptedException.class, cause);
   }
 

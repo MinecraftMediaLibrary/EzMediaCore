@@ -65,9 +65,9 @@ abstract class URLClassLoaderInjector {
     if (unsafe != null) {
       return new UnsafeInjector(classLoader, unsafe);
     }
-    throw new JarInjectorException(
-      "No way to add jars to a URLClassLoader on this runtime; add --add-opens java.base/java.net=ALL-UNNAMED"
-    );
+    final String message =
+      "Jars cannot be added to a URLClassLoader on this runtime; add --add-opens java.base/java.net=ALL-UNNAMED to allow it!";
+    throw new JarInjectorException(message);
   }
 
   /**

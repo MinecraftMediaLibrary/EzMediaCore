@@ -66,41 +66,41 @@ final class ArtifactTest {
 
   @Test
   void shouldKeepTheMessageOfInstallationExceptions() {
-    final InstallationException exception = new InstallationException("cannot copy");
+    final InstallationException exception = new InstallationException("Jars cannot be copied!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("cannot copy", message);
+    assertEquals("Jars cannot be copied!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCauseOfInstallationExceptions() {
-    final IOException copyFailure = new IOException("disk full");
-    final InstallationException exception = new InstallationException("cannot copy", copyFailure);
+    final IOException copyFailure = new IOException("Disk is full!");
+    final InstallationException exception = new InstallationException("Jars cannot be copied!", copyFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("cannot copy", message);
+    assertEquals("Jars cannot be copied!", message);
     assertSame(copyFailure, cause);
   }
 
   @Test
   void shouldMakeInstallationExceptionsRuntimeExceptions() {
-    final InstallationException exception = new InstallationException("cannot copy");
+    final InstallationException exception = new InstallationException("Jars cannot be copied!");
     assertInstanceOf(RuntimeException.class, exception, "a failed installation is recoverable, so it is no Error");
   }
 
   @Test
   void shouldCarryTheMessageAndCauseOfInjectorExceptions() {
-    final IllegalAccessException cause = new IllegalAccessException("closed module");
-    final JarInjectorException withCause = new JarInjectorException("cannot inject", cause);
-    final JarInjectorException withoutCause = new JarInjectorException("cannot inject");
+    final IllegalAccessException cause = new IllegalAccessException("Module is closed!");
+    final JarInjectorException withCause = new JarInjectorException("Jars cannot be injected!", cause);
+    final JarInjectorException withoutCause = new JarInjectorException("Jars cannot be injected!");
     final String message = withCause.getMessage();
     final Throwable actualCause = withCause.getCause();
     final String otherMessage = withoutCause.getMessage();
     final Throwable missingCause = withoutCause.getCause();
-    assertEquals("cannot inject", message);
+    assertEquals("Jars cannot be injected!", message);
     assertSame(cause, actualCause);
-    assertEquals("cannot inject", otherMessage);
+    assertEquals("Jars cannot be injected!", otherMessage);
     assertNull(missingCause);
     assertInstanceOf(UnsupportedOperationException.class, withCause);
   }

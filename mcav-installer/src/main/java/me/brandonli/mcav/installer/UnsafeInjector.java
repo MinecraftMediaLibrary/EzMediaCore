@@ -76,7 +76,8 @@ final class UnsafeInjector extends URLClassLoaderInjector {
     final Object value = unsafe.readField(type, owner, name);
     if (!(value instanceof final Collection<?> collection)) {
       final String typeName = type.getName();
-      throw new JarInjectorException("The field " + name + " of " + typeName + " is not a collection");
+      final String message = "Field %s of %s is not a collection!".formatted(name, typeName);
+      throw new JarInjectorException(message);
     }
     return collection;
   }
@@ -188,11 +189,13 @@ final class UnsafeInjector extends URLClassLoaderInjector {
         final long offset = (long) this.objectFieldOffset.invoke(field);
         final Object value = this.getObject.invoke(owner, offset);
         if (value == null) {
-          throw new JarInjectorException("The field " + name + " of " + typeName + " is null");
+          final String message = "Field %s of %s is null!".formatted(name, typeName);
+          throw new JarInjectorException(message);
         }
         return value;
       } catch (final NoSuchFieldException exception) {
-        throw new JarInjectorException("This Java version has no field " + name + " in " + typeName, exception);
+        final String message = "Field %s is missing from %s in this Java version!".formatted(name, typeName);
+        throw new JarInjectorException(message, exception);
       } catch (final JarInjectorException exception) {
         throw exception;
       } catch (final VirtualMachineError fatal) {
@@ -200,8 +203,8 @@ final class UnsafeInjector extends URLClassLoaderInjector {
       } catch (final Throwable throwable) {
         // Unsafe is an unsupported API that can fail in any other way on a new Java version, a LinkageError included,
         // and every such failure means that this strategy cannot be used
-        final String message = throwable.getMessage();
-        throw new JarInjectorException("Failed to read " + name + ": " + message, throwable);
+        final String message = "Field %s could not be read!".formatted(name);
+        throw new JarInjectorException(message, throwable);
       }
     }
   }
