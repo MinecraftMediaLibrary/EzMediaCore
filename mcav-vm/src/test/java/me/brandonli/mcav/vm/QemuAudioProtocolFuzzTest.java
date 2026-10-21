@@ -28,13 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the audio connection to QEMU's VNC server with whatever a server could send: the handshake, then messages.
- * A VNC server is local, but the guest can reach the loopback interface of the host through QEMU's user networking,
- * so the reader treats it as untrusted. Whatever the bytes, it either refuses them with an {@link IOException} or
- * returns messages whose samples are whole frames within the limit; nothing else escapes, and no allocation grows
- * with a claimed length.
- */
+// the guest can reach the loopback interface of the host through QEMU's user networking, so the server is untrusted
 @Tag("fuzz")
 final class QemuAudioProtocolFuzzTest {
 
@@ -42,24 +36,26 @@ final class QemuAudioProtocolFuzzTest {
   private static final String PASSWORD = "Pa55word";
 
   @FuzzTest(maxDuration = "30s")
-  void readsTheHandshakeAndTheMessagesOrRefusesThem(final FuzzedDataProvider data) {
+  void shouldReadTheHandshakeAndTheMessagesOrRefuseThem(final FuzzedDataProvider data) {
     final byte[] bytes = data.consumeRemainingAsBytes();
-    final DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes));
-    final DataOutputStream out = new DataOutputStream(OutputStream.nullOutputStream());
+    final DataInputStream input = new DataInputStream(new ByteArrayInputStream(bytes));
+    final DataOutputStream output = new DataOutputStream(OutputStream.nullOutputStream());
     try {
-      QemuAudioProtocol.readVersion(in);
-      final boolean authenticates = QemuAudioProtocol.negotiateSecurity(in, out, PASSWORD);
+      QemuAudioProtocol.readVersion(input);
+      final boolean authenticates = QemuAudioProtocol.negotiateSecurity(input, output, PASSWORD);
       if (authenticates) {
-        QemuAudioProtocol.answerChallenge(in, out, PASSWORD);
+        QemuAudioProtocol.answerChallenge(input, output, PASSWORD);
       }
-      QemuAudioProtocol.readSecurityResult(in);
-      QemuAudioProtocol.readServerInit(in);
+
+      QemuAudioProtocol.readSecurityResult(input);
+      QemuAudioProtocol.readServerInitialization(input);
       while (true) {
-        final QemuAudioProtocol.Message message = QemuAudioProtocol.readMessage(in, FRAME, byte[]::new);
+        final QemuAudioProtocol.Message message = QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
         final int length = message.getLength();
-        assertTrue(length >= 0 && length <= QemuAudioProtocol.MAX_AUDIO_BYTES && length % FRAME == 0, () -> "length " + length);
+        final boolean wholeFramesWithinTheLimit = length >= 0 && length <= QemuAudioProtocol.MAXIMUM_AUDIO_BYTES && length % FRAME == 0;
+        assertTrue(wholeFramesWithinTheLimit, () -> "length %s".formatted(length));
       }
-    } catch (final IOException refused) {
+    } catch (final IOException exception) {
       // malformed, cut short, or not expected: the connection ends
     }
   }

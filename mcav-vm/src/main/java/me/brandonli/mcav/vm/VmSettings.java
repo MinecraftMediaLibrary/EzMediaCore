@@ -17,24 +17,32 @@
  */
 package me.brandonli.mcav.vm;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import java.util.Objects;
 import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * How a virtual machine is streamed: the local VNC port QEMU listens on, the size frames are scaled to, and
- * the requested VNC update rate. This does not change the guest display rate. Instances are immutable and
- * may be shared across threads; creating settings does not reserve a port or start a machine.
+ * the requested VNC update rate. This does not change the guest display rate. Creating settings does not reserve a
+ * port or start a machine.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
-public final class VMSettings {
+public final class VmSettings {
+
+  private static final int MAXIMUM_PORT = 65535;
 
   private final int port;
   private final int width;
   private final int height;
   private final int targetFrameRate;
 
-  VMSettings(final int port, final int width, final int height, final int targetFrameRate) {
+  VmSettings(final int port, final int width, final int height, final int targetFrameRate) {
     this.port = port;
     this.width = width;
     this.height = height;
@@ -51,8 +59,9 @@ public final class VMSettings {
    * @return the settings
    * @throws IllegalArgumentException if a dimension or frame rate is nonpositive
    * @throws MCAVException            if no port in the VNC range can be bound by the probe
+   * @since 1.0.0
    */
-  public static VMSettings of(final int width, final int height, final int targetFrameRate) {
+  public static VmSettings of(final int width, final int height, final int targetFrameRate) {
     final int port = IoUtils.getNextFreeVncPort();
     return of(port, width, height, targetFrameRate);
   }
@@ -66,62 +75,77 @@ public final class VMSettings {
    * @param targetFrameRate the strictly positive requested frame rate in frames per second
    * @return the settings
    * @throws IllegalArgumentException if the port is outside 5900 through 65535, or a dimension or frame rate is nonpositive
+   * @since 1.0.0
    */
-  public static VMSettings of(final int port, final int width, final int height, final int targetFrameRate) {
+  public static VmSettings of(final int port, final int width, final int height, final int targetFrameRate) {
     Preconditions.checkArgument(
-      port >= VMProcess.FIRST_VNC_PORT && port <= 65535,
-      "VNC port must be between 5900 and 65535 but was %s",
+      port >= VmProcess.FIRST_VNC_PORT && port <= MAXIMUM_PORT,
+      "VNC port %s must be between 5900 and 65535!",
       port
     );
-    Preconditions.checkArgument(width > 0 && height > 0, "Frame size must be positive but was %sx%s", width, height);
-    Preconditions.checkArgument(targetFrameRate > 0, "Frame rate must be positive but was %s", targetFrameRate);
-    return new VMSettings(port, width, height, targetFrameRate);
+    Preconditions.checkArgument(width > 0 && height > 0, "Frame size %sx%s must be positive!", width, height);
+    Preconditions.checkArgument(targetFrameRate > 0, "Frame rate %s must be positive!", targetFrameRate);
+
+    return new VmSettings(port, width, height, targetFrameRate);
   }
 
   /**
-   * Gets the local VNC port.
+   * Returns the local VNC port.
    *
    * @return the configured TCP port, from 5900 through 65535; it is not reserved by these settings
+   * @since 1.0.0
    */
   public int getPort() {
     return this.port;
   }
 
   /**
-   * Gets the width the frames are scaled to.
+   * Returns the width the frames are scaled to.
    *
    * @return the width in pixels
+   * @since 1.0.0
    */
   public int getWidth() {
     return this.width;
   }
 
   /**
-   * Gets the height the frames are scaled to.
+   * Returns the height the frames are scaled to.
    *
    * @return the height in pixels
+   * @since 1.0.0
    */
   public int getHeight() {
     return this.height;
   }
 
   /**
-   * Gets the requested VNC update rate. This setting does not change the guest display rate.
+   * Returns the requested VNC update rate. This setting does not change the guest display rate.
    *
    * @return the strictly positive requested frames per second; actual updates depend on the remote display
+   * @since 1.0.0
    */
-  public int getTargetFps() {
+  public int getTargetFrameRate() {
     return this.targetFrameRate;
   }
 
+  /**
+   * Returns whether {@code other} is settings with the same port, size and frame rate.
+   *
+   * @param other the object to compare with
+   * @return whether both settings match
+   * @since 1.0.0
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
       return true;
     }
-    if (!(other instanceof final VMSettings settings)) {
+
+    if (!(other instanceof final VmSettings settings)) {
       return false;
     }
+
     return (
       this.port == settings.port &&
       this.width == settings.width &&
@@ -130,17 +154,30 @@ public final class VMSettings {
     );
   }
 
+  /**
+   * Returns a hash code built from the port, the size and the frame rate.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
   @Override
   public int hashCode() {
-    int result = this.port;
-    result = result * 31 + this.width;
-    result = result * 31 + this.height;
-    result = result * 31 + this.targetFrameRate;
-    return result;
+    return Objects.hash(this.port, this.width, this.height, this.targetFrameRate);
   }
 
+  /**
+   * Returns a debugging representation with the port, the size and the frame rate.
+   *
+   * @return the representation
+   * @since 1.0.0
+   */
   @Override
   public String toString() {
-    return "VMSettings[port=" + this.port + ", " + this.width + "x" + this.height + "@" + this.targetFrameRate + "]";
+    return MoreObjects.toStringHelper(this)
+      .add("port", this.port)
+      .add("width", this.width)
+      .add("height", this.height)
+      .add("targetFrameRate", this.targetFrameRate)
+      .toString();
   }
 }

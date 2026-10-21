@@ -24,9 +24,11 @@ import java.io.Serial;
  * Thrown when a program that must be installed on the machine, such as QEMU, is not on the {@code PATH} or in one of
  * the folders {@link ExecutableFinder} also searches.
  *
- * <p>It is a {@link RuntimeException}, so {@code catch (Exception)} handles it.
+ * <p>It is a {@link VmException}, so catching that handles it too.
+ *
+ * @since 1.0.0
  */
-public class ExecutableNotInPathException extends RuntimeException {
+public final class ExecutableNotInPathException extends VmException {
 
   @Serial
   private static final long serialVersionUID = 4163726305184327011L;
@@ -36,9 +38,12 @@ public class ExecutableNotInPathException extends RuntimeException {
    *
    * @param executable the name of the missing program
    * @throws NullPointerException if the name is null
+   * @since 1.0.0
    */
   public ExecutableNotInPathException(final String executable) {
-    Preconditions.checkNotNull(executable, "Executable must not be null");
-    super("The program " + executable + " is not installed or not on the PATH");
+    Preconditions.checkNotNull(executable, "Executable must not be null!");
+
+    final String message = "Program %s is not installed or not on the PATH!".formatted(executable);
+    super(message);
   }
 }

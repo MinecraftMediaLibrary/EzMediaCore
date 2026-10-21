@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.RejectedExecutionException;
@@ -65,9 +66,9 @@ import me.brandonli.mcav.plugin.utils.MapCodec;
 import me.brandonli.mcav.utils.immutable.Pair;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 import me.brandonli.mcav.vm.ExecutableNotInPathException;
-import me.brandonli.mcav.vm.VMConfiguration;
-import me.brandonli.mcav.vm.VMPlayer;
-import me.brandonli.mcav.vm.VMSettings;
+import me.brandonli.mcav.vm.VmConfiguration;
+import me.brandonli.mcav.vm.VmPlayer;
+import me.brandonli.mcav.vm.VmSettings;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
@@ -97,11 +98,11 @@ final class VirtualizeCommandTest {
   private CommandSender sender;
   private MultiplePlayerSelector selector;
   private Player viewer;
-  private VMPlayer machine;
+  private VmPlayer machine;
   private AudioProvider provider;
   private VideoAttachableCallback callback;
   private FunctionalVideoFilter ditherFilter;
-  private MockedStatic<VMPlayer> machines;
+  private MockedStatic<VmPlayer> machines;
   private MockedStatic<DitherFilter> dithers;
   private MockedConstruction<CompressedMapResult> maps;
 
@@ -134,12 +135,12 @@ final class VirtualizeCommandTest {
     final List<Player> viewers = List.of(this.viewer);
     when(this.selector.values()).thenReturn(viewers);
 
-    this.machine = mock(VMPlayer.class);
+    this.machine = mock(VmPlayer.class);
     this.callback = mock(VideoAttachableCallback.class);
     when(this.machine.getVideoAttachableCallback()).thenReturn(this.callback);
     when(this.machine.getAudioAttachableCallback()).thenReturn(mock(AudioAttachableCallback.class));
-    this.machines = Mockito.mockStatic(VMPlayer.class);
-    this.machines.when(VMPlayer::create).thenReturn(this.machine);
+    this.machines = Mockito.mockStatic(VmPlayer.class);
+    this.machines.when(VmPlayer::create).thenReturn(this.machine);
     this.ditherFilter = mock(FunctionalVideoFilter.class);
     this.dithers = Mockito.mockStatic(DitherFilter.class);
     this.dithers.when(() -> DitherFilter.dither(any(), any())).thenReturn(this.ditherFilter);
@@ -163,7 +164,7 @@ final class VirtualizeCommandTest {
       blocks,
       0,
       DitheringArgument.FILTER_LITE,
-      VMPlayer.Architecture.X86_64,
+      VmPlayer.Architecture.X86_64,
       AudioArgument.NONE,
       flags
     );
@@ -172,7 +173,7 @@ final class VirtualizeCommandTest {
   @Test
   void releasesTheMachineAndScreenWhenSubmissionIsRejected() {
     final RejectedExecutionException failure = new RejectedExecutionException("executor stopped");
-    when(this.machine.startAsync(any(VMSettings.class), any(VMPlayer.Architecture.class), any(VMConfiguration.class), any())).thenThrow(
+    when(this.machine.startAsync(any(VmSettings.class), any(VmPlayer.Architecture.class), any(VmConfiguration.class), any())).thenThrow(
       failure
     );
     final RejectedExecutionException thrown = assertThrows(RejectedExecutionException.class, () -> this.create("640x480", "5x4", ""));
@@ -186,7 +187,7 @@ final class VirtualizeCommandTest {
   }
 
   private void startsWith(final CompletableFuture<Boolean> start) {
-    when(this.machine.startAsync(any(VMSettings.class), any(VMPlayer.Architecture.class), any(VMConfiguration.class), any())).thenReturn(
+    when(this.machine.startAsync(any(VmSettings.class), any(VmPlayer.Architecture.class), any(VmConfiguration.class), any())).thenReturn(
       start
     );
   }
@@ -198,7 +199,7 @@ final class VirtualizeCommandTest {
   }
 
   private void assertArguments(final String commandLine, final String... expected) {
-    final VMConfiguration configuration = VirtualizeCommand.parseOptions(commandLine, this.imageFolder);
+    final VmConfiguration configuration = VirtualizeCommand.parseOptions(commandLine, this.imageFolder).build();
     final List<String> arguments = configuration.getArguments();
     final List<String> expectedArguments = List.of(expected);
     assertEquals(expectedArguments, arguments);
@@ -241,10 +242,10 @@ final class VirtualizeCommandTest {
     this.create("640x480", "5x4", "-cdrom \"alpine linux.iso\" -m 2048M");
 
     this.assertDithersOntoTheScreen();
-    final ArgumentCaptor<VMConfiguration> configurations = ArgumentCaptor.forClass(VMConfiguration.class);
-    final VMSettings settings = VMSettings.of(640, 480, 30);
-    verify(this.machine).startAsync(eq(settings), eq(VMPlayer.Architecture.X86_64), configurations.capture(), any());
-    final VMConfiguration configuration = configurations.getValue();
+    final ArgumentCaptor<VmConfiguration> configurations = ArgumentCaptor.forClass(VmConfiguration.class);
+    final VmSettings settings = VmSettings.of(640, 480, 30);
+    verify(this.machine).startAsync(eq(settings), eq(VmPlayer.Architecture.X86_64), configurations.capture(), any());
+    final VmConfiguration configuration = configurations.getValue();
     final List<String> arguments = configuration.getArguments();
     final List<String> expectedArguments = List.of("-cdrom", image, "-m", "2048M");
     assertEquals(expectedArguments, arguments);
@@ -262,9 +263,9 @@ final class VirtualizeCommandTest {
 
     this.create("640x480", "5x4", "-cdrom \"alpine linux.iso\"");
 
-    final ArgumentCaptor<VMConfiguration> configurations = ArgumentCaptor.forClass(VMConfiguration.class);
-    verify(this.machine).startAsync(any(VMSettings.class), eq(VMPlayer.Architecture.X86_64), configurations.capture(), any());
-    final VMConfiguration machine = configurations.getValue();
+    final ArgumentCaptor<VmConfiguration> configurations = ArgumentCaptor.forClass(VmConfiguration.class);
+    verify(this.machine).startAsync(any(VmSettings.class), eq(VmPlayer.Architecture.X86_64), configurations.capture(), any());
+    final VmConfiguration machine = configurations.getValue();
     final List<String> arguments = machine.getArguments();
     assertEquals(List.of("-cdrom", image, "-nic", "user"), arguments);
   }
@@ -279,8 +280,8 @@ final class VirtualizeCommandTest {
 
     // the screen asked for MCV2, which found no wall here and dithers
     verify(support).configure(eq(this.sender), eq(Pair.pair(5, 4)), eq(Pair.pair(640, 480)), eq(0), eq(Settings.DEFAULT), any());
-    final ArgumentCaptor<VMConfiguration> configurations = ArgumentCaptor.forClass(VMConfiguration.class);
-    verify(this.machine).startAsync(any(VMSettings.class), eq(VMPlayer.Architecture.X86_64), configurations.capture(), any());
+    final ArgumentCaptor<VmConfiguration> configurations = ArgumentCaptor.forClass(VmConfiguration.class);
+    verify(this.machine).startAsync(any(VmSettings.class), eq(VmPlayer.Architecture.X86_64), configurations.capture(), any());
     assertEquals(List.of("-m", "2048M"), configurations.getValue().getArguments());
   }
 
@@ -424,7 +425,7 @@ final class VirtualizeCommandTest {
       "5x4",
       0,
       DitheringArgument.FILTER_LITE,
-      VMPlayer.Architecture.X86_64,
+      VmPlayer.Architecture.X86_64,
       AudioArgument.SIMPLE_VOICE_CHAT,
       ""
     );
@@ -494,7 +495,7 @@ final class VirtualizeCommandTest {
 
   @Test
   void treatsAnOptionFollowedByAnotherOptionAsTwoFlags() {
-    final VMConfiguration configuration = VirtualizeCommand.parseOptions("-no-reboot -snapshot", this.imageFolder);
+    final VmConfiguration configuration = VirtualizeCommand.parseOptions("-no-reboot -snapshot", this.imageFolder).build();
     final boolean noReboot = configuration.has("no-reboot");
     final boolean snapshot = configuration.has("snapshot");
     assertTrue(noReboot);
@@ -633,7 +634,7 @@ final class VirtualizeCommandTest {
     final AudioAttachableCallback audio = mock(AudioAttachableCallback.class);
     when(this.machine.getAudioAttachableCallback()).thenReturn(audio);
     final CompletableFuture<Boolean> start = CompletableFuture.completedFuture(true);
-    when(this.machine.startAsync(any(VMSettings.class), any(VMPlayer.Architecture.class), any(VMConfiguration.class), any())).thenReturn(
+    when(this.machine.startAsync(any(VmSettings.class), any(VmPlayer.Architecture.class), any(VmConfiguration.class), any())).thenReturn(
       start
     );
     this.command.createVM(
@@ -644,7 +645,7 @@ final class VirtualizeCommandTest {
       "5x4",
       0,
       DitheringArgument.FILTER_LITE,
-      VMPlayer.Architecture.X86_64,
+      VmPlayer.Architecture.X86_64,
       AudioArgument.SIMPLE_VOICE_CHAT,
       "-m 256M"
     );
@@ -661,7 +662,7 @@ final class VirtualizeCommandTest {
     when(this.provider.constructHttpUrl()).thenReturn("http://mc.example.com:3000/");
     when(this.provider.constructFilter(eq(AudioArgument.HTTP_SERVER), any(), any(), eq(this.machine))).thenReturn(mock(AudioFilter.class));
     when(this.machine.getAudioAttachableCallback()).thenReturn(mock(AudioAttachableCallback.class));
-    when(this.machine.startAsync(any(VMSettings.class), any(VMPlayer.Architecture.class), any(VMConfiguration.class), any())).thenReturn(
+    when(this.machine.startAsync(any(VmSettings.class), any(VmPlayer.Architecture.class), any(VmConfiguration.class), any())).thenReturn(
       start
     );
     this.command.createVM(
@@ -672,7 +673,7 @@ final class VirtualizeCommandTest {
       "5x4",
       0,
       DitheringArgument.FILTER_LITE,
-      VMPlayer.Architecture.X86_64,
+      VmPlayer.Architecture.X86_64,
       AudioArgument.HTTP_SERVER,
       "-m 256M"
     );
@@ -724,7 +725,7 @@ final class VirtualizeCommandTest {
       "5x4",
       0,
       DitheringArgument.FILTER_LITE,
-      VMPlayer.Architecture.AARCH64,
+      VmPlayer.Architecture.AARCH64,
       AudioArgument.SIMPLE_VOICE_CHAT,
       "-m 256M"
     );
@@ -735,7 +736,7 @@ final class VirtualizeCommandTest {
   @Test
   void aMachineThatDoesNotStartSendsNoLinkToItsSound() {
     final CompletableFuture<Boolean> start = CompletableFuture.completedFuture(false);
-    when(this.machine.startAsync(any(VMSettings.class), any(VMPlayer.Architecture.class), any(VMConfiguration.class), any())).thenReturn(
+    when(this.machine.startAsync(any(VmSettings.class), any(VmPlayer.Architecture.class), any(VmConfiguration.class), any())).thenReturn(
       start
     );
     this.create("640x480", "5x4", "-m 256M");
@@ -746,7 +747,7 @@ final class VirtualizeCommandTest {
   @Test
   void aSilentMachinePlaysIntoNoOutput() {
     final CompletableFuture<Boolean> start = CompletableFuture.completedFuture(true);
-    when(this.machine.startAsync(any(VMSettings.class), any(VMPlayer.Architecture.class), any(VMConfiguration.class), any())).thenReturn(
+    when(this.machine.startAsync(any(VmSettings.class), any(VmPlayer.Architecture.class), any(VmConfiguration.class), any())).thenReturn(
       start
     );
     this.create("640x480", "5x4", "-m 256M");
@@ -765,7 +766,7 @@ final class VirtualizeCommandTest {
       "5x4",
       0,
       DitheringArgument.FILTER_LITE,
-      VMPlayer.Architecture.X86_64,
+      VmPlayer.Architecture.X86_64,
       AudioArgument.DISCORD_BOT,
       "-m 256M"
     );
@@ -808,8 +809,12 @@ final class VirtualizeCommandTest {
     );
     assertEquals("The QEMU option -m 64G asks for more memory than a machine may have on this server, 4096 MiB", failure.getMessage());
     assertThrows(IllegalArgumentException.class, () -> VirtualizeCommand.parseOptions("-m size=5G,slots=2", this.imageFolder, limit));
-    assertEquals("4G", VirtualizeCommand.parseOptions("-m 4G", this.imageFolder, limit).get("m"));
-    assertEquals(List.of(), VirtualizeCommand.parseOptions("", this.imageFolder, limit).getArguments(), "QEMU's default of 128 MiB");
+    assertEquals(Optional.of("4G"), VirtualizeCommand.parseOptions("-m 4G", this.imageFolder, limit).build().find("m"));
+    assertEquals(
+      List.of(),
+      VirtualizeCommand.parseOptions("", this.imageFolder, limit).build().getArguments(),
+      "QEMU's default of 128 MiB"
+    );
   }
 
   @Test

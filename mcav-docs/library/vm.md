@@ -19,45 +19,53 @@ dependencies {
 
 ```java
   final MCAVApi api = MCAV.api();
-  api.install(VncModule.class, VMModule.class);
-  final VMModule vmModule = api.getModule(VMModule.class);
-  if (!vmModule.isQemuInstalled()) {
+  api.install(VncModule.class, VmModule.class);
+  final VmModule vmModule = api.getModule(VmModule.class);
+  final boolean qemuInstalled = vmModule.isQemuInstalled();
+  if (!qemuInstalled) {
     // QEMU is missing, virtual machines cannot be started
   }
 ```
 
-The QEMU command line is built with a `VMConfiguration`, and a `VMSettings` describes how the machine is streamed:
-the size frames are scaled to and the frame rate requested from QEMU. The player adds the display, VNC, and pointer
-options itself, and picks the fastest accelerator of the machine (KVM, WHPX, or HVF), falling back to software
-emulation when the accelerator is unavailable. The VNC display listens on the loopback address and asks for a random
-password the player alone knows; QEMU reads it from a file of a folder only your user can open, which is deleted once
-QEMU started.
+The QEMU command line is an immutable `VmConfiguration`, built with the `VmConfigurationBuilder` that
+`VmConfiguration.builder()` returns, and a `VmSettings` describes how the machine is streamed: the size frames are
+scaled to and the frame rate requested from QEMU. The player adds the display, VNC, and pointer options itself, and
+picks the fastest accelerator of the machine (KVM, WHPX, or HVF), falling back to software emulation when the
+accelerator is unavailable. The VNC display listens on the loopback address and asks for a random password the player
+alone knows; QEMU reads it from a file of a folder only your user can open, which is deleted once QEMU starts.
 
 The example boots an ISO image and presses a key in its boot menu. The `display` filter is yours and shows the frames;
 release the returned player to stop the machine. QEMU is a process of its own: a JVM that ends without releasing the
-player, or is killed, leaves it running, with its memory and its VNC port. Every QEMU mcav starts is recorded in
-`~/.mcav/vm`, and the next start of the VM module (`VMModule.start`, part of `MCAVApi.install`) stops each recorded
+player, or is killed, leaves it running, with its memory and its VNC port. Every QEMU MCAV starts is recorded in
+`~/.mcav/vm`, and the next start of the VM module (`VmModule.start`, part of `MCAVApi.install`) stops each recorded
 QEMU whose JVM is gone and logs it; a QEMU of another JVM that still runs is left alone. Releasing the library
 (`MCAVApi.release`) does not stop the machines either; release every player first.
 
 ```java
-  public static VMPlayer bootIsoImage(final Path isoFile, final VideoFilter display) {
+  public static VmPlayer bootIsoImage(final Path isoFile, final VideoFilter display) {
     final VideoPipelineStep pipeline = VideoPipelineStep.of(display);
 
     final String isoPath = isoFile.toString();
-    final VMConfiguration configuration = VMConfiguration.builder();
-    configuration.cdrom(isoPath);
-    configuration.memory(2048);
-    configuration.cores(2);
+    final int memoryMegabytes = 2048;
+    final int cores = 2;
+    final VmConfigurationBuilder builder = VmConfiguration.builder();
+    final VmConfiguration configuration = builder.cdrom(isoPath).memory(memoryMegabytes).cores(cores).build();
 
-    final VMSettings settings = VMSettings.of(1024, 768, 30);
-    final VMPlayer player = VMPlayer.create();
+    final int width = 1024;
+    final int height = 768;
+    final int targetFrameRate = 30;
+    final VmSettings settings = VmSettings.of(width, height, targetFrameRate);
+
+    final VmPlayer player = VmPlayer.create();
     final VideoAttachableCallback videoCallback = player.getVideoAttachableCallback();
     videoCallback.attach(pipeline);
+    player.start(settings, VmPlayer.Architecture.X86_64, configuration);
 
-    player.start(settings, VMPlayer.Architecture.X86_64, configuration);
-    player.sendMouseEvent(MouseClick.LEFT, 512, 384);
-    player.sendKeyEvent("Return");
+    final int menuX = 512;
+    final int menuY = 384;
+    final String enterKey = "Return";
+    player.sendMouseEvent(MouseClick.LEFT, menuX, menuY);
+    player.sendKeyEvent(enterKey);
     return player;
   }
 ```
@@ -68,10 +76,11 @@ add. QEMU's own default network, which `network("user")` gives back, reaches the
 10.0.2.2 is the machine QEMU runs on: the guest reaches every service there that listens only on the loopback address.
 `network("none")` gives the guest no network card at all.
 
-Options that QEMU accepts more than once, such as `-drive` or `-device`, are added with `drive(...)`, `device(...)`, or
-`repeatable(key, value)`; every other option replaces its earlier value. `start` throws an
-`ExecutableNotInPathException` when the QEMU program of the architecture is not installed, and a `PlayerException`
-with the output of QEMU when the machine fails to start.
+Options that QEMU accepts more than once, such as `-drive` or `-device`, are added to the builder with `drive(...)`,
+`device(...)`, or `repeatable(key, value)`; every other option replaces its earlier value. `start` throws an
+`ExecutableNotInPathException` when the QEMU program of the architecture is not installed, and a `VmException` with
+the output of QEMU when the machine fails to start; catch `VmException` to handle both. A configuration that sets an
+option the player reserves is refused with an `IllegalArgumentException`.
 
 Behind the scenes, the player starts QEMU with a VNC display bound to the local machine and connects the `mcav-vnc`
 player to it. **You are responsible for giving QEMU a valid configuration**; MCAV reports QEMU's errors but does not
@@ -83,8 +92,9 @@ The player hands the sound of the guest to its audio pipeline, in the format eve
 little-endian stereo PCM at 48 kHz. Attach a pipeline like the video one:
 
 ```java
+    final AudioPipelineStep audioPipeline = AudioPipelineStep.of(speakers);
     final AudioAttachableCallback audioCallback = player.getAudioAttachableCallback();
-    audioCallback.attach(AudioPipelineStep.of(speakers));
+    audioCallback.attach(audioPipeline);
 ```
 
 Only x86-64 machines of the PC and Q35 families (the default machine, `pc`, `q35` and their versions) have sound.

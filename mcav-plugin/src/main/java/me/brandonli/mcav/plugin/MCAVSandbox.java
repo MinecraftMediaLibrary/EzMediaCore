@@ -37,7 +37,7 @@ import me.brandonli.mcav.plugin.listener.JukeBoxListener;
 import me.brandonli.mcav.plugin.listener.OnlinePlayers;
 import me.brandonli.mcav.plugin.utils.CleanupUtils;
 import me.brandonli.mcav.plugin.utils.Mcv2Hosting;
-import me.brandonli.mcav.vm.VMModule;
+import me.brandonli.mcav.vm.VmModule;
 import me.brandonli.mcav.voicechat.SVCModule;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.Server;
@@ -172,11 +172,11 @@ public final class MCAVSandbox extends JavaPlugin {
     final MCAVApi api = MCAV.api();
     // kept before installing, so onDisable releases whatever the modules created even when installing fails
     this.mcav = api;
-    api.install(BukkitModule.class, BrowserModule.class, VMModule.class, SVCModule.class);
+    api.install(BukkitModule.class, BrowserModule.class, VmModule.class, SVCModule.class);
 
     final BukkitModule bukkitModule = api.getModule(BukkitModule.class);
     bukkitModule.inject(this);
-    final VMModule vmModule = api.getModule(VMModule.class);
+    final VmModule vmModule = api.getModule(VmModule.class);
     this.qemuInstalled = vmModule.isQemuInstalled();
     if (!this.qemuInstalled) {
       pluginLogger.warn(NO_QEMU);

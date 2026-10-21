@@ -27,10 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-/**
- * Answers the challenge of VNC authentication the way Vernacular, the VNC client of mcav-vnc, answers it: an oracle
- * for the answer of the audio connection that shares none of its code.
- */
+// an oracle that shares no code with the audio connection: it answers as Vernacular, the client of mcav-vnc, does
 public final class VncPasswords {
 
   // RFB 3.8: the client sends the security type it chose before the challenge arrives
@@ -38,30 +35,24 @@ public final class VncPasswords {
   private static final int RESULT_BYTES = 4;
 
   private VncPasswords() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Answers a challenge.
-   *
-   * @param challenge the 16 bytes the server sent
-   * @param password  the password
-   * @return the 16 bytes Vernacular sends back
-   * @throws IOException if Vernacular fails
-   */
   public static byte[] response(final byte[] challenge, final String password) throws IOException {
-    final VernacularConfig config = new VernacularConfig();
-    config.setPasswordSupplier(() -> password);
+    final VernacularConfig configuration = new VernacularConfig();
+    configuration.setPasswordSupplier(() -> password);
     final byte[] received = Arrays.copyOf(challenge, challenge.length + RESULT_BYTES);
-    final ByteArrayInputStream in = new ByteArrayInputStream(received);
+    final ByteArrayInputStream input = new ByteArrayInputStream(received);
     final ByteArrayOutputStream sent = new ByteArrayOutputStream();
-    final VncSession session = new VncSession(config, in, sent);
+    final VncSession session = new VncSession(configuration, input, sent);
     session.setProtocolVersion(new ProtocolVersion(3, 8));
+    final VncAuthenticationHandler handler = new VncAuthenticationHandler();
     try {
-      new VncAuthenticationHandler().authenticate(session);
+      handler.authenticate(session);
     } catch (final VncException exception) {
       throw new IOException(exception);
     }
+
     final byte[] bytes = sent.toByteArray();
     return Arrays.copyOfRange(bytes, CHOSEN_TYPE_BYTES, bytes.length);
   }

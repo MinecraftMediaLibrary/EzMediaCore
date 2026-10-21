@@ -36,10 +36,6 @@ import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 import net.jqwik.api.constraints.Size;
 
-/**
- * Properties of the reader of the audio connection: any sequence of messages QEMU may send is read back as sent, with
- * the same samples, however the network cuts the stream into pieces.
- */
 final class QemuAudioProtocolPropertyTest {
 
   private static final String SEED = "20260925";
@@ -65,42 +61,45 @@ final class QemuAudioProtocolPropertyTest {
   }
 
   @Property(seed = SEED, tries = 300)
-  void everyMessageIsReadAsSentHoweverTheStreamIsCut(
+  void shouldReadEveryMessageAsSentHoweverTheStreamIsCut(
     @ForAll @Size(max = 20) final List<@From("messages") Sent> messages,
     @ForAll final long cuts
   ) throws IOException {
-    final byte[] stream = QemuAudioProtocolTest.bytes(out -> {
+    final byte[] stream = QemuAudioProtocolTest.bytes(output -> {
       for (final Sent message : messages) {
-        write(out, message);
+        this.write(output, message);
       }
     });
-    final DataInputStream in = new DataInputStream(new Trickle(stream, new Random(cuts)));
+    final DataInputStream input = new DataInputStream(new Trickle(stream, new Random(cuts)));
     for (final Sent expected : messages) {
-      final QemuAudioProtocol.Message read = QemuAudioProtocol.readMessage(in, FRAME, byte[]::new);
-      assertEquals(expected.kind(), read.getKind());
-      assertArrayEquals(expected.samples(), Arrays.copyOf(read.getSamples(), read.getLength()));
+      final QemuAudioProtocol.Message read = QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
+      final QemuAudioProtocol.Kind expectedKind = expected.kind();
+      final QemuAudioProtocol.Kind kind = read.getKind();
+      final byte[] expectedSamples = expected.samples();
+      final byte[] samples = Arrays.copyOf(read.getSamples(), read.getLength());
+      assertEquals(expectedKind, kind);
+      assertArrayEquals(expectedSamples, samples);
     }
-    assertEquals(-1, in.read(), "nothing is left over");
+
+    final int next = input.read();
+    assertEquals(-1, next, "nothing is left over");
   }
 
-  private static void write(final DataOutputStream out, final Sent message) throws IOException {
+  private void write(final DataOutputStream output, final Sent message) throws IOException {
     switch (message.kind()) {
-      case DATA -> QemuAudioProtocolTest.writeData(out, message.samples());
-      case BEGIN -> out.write(new byte[] { (byte) 255, 1, 0, 1 });
-      case END -> out.write(new byte[] { (byte) 255, 1, 0, 0 });
-      case ACKNOWLEDGED -> QemuAudioProtocolTest.writeAcknowledgement(out);
+      case DATA -> QemuAudioProtocolTest.writeData(output, message.samples());
+      case BEGIN -> output.write(new byte[] { (byte) 255, 1, 0, 1 });
+      case END -> output.write(new byte[] { (byte) 255, 1, 0, 0 });
+      case ACKNOWLEDGED -> QemuAudioProtocolTest.writeAcknowledgement(output);
       case IGNORED -> {
-        out.writeByte(QemuAudioProtocol.SERVER_CUT_TEXT);
-        out.write(new byte[3]);
-        out.writeInt(3);
-        out.write(new byte[] { 'a', 'b', 'c' });
+        output.writeByte(QemuAudioProtocol.SERVER_CUT_TEXT);
+        output.write(new byte[3]);
+        output.writeInt(3);
+        output.write(new byte[] { 'a', 'b', 'c' });
       }
     }
   }
 
-  /**
-   * A message and its samples.
-   */
   private static final class Sent {
 
     private final QemuAudioProtocol.Kind kind;
@@ -121,13 +120,11 @@ final class QemuAudioProtocolPropertyTest {
 
     @Override
     public String toString() {
-      return this.kind + "(" + this.samples.length + ")";
+      return "%s(%s)".formatted(this.kind, this.samples.length);
     }
   }
 
-  /**
-   * A stream that hands out its bytes in pieces of random sizes, as a network connection does.
-   */
+  // hands out its bytes in pieces of random sizes, as a network connection does
   private static final class Trickle extends InputStream {
 
     private final ByteArrayInputStream bytes;
@@ -148,6 +145,7 @@ final class QemuAudioProtocolPropertyTest {
       if (length == 0) {
         return 0;
       }
+
       final int piece = 1 + this.random.nextInt(Math.min(length, 7));
       return this.bytes.read(buffer, offset, piece);
     }

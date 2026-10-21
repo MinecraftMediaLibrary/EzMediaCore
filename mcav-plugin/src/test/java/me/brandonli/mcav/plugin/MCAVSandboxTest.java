@@ -68,7 +68,7 @@ import me.brandonli.mcav.plugin.listener.OnlinePlayers;
 import me.brandonli.mcav.plugin.testing.TestCommandManager;
 import me.brandonli.mcav.plugin.testing.TestServer;
 import me.brandonli.mcav.plugin.utils.IOUtils;
-import me.brandonli.mcav.vm.VMModule;
+import me.brandonli.mcav.vm.VmModule;
 import me.brandonli.mcav.voicechat.SVCModule;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.Server;
@@ -105,7 +105,7 @@ final class MCAVSandboxTest {
 
   private BukkitModule bukkitModule;
 
-  private VMModule vmModule;
+  private VmModule vmModule;
 
   private BrowserModule browserModule;
 
@@ -159,10 +159,10 @@ final class MCAVSandboxTest {
   private void mockLibrary() {
     this.api = mock(MCAVApi.class);
     this.bukkitModule = mock(BukkitModule.class);
-    this.vmModule = mock(VMModule.class);
+    this.vmModule = mock(VmModule.class);
     this.browserModule = mock(BrowserModule.class);
     when(this.api.getModule(BukkitModule.class)).thenReturn(this.bukkitModule);
-    when(this.api.getModule(VMModule.class)).thenReturn(this.vmModule);
+    when(this.api.getModule(VmModule.class)).thenReturn(this.vmModule);
     when(this.api.getModule(BrowserModule.class)).thenReturn(this.browserModule);
     this.libraries = Mockito.mockStatic(MCAV.class);
     this.libraries.when(MCAV::api).thenReturn(this.api);
@@ -244,14 +244,14 @@ final class MCAVSandboxTest {
       "Paper cannot re-enable this plugin after it has been disabled",
       "restart the server to enable MCAV"
     );
-    verify(this.api, times(1)).install(BukkitModule.class, BrowserModule.class, VMModule.class, SVCModule.class);
+    verify(this.api, times(1)).install(BukkitModule.class, BrowserModule.class, VmModule.class, SVCModule.class);
     assertThrows(IllegalStateException.class, this.sandbox::getVideoPlayerManager);
     this.sandbox.onDisable();
     verify(this.api, times(1)).release();
   }
 
   private void assertLibraryInstalled() {
-    verify(this.api).install(BukkitModule.class, BrowserModule.class, VMModule.class, SVCModule.class);
+    verify(this.api).install(BukkitModule.class, BrowserModule.class, VmModule.class, SVCModule.class);
     verify(this.bukkitModule).inject(this.sandbox);
     verify(this.logger, never()).warn(anyString());
     final MCAVApi library = this.sandbox.getMCAV();
@@ -435,7 +435,7 @@ final class MCAVSandboxTest {
       return null;
     })
       .when(this.api)
-      .install(BukkitModule.class, BrowserModule.class, VMModule.class, SVCModule.class);
+      .install(BukkitModule.class, BrowserModule.class, VmModule.class, SVCModule.class);
     this.sandbox.onEnable();
 
     final ArgumentCaptor<Object> duration = ArgumentCaptor.forClass(Object.class);
@@ -531,7 +531,7 @@ final class MCAVSandboxTest {
   @Test
   void releasesTheLibraryWhenInstallingItsModulesFails() {
     final IllegalStateException failure = new IllegalStateException("a module failed to start");
-    doThrow(failure).when(this.api).install(BukkitModule.class, BrowserModule.class, VMModule.class, SVCModule.class);
+    doThrow(failure).when(this.api).install(BukkitModule.class, BrowserModule.class, VmModule.class, SVCModule.class);
     final IllegalStateException exception = assertThrows(IllegalStateException.class, this.sandbox::onEnable);
     assertSame(failure, exception);
     this.sandbox.onDisable();

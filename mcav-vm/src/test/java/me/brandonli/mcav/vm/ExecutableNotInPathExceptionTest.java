@@ -23,25 +23,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ExecutableNotInPathException}.
- */
 final class ExecutableNotInPathExceptionTest {
 
   @Test
-  void namesTheMissingProgram() {
+  void shouldNameTheMissingProgram() {
     final ExecutableNotInPathException exception = new ExecutableNotInPathException("qemu-system-arm");
     final String message = exception.getMessage();
-    assertEquals("The program qemu-system-arm is not installed or not on the PATH", message);
-    assertInstanceOf(RuntimeException.class, exception);
+    assertEquals("Program qemu-system-arm is not installed or not on the PATH!", message);
+    assertInstanceOf(VmException.class, exception);
   }
 
   @Test
-  void rejectsANullProgramName() {
+  void shouldRejectANullProgramName() {
     final NullPointerException exception = assertThrows(NullPointerException.class, () -> {
       throw new ExecutableNotInPathException(null);
     });
     final String message = exception.getMessage();
-    assertEquals("Executable must not be null", message);
+    assertEquals("Executable must not be null!", message);
   }
 }

@@ -26,13 +26,16 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * A process for tests that runs no program. It prints prepared output, stays alive until it is told to exit or is
- * destroyed, and counts how it was destroyed.
- */
 public final class FakeProcess extends Process {
 
-  private static final long LONGEST_WAIT_MILLIS = 200L;
+  private static final long LONGEST_WAIT_MILLISECONDS = 200L;
+
+  private static final String TEXT_NULL_MESSAGE = "Text must not be null!";
+
+  private static final int TERMINATED_EXIT_CODE = 143;
+  private static final int KILLED_EXIT_CODE = 137;
+
+  private static final String TERMINATION_THREAD_NAME = "fake-qemu-termination";
 
   private final InputStream output;
   private final CountDownLatch exited;
@@ -44,7 +47,7 @@ public final class FakeProcess extends Process {
   private volatile boolean interruptsWaits;
   private volatile boolean interruptsFirstWait;
   private volatile int exitCodeOnWait = -1;
-  private volatile long forcedExitDelayMillis;
+  private volatile long forcedExitDelayMilliseconds;
 
   private FakeProcess(final InputStream output) {
     this.output = output;
@@ -54,91 +57,46 @@ public final class FakeProcess extends Process {
     this.exitsOnDestroy = true;
   }
 
-  /**
-   * Creates a running process that prints the given text and then nothing more.
-   *
-   * @param text the output
-   * @return the process
-   */
   public static FakeProcess running(final String text) {
-    Preconditions.checkNotNull(text, "Text must not be null");
+    Preconditions.checkNotNull(text, TEXT_NULL_MESSAGE);
     final byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
     final InputStream stream = new ByteArrayInputStream(bytes);
     return new FakeProcess(stream);
   }
 
-  /**
-   * Creates a running process with the given output stream.
-   *
-   * @param stream the output
-   * @return the process
-   */
   public static FakeProcess running(final InputStream stream) {
-    Preconditions.checkNotNull(stream, "Stream must not be null");
+    Preconditions.checkNotNull(stream, "Stream must not be null!");
     return new FakeProcess(stream);
   }
 
-  /**
-   * Creates a process that printed the given text and already exited.
-   *
-   * @param exitCode the exit code
-   * @param text     the output
-   * @return the process
-   */
   public static FakeProcess exited(final int exitCode, final String text) {
-    Preconditions.checkNotNull(text, "Text must not be null");
+    Preconditions.checkNotNull(text, TEXT_NULL_MESSAGE);
     final FakeProcess process = running(text);
     process.exit(exitCode);
     return process;
   }
 
-  /**
-   * Makes {@link #destroy()} leave the process running, like a program that ignores termination requests.
-   */
   public void ignoringDestroy() {
     this.exitsOnDestroy = false;
   }
 
-  /**
-   * Delays actual termination after the force request, as an operating system may do.
-   *
-   * @param delayMillis the delay before the process exits
-   */
-  public void delayingForcedExit(final long delayMillis) {
-    Preconditions.checkArgument(delayMillis > 0, "Delay must be positive");
-    this.forcedExitDelayMillis = delayMillis;
+  public void delayingForcedExit(final long delayMilliseconds) {
+    Preconditions.checkArgument(delayMilliseconds > 0, "Delay %s must be positive!", delayMilliseconds);
+    this.forcedExitDelayMilliseconds = delayMilliseconds;
   }
 
-  /**
-   * Makes every timed wait throw an {@link InterruptedException}.
-   */
   public void interruptingWaits() {
     this.interruptsWaits = true;
   }
 
-  /**
-   * Makes only the first timed wait throw an {@link InterruptedException}; every later wait behaves normally, as a
-   * real process does once the interrupt of the thread was consumed.
-   */
   public void interruptingFirstWait() {
     this.interruptsFirstWait = true;
   }
 
-  /**
-   * Makes the process exit as soon as it is waited on with a timeout, as QEMU does when it fails right after
-   * starting.
-   *
-   * @param code the exit code
-   */
   public void exitingWhenWaitedOn(final int code) {
     this.exitCodeOnWait = code;
   }
 
-  /**
-   * Ends the process.
-   *
-   * @param code the exit code
-   */
   public void exit(final int code) {
     if (this.exited.getCount() > 0) {
       this.exitCode = code;
@@ -146,20 +104,10 @@ public final class FakeProcess extends Process {
     }
   }
 
-  /**
-   * Gets how often {@link #destroy()} was called.
-   *
-   * @return the number of calls
-   */
   public int getDestroyCalls() {
     return this.destroyCalls.get();
   }
 
-  /**
-   * Gets how often {@link #destroyForcibly()} was called.
-   *
-   * @return the number of calls
-   */
   public int getForcibleDestroyCalls() {
     return this.forcibleDestroyCalls.get();
   }
@@ -187,28 +135,32 @@ public final class FakeProcess extends Process {
 
   @Override
   public boolean waitFor(final long timeout, final TimeUnit unit) throws InterruptedException {
-    Preconditions.checkNotNull(unit, "Unit must not be null");
+    Preconditions.checkNotNull(unit, "Unit must not be null!");
     if (this.interruptsWaits) {
-      throw new InterruptedException("interrupted on purpose");
+      throw new InterruptedException("interrupted on purpose!");
     }
+
     if (this.interruptsFirstWait) {
       this.interruptsFirstWait = false;
-      throw new InterruptedException("the first wait is interrupted on purpose");
+      throw new InterruptedException("the first wait is interrupted on purpose!");
     }
+
     final int codeOnWait = this.exitCodeOnWait;
     if (codeOnWait >= 0) {
       this.exit(codeOnWait);
     }
+
     final long requested = unit.toMillis(timeout);
-    final long wait = Math.min(requested, LONGEST_WAIT_MILLIS);
+    final long wait = Math.min(requested, LONGEST_WAIT_MILLISECONDS);
     return this.exited.await(wait, TimeUnit.MILLISECONDS);
   }
 
   @Override
   public int exitValue() {
     if (this.exited.getCount() > 0) {
-      throw new IllegalThreadStateException("process has not exited");
+      throw new IllegalThreadStateException("process has not exited!");
     }
+
     return this.exitCode;
   }
 
@@ -221,32 +173,33 @@ public final class FakeProcess extends Process {
   public void destroy() {
     this.destroyCalls.incrementAndGet();
     if (this.exitsOnDestroy) {
-      this.exit(143);
+      this.exit(TERMINATED_EXIT_CODE);
     }
   }
 
   @Override
   public Process destroyForcibly() {
     final int calls = this.forcibleDestroyCalls.incrementAndGet();
-    final long delayMillis = this.forcedExitDelayMillis;
-    if (delayMillis == 0) {
-      this.exit(137);
+    final long delayMilliseconds = this.forcedExitDelayMilliseconds;
+    if (delayMilliseconds == 0) {
+      this.exit(KILLED_EXIT_CODE);
     } else if (calls == 1) {
-      final Thread termination = new Thread(() -> this.exitAfterDelay(delayMillis), "fake-qemu-termination");
+      final Thread termination = new Thread(() -> this.exitAfterDelay(delayMilliseconds), TERMINATION_THREAD_NAME);
       termination.setDaemon(true);
       termination.start();
     }
+
     return this;
   }
 
-  private void exitAfterDelay(final long delayMillis) {
+  private void exitAfterDelay(final long delayMilliseconds) {
     try {
-      Thread.sleep(delayMillis);
+      Thread.sleep(delayMilliseconds);
     } catch (final InterruptedException exception) {
       final Thread current = Thread.currentThread();
       current.interrupt();
     } finally {
-      this.exit(137);
+      this.exit(KILLED_EXIT_CODE);
     }
   }
 }

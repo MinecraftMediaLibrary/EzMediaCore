@@ -25,7 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Registers the virtual machine backend. Install it with {@code MCAV.api().install(VMModule.class)}.
+ * Registers the virtual machine backend. The module needs no settings, so it only has to be installed:
+ *
+ * {@snippet :
+ * final MCAVApi api = MCAV.api();
+ * api.install(VmModule.class);
+ * }
  *
  * <p>The library does not install QEMU. Make it available on the
  * machine: through the package manager on Linux, Homebrew on macOS, or the installer from
@@ -34,36 +39,37 @@ import org.slf4j.LoggerFactory;
  * and {@code /usr/bin} on Linux, the Homebrew folders and {@code /etc/paths} on macOS, and
  * {@code C:\Program Files\qemu} on Windows. Services often run with a shorter {@code PATH} than a login shell, so a
  * QEMU installed elsewhere must be added to the {@code PATH} of the service. Starting the module only checks whether
- * QEMU is available; {@link VMPlayer#start(VMSettings, VMPlayer.Architecture, VMConfiguration)} fails with an
+ * QEMU is available; {@link VmPlayer#start(VmSettings, VmPlayer.Architecture, VmConfiguration)} fails with an
  * {@link ExecutableNotInPathException} otherwise.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
-public final class VMModule implements MCAVModule {
+public final class VmModule implements MCAVModule {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(VMModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(VmModule.class);
 
-  private static final String QEMU_FOUND = "Found QEMU at {}";
-
-  private static final String QEMU_MISSING = "{} is not on the PATH or in the usual install folders, virtual machines cannot be started";
+  private static final String MODULE_NAME = "vm";
 
   private final ExecutableFinder finder;
   private final QemuProcessRecords records;
+
   private volatile boolean qemuInstalled;
 
   /**
    * Constructs the module. The module loader creates it for you.
+   *
+   * @since 1.0.0
    */
-  public VMModule() {
-    this(new ExecutableFinder(), QemuProcessRecords.ofUser());
+  public VmModule() {
+    final ExecutableFinder finder = new ExecutableFinder();
+    final QemuProcessRecords records = QemuProcessRecords.ofUser();
+    this(finder, records);
   }
 
-  /**
-   * Constructs a module that looks for QEMU with the given finder.
-   *
-   * @param finder  finds the QEMU program
-   * @param records the QEMU processes started by this and earlier servers
-   */
   @VisibleForTesting
-  VMModule(final ExecutableFinder finder, final QemuProcessRecords records) {
+  VmModule(final ExecutableFinder finder, final QemuProcessRecords records) {
     this.finder = finder;
     this.records = records;
   }
@@ -75,42 +81,52 @@ public final class VMModule implements MCAVModule {
    *
    * <p>First, it stops every QEMU process that a server killed before it could release its players left running,
    * which would still hold its memory and its VNC port; each one is logged.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
     this.records.reap();
-    final String command = VMPlayer.Architecture.X86_64.getCommand();
+
+    final String command = VmPlayer.Architecture.X86_64.getCommand();
     final Optional<Path> qemu = this.finder.find(command);
     this.qemuInstalled = qemu.isPresent();
-    if (qemu.isPresent()) {
-      final Path path = qemu.get();
-      LOGGER.info(QEMU_FOUND, path);
-    } else {
-      LOGGER.warn(QEMU_MISSING, command);
+
+    final boolean missing = qemu.isEmpty();
+    if (missing) {
+      LOGGER.warn("QEMU program {} is not on the PATH or in the usual install folders, so virtual machines cannot be started.", command);
+      return;
     }
+
+    final Path path = qemu.orElseThrow();
+    LOGGER.info("QEMU for x86-64 guests is available at {}.", path);
   }
 
   /**
    * Stops the module without releasing any players or changing the recorded availability result.
-   * Call {@link VMPlayer#release()} on every owned player before unloading the backend.
+   * Call {@link VmPlayer#release()} on every owned player before unloading the backend.
+   *
+   * @since 1.0.0
    */
   @Override
   public void stop() {}
 
   /**
-   * Gets the module identifier.
+   * Returns the module identifier.
    *
    * @return {@code vm}
+   * @since 1.0.0
    */
   @Override
   public String getModuleName() {
-    return "vm";
+    return MODULE_NAME;
   }
 
   /**
-   * Checks whether QEMU for x86-64 guests was found when the module started.
+   * Returns whether QEMU for x86-64 guests was found when the module started.
    *
    * @return the result of the last module start, initially false; this does not recheck the executable
+   * @since 1.0.0
    */
   public boolean isQemuInstalled() {
     return this.qemuInstalled;

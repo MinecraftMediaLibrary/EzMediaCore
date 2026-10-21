@@ -39,317 +39,408 @@ import java.security.GeneralSecurityException;
 import java.security.Provider;
 import java.security.Security;
 import java.util.List;
+import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.vm.testing.VncPasswords;
 import org.junit.jupiter.api.Test;
 
-class QemuAudioProtocolTest {
+final class QemuAudioProtocolTest {
 
   private static final int FRAME = 4;
 
-  /**
-   * Builds bytes with a writer.
-   *
-   * @param writer writes the bytes
-   * @return the bytes
-   * @throws IOException never
-   */
+  private static final String PASSWORD = "Pa55word";
+
+  private static final int NO_AUTHENTICATION = 1;
+  private static final int VNC_AUTHENTICATION = 2;
+
+  private static final int CHALLENGE_BYTES = 16;
+
+  private static final int FRAMEBUFFER_SIZE_BYTES = 4;
+  private static final int PIXEL_FORMAT_BYTES = 16;
+
+  private static final int RECTANGLE_BYTES = 8;
+
+  private static final int CUT_TEXT_PADDING_BYTES = 3;
+
   static byte[] bytes(final Writer writer) throws IOException {
     final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    writer.write(new DataOutputStream(bytes));
+    final DataOutputStream output = new DataOutputStream(bytes);
+    writer.write(output);
+
     return bytes.toByteArray();
   }
 
-  private static DataInputStream input(final byte[] bytes) {
-    return new DataInputStream(new ByteArrayInputStream(bytes));
+  private DataInputStream input(final byte[] bytes) {
+    final ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+    return new DataInputStream(stream);
   }
 
-  private static QemuAudioProtocol.Message read(final Writer writer) throws IOException {
-    return QemuAudioProtocol.readMessage(input(bytes(writer)), FRAME, byte[]::new);
+  private QemuAudioProtocol.Message read(final Writer writer) throws IOException {
+    final byte[] bytes = bytes(writer);
+    final DataInputStream input = this.input(bytes);
+    return QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
   }
 
-  /**
-   * Writes the audio data message of QEMU.
-   *
-   * @param out     the stream
-   * @param samples the samples
-   * @throws IOException never
-   */
-  static void writeData(final DataOutputStream out, final byte[] samples) throws IOException {
-    out.writeByte(QemuAudioProtocol.SERVER_QEMU);
-    out.writeByte(QemuAudioProtocol.QEMU_AUDIO);
-    out.writeShort(QemuAudioProtocol.AUDIO_DATA);
-    out.writeInt(samples.length);
-    out.write(samples);
+  static void writeData(final DataOutputStream output, final byte[] samples) throws IOException {
+    output.writeByte(QemuAudioProtocol.SERVER_QEMU);
+    output.writeByte(QemuAudioProtocol.QEMU_AUDIO);
+    output.writeShort(QemuAudioProtocol.AUDIO_DATA);
+    output.writeInt(samples.length);
+    output.write(samples);
   }
 
-  /**
-   * Writes the confirmation of the audio pseudo-encoding.
-   *
-   * @param out the stream
-   * @throws IOException never
-   */
-  static void writeAcknowledgement(final DataOutputStream out) throws IOException {
-    out.writeByte(QemuAudioProtocol.SERVER_UPDATE);
-    out.writeByte(0);
-    out.writeShort(1);
-    out.writeShort(0);
-    out.writeShort(0);
-    out.writeShort(640);
-    out.writeShort(480);
-    out.writeInt(QemuAudioProtocol.AUDIO_ENCODING);
+  static void writeAcknowledgement(final DataOutputStream output) throws IOException {
+    output.writeByte(QemuAudioProtocol.SERVER_UPDATE);
+    output.writeByte(0);
+    output.writeShort(1);
+    output.writeShort(0);
+    output.writeShort(0);
+    output.writeShort(640);
+    output.writeShort(480);
+    output.writeInt(QemuAudioProtocol.AUDIO_ENCODING);
   }
 
   @Test
-  void theClientSpeaksRfb38WithoutAuthenticationAndSharesTheDisplay() throws IOException {
-    QemuAudioProtocol.readVersion(input("RFB 003.008\n".getBytes(StandardCharsets.US_ASCII)));
-    QemuAudioProtocol.readVersion(input("RFB 004.001\n".getBytes(StandardCharsets.US_ASCII)));
-    assertArrayEquals("RFB 003.008\n".getBytes(StandardCharsets.US_ASCII), bytes(QemuAudioProtocol::writeVersion));
+  void shouldSpeakRfb38WithoutAuthenticationAndShareTheDisplay() throws IOException {
+    QemuAudioProtocol.readVersion(this.input("RFB 003.008\n".getBytes(StandardCharsets.US_ASCII)));
+    QemuAudioProtocol.readVersion(this.input("RFB 004.001\n".getBytes(StandardCharsets.US_ASCII)));
+    final byte[] expectedVersion = "RFB 003.008\n".getBytes(StandardCharsets.US_ASCII);
+    final byte[] version = bytes(QemuAudioProtocol::writeVersion);
+    assertArrayEquals(expectedVersion, version);
+
     final ByteArrayOutputStream chosen = new ByteArrayOutputStream();
-    final boolean authenticates = QemuAudioProtocol.negotiateSecurity(input(new byte[] { 2, 2, 1 }), new DataOutputStream(chosen), "");
+    final boolean authenticates = QemuAudioProtocol.negotiateSecurity(
+      this.input(new byte[] { 2, VNC_AUTHENTICATION, NO_AUTHENTICATION }),
+      new DataOutputStream(chosen),
+      ""
+    );
+    final byte[] expectedChoice = new byte[] { NO_AUTHENTICATION };
+    final byte[] choice = chosen.toByteArray();
     assertFalse(authenticates, "without a password there is no challenge to answer");
-    assertArrayEquals(new byte[] { 1 }, chosen.toByteArray());
-    final DataInputStream offers = input(new byte[] { 3, 1, 2, 16, 42 });
+    assertArrayEquals(expectedChoice, choice);
+
+    final DataInputStream offers = this.input(new byte[] { 3, NO_AUTHENTICATION, VNC_AUTHENTICATION, 16, 42 });
     QemuAudioProtocol.negotiateSecurity(offers, new DataOutputStream(new ByteArrayOutputStream()), "");
-    assertEquals(42, offers.readUnsignedByte(), "the stream stays in step");
-    QemuAudioProtocol.readSecurityResult(input(new byte[] { 0, 0, 0, 0 }));
-    assertArrayEquals(new byte[] { 1 }, bytes(QemuAudioProtocol::writeClientInit));
-    final byte[] serverInit = bytes(out -> {
-      out.writeShort(720);
-      out.writeShort(400);
-      out.write(new byte[16]);
-      out.writeInt(4);
-      out.write("QEMU".getBytes(StandardCharsets.US_ASCII));
-      out.writeByte(42);
+    final int byteAfterOffers = offers.readUnsignedByte();
+    assertEquals(42, byteAfterOffers, "the stream stays in step");
+
+    QemuAudioProtocol.readSecurityResult(this.input(new byte[] { 0, 0, 0, 0 }));
+    final byte[] expectedClientInitialization = new byte[] { 1 };
+    final byte[] clientInitialization = bytes(QemuAudioProtocol::writeClientInitialization);
+    assertArrayEquals(expectedClientInitialization, clientInitialization);
+
+    final byte[] serverInitialization = bytes(output -> {
+      output.writeShort(720);
+      output.writeShort(400);
+      output.write(new byte[PIXEL_FORMAT_BYTES]);
+      output.writeInt(4);
+      output.write("QEMU".getBytes(StandardCharsets.US_ASCII));
+      output.writeByte(42);
     });
-    final DataInputStream init = input(serverInit);
-    QemuAudioProtocol.readServerInit(init);
-    assertEquals(42, init.readUnsignedByte(), "the whole description was read");
+    final DataInputStream initialization = this.input(serverInitialization);
+    QemuAudioProtocol.readServerInitialization(initialization);
+    final int byteAfterDescription = initialization.readUnsignedByte();
+    assertEquals(42, byteAfterDescription, "the whole description was read");
   }
 
   @Test
-  void theClientAnswersThePasswordChallengeOfADisplayWithAPassword() throws IOException {
+  void shouldAnswerThePasswordChallengeOfADisplayWithAPassword() throws IOException {
     final ByteArrayOutputStream chosen = new ByteArrayOutputStream();
-    final boolean authenticates = QemuAudioProtocol.negotiateSecurity(input(new byte[] { 1, 2 }), new DataOutputStream(chosen), "Pa55word");
+    final boolean authenticates = QemuAudioProtocol.negotiateSecurity(
+      this.input(new byte[] { 1, VNC_AUTHENTICATION }),
+      new DataOutputStream(chosen),
+      PASSWORD
+    );
+    final byte[] expectedChoice = new byte[] { VNC_AUTHENTICATION };
+    final byte[] choice = chosen.toByteArray();
     assertTrue(authenticates);
-    assertArrayEquals(new byte[] { 2 }, chosen.toByteArray());
+    assertArrayEquals(expectedChoice, choice);
+
     final ByteArrayOutputStream preferred = new ByteArrayOutputStream();
-    assertTrue(QemuAudioProtocol.negotiateSecurity(input(new byte[] { 2, 1, 2 }), new DataOutputStream(preferred), "Pa55word"));
-    assertArrayEquals(new byte[] { 2 }, preferred.toByteArray());
+    final boolean preferredAuthenticates = QemuAudioProtocol.negotiateSecurity(
+      this.input(new byte[] { 2, NO_AUTHENTICATION, VNC_AUTHENTICATION }),
+      new DataOutputStream(preferred),
+      PASSWORD
+    );
+    final byte[] expectedPreferredChoice = new byte[] { VNC_AUTHENTICATION };
+    final byte[] preferredChoice = preferred.toByteArray();
+    assertTrue(preferredAuthenticates);
+    assertArrayEquals(expectedPreferredChoice, preferredChoice);
+
     final ByteArrayOutputStream open = new ByteArrayOutputStream();
-    assertFalse(QemuAudioProtocol.negotiateSecurity(input(new byte[] { 1, 1 }), new DataOutputStream(open), "Pa55word"));
-    assertArrayEquals(new byte[] { 1 }, open.toByteArray());
-    final byte[] challenge = new byte[16];
+    final boolean openAuthenticates = QemuAudioProtocol.negotiateSecurity(
+      this.input(new byte[] { 1, NO_AUTHENTICATION }),
+      new DataOutputStream(open),
+      PASSWORD
+    );
+    final byte[] expectedOpenChoice = new byte[] { NO_AUTHENTICATION };
+    final byte[] openChoice = open.toByteArray();
+    assertFalse(openAuthenticates);
+    assertArrayEquals(expectedOpenChoice, openChoice);
+
+    final byte[] challenge = new byte[CHALLENGE_BYTES];
     for (int index = 0; index < challenge.length; index++) {
       challenge[index] = (byte) (index * 37 + 11);
     }
-    for (final String password : List.of("Pa55word", "pw", "a much longer password")) {
+
+    for (final String password : List.of(PASSWORD, "pw", "a much longer password")) {
       final ByteArrayOutputStream answer = new ByteArrayOutputStream();
-      QemuAudioProtocol.answerChallenge(input(challenge), new DataOutputStream(answer), password);
+      QemuAudioProtocol.answerChallenge(this.input(challenge), new DataOutputStream(answer), password);
       final byte[] expected = VncPasswords.response(challenge, password);
-      assertArrayEquals(expected, answer.toByteArray(), password);
+      final byte[] response = answer.toByteArray();
+      assertArrayEquals(expected, response, password);
     }
   }
 
   @Test
-  void aRuntimeWithoutDesCannotAnswerThePasswordChallenge() throws IOException {
+  void shouldFailThePasswordChallengeOnARuntimeWithoutDes() throws IOException {
     final Provider[] providers = Security.getProviders();
     for (final Provider provider : providers) {
       Security.removeProvider(provider.getName());
     }
+
     try {
-      final IOException failure = assertThrows(IOException.class, () -> QemuAudioProtocol.respond(new byte[16], "Pa55word"));
-      assertInstanceOf(GeneralSecurityException.class, failure.getCause());
+      final IOException failure = assertThrows(IOException.class, () -> QemuAudioProtocol.respond(new byte[CHALLENGE_BYTES], PASSWORD));
+      final Throwable cause = failure.getCause();
+      assertInstanceOf(GeneralSecurityException.class, cause);
     } finally {
       for (final Provider provider : providers) {
         Security.addProvider(provider);
       }
     }
-    assertEquals(16, QemuAudioProtocol.respond(new byte[16], "Pa55word").length, "the providers are back");
+
+    final int responseLength = QemuAudioProtocol.respond(new byte[CHALLENGE_BYTES], PASSWORD).length;
+    assertEquals(CHALLENGE_BYTES, responseLength, "the providers are back");
   }
 
   @Test
-  void theClientAsksForAudioOnlyInTheFormatOfThePipeline() throws IOException {
+  void shouldAskForAudioOnlyInTheFormatOfThePipeline() throws IOException {
     final byte[] encodings = bytes(QemuAudioProtocol::writeSetEncodings);
-    assertArrayEquals(new byte[] { 2, 0, 0, 1, (byte) 0xFF, (byte) 0xFF, (byte) 0xFE, (byte) 0xFD }, encodings);
-    final byte[] enable = bytes(out -> QemuAudioProtocol.writeEnableAudio(out, 2, 48_000));
+    final byte[] expectedEncodings = new byte[] { 2, 0, 0, 1, (byte) 0xFF, (byte) 0xFF, (byte) 0xFE, (byte) 0xFD };
+    assertArrayEquals(expectedEncodings, encodings);
+
+    final byte[] enable = bytes(output -> QemuAudioProtocol.writeEnableAudio(output, AudioFilter.CHANNELS, AudioFilter.SAMPLE_RATE));
     final byte[] expected = { (byte) 255, 1, 0, 2, 3, 2, 0, 0, (byte) 0xBB, (byte) 0x80, (byte) 255, 1, 0, 0 };
     assertArrayEquals(expected, enable);
   }
 
   @Test
-  void aServerThatIsNotRfb38IsRefused() {
-    assertThrows(ProtocolException.class, () -> QemuAudioProtocol.readVersion(input("HTTP/1.1 200".getBytes(StandardCharsets.US_ASCII))));
-    final ProtocolException old = assertThrows(ProtocolException.class, () ->
-      QemuAudioProtocol.readVersion(input("RFB 003.007\n".getBytes(StandardCharsets.US_ASCII)))
+  void shouldRefuseAServerThatIsNotRfb38() {
+    assertThrows(ProtocolException.class, () ->
+      QemuAudioProtocol.readVersion(this.input("HTTP/1.1 200".getBytes(StandardCharsets.US_ASCII)))
     );
-    assertEquals("The VNC server speaks RFB 3.7 instead of 3.8", old.getMessage());
-    assertThrows(ProtocolException.class, () -> QemuAudioProtocol.readVersion(input("RFB 002.009\n".getBytes(StandardCharsets.US_ASCII))));
+
+    final ProtocolException old = assertThrows(ProtocolException.class, () ->
+      QemuAudioProtocol.readVersion(this.input("RFB 003.007\n".getBytes(StandardCharsets.US_ASCII)))
+    );
+    final String message = old.getMessage();
+    assertEquals("VNC server speaks RFB 3.7 instead of RFB 3.8 or later!", message);
+    assertThrows(ProtocolException.class, () ->
+      QemuAudioProtocol.readVersion(this.input("RFB 002.009\n".getBytes(StandardCharsets.US_ASCII)))
+    );
   }
 
   @Test
-  void aServerThatRefusesOrAsksForAPasswordEndsTheHandshake() throws IOException {
-    final byte[] refusal = bytes(out -> {
-      out.writeByte(0);
-      out.writeInt(4);
-      out.write("full".getBytes(StandardCharsets.US_ASCII));
+  void shouldEndTheHandshakeWhenTheServerRefusesOrAsksForAPassword() throws IOException {
+    final byte[] refusal = bytes(output -> {
+      output.writeByte(0);
+      output.writeInt(4);
+      output.write("full".getBytes(StandardCharsets.US_ASCII));
     });
     final ProtocolException refused = assertThrows(ProtocolException.class, () ->
-      QemuAudioProtocol.negotiateSecurity(input(refusal), new DataOutputStream(new ByteArrayOutputStream()), "")
+      QemuAudioProtocol.negotiateSecurity(this.input(refusal), new DataOutputStream(new ByteArrayOutputStream()), "")
     );
-    assertEquals("The VNC server refused the connection: full", refused.getMessage());
+    final String refusedMessage = refused.getMessage();
+    assertEquals("VNC server refused the connection because of \"full\"!", refusedMessage);
+
     final ProtocolException password = assertThrows(ProtocolException.class, () ->
-      QemuAudioProtocol.negotiateSecurity(input(new byte[] { 1, 2 }), new DataOutputStream(new ByteArrayOutputStream()), "")
+      QemuAudioProtocol.negotiateSecurity(
+        this.input(new byte[] { 1, VNC_AUTHENTICATION }),
+        new DataOutputStream(new ByteArrayOutputStream()),
+        ""
+      )
     );
-    assertEquals("The VNC server asks for authentication, which the audio connection does not do", password.getMessage());
-    final byte[] failed = bytes(out -> {
-      out.writeInt(1);
-      out.writeInt(2);
-      out.write("no".getBytes(StandardCharsets.US_ASCII));
+    final String passwordMessage = password.getMessage();
+    assertEquals("VNC server asks for authentication, which the audio connection does not do!", passwordMessage);
+
+    final byte[] failed = bytes(output -> {
+      output.writeInt(1);
+      output.writeInt(2);
+      output.write("no".getBytes(StandardCharsets.US_ASCII));
     });
-    assertThrows(ProtocolException.class, () -> QemuAudioProtocol.readSecurityResult(input(failed)));
-    final byte[] huge = bytes(out -> {
-      out.writeInt(1);
-      out.writeInt(-1);
+    assertThrows(ProtocolException.class, () -> QemuAudioProtocol.readSecurityResult(this.input(failed)));
+
+    final byte[] huge = bytes(output -> {
+      output.writeInt(1);
+      output.writeInt(-1);
     });
-    final ProtocolException tooLong = assertThrows(ProtocolException.class, () -> QemuAudioProtocol.readSecurityResult(input(huge)));
-    assertEquals("The VNC server sent a text of 4294967295 bytes, more than 4096", tooLong.getMessage());
+    final ProtocolException tooLong = assertThrows(ProtocolException.class, () -> QemuAudioProtocol.readSecurityResult(this.input(huge)));
+    final String tooLongMessage = tooLong.getMessage();
+    assertEquals("VNC server sent a text of 4294967295 bytes, more than the 4096 bytes allowed!", tooLongMessage);
   }
 
   @Test
-  void theMessagesOfTheAudioConnectionAreRead() throws IOException {
-    assertSame(QemuAudioProtocol.Message.ACKNOWLEDGED, read(QemuAudioProtocolTest::writeAcknowledgement));
-    assertSame(QemuAudioProtocol.Kind.IGNORED, read(out -> out.write(new byte[] { 0, 0, 0, 0 })).getKind());
-    assertSame(QemuAudioProtocol.Message.BEGIN, read(out -> out.write(new byte[] { (byte) 255, 1, 0, 1 })));
-    assertSame(QemuAudioProtocol.Message.END, read(out -> out.write(new byte[] { (byte) 255, 1, 0, 0 })));
-    final QemuAudioProtocol.Message data = read(out -> writeData(out, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }));
-    assertEquals(QemuAudioProtocol.Kind.DATA, data.getKind());
-    assertEquals(8, data.getLength());
-    assertEquals(8, data.getSamples()[7]);
-    assertEquals(0, QemuAudioProtocol.Message.BEGIN.getLength());
+  void shouldReadTheMessagesOfTheAudioConnection() throws IOException {
+    final QemuAudioProtocol.Message acknowledgement = this.read(QemuAudioProtocolTest::writeAcknowledgement);
+    final QemuAudioProtocol.Message ignored = this.read(output -> output.write(new byte[] { 0, 0, 0, 0 }));
+    final QemuAudioProtocol.Kind ignoredKind = ignored.getKind();
+    final QemuAudioProtocol.Message begin = this.read(output -> output.write(new byte[] { (byte) 255, 1, 0, 1 }));
+    final QemuAudioProtocol.Message end = this.read(output -> output.write(new byte[] { (byte) 255, 1, 0, 0 }));
+    assertSame(QemuAudioProtocol.Message.ACKNOWLEDGED, acknowledgement);
+    assertSame(QemuAudioProtocol.Kind.IGNORED, ignoredKind);
+    assertSame(QemuAudioProtocol.Message.BEGIN, begin);
+    assertSame(QemuAudioProtocol.Message.END, end);
+
+    final QemuAudioProtocol.Message data = this.read(output -> writeData(output, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }));
+    final QemuAudioProtocol.Kind dataKind = data.getKind();
+    final int dataLength = data.getLength();
+    final byte lastSample = data.getSamples()[7];
+    final int beginLength = QemuAudioProtocol.Message.BEGIN.getLength();
+    assertEquals(QemuAudioProtocol.Kind.DATA, dataKind);
+    assertEquals(8, dataLength);
+    assertEquals(8, lastSample);
+    assertEquals(0, beginLength);
   }
 
   @Test
-  void messagesAVncServerSendsUnaskedAreSkipped() throws IOException {
-    final byte[] stream = bytes(out -> {
-      out.writeByte(QemuAudioProtocol.SERVER_BELL);
-      out.writeByte(QemuAudioProtocol.SERVER_COLOUR_MAP);
-      out.writeByte(0);
-      out.writeShort(0);
-      out.writeShort(2);
-      out.write(new byte[12]);
-      out.writeByte(QemuAudioProtocol.SERVER_CUT_TEXT);
-      out.write(new byte[3]);
-      out.writeInt(5);
-      out.write("hello".getBytes(StandardCharsets.US_ASCII));
-      writeData(out, new byte[] { 9, 9, 9, 9 });
+  void shouldSkipMessagesAVncServerSendsUnasked() throws IOException {
+    final byte[] stream = bytes(output -> {
+      output.writeByte(QemuAudioProtocol.SERVER_BELL);
+      output.writeByte(QemuAudioProtocol.SERVER_COLOUR_MAP);
+      output.writeByte(0);
+      output.writeShort(0);
+      output.writeShort(2);
+      output.write(new byte[12]);
+      output.writeByte(QemuAudioProtocol.SERVER_CUT_TEXT);
+      output.write(new byte[CUT_TEXT_PADDING_BYTES]);
+      output.writeInt(5);
+      output.write("hello".getBytes(StandardCharsets.US_ASCII));
+      writeData(output, new byte[] { 9, 9, 9, 9 });
     });
-    final DataInputStream in = input(stream);
-    assertSame(QemuAudioProtocol.Message.IGNORED, QemuAudioProtocol.readMessage(in, FRAME, byte[]::new));
-    assertSame(QemuAudioProtocol.Message.IGNORED, QemuAudioProtocol.readMessage(in, FRAME, byte[]::new));
-    assertSame(QemuAudioProtocol.Message.IGNORED, QemuAudioProtocol.readMessage(in, FRAME, byte[]::new));
-    assertEquals(4, QemuAudioProtocol.readMessage(in, FRAME, byte[]::new).getLength());
+    final DataInputStream input = this.input(stream);
+    final QemuAudioProtocol.Message bell = QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
+    final QemuAudioProtocol.Message colourMap = QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
+    final QemuAudioProtocol.Message cutText = QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
+    final QemuAudioProtocol.Message audio = QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
+    final int audioLength = audio.getLength();
+    assertSame(QemuAudioProtocol.Message.IGNORED, bell);
+    assertSame(QemuAudioProtocol.Message.IGNORED, colourMap);
+    assertSame(QemuAudioProtocol.Message.IGNORED, cutText);
+    assertEquals(4, audioLength);
   }
 
   @Test
-  void aMessageTheAudioConnectionNeverAskedForEndsIt() {
-    final ProtocolException type = assertThrows(ProtocolException.class, () -> read(out -> out.writeByte(7)));
-    assertEquals("The VNC server sent message type 7, which the audio connection does not expect", type.getMessage());
+  void shouldEndTheConnectionOnAMessageItNeverAskedFor() {
+    final ProtocolException type = assertThrows(ProtocolException.class, () -> this.read(output -> output.writeByte(7)));
+    final String typeMessage = type.getMessage();
+    assertEquals("VNC server sent message type 7, which the audio connection does not expect!", typeMessage);
+
     final ProtocolException picture = assertThrows(ProtocolException.class, () ->
-      read(out -> {
-        out.writeByte(0);
-        out.writeByte(0);
-        out.writeShort(1);
-        out.write(new byte[8]);
-        out.writeInt(0);
+      this.read(output -> {
+        output.writeByte(0);
+        output.writeByte(0);
+        output.writeShort(1);
+        output.write(new byte[RECTANGLE_BYTES]);
+        output.writeInt(0);
       })
     );
-    assertEquals("The VNC server sent a rectangle of encoding 0, which the audio connection never asks for", picture.getMessage());
+    final String pictureMessage = picture.getMessage();
+    assertEquals("VNC server sent a rectangle of encoding 0, which the audio connection never asks for!", pictureMessage);
+
     final ProtocolException many = assertThrows(ProtocolException.class, () ->
-      read(out -> {
-        out.writeByte(0);
-        out.writeByte(0);
-        out.writeShort(17);
+      this.read(output -> {
+        output.writeByte(0);
+        output.writeByte(0);
+        output.writeShort(QemuAudioProtocol.MAXIMUM_RECTANGLES + 1);
       })
     );
-    assertEquals("The VNC server announced 17 rectangles, more than 16", many.getMessage());
-    assertThrows(ProtocolException.class, () -> read(out -> out.write(new byte[] { (byte) 255, 2, 0, 0 })));
-    assertThrows(ProtocolException.class, () -> read(out -> out.write(new byte[] { (byte) 255, 1, 0, 9 })));
+    final String manyMessage = many.getMessage();
+    assertEquals("VNC server announced 17 rectangles, more than the 16 allowed!", manyMessage);
+    assertThrows(ProtocolException.class, () -> this.read(output -> output.write(new byte[] { (byte) 255, 2, 0, 0 })));
+    assertThrows(ProtocolException.class, () -> this.read(output -> output.write(new byte[] { (byte) 255, 1, 0, 9 })));
   }
 
   @Test
-  void theLimitsThemselvesAreAllowed() throws IOException {
-    final QemuAudioProtocol.Message sixteen = read(out -> {
-      out.writeByte(QemuAudioProtocol.SERVER_UPDATE);
-      out.writeByte(0);
-      out.writeShort(QemuAudioProtocol.MAX_RECTANGLES);
-      for (int index = 0; index < QemuAudioProtocol.MAX_RECTANGLES; index++) {
-        out.write(new byte[8]);
-        out.writeInt(QemuAudioProtocol.AUDIO_ENCODING);
+  void shouldAllowTheLimitsThemselves() throws IOException {
+    final QemuAudioProtocol.Message sixteen = this.read(output -> {
+      output.writeByte(QemuAudioProtocol.SERVER_UPDATE);
+      output.writeByte(0);
+      output.writeShort(QemuAudioProtocol.MAXIMUM_RECTANGLES);
+      for (int index = 0; index < QemuAudioProtocol.MAXIMUM_RECTANGLES; index++) {
+        output.write(new byte[RECTANGLE_BYTES]);
+        output.writeInt(QemuAudioProtocol.AUDIO_ENCODING);
       }
     });
-    assertEquals(QemuAudioProtocol.Kind.ACKNOWLEDGED, sixteen.getKind());
-    final QemuAudioProtocol.Message clipboard = read(out -> {
-      out.writeByte(QemuAudioProtocol.SERVER_CUT_TEXT);
-      out.write(new byte[3]);
-      out.writeInt(QemuAudioProtocol.MAX_CUT_TEXT_BYTES);
-      out.write(new byte[QemuAudioProtocol.MAX_CUT_TEXT_BYTES]);
+    final QemuAudioProtocol.Kind sixteenKind = sixteen.getKind();
+    assertEquals(QemuAudioProtocol.Kind.ACKNOWLEDGED, sixteenKind);
+
+    final QemuAudioProtocol.Message clipboard = this.read(output -> {
+      output.writeByte(QemuAudioProtocol.SERVER_CUT_TEXT);
+      output.write(new byte[CUT_TEXT_PADDING_BYTES]);
+      output.writeInt(QemuAudioProtocol.MAXIMUM_CUT_TEXT_BYTES);
+      output.write(new byte[QemuAudioProtocol.MAXIMUM_CUT_TEXT_BYTES]);
     });
-    assertEquals(QemuAudioProtocol.Kind.IGNORED, clipboard.getKind());
-    final QemuAudioProtocol.Message largest = read(out -> writeData(out, new byte[QemuAudioProtocol.MAX_AUDIO_BYTES]));
-    assertEquals(QemuAudioProtocol.MAX_AUDIO_BYTES, largest.getLength());
-    final byte[] longestName = bytes(out -> {
-      out.write(new byte[4 + 16]);
-      out.writeInt(QemuAudioProtocol.MAX_TEXT_BYTES);
-      out.write(new byte[QemuAudioProtocol.MAX_TEXT_BYTES]);
+    final QemuAudioProtocol.Kind clipboardKind = clipboard.getKind();
+    assertEquals(QemuAudioProtocol.Kind.IGNORED, clipboardKind);
+
+    final QemuAudioProtocol.Message largest = this.read(output -> writeData(output, new byte[QemuAudioProtocol.MAXIMUM_AUDIO_BYTES]));
+    final int largestLength = largest.getLength();
+    assertEquals(QemuAudioProtocol.MAXIMUM_AUDIO_BYTES, largestLength);
+
+    final byte[] longestName = bytes(output -> {
+      output.write(new byte[FRAMEBUFFER_SIZE_BYTES + PIXEL_FORMAT_BYTES]);
+      output.writeInt(QemuAudioProtocol.MAXIMUM_TEXT_BYTES);
+      output.write(new byte[QemuAudioProtocol.MAXIMUM_TEXT_BYTES]);
     });
-    QemuAudioProtocol.readServerInit(input(longestName));
+    QemuAudioProtocol.readServerInitialization(this.input(longestName));
   }
 
   @Test
-  void audioAndClipboardLengthsAreBounded() {
+  void shouldBoundAudioAndClipboardLengths() {
     final ProtocolException audio = assertThrows(ProtocolException.class, () ->
-      read(out -> {
-        out.write(new byte[] { (byte) 255, 1, 0, 2 });
-        out.writeInt(QemuAudioProtocol.MAX_AUDIO_BYTES + 4);
+      this.read(output -> {
+        output.write(new byte[] { (byte) 255, 1, 0, 2 });
+        output.writeInt(QemuAudioProtocol.MAXIMUM_AUDIO_BYTES + FRAME);
       })
     );
-    assertEquals("The VNC server sent 65540 bytes of audio, not whole frames of at most 65536", audio.getMessage());
+    final String audioMessage = audio.getMessage();
+    assertEquals("VNC server sent 65540 bytes of audio, not whole frames of at most 65536 bytes!", audioMessage);
     assertThrows(ProtocolException.class, () ->
-      read(out -> {
-        out.write(new byte[] { (byte) 255, 1, 0, 2 });
-        out.writeInt(3);
+      this.read(output -> {
+        output.write(new byte[] { (byte) 255, 1, 0, 2 });
+        output.writeInt(3);
       })
     );
+
     final ProtocolException clipboard = assertThrows(ProtocolException.class, () ->
-      read(out -> {
-        out.writeByte(QemuAudioProtocol.SERVER_CUT_TEXT);
-        out.write(new byte[3]);
-        out.writeInt(-1);
+      this.read(output -> {
+        output.writeByte(QemuAudioProtocol.SERVER_CUT_TEXT);
+        output.write(new byte[CUT_TEXT_PADDING_BYTES]);
+        output.writeInt(-1);
       })
     );
-    assertEquals("The VNC server sent 4294967295 bytes of clipboard text, more than 1048576", clipboard.getMessage());
+    final String clipboardMessage = clipboard.getMessage();
+    assertEquals("VNC server sent 4294967295 bytes of clipboard text, more than the 1048576 bytes allowed!", clipboardMessage);
     assertThrows(EOFException.class, () ->
-      read(out -> {
-        out.write(new byte[] { (byte) 255, 1, 0, 2 });
-        out.writeInt(8);
-        out.write(new byte[3]);
+      this.read(output -> {
+        output.write(new byte[] { (byte) 255, 1, 0, 2 });
+        output.writeInt(8);
+        output.write(new byte[3]);
       })
     );
   }
 
   @Test
-  void theProtocolIsNotInstantiable() throws ReflectiveOperationException {
+  void shouldNotBeInstantiable() throws ReflectiveOperationException {
     final Constructor<QemuAudioProtocol> constructor = QemuAudioProtocol.class.getDeclaredConstructor();
     constructor.setAccessible(true);
     final InvocationTargetException failure = assertThrows(InvocationTargetException.class, constructor::newInstance);
-    assertEquals(UnsupportedOperationException.class, failure.getCause().getClass());
+    final Throwable cause = failure.getCause();
+    final Class<? extends Throwable> causeType = cause.getClass();
+    assertEquals(UnsupportedOperationException.class, causeType);
   }
 
-  /**
-   * Writes bytes.
-   */
   @FunctionalInterface
   interface Writer {
-    void write(DataOutputStream out) throws IOException;
+    void write(DataOutputStream output) throws IOException;
   }
 }

@@ -37,7 +37,7 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
  * machines the player adds an Intel HD Audio card and routes the PC speaker, and a second VNC connection receives
  * their sound through QEMU's audio extension, in the format of the audio pipeline; the configuration may not set
  * {@code -vnc}, {@code -audio} or {@code -audiodev} itself. QEMU must be installed on the machine; see
- * {@link VMModule}.
+ * {@link VmModule}.
  *
  * <p>Pausing suppresses picture and sound delivery; it does not suspend the guest or its QEMU process. Input
  * can still be forwarded while paused. The caller owns the player and must {@link #release()} it before
@@ -45,25 +45,36 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
  * a surviving QEMU process. Pipelines and their filters remain caller-owned. Video and audio callbacks run
  * on background threads and must not retain borrowed buffers without copying them.
  *
- * <pre><code>
- *   final VMPlayer player = VMPlayer.create();
- *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
- *   video.attach(pipeline);
- *   final VMConfiguration configuration = VMConfiguration.builder();
- *   configuration.cdrom("alpine.iso");
- *   configuration.memory(1024);
- *   final VMSettings settings = VMSettings.of(1024, 768, 30);
- *   player.start(settings, VMPlayer.Architecture.X86_64, configuration);
- * </code></pre>
+ * {@snippet :
+ * final VmPlayer player = VmPlayer.create();
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * video.attach(videoPipeline);
+ * final String isoPath = "alpine.iso";
+ * final int memoryMegabytes = 1024;
+ * final VmConfigurationBuilder builder = VmConfiguration.builder();
+ * final VmConfiguration configuration = builder.cdrom(isoPath).memory(memoryMegabytes).build();
+ * final int width = 1024;
+ * final int height = 768;
+ * final int targetFrameRate = 30;
+ * final VmSettings settings = VmSettings.of(width, height, targetFrameRate);
+ * player.start(settings, VmPlayer.Architecture.X86_64, configuration);
+ * // when done
+ * player.release();
+ * }
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
-public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, ExceptionHandler {
+public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, ExceptionHandler {
   /**
    * Creates a player.
    *
    * @return the player
+   * @since 1.0.0
    */
-  static VMPlayer create() {
-    return VMPlayerImpl.createDefault();
+  static VmPlayer create() {
+    return QemuVmPlayer.createDefault();
   }
 
   /**
@@ -74,16 +85,18 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    *
    * @param settings      the non-null output dimensions, requested frame rate and local VNC port
    * @param architecture  the non-null guest architecture, which picks the QEMU program
-   * @param configuration the non-null QEMU options; do not mutate them while this player uses them
+   * @param configuration the non-null QEMU options
    * @return true if the machine started, false if the player is already running or released
-   * @throws ExecutableNotInPathException              if the QEMU program is not installed
-   * @throws me.brandonli.mcav.media.player.PlayerException if reserved display/audio options are configured,
-   *         the port cannot be bound, QEMU cannot launch or exits, the display does not open within the startup
-   *         deadline, the wait is interrupted, or a previous machine cannot be stopped
+   * @throws ExecutableNotInPathException       if the QEMU program is not installed
+   * @throws IllegalArgumentException           if the configuration sets a display or sound option the player reserves
+   * @throws VmException                        if the port cannot be bound, QEMU cannot launch or exits, the display
+   *                                            does not open within the startup deadline, the wait is interrupted, or a
+   *                                            previous machine cannot be stopped
    * @throws me.brandonli.mcav.vnc.VncException if the display opens but the VNC connection to it fails
-   * @throws NullPointerException if any argument is null
+   * @throws NullPointerException               if any argument is null
+   * @since 1.0.0
    */
-  boolean start(final VMSettings settings, final Architecture architecture, final VMConfiguration configuration);
+  boolean start(final VmSettings settings, final Architecture architecture, final VmConfiguration configuration);
 
   /**
    * Starts the machine on an executor.
@@ -95,18 +108,21 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @return a future that completes with the startup result, or exceptionally if startup fails; cancelling
    *         the future does not release the player or terminate its process
    * @throws java.util.concurrent.RejectedExecutionException if the executor refuses the startup task
-   * @throws NullPointerException if {@code settings}, {@code architecture}, {@code configuration} or {@code executor} is null
+   * @throws NullPointerException                            if {@code settings}, {@code architecture}, {@code configuration} or
+   *                                                         {@code executor} is null
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(
-    final VMSettings settings,
+    final VmSettings settings,
     final Architecture architecture,
-    final VMConfiguration configuration,
+    final VmConfiguration configuration,
     final ExecutorService executor
   ) {
-    Preconditions.checkNotNull(settings, "Settings must not be null");
-    Preconditions.checkNotNull(architecture, "Architecture must not be null");
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(settings, "Settings must not be null!");
+    Preconditions.checkNotNull(architecture, "Architecture must not be null!");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
+
     return CompletableFuture.supplyAsync(() -> this.start(settings, architecture, configuration), executor);
   }
 
@@ -119,11 +135,12 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @return a future that completes with the startup result, or exceptionally if startup fails; cancelling
    *         the future does not release the player or terminate its process
    * @throws NullPointerException if any argument is null
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(
-    final VMSettings settings,
+    final VmSettings settings,
     final Architecture architecture,
-    final VMConfiguration configuration
+    final VmConfiguration configuration
   ) {
     final ForkJoinPool pool = ForkJoinPool.commonPool();
     return this.startAsync(settings, architecture, configuration, pool);
@@ -135,6 +152,7 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    *
    * @param frameX the horizontal pixel coordinate from the left edge of the output frame
    * @param frameY the vertical pixel coordinate from the top edge of the output frame
+   * @since 1.0.0
    */
   void moveMouse(final int frameX, final int frameY);
 
@@ -144,6 +162,7 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    *
    * @param text the text or key name
    * @throws NullPointerException if {@code text} is null, including while inactive
+   * @since 1.0.0
    */
   void sendKeyEvent(final String text);
 
@@ -154,49 +173,63 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @param frameX the horizontal pixel coordinate from the left edge of the output frame
    * @param frameY the vertical pixel coordinate from the top edge of the output frame
    * @throws NullPointerException if {@code type} is null, including while inactive
+   * @since 1.0.0
    */
   void sendMouseEvent(final MouseClick type, final int frameX, final int frameY);
 
   /**
-   * Checks whether the machine is running and frames are delivered.
+   * Returns whether the machine is running and frames are delivered.
    *
    * @return true while running and not paused
+   * @since 1.0.0
    */
   boolean isPlaying();
 
   /**
-   * Gets the slot that holds the video pipeline the frames are sent through.
+   * Returns the slot that holds the video pipeline the frames are sent through.
    *
    * @return the video pipeline slot
+   * @since 1.0.0
    */
   VideoAttachableCallback getVideoAttachableCallback();
 
   /**
-   * Gets the slot that holds the audio pipeline the sound of the guest is sent through: 16-bit little-endian stereo
+   * Returns the slot that holds the audio pipeline the sound of the guest is sent through: 16-bit little-endian stereo
    * PCM at 48 kHz. Only x86 PC and Q35 machines have sound; while the player is paused, their sound is dropped.
    *
    * @return the audio pipeline slot
+   * @since 1.0.0
    */
   AudioAttachableCallback getAudioAttachableCallback();
 
   /**
    * The guest architectures QEMU can emulate, each with its own program.
+   *
+   * @since 1.0.0
    */
   enum Architecture {
     /**
      * 64-bit x86 guests, run by {@code qemu-system-x86_64}.
+     *
+     * @since 1.0.0
      */
     X86_64("qemu-system-x86_64"),
     /**
      * 32-bit ARM guests, run by {@code qemu-system-arm}.
+     *
+     * @since 1.0.0
      */
     ARM("qemu-system-arm"),
     /**
      * 64-bit ARM guests, run by {@code qemu-system-aarch64}.
+     *
+     * @since 1.0.0
      */
     AARCH64("qemu-system-aarch64"),
     /**
      * 64-bit RISC-V guests, run by {@code qemu-system-riscv64}.
+     *
+     * @since 1.0.0
      */
     RISCV64("qemu-system-riscv64");
 
@@ -207,9 +240,10 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
     }
 
     /**
-     * Gets the name of the QEMU program for this architecture.
+     * Returns the name of the QEMU program for this architecture.
      *
      * @return the program name
+     * @since 1.0.0
      */
     public String getCommand() {
       return this.command;

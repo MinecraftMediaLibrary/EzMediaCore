@@ -98,6 +98,8 @@ Names that abbreviated a word now spell it out:
 | `IOUtils.MAX_IMAGE_BYTES` | `IoUtils.MAXIMUM_IMAGE_BYTES` |
 | `PixelMapper.MIN_STRENGTH` | `MINIMUM_STRENGTH` |
 | `PixelMapper.MAX_STRENGTH` | `MAXIMUM_STRENGTH` |
+| `VMConfiguration.buildArgs()` | `buildArguments()` |
+| `VMSettings.getTargetFps()` | `getTargetFrameRate()` |
 | `VolumeFilter.MAX_VOLUME` | `MAXIMUM_VOLUME` |
 | `WinInstallationStrategy` | `WindowsInstallationStrategy` |
 
@@ -220,15 +222,24 @@ recompile, while implementation subclasses may also be affected by the new final
 
 ## Virtual machines and VNC
 
-Replace `VMPlayer.vm()` with `VMPlayer.create()` and `VNCPlayer.vm()` with `VncPlayer.create()`. Replace
+Replace `VMPlayer.vm()` with `VmPlayer.create()` and `VNCPlayer.vm()` with `VncPlayer.create()`. Replace
 `VNCSource.vnc()` with `VncSource.builder()` and declare builder variables as `VncSourceBuilder`, rather than
 `VNCSourceImpl.Builder`. Custom players must implement `isPlaying`; the VM player also exposes an audio callback.
 
-Types of `mcav-vnc` whose names held an upper-case acronym now case it as a word, and implementation classes are
-named for how they work:
+`VMConfiguration.builder()` returned the configuration itself; `VmConfiguration.builder()` now returns a
+`VmConfigurationBuilder` that holds the setters. Declare builder variables as `VmConfigurationBuilder` and call its
+`build()` for the immutable `VmConfiguration` that `VmPlayer.start` takes.
+
+Types of `mcav-vm` and `mcav-vnc` whose names held an upper-case acronym now case it as a word, and implementation
+classes are named for how they work:
 
 | Former name | Current name |
 | --- | --- |
+| `VMConfiguration` | `VmConfiguration` |
+| `VMModule` | `VmModule` |
+| `VMPlayer` | `VmPlayer` |
+| `VMPlayerImpl` | `QemuVmPlayer` |
+| `VMSettings` | `VmSettings` |
 | `VNCModule` | `VncModule` |
 | `VNCPlayer` | `VncPlayer` |
 | `VNCPlayerImpl` | `VernacularVncPlayer` |
@@ -236,10 +247,16 @@ named for how they work:
 | `VNCSourceImpl` | `DefaultVncSource` |
 
 `ExecutableFinder.find` now returns an `Optional<Path>` rather than a string; handle a missing executable before
-using its path. `VMConfiguration.audio`, `diskSize`, `display`, `graphics` and `kvm` are removed. Use the current
-configuration methods, such as `drive` and `accelerator`, for the QEMU command needed by the application. Create disk
-images separately. The player controls its own display and audio options; consult the [VM chapter](vm.md) before
-adding raw options.
+using its path. `VMConfiguration.audio`, `diskSize`, `display`, `graphics` and `kvm` are removed. Use the builder
+methods, such as `drive` and `accelerator`, for the QEMU command needed by the application. Create disk images
+separately. The player controls its own display and audio options; consult the [VM chapter](vm.md) before adding raw
+options.
+
+The VM player reports failures that come from QEMU or the machine as a `VmException`, the base of `mcav-vm` under
+`MCAVException`, rather than a `PlayerException`: a VNC port that is taken, a password file that cannot be written,
+and a QEMU that cannot start, exits early or never opens its display. `ExecutableNotInPathException` now extends
+`VmException` and is final. A configuration that sets an option the player reserves is refused with an
+`IllegalArgumentException`.
 
 ## Maven installer failures
 

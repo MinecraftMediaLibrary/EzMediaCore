@@ -29,8 +29,8 @@ import org.openjdk.jcstress.annotations.Signal;
 import org.openjdk.jcstress.annotations.State;
 
 /**
- * A thread waiting for QEMU to come up while another starts it. Pass 1 made {@code VMProcess.process} volatile: it is
- * written while QEMU starts and stops, but read by {@link VMProcess#isAlive()} on other threads without a lock. With a
+ * A thread waiting for QEMU to come up while another starts it. Pass 1 made {@code VmProcess.process} volatile: it is
+ * written while QEMU starts and stops, but read by {@link VmProcess#isAlive()} on other threads without a lock. With a
  * plain field the compiler may read it once and keep the value, so a thread that polls liveness never sees QEMU start.
  * The actor polls the real {@code isAlive()}; the signal publishes a running process into the field the way
  * {@code launch} does, through the field itself, because starting a real QEMU is not a thing to do millions of times.
@@ -43,15 +43,15 @@ public class ProcessPublication {
 
   private static final Field PROCESS = findProcessField();
 
-  private final VMProcess machine = new VMProcess(null, null, null, null, null, null, null, 0, null);
+  private final VmProcess machine = new VmProcess(null, null, null, null, null, null, null, 0, null);
 
   private static Field findProcessField() {
     try {
-      final Field field = VMProcess.class.getDeclaredField("process");
+      final Field field = VmProcess.class.getDeclaredField("process");
       field.setAccessible(true);
       return field;
     } catch (final NoSuchFieldException exception) {
-      throw new IllegalStateException("VMProcess has no process field any more", exception);
+      throw new IllegalStateException("VmProcess has no process field any more", exception);
     }
   }
 
