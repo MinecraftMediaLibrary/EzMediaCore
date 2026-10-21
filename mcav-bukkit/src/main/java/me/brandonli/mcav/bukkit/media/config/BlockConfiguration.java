@@ -34,6 +34,9 @@ import org.bukkit.Location;
  * <p>The position is retained by reference. Finish setting it before creating the display and do not
  * mutate it while rendering. {@link #getPosition()} returns that same mutable location.
  *
+ * <p>This class is immutable and thread-safe, except for the viewer collection and the position, which it shares with
+ * the caller instead of copying.
+ *
  * @since 1.0.0
  */
 public final class BlockConfiguration {

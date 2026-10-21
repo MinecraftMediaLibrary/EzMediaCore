@@ -207,6 +207,8 @@ public final class Mcv2FileEncoder {
   /**
    * The frames of a video, one after another, as RGB bytes of one size.
    *
+   * <p>The encoder reads from one thread only, so implementations need not be thread-safe.
+   *
    * @since 1.0.0
    */
   public interface FrameReader extends AutoCloseable {

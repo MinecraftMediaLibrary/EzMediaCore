@@ -940,6 +940,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * What a screen's owner does to show the video at another size: the pack decodes one video size, so a smaller video
    * needs its pack offered to the viewers, and a channel of its own.
    *
+   * <p>The result calls it on the server main thread only, so implementations need not be thread-safe.
+   *
    * @since 1.0.0
    */
   @FunctionalInterface
@@ -1003,8 +1005,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   /**
    * What the result has done so far.
    *
-   * <p>Each getter is synchronized, but several getter calls are not one atomic snapshot. Counts describe
-   * frames accepted by the channel, not multiplied by recipients or acknowledged by clients.
+   * <p>This class is thread-safe: each getter is synchronized, but several getter calls are not one atomic snapshot.
+   * Counts describe frames accepted by the channel, not multiplied by recipients or acknowledged by clients.
    *
    * @since 1.0.0
    */

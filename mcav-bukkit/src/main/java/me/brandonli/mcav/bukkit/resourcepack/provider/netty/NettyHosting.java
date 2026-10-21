@@ -47,9 +47,9 @@ import org.slf4j.LoggerFactory;
  * <p>Connections that arrive through a proxy using the PROXY protocol, or that are terminated by a proxy such as
  * Velocity, never reach this server as HTTP and cannot be served. Use a separate web server in that case.
  *
- * <p>The caller retains ownership of the source file. Start and shutdown are synchronized and support reuse.
- * The hosting instance registers a connection initializer but does not own the Minecraft listener. Shutdown
- * removes that registration; already-installed handlers on existing connections retain their behavior.
+ * <p>The caller retains ownership of the source file. This class is thread-safe: start and shutdown are synchronized
+ * and support reuse. The hosting instance registers a connection initializer but does not own the Minecraft listener.
+ * Shutdown removes that registration; already-installed handlers on existing connections retain their behavior.
  *
  * @since 1.0.0
  */

@@ -30,6 +30,9 @@ import me.brandonli.mcav.bukkit.media.result.Characters;
  * <p>The viewers collection is not copied, so a concurrent collection can be passed. The renderer checks membership each server tick,
  * shows the board to new or returning online viewers, and restores removed viewers who still see its board.
  *
+ * <p>This class is immutable and thread-safe, except for the viewer collection, which it shares with the caller instead
+ * of copying.
+ *
  * @since 1.0.0
  */
 public final class ScoreboardConfiguration {

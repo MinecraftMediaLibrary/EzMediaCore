@@ -984,6 +984,8 @@ public final class Mcv2Pacer {
   /**
    * How low a pacer's ladder goes when even its lowest encoded rung takes longer than its frames have.
    *
+   * <p>This enum is immutable and thread-safe.
+   *
    * @since 1.0.0
    */
   public enum Floor {

@@ -21,6 +21,8 @@ package me.brandonli.mcav.bukkit.media.result;
  * Characters that work well as pixels in chat, scoreboard, and entity displays. {@link #FULL_CHARACTER} gives the
  * most solid picture, while the other characters leave gaps between pixels for a stylized look.
  *
+ * <p>This class is stateless and thread-safe.
+ *
  * @since 1.0.0
  */
 public final class Characters {

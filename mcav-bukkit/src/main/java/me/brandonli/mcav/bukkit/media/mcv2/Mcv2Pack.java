@@ -547,6 +547,8 @@ public final class Mcv2Pack {
   /**
    * Whether a pack also draws every screen's decoded picture one to one below the strip, for testing.
    *
+   * <p>This enum is immutable and thread-safe.
+   *
    * @since 1.0.0
    */
   public enum DebugView {

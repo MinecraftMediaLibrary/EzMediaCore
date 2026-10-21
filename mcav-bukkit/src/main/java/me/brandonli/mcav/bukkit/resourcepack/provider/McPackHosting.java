@@ -60,9 +60,10 @@ import org.slf4j.LoggerFactory;
  * deleted it. The check and the upload block for as long as the transfer takes, so call {@link #start()} off the
  * main thread.
  *
- * <p>The first successful start fixes this instance's URL. Rebuilding the file afterward does not upload it
- * again through this instance; create another hosting instance for changed content. Shutdown does not clear that
- * URL or the cache. The cache lock serializes upload/cache decisions across instances in this class loader.
+ * <p>The first successful start fixes this instance's URL. Rebuilding the file afterward does not upload it again
+ * through this instance; create another hosting instance for changed content. Shutdown does not clear that URL or the
+ * cache. This class is thread-safe: the cache lock serializes upload/cache decisions across instances in this class
+ * loader.
  *
  * @since 1.0.0
  */

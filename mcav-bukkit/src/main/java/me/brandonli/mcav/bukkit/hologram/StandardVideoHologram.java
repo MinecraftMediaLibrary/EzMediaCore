@@ -46,6 +46,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * It is independent of player position and slows down with the server tick rate. Create an instance with
  * {@link Hologram#basic()}, populate it with {@link #spawn(Location, UrlParseDump)}, then start it.
  *
+ * <p>This class is not thread-safe: use it on the server main thread.
+ *
  * @since 1.0.0
  */
 public class StandardVideoHologram extends VideoHologram {

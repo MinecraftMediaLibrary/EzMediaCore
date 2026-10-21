@@ -23,6 +23,8 @@ import me.brandonli.mcav.utils.http.NetworkUtils;
 /**
  * Hosts a resource pack on a dedicated HTTP server with its own host name and port.
  *
+ * <p>Implementations in this library are thread-safe.
+ *
  * @since 1.0.0
  */
 public interface HttpHosting extends PackHosting {

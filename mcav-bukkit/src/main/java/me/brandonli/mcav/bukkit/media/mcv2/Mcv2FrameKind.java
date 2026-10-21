@@ -20,6 +20,8 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 /**
  * Whether an MCV2 frame decodes on its own or predicts from an earlier frame.
  *
+ * <p>This enum is immutable and thread-safe.
+ *
  * @since 1.0.0
  */
 public enum Mcv2FrameKind {

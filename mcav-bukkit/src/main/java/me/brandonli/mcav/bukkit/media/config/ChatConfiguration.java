@@ -31,6 +31,9 @@ import me.brandonli.mcav.bukkit.media.result.Characters;
  * <p>The viewers collection is not copied. It is read for every frame, so a concurrent collection can be passed
  * to add or remove viewers while media is playing.
  *
+ * <p>This class is immutable and thread-safe, except for the viewer collection, which it shares with the caller instead
+ * of copying.
+ *
  * @since 1.0.0
  */
 public final class ChatConfiguration {

@@ -43,6 +43,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  * on a later server tick. Serialize frame delivery with lifecycle operations unless this class explicitly provides
  * locking, and never mutate an input buffer concurrently with conversion.
  *
+ * <p>Packets are sent directly, so the filter may run on any thread.
+ *
  * @since 1.0.0
  */
 public class MapResult implements DitherResultStep {

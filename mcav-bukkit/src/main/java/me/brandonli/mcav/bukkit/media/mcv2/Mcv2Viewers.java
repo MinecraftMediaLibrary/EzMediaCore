@@ -256,6 +256,8 @@ public final class Mcv2Viewers {
   /**
    * What a player's client reported for the pack.
    *
+   * <p>This enum is immutable and thread-safe.
+   *
    * @since 1.0.0
    */
   public enum PackState {

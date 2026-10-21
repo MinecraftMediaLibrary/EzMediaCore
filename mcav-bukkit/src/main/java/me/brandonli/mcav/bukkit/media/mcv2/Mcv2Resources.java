@@ -24,6 +24,8 @@ import java.util.HexFormat;
 /**
  * Computes hexadecimal digests for MCV2 resources.
  *
+ * <p>This class is stateless and thread-safe.
+ *
  * @since 1.0.0
  */
 public final class Mcv2Resources {

@@ -31,8 +31,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * map data packet can carry. The colors of the rectangle are stored row by row, so the color of the pixel at
  * {@code (x + column, y + row)} is found at index {@code row * width + column}.
  *
- * <p>Instances are immutable after construction, but the color array is not copied for performance reasons.
- * Callers must not modify the array after passing it to {@link #of(int, int, int, int, int, byte[])}.
+ * <p>Instances are immutable and thread-safe after construction, but the color array is not copied for performance
+ * reasons. Callers must not modify the array after passing it to {@link #of(int, int, int, int, int, byte[])}.
  *
  * @since 1.0.0
  */

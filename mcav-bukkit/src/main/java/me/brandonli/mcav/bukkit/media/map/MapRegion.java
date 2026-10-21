@@ -29,10 +29,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * origin. When the image is smaller than the map grid, maps at the border are only partly covered, and maps that
  * the image does not reach at all have an empty region.
  *
- * <p>Instances are immutable, but {@link #of(int, int, int, int, int, int)} stores values without validation. For a
- * valid nonempty map region, local coordinates must be nonnegative, dimensions positive, and both local extents at
- * most 128 pixels; source coordinates identify valid pixels in the source image. Obtain validated regions through
- * {@link MapLayout#getRegion(int)} when describing an image layout.
+ * <p>Instances are immutable and thread-safe, but {@link #of(int, int, int, int, int, int)} stores values without
+ * validation. For a valid nonempty map region, local coordinates must be nonnegative, dimensions positive, and both
+ * local extents at most 128 pixels; source coordinates identify valid pixels in the source image. Obtain validated
+ * regions through {@link MapLayout#getRegion(int)} when describing an image layout.
  *
  * @since 1.0.0
  */

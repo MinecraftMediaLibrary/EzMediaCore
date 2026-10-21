@@ -27,6 +27,8 @@ import org.bukkit.Bukkit;
  * version would fail in unpredictable ways, often long after startup. This class lets the module detect that
  * situation up front and fail with a clear message instead.
  *
+ * <p>This class is stateless and thread-safe.
+ *
  * @since 1.0.0
  */
 public final class ServerEnvironment {

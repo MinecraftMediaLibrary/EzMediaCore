@@ -27,6 +27,9 @@ import org.bukkit.entity.TextDisplay;
  * Displays still images as colored text inside a {@link TextDisplay} entity. The entity is removed when the image
  * is released.
  *
+ * <p>Every method may be called from any thread; serialize display and release calls, as {@link DisplayableImage}
+ * describes.
+ *
  * @since 1.0.0
  */
 public class EntityImage implements DisplayableImage {

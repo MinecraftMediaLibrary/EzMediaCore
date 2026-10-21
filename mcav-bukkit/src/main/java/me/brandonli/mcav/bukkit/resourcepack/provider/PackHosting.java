@@ -45,6 +45,8 @@ import me.brandonli.mcav.bukkit.resourcepack.provider.netty.NettyHosting;
  * requests to players; obtain the URL and send those requests separately. Keep the source file available for
  * strategies that serve it locally. Website upload is an external operation that shutdown cannot undo.
  *
+ * <p>Implementations in this library are thread-safe.
+ *
  * @since 1.0.0
  */
 public interface PackHosting {

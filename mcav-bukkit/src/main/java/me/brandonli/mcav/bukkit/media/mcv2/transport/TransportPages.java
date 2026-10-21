@@ -41,6 +41,8 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
  * <p>Conversion methods allocate independent arrays and do not retain caller buffers. Static operations can
  * run concurrently when inputs are not mutated. Assembly state belongs to a separate {@link PageAssembler}.
  *
+ * <p>This class is stateless and thread-safe.
+ *
  * @since 1.0.0
  */
 public final class TransportPages {

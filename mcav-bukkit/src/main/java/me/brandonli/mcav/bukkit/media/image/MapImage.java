@@ -38,6 +38,9 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  * that are larger are cropped equally on every side. Displaying a new image replaces the previous one directly,
  * without clearing the maps first, so there is no flicker between images.
  *
+ * <p>Every method may be called from any thread; serialize display and release calls, as {@link DisplayableImage}
+ * describes.
+ *
  * @since 1.0.0
  */
 public class MapImage implements DisplayableImage {

@@ -1192,6 +1192,8 @@ public final class Mcv2 {
   /**
    * Whether an encoder checks every frame it finishes by decoding it again.
    *
+   * <p>This enum is immutable and thread-safe.
+   *
    * @since 1.0.0
    */
   public enum Verification {
@@ -1477,6 +1479,9 @@ public final class Mcv2 {
   /**
    * A finished frame whose bytes and measurements are ready for transmission.
    *
+   * <p>This class is immutable and thread-safe, but {@link #getData()} hands its array to the caller without copying
+   * it.
+   *
    * @since 1.0.0
    */
   public static final class Encoded {
@@ -1571,6 +1576,8 @@ public final class Mcv2 {
 
   /**
    * A searched frame awaiting ordered verification by its owning encoder.
+   *
+   * <p>Instances may be handed to another thread, which finishes each one exactly once.
    *
    * @since 1.0.0
    */
@@ -3763,6 +3770,8 @@ public final class Mcv2 {
 
   /**
    * A shared, bounded CPU budget for encoders and synchronous encoding jobs.
+   *
+   * <p>This class is thread-safe: encoders on any thread may share one pool.
    *
    * @since 1.0.0
    */

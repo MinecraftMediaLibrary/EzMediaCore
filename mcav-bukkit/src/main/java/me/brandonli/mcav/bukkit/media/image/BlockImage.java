@@ -26,6 +26,9 @@ import me.brandonli.mcav.media.image.ImageBuffer;
  * Displays still images as a wall of colored blocks using fake block changes. The original blocks are shown again
  * when the image is released.
  *
+ * <p>Every method may be called from any thread; serialize display and release calls, as {@link DisplayableImage}
+ * describes.
+ *
  * @since 1.0.0
  */
 public class BlockImage implements DisplayableImage {

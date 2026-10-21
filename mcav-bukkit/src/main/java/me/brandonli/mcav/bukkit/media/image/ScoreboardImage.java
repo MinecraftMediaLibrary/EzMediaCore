@@ -26,6 +26,9 @@ import me.brandonli.mcav.media.image.ImageBuffer;
  * Displays still images on the sidebar scoreboard of the viewers. The scoreboard the viewers had before is restored
  * when the image is released.
  *
+ * <p>Every method may be called from any thread; serialize display and release calls, as {@link DisplayableImage}
+ * describes.
+ *
  * @since 1.0.0
  */
 public class ScoreboardImage implements DisplayableImage {

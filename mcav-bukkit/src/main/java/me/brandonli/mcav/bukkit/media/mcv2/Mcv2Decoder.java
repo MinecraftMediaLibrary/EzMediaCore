@@ -23,6 +23,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * Validates and decodes MCV2 version 3. Parsed frames own their bytes and are immutable.
  *
+ * <p>This class is stateless and thread-safe.
+ *
  * @since 1.0.0
  */
 public final class Mcv2Decoder {
@@ -439,6 +441,8 @@ public final class Mcv2Decoder {
 
   /**
    * A complete validated frame. Accessors copy mutable data.
+   *
+   * <p>This class is immutable and thread-safe.
    *
    * @since 1.0.0
    */

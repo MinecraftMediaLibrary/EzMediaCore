@@ -31,6 +31,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Determines the address players use to reach the Minecraft server, for example to build the URL of a resource
  * pack the server hosts itself.
  *
+ * <p>This class is thread-safe; concurrent calls before the first successful lookup may each look the address up.
+ *
  * @since 1.0.0
  */
 public final class ServerAddress {

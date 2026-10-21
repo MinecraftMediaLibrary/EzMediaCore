@@ -25,6 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The base class of holograms that are backed by a single text display entity. It owns the entity and removes it
  * when the hologram is killed.
  *
+ * <p>This class is not thread-safe: use it on the server main thread.
+ *
  * @since 1.0.0
  */
 public abstract class VideoHologram implements Hologram {

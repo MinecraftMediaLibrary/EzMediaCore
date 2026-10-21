@@ -25,8 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * One validated transport page: its header fields and its share of the frame's bytes.
  *
- * <p>Instances are immutable. Two pages are equal when every header field and every payload byte is equal, which is
- * what the assembler uses to accept an identical duplicate and reject a conflicting one.
+ * <p>Instances are immutable and thread-safe. Two pages are equal when every header field and every payload byte is
+ * equal, which is what the assembler uses to accept an identical duplicate and reject a conflicting one.
  *
  * @since 1.0.0
  */

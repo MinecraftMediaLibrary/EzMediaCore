@@ -32,6 +32,8 @@ import org.bukkit.craftbukkit.util.CraftChatMessage;
  * color per character. A hex color is written as {@code §x§r§r§g§g§b§b}, and a color code is only emitted when
  * the color differs from the previous character, which keeps the text as short as possible.
  *
+ * <p>This class is stateless and thread-safe.
+ *
  * @since 1.0.0
  */
 public final class ChatUtils {

@@ -21,6 +21,8 @@ package me.brandonli.mcav.bukkit.resourcepack.provider;
  * Hosts a resource pack by uploading it to a public website, so no port has to be opened on the server. Create
  * instances with {@link PackHosting#website(java.nio.file.Path)}.
  *
+ * <p>Implementations in this library are thread-safe.
+ *
  * @since 1.0.0
  */
 public interface WebsiteHosting extends PackHosting {}

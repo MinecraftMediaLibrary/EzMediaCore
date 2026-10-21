@@ -824,6 +824,8 @@ public final class Mcv2PackServer {
    * a new screen took that spare: a screen of that size takes it at once, as the pack has its size, and a screen of
    * another size only in a full pack.
    *
+   * <p>This class is thread-safe: it locks its pack server.
+   *
    * @since 1.0.0
    */
   public final class Lease implements Mcv2Result.Resizer {

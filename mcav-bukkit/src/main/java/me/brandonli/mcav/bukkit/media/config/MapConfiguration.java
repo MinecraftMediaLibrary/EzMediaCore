@@ -43,6 +43,9 @@ import java.util.UUID;
  * <p>This configuration does not create map items, reserve map ids or place item frames. The caller supplies
  * the display surfaces and ensures the consecutive ids belong to this screen. Resizing is disabled by default.
  *
+ * <p>This class is immutable and thread-safe, except for the viewer collection, which it shares with the caller instead
+ * of copying.
+ *
  * @since 1.0.0
  */
 public final class MapConfiguration {

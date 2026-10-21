@@ -161,8 +161,8 @@ public final class MapPacketFactory {
   /**
    * A bundle of map data packets, and their estimated size in bytes before network compression.
    *
-   * <p>The bundle retains the packet without copying; it does not validate either part. Instances never change, and
-   * the packet is shared rather than copied.
+   * <p>The bundle shares the packet rather than copying it, and validates neither part. This class is immutable and
+   * thread-safe.
    *
    * @since 1.0.0
    */

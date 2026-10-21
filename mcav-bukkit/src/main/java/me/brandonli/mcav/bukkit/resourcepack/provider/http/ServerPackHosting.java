@@ -28,11 +28,11 @@ import java.nio.file.Path;
  * the players, so it usually has to be opened in the firewall and forwarded. The resource pack file is read for
  * every download, so it can be rebuilt while the server is running.
  *
- * <p>The advertised host name affects the URL only; the listener binds the configured port on all local
- * interfaces. Start and shutdown are serialized by the owned server. Shutdown waits for its listener and event
- * loops to close, so avoid calling it from an event-loop callback. The instance can be started again afterward.
- * The source file remains caller-owned, and file/read failures are reported to downloaders rather than checked
- * when the listener starts.
+ * <p>The advertised host name affects the URL only; the listener binds the configured port on all local interfaces.
+ * This class is thread-safe: start and shutdown are serialized by the owned server. Shutdown waits for its listener and
+ * event loops to close, so avoid calling it from an event-loop callback. The instance can be started again afterward.
+ * The source file remains caller-owned, and file/read failures are reported to downloaders rather than checked when the
+ * listener starts.
  *
  * @since 1.0.0
  */

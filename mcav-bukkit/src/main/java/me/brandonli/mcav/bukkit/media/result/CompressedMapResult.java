@@ -74,9 +74,9 @@ import org.slf4j.LoggerFactory;
  * on a later server tick. Serialize frame delivery with lifecycle operations unless this class explicitly provides
  * locking, and never mutate an input buffer concurrently with conversion.
  *
- * <p>Processing, start and release are serialized by an internal lock. The result owns any dithering pool it
- * creates, but does not own the supplied algorithm. Release waits for the current process call to leave the lock;
- * start permits reuse, with a new encoder created on the next frame.
+ * <p>This class is thread-safe: processing, start and release are serialized by an internal lock. The result owns any
+ * dithering pool it creates, but does not own the supplied algorithm. Release waits for the current process call to
+ * leave the lock; start permits reuse, with a new encoder created on the next frame.
  *
  * @since 1.0.0
  */

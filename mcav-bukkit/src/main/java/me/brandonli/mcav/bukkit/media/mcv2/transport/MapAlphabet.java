@@ -26,6 +26,8 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
  * 64 RGB values are distinct on the supported Minecraft 26.3 palette, so the resource pack's
  * shader recovers every symbol exactly from the texel the client uploads.
  *
+ * <p>This class is stateless and thread-safe.
+ *
  * @since 1.0.0
  */
 public final class MapAlphabet {

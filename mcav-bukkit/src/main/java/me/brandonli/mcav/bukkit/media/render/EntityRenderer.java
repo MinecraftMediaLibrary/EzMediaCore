@@ -58,6 +58,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * the latest submitted frame is applied per tick, so intermediate frames may be dropped. Do not concurrently
  * write to the same input buffer. Hiding clears pending work; the renderer can subsequently be shown again.
  *
+ * <p>Every public method may be called from any thread; the entity is changed on the main thread only.
+ *
  * @since 1.0.0
  */
 public final class EntityRenderer extends MainThreadRenderer<Component> {

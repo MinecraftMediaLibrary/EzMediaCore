@@ -23,6 +23,8 @@ import me.brandonli.mcav.bukkit.resourcepack.provider.PackHosting;
  * Hosts a resource pack on the port of the Minecraft server itself by inspecting new connections. Create
  * instances with {@link PackHosting#injector(java.nio.file.Path)}.
  *
+ * <p>Implementations in this library are thread-safe.
+ *
  * @since 1.0.0
  */
 public interface InjectorHosting extends PackHosting {}
