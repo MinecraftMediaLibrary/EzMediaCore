@@ -124,6 +124,9 @@ class HostPlatformTest {
             Locale.setDefault(Locale.forLanguageTag("tr-TR"))
 
             val host: HostPlatform = HostPlatform.normalize("WINDOWS", "AMD64")
+            val operatingSystem: String = host.operatingSystem
+            assertEquals("windows", operatingSystem)
+
             val windows: Boolean = host.isWindows
             assertTrue(windows)
 

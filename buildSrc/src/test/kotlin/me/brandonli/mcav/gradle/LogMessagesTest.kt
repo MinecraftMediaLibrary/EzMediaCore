@@ -118,6 +118,17 @@ class LogMessagesTest {
     }
 
     @Test
+    fun shouldReadEachArgumentOnItsOwnAndPastNestedCalls(): Unit {
+        val source: String = listOf(
+            "LOGGER.info(\"Started {} of {}\", count + 1, total);",
+            "LOGGER.info(format(name), \"at \" + place);",
+            "LOGGER.info(name() + \" started\");",
+        ).joinToString(LINE_SEPARATOR)
+        val lines: List<Int> = LogMessages.find(source).map { it.line }
+        assertEquals(listOf(2, 3), lines)
+    }
+
+    @Test
     fun shouldReadACallAcrossLinesAndInsideALambda(): Unit {
         val source: String = """
             final class Example {

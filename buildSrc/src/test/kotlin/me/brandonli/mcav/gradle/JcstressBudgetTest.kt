@@ -34,6 +34,8 @@ class JcstressBudgetTest {
 
         const val QUICK_PRESET: String = "quick"
 
+        const val SECOND_TEST_SELECTION: String = """^a\.b\.Second$"""
+
         const val TESTS_JAR: String = "tests.jar"
         const val EMPTY_JAR: String = "empty.jar"
         const val TEST_LIST_ENTRY: String = "META-INF/TestList"
@@ -79,7 +81,7 @@ class JcstressBudgetTest {
         val all: Int = JcstressBudget.countTests(jar, null)
         assertEquals(2, all)
 
-        val selected: Int = JcstressBudget.countTests(jar, "Sec")
+        val selected: Int = JcstressBudget.countTests(jar, SECOND_TEST_SELECTION)
         assertEquals(1, selected)
 
         val unmatched: Int = JcstressBudget.countTests(jar, "Third")

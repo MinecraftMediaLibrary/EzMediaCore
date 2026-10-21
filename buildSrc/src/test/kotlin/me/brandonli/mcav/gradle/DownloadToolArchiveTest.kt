@@ -19,6 +19,8 @@
 package me.brandonli.mcav.gradle
 
 import java.io.File
+import java.net.URI
+import java.net.URLConnection
 import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.Base64
@@ -27,6 +29,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.logging.Logger
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -68,6 +71,27 @@ class DownloadToolArchiveTest {
 
         val executable: Boolean = installed.canExecute()
         assertTrue(executable)
+    }
+
+    @Test
+    fun shouldReportTheDownloadAndTheVerifiedDigest(): Unit {
+        val task: RecordedDownloadToolArchive = this.zippedTool()
+        task.install()
+
+        val address: String = task.archiveUrl.get()
+        val digest: String = task.sha256.get()
+        val messages: List<String> = task.recorder.messages
+        assertEquals(listOf("lifecycle: Downloading tool archive $address.", "lifecycle: Verified SHA-256 $digest of $address."), messages)
+    }
+
+    @Test
+    fun shouldOpenTheDownloadWithAConnectAndAReadTimeout(): Unit {
+        val task: RecordedDownloadToolArchive = this.zippedTool()
+        task.install()
+
+        val connection: URLConnection = task.connections.single()
+        val timeouts: Pair<Int, Int> = connection.connectTimeout to connection.readTimeout
+        assertEquals(30_000 to 120_000, timeouts)
     }
 
     @Test
@@ -161,7 +185,7 @@ class DownloadToolArchiveTest {
         assertEquals(expected, installed)
     }
 
-    private fun zippedTool(): DownloadToolArchive {
+    private fun zippedTool(): RecordedDownloadToolArchive {
         val archive: File = this.directory.resolve(ARCHIVE_FILE).toFile()
         ZipOutputStream(archive.outputStream()).use(this::writeExecutable)
 
@@ -176,11 +200,11 @@ class DownloadToolArchiveTest {
         output.closeEntry()
     }
 
-    private fun registerTask(project: Project, archive: File, installation: File): DownloadToolArchive {
+    private fun registerTask(project: Project, archive: File, installation: File): RecordedDownloadToolArchive {
         val messageDigest: MessageDigest = MessageDigest.getInstance(DIGEST_ALGORITHM)
         val digest: ByteArray = messageDigest.digest(archive.readBytes())
         val checksum: String = HexFormat.of().formatHex(digest)
-        return project.tasks.register(TASK_NAME, DownloadToolArchive::class.java).get().apply {
+        return project.tasks.register(TASK_NAME, RecordedDownloadToolArchive::class.java).get().apply {
             this.archiveUrl.set(archive.toURI().toString())
             this.sha256.set(checksum)
             this.executablePath.set(EXECUTABLE_PATH)
@@ -201,5 +225,23 @@ class DownloadToolArchiveTest {
 
         val tool: File = this.directory.resolve("installed-$extension/tool/bin/tool").toFile()
         return tool.readText() to tool.canExecute()
+    }
+
+    abstract class RecordedDownloadToolArchive : DownloadToolArchive() {
+
+        val recorder: RecordingLogger = RecordingLogger()
+
+        val connections: MutableList<URLConnection> = mutableListOf<URLConnection>()
+
+        override fun getLogger(): Logger {
+            return this.recorder.logger
+        }
+
+        override fun openConnection(uri: URI): URLConnection {
+            val connection: URLConnection = super.openConnection(uri)
+            this.connections += connection
+
+            return connection
+        }
     }
 }

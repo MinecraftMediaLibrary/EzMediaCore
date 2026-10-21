@@ -211,8 +211,8 @@ abstract class BuildMcv2Natives : DefaultTask() {
 
             val natives: File = output.resolve(NATIVES_PATH)
             val targets: List<NativeTarget> = listOf(LINUX, WINDOWS, MACOS).flatMap(this::targetsOf)
-            val compiles: List<() -> Unit> = targets.flatMap(this::planCompiles)
-            val links: List<() -> Unit> = targets.map { target -> this.planLink(natives, target) }
+            val compiles: List<Runnable> = targets.flatMap(this::planCompiles)
+            val links: List<Runnable> = targets.map { target -> this.planLink(natives, target) }
             this.inParallel(compiles)
             this.inParallel(links)
 
@@ -228,7 +228,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
             return listOf(X86_64, AARCH64).map { architecture -> NativeTarget(system, architecture) }
         }
 
-        private fun planCompiles(target: NativeTarget): List<() -> Unit> {
+        private fun planCompiles(target: NativeTarget): List<Runnable> {
             val units: Map<String, List<String>> = this.unitsOf(target)
             return units.map { (level, flags) -> this.planCompile(target, level, flags) }
         }
@@ -272,7 +272,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
             }
         }
 
-        private fun planCompile(target: NativeTarget, level: String, flags: List<String>): () -> Unit {
+        private fun planCompile(target: NativeTarget, level: String, flags: List<String>): Runnable {
             val objectFile: File = this.objectFileOf(target, level)
             objectFile.parentFile.mkdirs()
 
@@ -281,7 +281,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
             val source: String = "$LEVEL_PREFIX$level$SOURCE_SUFFIX"
             val arguments: List<String> = listOf("c++", TARGET_OPTION, triple, "-mcpu=baseline") + compilerFlags + flags +
                 listOf("-c", source, OUTPUT_OPTION, objectFile.absolutePath)
-            return { this.runZig(arguments) }
+            return Runnable { this.runZig(arguments) }
         }
 
         private fun objectFileOf(target: NativeTarget, level: String): File {
@@ -310,7 +310,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
             }
         }
 
-        private fun planLink(natives: File, target: NativeTarget): () -> Unit {
+        private fun planLink(natives: File, target: NativeTarget): Runnable {
             val library: File = this.libraryOf(natives, target)
             library.parentFile.mkdirs()
 
@@ -320,7 +320,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
             val objects: List<String> = levels.map { level -> this.objectFileOf(target, level).absolutePath }
             val arguments: List<String> = listOf("cc", TARGET_OPTION, triple, "-shared", "-s") + linkFlags +
                 listOf(OUTPUT_OPTION, library.absolutePath) + objects
-            return { this.link(arguments, library) }
+            return Runnable { this.link(arguments, library) }
         }
 
         private fun libraryOf(natives: File, target: NativeTarget): File {
@@ -351,18 +351,23 @@ abstract class BuildMcv2Natives : DefaultTask() {
             return Files.list(directory.toPath()).use { paths -> paths.map { it.toFile() }.toList() }
         }
 
-        private fun inParallel(steps: List<() -> Unit>): Unit {
+        private fun inParallel(steps: List<Runnable>): Unit {
             val processCount: Int = this.parameters.processCount.get()
-            val pool: ExecutorService = Executors.newFixedThreadPool(minOf(processCount, steps.size))
+            val pool: ExecutorService = this.newPool(minOf(processCount, steps.size))
             try {
-                val tasks: List<Callable<Unit>> = steps.map { step -> Callable(step) }
+                val tasks: List<Callable<Any?>> = steps.map { step -> Executors.callable(step) }
                 pool.invokeAll(tasks).forEach(this::awaitStep)
             } finally {
                 pool.shutdown()
             }
         }
 
-        private fun awaitStep(result: Future<Unit>): Unit {
+        // hook for the pitest mutant that drops the shutdown: a test checks that the pools it returns are shut down
+        protected open fun newPool(threadCount: Int): ExecutorService {
+            return Executors.newFixedThreadPool(threadCount)
+        }
+
+        private fun awaitStep(result: Future<Any?>): Unit {
             try {
                 result.get()
             } catch (exception: ExecutionException) {

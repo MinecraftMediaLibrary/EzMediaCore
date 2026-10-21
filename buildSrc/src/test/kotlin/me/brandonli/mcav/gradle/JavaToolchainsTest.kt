@@ -18,14 +18,17 @@
 
 package me.brandonli.mcav.gradle
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.provider.Provider
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -75,5 +78,12 @@ class JavaToolchainsTest {
 
         val version: JavaLanguageVersion = launcher.metadata.languageVersion
         assertEquals(this.runningVersion, version)
+    }
+
+    @Test
+    fun shouldFailToFindALauncherOfAVendorThatIsNotInstalled(): Unit {
+        val vendor: JvmVendorSpec = JvmVendorSpec.matching("no installed vendor")
+        val launcher: Provider<JavaLauncher> = JavaToolchains.launcher(this.project, vendor)
+        assertThrows(GradleException::class.java) { launcher.get() }
     }
 }

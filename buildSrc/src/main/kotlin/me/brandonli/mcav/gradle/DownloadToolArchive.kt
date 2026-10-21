@@ -143,10 +143,15 @@ abstract class DownloadToolArchive : DefaultTask() {
     }
 
     private fun copyFrom(uri: URI, archive: File): Unit {
-        val connection: URLConnection = uri.toURL().openConnection()
+        val connection: URLConnection = this.openConnection(uri)
         connection.connectTimeout = CONNECT_TIMEOUT_MILLISECONDS
         connection.readTimeout = READ_TIMEOUT_MILLISECONDS
         connection.getInputStream().use { input -> this.copy(input, archive) }
+    }
+
+    // hook for the pitest mutants that drop a timeout: a test reads the timeouts of the connection it returns
+    protected open fun openConnection(uri: URI): URLConnection {
+        return uri.toURL().openConnection()
     }
 
     private fun copy(input: InputStream, target: File): Unit {

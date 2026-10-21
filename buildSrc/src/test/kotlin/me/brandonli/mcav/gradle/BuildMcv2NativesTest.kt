@@ -21,6 +21,7 @@ package me.brandonli.mcav.gradle
 import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import me.brandonli.mcav.gradle.BuildMcv2Natives.Work.Parameters
@@ -147,11 +148,11 @@ class BuildMcv2NativesTest {
         assertTrue(reproducible)
 
         val natives: File = task.outputDirectory.get().asFile.resolve(NATIVES_PATH)
-        val expectedPaths: Set<String> = setOf(LINUX_X86_64_LIBRARY, LINUX_AARCH64_LIBRARY,
-            MACOS_X86_64_LIBRARY, MACOS_AARCH64_LIBRARY,
-            WINDOWS_X86_64_LIBRARY, WINDOWS_AARCH64_LIBRARY)
+        val expectedPaths: List<String> = listOf(LINUX_AARCH64_LIBRARY, LINUX_X86_64_LIBRARY,
+            MACOS_AARCH64_LIBRARY, MACOS_X86_64_LIBRARY,
+            WINDOWS_AARCH64_LIBRARY, WINDOWS_X86_64_LIBRARY)
         val sums: List<String> = natives.resolve(CHECKSUMS_MANIFEST).readLines()
-        val summedPaths: Set<String> = sums.map { it.substringAfter("  ") }.toSet()
+        val summedPaths: List<String> = sums.map { it.substringAfter("  ") }
         assertEquals(expectedPaths, summedPaths)
 
         val summedContents: Boolean = sums.all { it.startsWith("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  ") }
@@ -165,6 +166,9 @@ class BuildMcv2NativesTest {
 
         val importLibraryKept: Boolean = natives.walkTopDown().any { it.extension == "lib" }
         assertFalse(importLibraryKept)
+
+        val poolsShutDown: List<Boolean> = this.submitted.single().pools.map { it.isShutdown }
+        assertEquals(listOf(true, true), poolsShutDown)
     }
 
     @Test
@@ -195,6 +199,9 @@ class BuildMcv2NativesTest {
 
         val linked: Boolean = this.commands.any { it.first() == LINK_COMMAND }
         assertFalse(linked)
+
+        val poolsShutDown: List<Boolean> = this.submitted.single().pools.map { it.isShutdown }
+        assertEquals(listOf(true), poolsShutDown)
     }
 
     @Test
@@ -338,8 +345,16 @@ class BuildMcv2NativesTest {
 
     class RecordingWork(private val recordedParameters: Parameters, override val processes: ExecOperations) : BuildMcv2Natives.Work() {
 
+        val pools: MutableList<ExecutorService> = mutableListOf<ExecutorService>()
+
         override fun getParameters(): Parameters {
             return this.recordedParameters
+        }
+
+        override fun newPool(threadCount: Int): ExecutorService {
+            val pool: ExecutorService = super.newPool(threadCount)
+            this.pools.add(pool)
+            return pool
         }
     }
 }

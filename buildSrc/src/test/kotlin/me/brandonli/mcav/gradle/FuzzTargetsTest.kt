@@ -116,8 +116,14 @@ class FuzzTargetsTest {
     }
 
     @Test
-    fun shouldFilterAndNameATaskForOneMethod(): Unit {
+    fun shouldKeepTheNamesAndFilterAndNameATaskForOneMethod(): Unit {
         val target: FuzzTarget = FuzzTarget(CLASS_NAME, TEXT_TARGET_METHOD)
+
+        val className: String = target.className
+        assertEquals(CLASS_NAME, className)
+
+        val methodName: String = target.methodName
+        assertEquals(TEXT_TARGET_METHOD, methodName)
 
         val pattern: String = target.filterPattern()
         assertEquals("$CLASS_NAME.shouldParseAnyText", pattern)

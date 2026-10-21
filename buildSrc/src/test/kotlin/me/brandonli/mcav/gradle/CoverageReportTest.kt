@@ -103,6 +103,20 @@ class CoverageReportTest {
     }
 
     @Test
+    fun shouldReadAReportWithoutLoadingTheDocumentTypeItNames(): Unit {
+        val report: File = this.directory.resolve(REPORT_FILE).toFile()
+        report.writeText("""
+            <!DOCTYPE report PUBLIC "-//JACOCO//DTD Report 1.1//EN" "report.dtd">
+            <report name="fixture"><package name="sample"><sourcefile name="Missing.java">
+              <line nr="1" mi="0" ci="3" mb="0" cb="0"/>
+            </sourcefile></package></report>
+        """.trimIndent())
+
+        val gaps: List<String> = CoverageReport.findGaps(report, this.directory.toFile(), emptyList())
+        assertEquals(emptyList<String>(), gaps)
+    }
+
+    @Test
     fun shouldFailOnAMissingReportOnlyWhenProductionSourcesExist(): Unit {
         val report: File = this.directory.resolve(MISSING_REPORT_FILE).toFile()
         val sources: File = this.directory.resolve(SOURCES_DIRECTORY).toFile()
@@ -145,6 +159,16 @@ class CoverageReportTest {
             file.writeText(invalid)
             assertThrows(IllegalArgumentException::class.java) { CoverageExceptions.read(file) }
         }
+    }
+
+    @Test
+    fun shouldReadAnEmptySourceLineBetweenTheSeparators(): Unit {
+        val file: File = this.directory.resolve(EXCEPTIONS_FILE).toFile()
+        file.writeText("sample/Missing.java |  | generated source\n")
+
+        val entries: List<CoverageException> = CoverageExceptions.read(file)
+        val fields: List<Triple<String, String, String>> = entries.map { Triple(it.path, it.sourceLine, it.reason) }
+        assertEquals(listOf(Triple(MISSING_SOURCE_PATH, "", "generated source")), fields)
     }
 
     @Test

@@ -22,6 +22,7 @@ import java.io.File
 import java.nio.file.Path
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.logging.Logger
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -99,6 +100,43 @@ class JavaLintTaskTest {
         assertEquals("Found 1 undescriptive variable names!", message)
     }
 
+    @Test
+    fun shouldLogTheFileTheLineAndTheCallOfAConcatenatedMessage(): Unit {
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
+        val task: RecordedLogMessagesTask = project.tasks.register(LOGS_TASK, RecordedLogMessagesTask::class.java).get()
+        this.checkFailing(task, "final class Example {\n    void run() {\n        logger.info(\"joined \" + name);\n    }\n}\n")
+
+        val source: File = task.sources.singleFile
+        val messages: List<String> = task.recorder.messages
+        val expected: String =
+            "error: $source:3: error: the message of logger.info joins strings with +; use SLF4J placeholders for the arguments instead."
+        assertEquals(listOf(expected), messages)
+    }
+
+    @Test
+    fun shouldLogTheFileTheLineAndTheNameOfAQualifiedType(): Unit {
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
+        val task: RecordedQualifiedNamesTask = project.tasks.register(QUALIFIED_TASK, RecordedQualifiedNamesTask::class.java).get()
+        this.checkFailing(task, "final class Example {\n    java.util.Map names;\n}\n")
+
+        val source: File = task.sources.singleFile
+        val messages: List<String> = task.recorder.messages
+        val expected: String =
+            "error: $source:2: error: java.util.Map is written out; import it, or mark the line // fqn: <why> if its simple name clashes."
+        assertEquals(listOf(expected), messages)
+    }
+
+    @Test
+    fun shouldLogTheFileTheLineTheKindAndTheNameOfAnUndescriptiveVariable(): Unit {
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
+        val task: RecordedVariableNamesTask = project.tasks.register(VARIABLES_TASK, RecordedVariableNamesTask::class.java).get()
+        this.checkFailing(task, "final class Example {\n    int x;\n}\n")
+
+        val source: File = task.sources.singleFile
+        val messages: List<String> = task.recorder.messages
+        assertEquals(listOf("error: $source:2: error: the field x says nothing; name what it holds."), messages)
+    }
+
     private fun checkAndReadReport(task: JavaLintTask, source: File): String {
         this.configureLint(task, source)
         task.check()
@@ -124,5 +162,32 @@ class JavaLintTaskTest {
         val failure: GradleException = assertThrows(GradleException::class.java) { task.check() }
         val reportWritten: Boolean = task.report.get().asFile.exists()
         return failure.message to reportWritten
+    }
+
+    abstract class RecordedLogMessagesTask : LogMessagesTask() {
+
+        val recorder: RecordingLogger = RecordingLogger()
+
+        override fun getLogger(): Logger {
+            return this.recorder.logger
+        }
+    }
+
+    abstract class RecordedQualifiedNamesTask : QualifiedNamesTask() {
+
+        val recorder: RecordingLogger = RecordingLogger()
+
+        override fun getLogger(): Logger {
+            return this.recorder.logger
+        }
+    }
+
+    abstract class RecordedVariableNamesTask : VariableNamesTask() {
+
+        val recorder: RecordingLogger = RecordingLogger()
+
+        override fun getLogger(): Logger {
+            return this.recorder.logger
+        }
     }
 }

@@ -22,6 +22,7 @@ import java.io.File
 import java.nio.file.Path
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.logging.Logger
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -33,6 +34,7 @@ class CoverageLintTaskTest {
     private companion object {
 
         const val SOURCE_PATH: String = "sources/sample/Example.java"
+        const val PACKAGE_SOURCE_PATH: String = "sample/Example.java"
         const val REPORT_FILE: String = "report.xml"
         const val EXCEPTIONS_FILE: String = "exceptions.txt"
 
@@ -49,27 +51,42 @@ class CoverageLintTaskTest {
 
     @Test
     fun shouldSkipTheLintOnAFilteredTestRun(): Unit {
-        val task: CoverageLintTask = this.lint(UNCOVERED_LINE_COUNTS)
+        val task: RecordedCoverageLintTask = this.lint(UNCOVERED_LINE_COUNTS)
         task.testsFiltered.set(true)
         task.lint()
+
+        val messages: List<String> = task.recorder.messages
+        val expected: String =
+            "warn: Skipped coverageLint of :fixture, since the tests ran with a filter and the report covers only part of the code."
+        assertEquals(listOf(expected), messages)
     }
 
     @Test
     fun shouldFailOnAnUncoveredLine(): Unit {
-        val task: CoverageLintTask = this.lint(UNCOVERED_LINE_COUNTS)
+        val task: RecordedCoverageLintTask = this.lint(UNCOVERED_LINE_COUNTS)
         val failure: GradleException = assertThrows(GradleException::class.java) { task.lint() }
         val message: String? = failure.message
         assertEquals("1 lines are not fully covered by tests and 0 coverage exceptions are stale!", message)
+
+        val sources: File = task.sourceDirectory.get().asFile
+        val source: File = sources.resolve(PACKAGE_SOURCE_PATH)
+        val messages: List<String> = task.recorder.messages
+        assertEquals(listOf("error: $source:1: warning: line is not covered by any test."), messages)
     }
 
     @Test
     fun shouldFailOnAnExceptionThatMatchesNoUncoveredLine(): Unit {
-        val task: CoverageLintTask = this.lint(COVERED_LINE_COUNTS)
+        val task: RecordedCoverageLintTask = this.lint(COVERED_LINE_COUNTS)
         this.directory.resolve(EXCEPTIONS_FILE).toFile().writeText(EXCEPTION_LINE)
 
         val failure: GradleException = assertThrows(GradleException::class.java) { task.lint() }
         val message: String? = failure.message
         assertEquals("0 lines are not fully covered by tests and 1 coverage exceptions are stale!", message)
+
+        val exceptions: File = task.exceptionsFile.singleFile
+        val messages: List<String> = task.recorder.messages
+        val expected: String = "error: $exceptions: warning: 'sample/Example.java | serverOnly();' matches no uncovered line, so remove it."
+        assertEquals(listOf(expected), messages)
     }
 
     @Test
@@ -79,7 +96,7 @@ class CoverageLintTaskTest {
         task.lint()
     }
 
-    private fun lint(lineCounts: String): CoverageLintTask {
+    private fun lint(lineCounts: String): RecordedCoverageLintTask {
         val source: File = this.directory.resolve(SOURCE_PATH).toFile()
         source.parentFile.mkdirs()
         source.writeText("serverOnly();\n")
@@ -93,12 +110,21 @@ class CoverageLintTaskTest {
         val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val sources: File = this.directory.resolve(SOURCES_DIRECTORY).toFile()
         val exceptions: File = this.directory.resolve(EXCEPTIONS_FILE).toFile()
-        return project.tasks.register("coverageLint", CoverageLintTask::class.java).get().apply {
+        return project.tasks.register("coverageLint", RecordedCoverageLintTask::class.java).get().apply {
             this.report.from(coverage)
             this.sourceDirectory.set(sources)
             this.exceptionsFile.from(exceptions)
             this.testsFiltered.set(false)
             this.projectPath.set(":fixture")
+        }
+    }
+
+    abstract class RecordedCoverageLintTask : CoverageLintTask() {
+
+        val recorder: RecordingLogger = RecordingLogger()
+
+        override fun getLogger(): Logger {
+            return this.recorder.logger
         }
     }
 }
