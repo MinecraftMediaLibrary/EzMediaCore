@@ -149,7 +149,7 @@ abstract class DownloadToolArchive : DefaultTask() {
         connection.getInputStream().use { input -> this.copy(input, archive) }
     }
 
-    // hook for the pitest mutants that drop a timeout: a test reads the timeouts of the connection it returns
+    // hook for the pitest mutants that drop a timeout or the close: tests inspect the connection it returns
     protected open fun openConnection(uri: URI): URLConnection {
         return uri.toURL().openConnection()
     }

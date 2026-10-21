@@ -44,6 +44,7 @@ class ModuleClassesTest {
         const val BUKKIT_JAR: String = "mcav-bukkit.jar"
         const val MISSING_JAR: String = "missing.jar"
         const val MANIFEST_ENTRY: String = "META-INF/MANIFEST.MF"
+        const val PACKAGE_ENTRY: String = "me/brandonli/mcav/common/"
 
         const val VM_PACKAGE_PATH: String = "me/brandonli/mcav/vm"
         const val VM_PLAYER_CLASS_FILE: String = "me/brandonli/mcav/vm/VMPlayer.class"
@@ -192,6 +193,7 @@ class ModuleClassesTest {
     }
 
     private fun writeEntries(zip: ZipOutputStream, classes: Array<out String>): Unit {
+        this.writeEmptyEntry(zip, PACKAGE_ENTRY)
         for (name in classes) {
             this.writeEmptyEntry(zip, "$name.class")
         }

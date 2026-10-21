@@ -19,6 +19,8 @@
 package me.brandonli.mcav.gradle
 
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import java.net.URI
 import java.net.URLConnection
 import java.nio.file.Path
@@ -92,6 +94,16 @@ class DownloadToolArchiveTest {
         val connection: URLConnection = task.connections.single()
         val timeouts: Pair<Int, Int> = connection.connectTimeout to connection.readTimeout
         assertEquals(30_000 to 120_000, timeouts)
+    }
+
+    @Test
+    fun shouldCloseTheDownloadOnceTheArchiveIsWritten(): Unit {
+        val task: RecordedDownloadToolArchive = this.zippedTool()
+        task.install()
+
+        val connection: URLConnection = task.connections.single()
+        val download: InputStream = connection.getInputStream()
+        assertThrows(IOException::class.java) { download.read() }
     }
 
     @Test

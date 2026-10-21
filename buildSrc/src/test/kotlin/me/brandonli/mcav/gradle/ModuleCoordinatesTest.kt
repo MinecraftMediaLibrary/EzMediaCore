@@ -52,10 +52,11 @@ class ModuleCoordinatesTest {
         val root: Project = ProjectBuilder.builder().withName("mcav").build()
         root.group = "fixture.group"
         ProjectBuilder.builder().withName("mcav-common").withParent(root).build()
+        ProjectBuilder.builder().withName("mcav-bukkit").withParent(root).build()
 
         val configuration: Configuration = root.configurations.create("runtimeDownload")
         val notations: List<String> =
-            listOf("fixture.group:mcav-common:1.0.0", "fixture.group:mcav-absent:1.0.0", "fixture.other:mcav-common:1.0.0")
+            listOf("fixture.group:mcav-common:1.0.0", "fixture.group:mcav-absent:1.0.0", "fixture.other:mcav-bukkit:1.0.0")
         for (notation in notations) {
             val dependency: Dependency = root.dependencies.create(notation)
             configuration.dependencies.add(dependency)

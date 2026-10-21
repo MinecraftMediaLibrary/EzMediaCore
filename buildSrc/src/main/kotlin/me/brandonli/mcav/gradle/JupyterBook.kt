@@ -51,8 +51,8 @@ abstract class JupyterBook : PythonTask() {
         const val JUPYTER_CONFIG_VARIABLE: String = "JUPYTER_CONFIG_DIR"
         const val JUPYTER_CONFIG_DIRECTORY: String = "jupyter"
 
-        val CONFIGURE_COMMAND: List<String> = listOf("config", "sphinx", BOOK_DIRECTORY)
-        val BUILD_COMMAND: List<String> = listOf(
+        private val CONFIGURE_COMMAND: List<String> = listOf("config", "sphinx", BOOK_DIRECTORY)
+        private val BUILD_COMMAND: List<String> = listOf(
             "build",
             BOOK_DIRECTORY,
             "--path-output",
