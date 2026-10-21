@@ -40,7 +40,7 @@ def with_crc(raw):
 
 
 class TransportTest(unittest.TestCase):
-    def test_should_split_six_bit_symbols_in_lsb_order_and_check_their_extent_and_padding(self):
+    def test_should_split_six_bit_symbols_in_least_significant_bit_order_and_check_their_extent_and_padding(self):
         # 0xdbd2bf, split at bit positions 0, 6, 12 and 18.
         symbols = to_symbols(bytes.fromhex('bfd2db'))
         self.assertEqual(bytes([0x3F, 0x0A, 0x3D, 0x36]), symbols)

@@ -40,15 +40,15 @@ class FixtureCoverageTest(unittest.TestCase):
 
     def test_should_cover_every_leaf_size_quantizer_vector_extreme_and_pattern_axis(self):
         modes, compacts, vectors, dimensions = set(), set(), set(), set()
-        max_cursor = max_splits = max_length = 0
+        maximum_cursor = maximum_splits = maximum_length = 0
         for frames in self.streams.values():
             for data in frames:
                 frame = parse_frame(data)
                 dimensions.add((frame.width, frame.height))
-                max_length = max(max_length, frame.total)
+                maximum_length = max(maximum_length, frame.total)
                 for checkpoint in frame.walk:
-                    max_cursor = max(max_cursor, checkpoint & 131071)
-                    max_splits = max(max_splits, checkpoint >> 17)
+                    maximum_cursor = max(maximum_cursor, checkpoint & 131071)
+                    maximum_splits = max(maximum_splits, checkpoint >> 17)
                 for leaf in frame.leaves:
                     modes.add((leaf.mode, leaf.size))
                     if leaf.mode == mcv2_reference.COMPACT:
@@ -65,11 +65,11 @@ class FixtureCoverageTest(unittest.TestCase):
         dimensions_covered = {(1, 1), (1, 97), (97, 1), (97, 65), (4096, 4096)} <= dimensions
         self.assertTrue(dimensions_covered)
 
-        self.assertGreater(max_cursor, 128000)
+        self.assertGreater(maximum_cursor, 128000)
 
-        self.assertGreater(max_splits, 20000)
+        self.assertGreater(maximum_splits, 20000)
 
-        self.assertEqual(131071, max_length)
+        self.assertEqual(131071, maximum_length)
 
         patterns = {(leaf.size, leaf.record[6], leaf.record[7:]) for leaf in
                     parse_frame(self.streams['edge-patterns.mcs'][0]).leaves}

@@ -108,7 +108,7 @@ def bd_rate_main():
     )
 
 
-codec_curves_CODECS = {
+CODEC_CURVES_CODECS = {
     "x264": {
         "container": "mkv",
         "arguments": ["-c:v", "libx264", "-preset", "veryslow", "-crf", "{q}", "-pix_fmt", "yuv420p"],
@@ -159,7 +159,7 @@ def vmaf_filter(log, threads=8):
     )
 
 
-codec_curves_VERSION_PATTERNS = {
+CODEC_CURVES_VERSION_PATTERNS = {
     "x264": re.compile(rb"x264 - core \d+ r\d+ \w+"),
     "vp9": re.compile(r"\[libvpx-vp9 @ [^\]]+\] (v\d[^\s]*)"),
     "av1": re.compile(r"\[libaom-av1 @ [^\]]+\] (\d+\.\d+\.\d+[^\s]*)"),
@@ -220,11 +220,11 @@ def codec_curves_rgb_psnr(source, decoded, frames, width, height):
 
 
 def codec_curves_point(arguments, codec, quality, folder):
-    settings = codec_curves_CODECS[codec]
+    settings = CODEC_CURVES_CODECS[codec]
     encoded = os.path.join(folder, f"{codec}-{quality}.{settings['container']}")
     decoded = os.path.join(folder, f"{codec}-{quality}.rgb")
     log = os.path.join(folder, f"{codec}-{quality}-vmaf.json")
-    size = (arguments.width, arguments.height, arguments.fps)
+    size = (arguments.width, arguments.height, arguments.frames_per_second)
     encode = [
         arguments.ffmpeg,
         "-hide_banner",
@@ -285,8 +285,8 @@ def codec_curves_point(arguments, codec, quality, folder):
         message: str = f"Codec {codec} at quality {quality} got {len(frames)} libvmaf scores for {arguments.frames} frames!"
         raise RuntimeError(message)
     container_bytes = os.path.getsize(encoded)
-    seconds = arguments.frames / arguments.fps
-    version = codec_curves_VERSION_PATTERNS[codec]
+    seconds = arguments.frames / arguments.frames_per_second
+    version = CODEC_CURVES_VERSION_PATTERNS[codec]
     if codec == "x264":
         found = version.search(Path(encoded).read_bytes())
         library = found.group(0).decode() if found else None
@@ -359,9 +359,9 @@ def codec_curves_main():
     parser.add_argument("--width", type=int, required=True)
     parser.add_argument("--height", type=int, required=True)
     parser.add_argument("--frames", type=int, required=True)
-    parser.add_argument("--fps", type=float, required=True)
+    parser.add_argument("--fps", dest="frames_per_second", type=float, required=True)
     parser.add_argument(
-        "--codecs", nargs="+", choices=sorted(codec_curves_CODECS), default=sorted(codec_curves_CODECS)
+        "--codecs", nargs="+", choices=sorted(CODEC_CURVES_CODECS), default=sorted(CODEC_CURVES_CODECS)
     )
     parser.add_argument("--qualities", nargs="+", type=int, required=True, help="the CRF values to encode at")
     parser.add_argument("--out", required=True)
@@ -370,13 +370,13 @@ def codec_curves_main():
         "width": arguments.width,
         "height": arguments.height,
         "frames": arguments.frames,
-        "fps": arguments.fps,
+        "fps": arguments.frames_per_second,
         "sha256": codec_curves_sha256(arguments.source),
     }
     try:
         measured = codec_curves_resume(arguments.out, arguments.name, identity)
-    except ValueError as error:
-        parser.error(str(error))
+    except ValueError as exception:
+        parser.error(str(exception))
     done = {(point["source"], point["codec"], point["quality"]) for point in measured["codecs"]}
     version = subprocess.run(
         [arguments.ffmpeg, "-version"], capture_output=True, text=True
@@ -403,28 +403,28 @@ def codec_curves_main():
                 os.replace(temporary, arguments.out)
 
 
-counter_video_BITS = 20
-counter_video_BLOCK = 32
-counter_video_SYNC = (1, 0, 1, 0)
+COUNTER_VIDEO_BITS = 20
+COUNTER_VIDEO_BLOCK = 32
+COUNTER_VIDEO_SYNCHRONIZATION_BITS = (1, 0, 1, 0)
 
 
 def counter_video_stamp(frame, number):
-    values = [number >> bit & 1 for bit in range(counter_video_BITS)] + list(counter_video_SYNC)
+    values = [number >> bit & 1 for bit in range(COUNTER_VIDEO_BITS)] + list(COUNTER_VIDEO_SYNCHRONIZATION_BITS)
     for position, value in enumerate(values):
         frame[
-            0:counter_video_BLOCK, position * counter_video_BLOCK : (position + 1) * counter_video_BLOCK
+            0:COUNTER_VIDEO_BLOCK, position * COUNTER_VIDEO_BLOCK : (position + 1) * COUNTER_VIDEO_BLOCK
         ] = 255 if value else 0
 
 
 def counter_video_read(luma):
     bits = [1 if value >= 128 else 0 for value in luma]
     if (
-        len(bits) < counter_video_BITS + len(counter_video_SYNC)
-        or tuple(bits[counter_video_BITS : counter_video_BITS + len(counter_video_SYNC)])
-        != counter_video_SYNC
+        len(bits) < COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS)
+        or tuple(bits[COUNTER_VIDEO_BITS : COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS)])
+        != COUNTER_VIDEO_SYNCHRONIZATION_BITS
     ):
         return None
-    return sum(bit << position for position, bit in enumerate(bits[:counter_video_BITS]))
+    return sum(bit << position for position, bit in enumerate(bits[:COUNTER_VIDEO_BITS]))
 
 
 def counter_video_main():
@@ -438,7 +438,7 @@ def counter_video_main():
     parser.add_argument("clip")
     parser.add_argument("width", type=int)
     parser.add_argument("height", type=int)
-    parser.add_argument("fps", type=int)
+    parser.add_argument("frames_per_second", type=int)
     parser.add_argument("seconds", type=float)
     parser.add_argument("out")
     parser.add_argument("--ffmpeg", default="ffmpeg")
@@ -449,13 +449,13 @@ def counter_video_main():
     count = clip.size // size
     if (
         count < 1
-        or width < counter_video_BLOCK * (counter_video_BITS + len(counter_video_SYNC))
-        or height < counter_video_BLOCK
+        or width < COUNTER_VIDEO_BLOCK * (COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS))
+        or height < COUNTER_VIDEO_BLOCK
     ):
-        minimum_width: int = counter_video_BLOCK * (counter_video_BITS + len(counter_video_SYNC))
-        message: str = f"The clip must have a frame at least {minimum_width} pixels wide and {counter_video_BLOCK} pixels high!"
+        minimum_width: int = COUNTER_VIDEO_BLOCK * (COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS))
+        message: str = f"The clip must have a frame at least {minimum_width} pixels wide and {COUNTER_VIDEO_BLOCK} pixels high!"
         sys.exit(message)
-    frames = int(arguments.seconds * arguments.fps)
+    frames = int(arguments.seconds * arguments.frames_per_second)
     raw = arguments.out.endswith(".rgb")
     encoder = (
         None
@@ -474,7 +474,7 @@ def counter_video_main():
                 "-s",
                 "%dx%d" % (width, height),
                 "-r",
-                str(arguments.fps),
+                str(arguments.frames_per_second),
                 "-i",
                 "-",
                 "-c:v",
@@ -484,7 +484,7 @@ def counter_video_main():
                 "-crf",
                 "12",
                 "-g",
-                str(2 * arguments.fps),
+                str(2 * arguments.frames_per_second),
                 "-pix_fmt",
                 "yuv420p",
                 arguments.out,
@@ -670,22 +670,22 @@ def capture_check_main():
     sys.exit(0 if not near and (not missing) else 1)
 
 
-edge_streams_DEFAULT_SEED = 20261008
+EDGE_STREAMS_DEFAULT_SEED = 20261008
 
 
-def edge_streams_rbytes(randomizer, count):
+def edge_streams_random_bytes(randomizer, count):
     return bytes(randomizer.randrange(256) for _ in range(count))
 
 
 def edge_streams_compact_record(randomizer):
-    return edge_streams_rbytes(randomizer, mcv2_reference.COMPACT_BYTES)
+    return edge_streams_random_bytes(randomizer, mcv2_reference.COMPACT_BYTES)
 
 
 def edge_streams_pattern_record(randomizer, size):
     return (
-        edge_streams_rbytes(randomizer, 6)
+        edge_streams_random_bytes(randomizer, 6)
         + bytes([randomizer.randrange(2)])
-        + edge_streams_rbytes(randomizer, size // 8)
+        + edge_streams_random_bytes(randomizer, size // 8)
     )
 
 
@@ -699,16 +699,16 @@ def edge_streams_leaf(randomizer, size, keyframe, mode=None):
     if mode == mcv2_reference.SKIP:
         return Node(mode)
     if mode == mcv2_reference.MOTION:
-        return Node(mode, record=edge_streams_rbytes(randomizer, 2))
+        return Node(mode, record=edge_streams_random_bytes(randomizer, 2))
     if mode == mcv2_reference.SOLID:
-        return Node(mode, record=edge_streams_rbytes(randomizer, 3))
+        return Node(mode, record=edge_streams_random_bytes(randomizer, 3))
     if mode == mcv2_reference.PALETTE:
-        return Node(mode, record=edge_streams_rbytes(randomizer, 6 + size * size // 8))
+        return Node(mode, record=edge_streams_random_bytes(randomizer, 6 + size * size // 8))
     if mode == mcv2_reference.PATTERN:
         return Node(mode, record=edge_streams_pattern_record(randomizer, size))
     return Node(
         mcv2_reference.COMPACT,
-        randomizer.randrange(mcv2_reference.MAX_QUANTIZER + 1),
+        randomizer.randrange(mcv2_reference.MAXIMUM_QUANTIZER + 1),
         edge_streams_compact_record(randomizer),
     )
 
@@ -754,12 +754,12 @@ def edge_streams_mode_stream(randomizer):
             edge_streams_repeated(edge_streams_leaf(randomizer, size, False, mode), size)
             for mode in range(mcv2_reference.COMPACT)
         )
-        for quantizer in range(mcv2_reference.MAX_QUANTIZER + 1):
+        for quantizer in range(mcv2_reference.MAXIMUM_QUANTIZER + 1):
             for vector, luma in (
-                (b"\x00\x00", edge_streams_rbytes(randomizer, 8)),
+                (b"\x00\x00", edge_streams_random_bytes(randomizer, 8)),
                 (b"\x80\x7f", bytes([119]) * 8),
                 (b"\x7f\x80", bytes([136]) * 8),
-                (edge_streams_rbytes(randomizer, 2), edge_streams_rbytes(randomizer, 8)),
+                (edge_streams_random_bytes(randomizer, 2), edge_streams_random_bytes(randomizer, 8)),
             ):
                 nodes.append(
                     edge_streams_repeated(Node(mcv2_reference.COMPACT, quantizer, vector + luma), size)
@@ -790,7 +790,7 @@ def edge_streams_pattern_stream(randomizer):
                 bytes(size // 8),
                 bytes([255]) * (size // 8),
                 bytes([165]) * (size // 8),
-                edge_streams_rbytes(randomizer, size // 8),
+                edge_streams_random_bytes(randomizer, size // 8),
             ):
                 roots[index] = edge_streams_repeated(
                     Node(mcv2_reference.PATTERN, record=endpoints[index % 2] + bytes([orientation]) + axis),
@@ -808,7 +808,7 @@ def edge_streams_pattern_stream(randomizer):
     return [pack_frame(256, 96, 0, 0, roots), pack_frame(256, 96, 1, 0, swapped)]
 
 
-def edge_streams_build_streams(seed=edge_streams_DEFAULT_SEED):
+def edge_streams_build_streams(seed=EDGE_STREAMS_DEFAULT_SEED):
     randomizer = random.Random(seed)
     streams = {
         "edge-modes.mcs": edge_streams_mode_stream(randomizer),
@@ -858,7 +858,7 @@ def edge_streams_build_streams(seed=edge_streams_DEFAULT_SEED):
                     children=tuple(
                         Node(
                             mcv2_reference.COMPACT,
-                            (index + entry_index) % (mcv2_reference.MAX_QUANTIZER + 1),
+                            (index + entry_index) % (mcv2_reference.MAXIMUM_QUANTIZER + 1),
                             edge_streams_compact_record(randomizer),
                         )
                         for entry_index in range(4)
@@ -873,13 +873,13 @@ def edge_streams_build_streams(seed=edge_streams_DEFAULT_SEED):
     roots = {index: edge_streams_repeated(Node(mcv2_reference.SKIP), 8) for index in range(4086)}
     streams["edge-max-splits.mcs"] = [pack_frame(4096, 4096, 0, 0, roots)]
     roots = {
-        index: Node(mcv2_reference.PALETTE, record=edge_streams_rbytes(randomizer, 134))
+        index: Node(mcv2_reference.PALETTE, record=edge_streams_random_bytes(randomizer, 134))
         for index in range(965)
     }
     roots[965] = Node(mcv2_reference.PATTERN, record=edge_streams_pattern_record(randomizer, 32))
     roots.update(
         {
-            index: Node(mcv2_reference.SOLID, record=edge_streams_rbytes(randomizer, 3))
+            index: Node(mcv2_reference.SOLID, record=edge_streams_random_bytes(randomizer, 3))
             for index in range(966, 993)
         }
     )
@@ -897,7 +897,7 @@ def edge_streams_build_streams(seed=edge_streams_DEFAULT_SEED):
     return streams
 
 
-def edge_streams_generate(output, seed=edge_streams_DEFAULT_SEED):
+def edge_streams_generate(output, seed=EDGE_STREAMS_DEFAULT_SEED):
     output.mkdir(parents=True, exist_ok=True)
     streams = edge_streams_build_streams(seed)
     for old in output.glob("edge-*.mcs"):
@@ -915,10 +915,10 @@ def edge_streams_generate(output, seed=edge_streams_DEFAULT_SEED):
     for name, case in rejected.items():
         try:
             parse_frame(bytes.fromhex(case["frame"]))
-        except ValueError as error:
-            if case["reason"] not in str(error):
-                message: str = f"Fixture {name} must be rejected for {case['reason']!r}, but it was rejected for {str(error)!r} instead!"
-                raise ValueError(message) from error
+        except ValueError as exception:
+            if case["reason"] not in str(exception):
+                message: str = f"Fixture {name} must be rejected for {case['reason']!r}, but it was rejected for {str(exception)!r} instead!"
+                raise ValueError(message) from exception
         else:
             message: str = f"Rejected fixture {name} was accepted!"
             raise ValueError(message)
@@ -938,12 +938,12 @@ def edge_streams_main():
         ),
     )
     parser.add_argument("output", type=Path)
-    parser.add_argument("seed", nargs="?", type=int, default=edge_streams_DEFAULT_SEED)
+    parser.add_argument("seed", nargs="?", type=int, default=EDGE_STREAMS_DEFAULT_SEED)
     arguments = parser.parse_args()
     edge_streams_generate(arguments.output, arguments.seed)
 
 
-fixtures_PREFIX_LIMIT = 1_000_000
+FIXTURES_PREFIX_LIMIT = 1_000_000
 
 
 def archive_frames(data):
@@ -1001,8 +1001,8 @@ def fixtures_conformance(root):
         if result is None:
             continue
         data, kept = result
-        if len(data) > fixtures_PREFIX_LIMIT or not parse_frame(kept[0]).keyframe:
-            message: str = f"Conformance stream {stream} must start with a keyframe and fit within {fixtures_PREFIX_LIMIT} bytes!"
+        if len(data) > FIXTURES_PREFIX_LIMIT or not parse_frame(kept[0]).keyframe:
+            message: str = f"Conformance stream {stream} must start with a keyframe and fit within {FIXTURES_PREFIX_LIMIT} bytes!"
             raise ValueError(message)
         table[stream.name] = dict(frames=len(kept), bytes=len(data), sha256_per_frame=fixtures_digests(data))
         updated = True
@@ -1093,7 +1093,7 @@ def fixtures_main():
         steps[step](arguments.root)
 
 
-differential_DEFAULT_CORPUS = (
+DIFFERENTIAL_DEFAULT_CORPUS = (
     Path(__file__).resolve().parents[4] / "mcav-bukkit/src/test/resources/mcv2/conformance"
 )
 
@@ -1224,7 +1224,7 @@ def differential_main():
     parser.add_argument(
         "--conformance", type=int, default=40, help="committed archives, cycling when necessary"
     )
-    parser.add_argument("--corpus", type=Path, default=differential_DEFAULT_CORPUS)
+    parser.add_argument("--corpus", type=Path, default=DIFFERENTIAL_DEFAULT_CORPUS)
     parser.add_argument("--mutants", type=int, default=1, help="mutated copies of every archive")
     parser.add_argument("--seed", type=int, default=20260926)
     parser.add_argument("--out", type=Path, default=Path("build/mcv2-differential"))
@@ -1294,7 +1294,7 @@ def rate_quality_main():
     parser.add_argument("--width", type=int, default=1920)
     parser.add_argument("--height", type=int, default=1080)
     parser.add_argument("--frames", type=int, default=60)
-    parser.add_argument("--fps", type=float, default=60)
+    parser.add_argument("--fps", dest="frames_per_second", type=float, default=60)
     parser.add_argument("--lambdas", required=True)
     parser.add_argument("--ffmpeg", required=True)
     parser.add_argument("--java", default="java")
@@ -1317,7 +1317,7 @@ def rate_quality_main():
                 f"width={arguments.width}",
                 f"height={arguments.height}",
                 f"frames={arguments.frames}",
-                f"fps={arguments.fps}",
+                f"fps={arguments.frames_per_second}",
                 f"lambda={value}",
                 f"decoded={decoded}",
                 *arguments.encoder,
@@ -1333,7 +1333,7 @@ def rate_quality_main():
                 arguments.width,
                 arguments.height,
                 arguments.frames,
-                arguments.fps,
+                arguments.frames_per_second,
             )
             points.append(point)
             print(json.dumps(point), file=sys.stderr)
@@ -1348,14 +1348,14 @@ SPIRV_HELP = (
 )
 
 
-shader_check_ROOT = Path(__file__).resolve().parents[4]
-shader_check_PACK = shader_check_ROOT / "mcav-bukkit/src/main/resources/mcav/mcv2/pack"
-shader_check_SCREEN = (1920, 1080)
-shader_check_STREAM_ID = 7
-shader_check_SCREEN_INDEX = 0
-shader_check_FIRST_SLOT = 0
-shader_check_IDLE_SLOTS = 8
-shader_check_VERTEX = """#version 330
+SHADER_CHECK_ROOT = Path(__file__).resolve().parents[4]
+shader_check_pack = SHADER_CHECK_ROOT / "mcav-bukkit/src/main/resources/mcav/mcv2/pack"
+shader_check_screen = (1920, 1080)
+SHADER_CHECK_STREAM_ID = 7
+shader_check_screen_index = 0
+shader_check_first_slot = 0
+SHADER_CHECK_IDLE_SLOTS = 8
+SHADER_CHECK_VERTEX = """#version 330
 #extension GL_ARB_separate_shader_objects : require
 layout(location = 0) out vec2 texCoord;
 void main() {
@@ -1389,8 +1389,8 @@ def shader_check_placeholders(width, height, slots):
 
 
 def shader_check_post_chain(width, height, slots):
-    template_path = shader_check_PACK.parent / "chain.json"
-    text = template_path.read_text().replace("@S@", str(shader_check_SCREEN_INDEX))
+    template_path = shader_check_pack.parent / "chain.json"
+    text = template_path.read_text().replace("@S@", str(shader_check_screen_index))
     for name, value in shader_check_placeholders(width, height, slots).items():
         text = text.replace("@%s@" % name, str(value))
     template = json.loads(text)
@@ -1399,7 +1399,7 @@ def shader_check_post_chain(width, height, slots):
     return {"targets": targets, "passes": template["decode"] + template["draw"] + template["tail"]}
 
 
-shader_check_BLIT = """#version 330
+SHADER_CHECK_BLIT = """#version 330
 #extension GL_ARB_separate_shader_objects : require
 uniform sampler2D InSampler;
 layout(location = 0) out vec4 fragColor;
@@ -1409,36 +1409,36 @@ void main() {
 """
 
 
-def shader_check_screens_config(slots):
-    if shader_check_SCREEN_INDEX == 0:
+def shader_check_screens_configuration(slots):
+    if shader_check_screen_index == 0:
         return [
             "const int MCV2_SCREENS = 1;",
             "const int MCV2_TOTAL_SLOTS = %d;" % slots,
-            "const uint MCV2_SCREEN_STREAMS[1] = uint[1](%du);" % shader_check_STREAM_ID,
+            "const uint MCV2_SCREEN_STREAMS[1] = uint[1](%du);" % SHADER_CHECK_STREAM_ID,
             "const int MCV2_SCREEN_SLOTS[1] = int[1](%d);" % slots,
             "const int MCV2_SCREEN_FIRST_SLOTS[1] = int[1](0);",
         ]
     return [
         "const int MCV2_SCREENS = 2;",
-        "const int MCV2_TOTAL_SLOTS = %d;" % (shader_check_IDLE_SLOTS + slots),
-        "const uint MCV2_SCREEN_STREAMS[2] = uint[2](1u, %du);" % shader_check_STREAM_ID,
-        "const int MCV2_SCREEN_SLOTS[2] = int[2](%d, %d);" % (shader_check_IDLE_SLOTS, slots),
-        "const int MCV2_SCREEN_FIRST_SLOTS[2] = int[2](0, %d);" % shader_check_IDLE_SLOTS,
+        "const int MCV2_TOTAL_SLOTS = %d;" % (SHADER_CHECK_IDLE_SLOTS + slots),
+        "const uint MCV2_SCREEN_STREAMS[2] = uint[2](1u, %du);" % SHADER_CHECK_STREAM_ID,
+        "const int MCV2_SCREEN_SLOTS[2] = int[2](%d, %d);" % (SHADER_CHECK_IDLE_SLOTS, slots),
+        "const int MCV2_SCREEN_FIRST_SLOTS[2] = int[2](0, %d);" % SHADER_CHECK_IDLE_SLOTS,
     ]
 
 
 def shader_check_generated(width, height, slots):
     return {
         "mcav:mcv2_config.glsl": "\n".join(
-            shader_check_screens_config(slots)
+            shader_check_screens_configuration(slots)
             + ["const bool MCV2_DEBUG_VIEW = false;", "const ivec3 MCV2_OUTLINE_COLOR = ivec3(0, 0, 0);", ""]
         ),
         "mcav:mcv2_screen.glsl": "\n".join(
             [
-                "const int MCV2_SCREEN_INDEX = %d;" % shader_check_SCREEN_INDEX,
+                "const int MCV2_SCREEN_INDEX = %d;" % shader_check_screen_index,
                 "const int MCV2_PAGE_SLOTS = %d;" % slots,
-                "const int MCV2_FIRST_SLOT = %d;" % shader_check_FIRST_SLOT,
-                "const uint MCV2_STREAM_ID = %du;" % shader_check_STREAM_ID,
+                "const int MCV2_FIRST_SLOT = %d;" % shader_check_first_slot,
+                "const uint MCV2_STREAM_ID = %du;" % SHADER_CHECK_STREAM_ID,
                 "const int MCV2_VIDEO_WIDTH = %d;" % width,
                 "const int MCV2_VIDEO_HEIGHT = %d;" % height,
                 "const int MCV2_BYTES_WIDTH = 128;",
@@ -1465,7 +1465,7 @@ def shader_check_resolve(source, includes, seen=None):
             text = includes[name]
         else:
             namespace, path = name.split(":")
-            text = (shader_check_PACK / "assets" / namespace / "shaders/include" / path).read_text()
+            text = (shader_check_pack / "assets" / namespace / "shaders/include" / path).read_text()
         return shader_check_resolve(text, includes, seen)
 
     return re.sub("^#include <([^>]+)>", include, source, flags=re.M)
@@ -1488,28 +1488,28 @@ class ShaderChain:
         chain = shader_check_post_chain(width, height, slots)
         self.passes = chain["passes"]
         make = lambda width, height: context.texture((width, height), 4, dtype="f1")
-        self.main = make(*shader_check_SCREEN)
-        self.depth = context.depth_texture(shader_check_SCREEN)
+        self.main = make(*shader_check_screen)
+        self.depth = context.depth_texture(shader_check_screen)
         self.depth.compare_func = ""
         framebuffer = context.framebuffer(depth_attachment=self.depth)
         framebuffer.clear(depth=0.0)
         framebuffer.release()
-        self.targets = {"minecraft:main": self.main, "minecraft:entity_outline": make(*shader_check_SCREEN)}
+        self.targets = {"minecraft:main": self.main, "minecraft:entity_outline": make(*shader_check_screen)}
         self.persistent = []
         for name, definition in chain["targets"].items():
             self.targets[name] = make(
-                definition.get("width", shader_check_SCREEN[0]), definition.get("height", shader_check_SCREEN[1])
+                definition.get("width", shader_check_screen[0]), definition.get("height", shader_check_screen[1])
             )
             if definition.get("persistent"):
                 self.persistent.append(name)
         for texture in self.targets.values():
             texture.filter = (context.NEAREST, context.NEAREST)
             texture.write(bytes(texture.width * texture.height * 4))
-        self.blit = context.program(vertex_shader=shader_check_VERTEX, fragment_shader=shader_check_BLIT)
+        self.blit = context.program(vertex_shader=SHADER_CHECK_VERTEX, fragment_shader=SHADER_CHECK_BLIT)
         self.compiled = None
 
     def target(self, name):
-        return self.targets[name if ":" in name else "mcav:mcv2_%s_%d" % (name, shader_check_SCREEN_INDEX)]
+        return self.targets[name if ":" in name else "mcav:mcv2_%s_%d" % (name, shader_check_screen_index)]
 
     def program(self, name, vertex="minecraft:core/screenquad"):
         key = (name, vertex)
@@ -1519,19 +1519,19 @@ class ShaderChain:
             else:
                 source = shader_check_desktop(
                     shader_check_resolve(
-                        (shader_check_PACK / "assets/mcav/shaders/post" / (name + ".fsh")).read_text(),
+                        (shader_check_pack / "assets/mcav/shaders/post" / (name + ".fsh")).read_text(),
                         self.includes,
                     )
                 )
             if vertex == "minecraft:core/screenquad":
-                vertex_source = shader_check_VERTEX
+                vertex_source = SHADER_CHECK_VERTEX
             elif self.compiled is not None:
                 vertex_source = (self.compiled / (vertex.split("/")[-1] + ".vsh")).read_text()
             else:
                 vertex_source = shader_check_desktop(
                     shader_check_resolve(
                         (
-                            shader_check_PACK / "assets/mcav/shaders/post" / (vertex.split("/")[-1] + ".vsh")
+                            shader_check_pack / "assets/mcav/shaders/post" / (vertex.split("/")[-1] + ".vsh")
                         ).read_text(),
                         self.includes,
                     )
@@ -1580,8 +1580,8 @@ class ShaderChain:
             texture.write(bytes(texture.width * texture.height * 4))
 
     def show(self, pages):
-        screen = numpy.zeros((shader_check_SCREEN[1], shader_check_SCREEN[0], 4), numpy.uint8)
-        rows = (4096 + shader_check_SCREEN[0] - 1) // shader_check_SCREEN[0]
+        screen = numpy.zeros((shader_check_screen[1], shader_check_screen[0], 4), numpy.uint8)
+        rows = (4096 + shader_check_screen[0] - 1) // shader_check_screen[0]
         for page in pages:
             symbols = numpy.zeros(16384, numpy.uint32)
             symbols[: len(page)] = numpy.frombuffer(page, numpy.uint8)
@@ -1589,12 +1589,12 @@ class ShaderChain:
             packed = numpy.stack(
                 [bits & 255, bits >> 8 & 255, bits >> 16, numpy.full_like(bits, 255)], axis=1
             ).astype(numpy.uint8)
-            strip = numpy.zeros((rows * shader_check_SCREEN[0], 4), numpy.uint8)
+            strip = numpy.zeros((rows * shader_check_screen[0], 4), numpy.uint8)
             strip[:4096] = packed
-            slot = shader_check_FIRST_SLOT + shader_check_page_number(page)
+            slot = shader_check_first_slot + shader_check_page_number(page)
             for row in range(rows):
-                screen[shader_check_SCREEN[1] - 1 - (slot * rows + row)] = strip[
-                    row * shader_check_SCREEN[0] : (row + 1) * shader_check_SCREEN[0]
+                screen[shader_check_screen[1] - 1 - (slot * rows + row)] = strip[
+                    row * shader_check_screen[0] : (row + 1) * shader_check_screen[0]
                 ]
         self.main.write(screen.tobytes())
 
@@ -1622,7 +1622,7 @@ def shader_check_compile_via_spirv(includes, classpath):
         classpath,
         tool,
         "shader-compile",
-        str(shader_check_PACK),
+        str(shader_check_pack),
         str(generated),
         str(work / "glsl"),
         "--post-only",
@@ -1661,7 +1661,7 @@ def shader_check_check_restart(context, slots, classpath=None):
     held_id = None
     for index, (frame_id, reference_id, color, should_decode, expected_color) in enumerate(cases):
         data = pack_frame(32, 32, frame_id, reference_id, {0: Node(SOLID, record=bytes(color))})
-        chain.show(make_pages(data, shader_check_STREAM_ID, 6))
+        chain.show(make_pages(data, SHADER_CHECK_STREAM_ID, 6))
         chain_decoded, picture = chain.frame()
         if should_decode:
             held_id = frame_id
@@ -1706,11 +1706,11 @@ def shader_check_main():
     )
     arguments = parser.parse_args()
     if arguments.second_screen:
-        global shader_check_SCREEN_INDEX, shader_check_FIRST_SLOT
-        shader_check_SCREEN_INDEX, shader_check_FIRST_SLOT = (1, shader_check_IDLE_SLOTS)
+        global shader_check_screen_index, shader_check_first_slot
+        shader_check_screen_index, shader_check_first_slot = (1, SHADER_CHECK_IDLE_SLOTS)
     if arguments.pack:
-        global shader_check_PACK
-        shader_check_PACK = arguments.pack
+        global shader_check_pack
+        shader_check_pack = arguments.pack
     import moderngl
 
     context = moderngl.create_standalone_context(
@@ -1733,7 +1733,7 @@ def shader_check_main():
                     chain.compiled = shader_check_compile_via_spirv(chain.includes, arguments.spirv)
             if arguments.drop and index % arguments.drop == arguments.drop - 1:
                 continue
-            pages = make_pages(frame, shader_check_STREAM_ID, 6)
+            pages = make_pages(frame, SHADER_CHECK_STREAM_ID, 6)
             # Mcv2Channel.send refuses a frame with more pages than slots, so the client never receives it.
             delta = None if last_id is None else (frame_id - last_id) & 0xFFFFFFFF
             newer = delta is None or (delta > 0 and (keyframe or delta < 0x80000000))
@@ -1776,9 +1776,9 @@ def shader_check_main():
     sys.exit(1 if failures else 0)
 
 
-def shader_timing_perspective(fov_y, aspect, near, far):
+def shader_timing_perspective(field_of_view_y, aspect, near, far):
     """An OpenGL projection matrix, column-major like GLSL's mat4 constructor order."""
-    focal_length = 1.0 / numpy.tan(numpy.radians(fov_y) / 2)
+    focal_length = 1.0 / numpy.tan(numpy.radians(field_of_view_y) / 2)
     matrix = numpy.zeros((4, 4), numpy.float32)
     matrix[0, 0] = focal_length / aspect
     matrix[1, 1] = focal_length
@@ -1810,16 +1810,16 @@ class TimedShaderChain(ShaderChain):
 
     def show(self, pages):
         super().show(pages)
-        rows = (4096 + shader_check_SCREEN[0] - 1) // shader_check_SCREEN[0]
+        rows = (4096 + shader_check_screen[0] - 1) // shader_check_screen[0]
         row = (
-            shader_check_SCREEN[1]
+            shader_check_screen[1]
             - 1
-            - (shader_check_FIRST_SLOT + self.slots) * rows
-            - shader_check_SCREEN_INDEX
+            - (shader_check_first_slot + self.slots) * rows
+            - shader_check_screen_index
         )
         self.main.write(
-            shader_timing_descriptor_row(shader_check_SCREEN[0]).tobytes(),
-            viewport=(0, row, shader_check_SCREEN[0], 1),
+            shader_timing_descriptor_row(shader_check_screen[0]).tobytes(),
+            viewport=(0, row, shader_check_screen[0], 1),
         )
 
     def warm(self):
@@ -1858,7 +1858,7 @@ def shader_timing_summarize(samples, names):
 
 
 def shader_timing_main():
-    global shader_check_PACK
+    global shader_check_pack
     parser = argparse.ArgumentParser(
         description=(
             "Time GPU passes for new and repeated pages; the first round warms up and is excluded. Exit 1 if a "
@@ -1880,7 +1880,7 @@ def shader_timing_main():
         message: str = "The run needs at least two rounds, one repeat and one page slot!"
         parser.error(message)
     if arguments.pack:
-        shader_check_PACK = arguments.pack
+        shader_check_pack = arguments.pack
     import moderngl
 
     if arguments.reference:
@@ -1904,14 +1904,14 @@ def shader_timing_main():
         frames = list(read_archive(stream))
         width, height = struct.unpack_from("<HH", frames[0], 8)
         chain = TimedShaderChain(context, width, height, arguments.slots)
-        pages = [page_maker(frame, shader_check_STREAM_ID, 6) for frame in frames]
+        pages = [page_maker(frame, SHADER_CHECK_STREAM_ID, 6) for frame in frames]
         keyframes = [
             frame[12:16] == frame[16:20] if frame[4] == 3 else bool(frame[6] & 1) for frame in frames
         ]
         if arguments.spirv:
             chain.compiled = shader_check_compile_via_spirv(chain.includes, arguments.spirv)
         first_pictures = None
-        new_keyframes, new_p_frames, idle = ([], [], [])
+        new_keyframes, new_predicted_frames, idle = ([], [], [])
         mismatches = 0
         for round_index in range(arguments.rounds):
             chain.reset()
@@ -1929,7 +1929,7 @@ def shader_timing_main():
                     failures += 1
                     print("  frame %d: decoded %s, decoded again %s" % (index, decoded, shown_again))
                 if round_index > 0:
-                    (new_keyframes if keyframes[index] else new_p_frames).append(times)
+                    (new_keyframes if keyframes[index] else new_predicted_frames).append(times)
                     idle.append(again)
             if first_pictures is None:
                 first_pictures = pictures
@@ -1943,7 +1943,7 @@ def shader_timing_main():
             frames=len(frames),
             mismatches=mismatches,
             new_keyframe=shader_timing_summarize(new_keyframes, names),
-            new_p=shader_timing_summarize(new_p_frames, names),
+            new_p=shader_timing_summarize(new_predicted_frames, names),
             idle=shader_timing_summarize(idle, names),
         )
         report["streams"][Path(stream).name] = result
@@ -1967,28 +1967,28 @@ def shader_timing_main():
     sys.exit(1 if failures else 0)
 
 
-strip_check_PAGE_PIXELS = PAGE_SYMBOLS // 4
-strip_check_HEADER_SYMBOLS = (PAGE_HEADER.size * 8 + SYMBOL_BITS - 1) // SYMBOL_BITS
-strip_check_SQUARE = 20
-strip_check_STEP = 24
-strip_check_GREEN, strip_check_RED, strip_check_BLUE = ((0, 255, 0), (255, 0, 0), (0, 0, 255))
-strip_check_DESCRIPTOR = [tuple(b"MCV"), (0xA1, 0, 0)]
+STRIP_CHECK_PAGE_PIXELS = PAGE_SYMBOLS // 4
+STRIP_CHECK_HEADER_SYMBOLS = (PAGE_HEADER.size * 8 + SYMBOL_BITS - 1) // SYMBOL_BITS
+STRIP_CHECK_SQUARE = 20
+STRIP_CHECK_STEP = 24
+STRIP_CHECK_GREEN, STRIP_CHECK_RED, STRIP_CHECK_BLUE = ((0, 255, 0), (255, 0, 0), (0, 0, 255))
+STRIP_CHECK_DESCRIPTOR = [tuple(b"MCV"), (0xA1, 0, 0)]
 
 
 def strip_check_page_symbols(screen, slot, rows):
     pixels = (
-        screen[slot * rows : (slot + 1) * rows].reshape(-1, 3)[:strip_check_PAGE_PIXELS].astype(numpy.uint32)
+        screen[slot * rows : (slot + 1) * rows].reshape(-1, 3)[:STRIP_CHECK_PAGE_PIXELS].astype(numpy.uint32)
     )
     bits = pixels[:, 0] | pixels[:, 1] << 8 | pixels[:, 2] << 16
     return numpy.stack([bits >> shift & 63 for shift in (0, 6, 12, 18)], axis=1).astype(numpy.uint8).ravel()
 
 
 def strip_check_read_strip_page(symbols):
-    if len(symbols) < strip_check_HEADER_SYMBOLS:
+    if len(symbols) < STRIP_CHECK_HEADER_SYMBOLS:
         message: str = "The strip page header is truncated!"
         raise ValueError(message)
     bits = (
-        (symbols[:strip_check_HEADER_SYMBOLS, None] >> numpy.arange(SYMBOL_BITS) & 1)
+        (symbols[:STRIP_CHECK_HEADER_SYMBOLS, None] >> numpy.arange(SYMBOL_BITS) & 1)
         .astype(numpy.uint8)
         .ravel()
     )
@@ -2041,7 +2041,7 @@ def strip_check_main():
     for capture in captures:
         screen = numpy.asarray(Image.open(capture).convert("RGB"))
         width = screen.shape[1]
-        rows = (strip_check_PAGE_PIXELS + width - 1) // width
+        rows = (STRIP_CHECK_PAGE_PIXELS + width - 1) // width
         pages = {}
         for slot in range(arguments.slots):
             try:
@@ -2051,36 +2051,36 @@ def strip_check_main():
                 pages[slot] = True
                 valid[slot] += 1
                 frames.add((page.frame_id, page.number))
-            except ValueError as error:
+            except ValueError as exception:
                 pages[slot] = False
-                invalid[slot, str(error)] += 1
+                invalid[slot, str(exception)] += 1
         descriptor_row = total_slots * rows + arguments.screen
         if [
             tuple(int(channel) for channel in screen[descriptor_row, column]) for column in range(2)
-        ] == strip_check_DESCRIPTOR:
+        ] == STRIP_CHECK_DESCRIPTOR:
             descriptors += 1
         else:
             failures.append((capture.name, "descriptor"))
         top = total_slots * rows + arguments.screens + arguments.debug_top
-        if arguments.video_width + 8 + (arguments.slots + 5) * strip_check_STEP > width:
+        if arguments.video_width + 8 + (arguments.slots + 5) * STRIP_CHECK_STEP > width:
             continue
         squared += 1
         colours = []
         for square in range(arguments.slots + 5):
-            left = arguments.video_width + 8 + square * strip_check_STEP
-            region = screen[top : top + strip_check_SQUARE, left : left + strip_check_SQUARE].reshape(-1, 3)
+            left = arguments.video_width + 8 + square * STRIP_CHECK_STEP
+            region = screen[top : top + STRIP_CHECK_SQUARE, left : left + STRIP_CHECK_SQUARE].reshape(-1, 3)
             if numpy.any(region != region[0]):
                 failures.append((capture.name, "square %d is not one colour" % square))
             colours.append(tuple(int(channel) for channel in region[0]))
         for slot in range(arguments.slots):
-            if colours[slot] != (strip_check_GREEN if pages[slot] else strip_check_RED):
+            if colours[slot] != (STRIP_CHECK_GREEN if pages[slot] else STRIP_CHECK_RED):
                 failures.append(
                     (capture.name, "slot %d square %s, page valid %s" % (slot, colours[slot], pages[slot]))
                 )
         decision = {
-            strip_check_GREEN: "decoded",
-            strip_check_BLUE: "nothing new",
-            strip_check_RED: "cannot decode",
+            STRIP_CHECK_GREEN: "decoded",
+            STRIP_CHECK_BLUE: "nothing new",
+            STRIP_CHECK_RED: "cannot decode",
         }.get(colours[arguments.slots], "other")
         decisions[decision] += 1
         if decision in ("cannot decode", "other"):
@@ -2110,17 +2110,17 @@ def strip_check_main():
     sys.exit(1 if failures else 0)
 
 
-strip_fit_check_VIDEO = (64, 64)
-strip_fit_check_SLOTS = 8
+STRIP_FIT_CHECK_VIDEO = (64, 64)
+STRIP_FIT_CHECK_SLOTS = 8
 
 
 def strip_fit_check_frame(context, screen, spirv=None, screen_index=0):
     """Use the same random scene for every size, so strip coverage can be compared exactly."""
-    global shader_check_SCREEN, shader_check_SCREEN_INDEX, shader_check_FIRST_SLOT
-    shader_check_SCREEN = screen
-    shader_check_SCREEN_INDEX = screen_index
-    shader_check_FIRST_SLOT = shader_check_IDLE_SLOTS if screen_index else 0
-    chain = ShaderChain(context, strip_fit_check_VIDEO[0], strip_fit_check_VIDEO[1], strip_fit_check_SLOTS)
+    global shader_check_screen, shader_check_screen_index, shader_check_first_slot
+    shader_check_screen = screen
+    shader_check_screen_index = screen_index
+    shader_check_first_slot = SHADER_CHECK_IDLE_SLOTS if screen_index else 0
+    chain = ShaderChain(context, STRIP_FIT_CHECK_VIDEO[0], STRIP_FIT_CHECK_VIDEO[1], STRIP_FIT_CHECK_SLOTS)
     if spirv:
         chain.compiled = shader_check_compile_via_spirv(chain.includes, spirv)
     scene = numpy.random.default_rng(7).integers(0, 256, (screen[1], screen[0], 4), dtype=numpy.uint8)
@@ -2132,7 +2132,7 @@ def strip_fit_check_frame(context, screen, spirv=None, screen_index=0):
 
 
 def strip_fit_check_strip_rows(width):
-    return strip_fit_check_SLOTS * ((4096 + width - 1) // width) + 1
+    return STRIP_FIT_CHECK_SLOTS * ((4096 + width - 1) // width) + 1
 
 
 def strip_fit_check_main():
@@ -2184,10 +2184,10 @@ def strip_fit_check_main():
     return 1 if failures else 0
 
 
-latency_SAMPLES = counter_video_BITS + len(counter_video_SYNC)
+LATENCY_SAMPLES = COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS)
 
 
-def latency_millis(value):
+def latency_milliseconds(value):
     if isinstance(value, (int, float)):
         return float(value)
     return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp() * 1000.0
@@ -2203,7 +2203,7 @@ def latency_sends(path, jfr, span):
     found = []
     for event in json.loads(output)["recording"]["events"]:
         values = event["values"]
-        sent = latency_millis(values["sent"]) if values["colors"] >= 0 else float("nan")
+        sent = latency_milliseconds(values["sent"]) if values["colors"] >= 0 else float("nan")
         found.append(
             dict(
                 frame=values["frameId"],
@@ -2240,8 +2240,8 @@ def latency_events(path, jfr):
                 keyframe=values["keyframe"],
                 bytes=values["bytes"],
                 colors=values["colors"],
-                arrived=latency_millis(values["arrived"]),
-                sent=latency_millis(values["sent"]),
+                arrived=latency_milliseconds(values["arrived"]),
+                sent=latency_milliseconds(values["sent"]),
                 sent_to=values["sentTo"],
                 behind=values["behind"],
                 waiting=values["waiting"],
@@ -2272,14 +2272,14 @@ def latency_captures(path):
         capture_output=True,
         text=True,
     ).stdout
-    info = json.loads(probe)
-    width, height = (info["streams"][0]["width"], info["streams"][0]["height"])
-    times = [float(frame["pts_time"]) * 1000.0 for frame in info["frames"]]
-    row = min(counter_video_BLOCK // 2, height - 1)
+    metadata = json.loads(probe)
+    width, height = (metadata["streams"][0]["width"], metadata["streams"][0]["height"])
+    times = [float(frame["pts_time"]) * 1000.0 for frame in metadata["frames"]]
+    row = min(COUNTER_VIDEO_BLOCK // 2, height - 1)
     columns = [
-        counter_video_BLOCK // 2 + counter_video_BLOCK * block
-        for block in range(latency_SAMPLES)
-        if counter_video_BLOCK // 2 + counter_video_BLOCK * block < width
+        COUNTER_VIDEO_BLOCK // 2 + COUNTER_VIDEO_BLOCK * block
+        for block in range(LATENCY_SAMPLES)
+        if COUNTER_VIDEO_BLOCK // 2 + COUNTER_VIDEO_BLOCK * block < width
     ]
     size = width * height * 3
     result = []
@@ -2381,23 +2381,23 @@ def latency_main():
         arguments.json.write_text(json.dumps(report, indent=2))
 
 
-charts_DATA = Path(__file__).resolve().parents[1] / "resources/mcv2/data"
+CHARTS_DATA = Path(__file__).resolve().parents[1] / "resources/mcv2/data"
 IMAGES = Path(__file__).resolve().parents[4] / "mcav-docs" / "images" / "mcv2"
-charts_SURFACE = "#ffffff"
-charts_INK = "#0b0b0b"
-charts_SECONDARY = "#52514e"
-charts_GRID = "#e4e3df"
-charts_FONT = ["Liberation Sans", "Arial", "Helvetica", "DejaVu Sans"]
-charts_CODECS = [
+CHARTS_SURFACE = "#ffffff"
+CHARTS_INK = "#0b0b0b"
+CHARTS_SECONDARY = "#52514e"
+CHARTS_GRID = "#e4e3df"
+CHARTS_FONT = ["Liberation Sans", "Arial", "Helvetica", "DejaVu Sans"]
+CHARTS_CODECS = [
     ("mcv2", "MCV2", "#2a78d6", "o"),
     ("x264", "H.264", "#eb6834", "s"),
     ("vp9", "VP9", "#1baf7a", "^"),
     ("av1", "AV1", "#eda100", "D"),
 ]
-charts_SOURCES = [("proxy30", "Minecraft proxy, 1080p30"), ("gameplay30", "Minecraft gameplay, 1080p30")]
-charts_SOURCE_COLOURS = {"proxy30": "#2a78d6", "gameplay30": "#eb6834"}
-charts_LEVELS = (70, 75, 80, 85, 90)
-charts_TICKS = (0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50)
+CHARTS_SOURCES = [("proxy30", "Minecraft proxy, 1080p30"), ("gameplay30", "Minecraft gameplay, 1080p30")]
+CHARTS_SOURCE_COLOURS = {"proxy30": "#2a78d6", "gameplay30": "#eb6834"}
+CHARTS_LEVELS = (70, 75, 80, 85, 90)
+CHARTS_TICKS = (0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50)
 
 
 def figure_pyplot():
@@ -2413,15 +2413,15 @@ def charts_style():
     pyplot = figure_pyplot()
     pyplot.rcParams.update(
         {
-            "font.family": charts_FONT,
+            "font.family": CHARTS_FONT,
             "font.size": 10.5,
-            "axes.edgecolor": charts_SECONDARY,
-            "axes.labelcolor": charts_INK,
-            "xtick.color": charts_SECONDARY,
-            "ytick.color": charts_SECONDARY,
-            "text.color": charts_INK,
-            "axes.facecolor": charts_SURFACE,
-            "figure.facecolor": charts_SURFACE,
+            "axes.edgecolor": CHARTS_SECONDARY,
+            "axes.labelcolor": CHARTS_INK,
+            "xtick.color": CHARTS_SECONDARY,
+            "ytick.color": CHARTS_SECONDARY,
+            "text.color": CHARTS_INK,
+            "axes.facecolor": CHARTS_SURFACE,
+            "figure.facecolor": CHARTS_SURFACE,
         }
     )
 
@@ -2454,8 +2454,8 @@ def charts_draw_codecs(data):
 
     pyplot = figure_pyplot()
     figure, axes = pyplot.subplots(2, 1, figsize=(8, 9.6), sharex=True)
-    for axis, (source, title) in zip(axes, charts_SOURCES):
-        for codec, name, colour, marker in charts_CODECS:
+    for axis, (source, title) in zip(axes, CHARTS_SOURCES):
+        for codec, name, colour, marker in CHARTS_CODECS:
             rates, scores = zip(*charts_curve(data, source, codec))
             axis.plot(
                 rates,
@@ -2465,7 +2465,7 @@ def charts_draw_codecs(data):
                 markersize=5.5,
                 linewidth=1.6,
                 label=name,
-                markeredgecolor=charts_SURFACE,
+                markeredgecolor=CHARTS_SURFACE,
                 markeredgewidth=0.8,
                 zorder=3 if codec == "mcv2" else 2,
             )
@@ -2478,28 +2478,28 @@ def charts_draw_codecs(data):
                 textcoords="offset points",
                 xytext=offset,
                 fontsize=9.5,
-                color=charts_SECONDARY,
+                color=CHARTS_SECONDARY,
                 ha=align,
                 va="center",
             )
         axis.set_xscale("log")
-        axis.xaxis.set_major_locator(FixedLocator(charts_TICKS))
+        axis.xaxis.set_major_locator(FixedLocator(CHARTS_TICKS))
         axis.xaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:g}"))
         axis.xaxis.set_minor_locator(NullLocator())
-        axis.set_title(title, fontsize=11.5, color=charts_INK, loc="left")
-        axis.set_xlabel("Rate on the wire, Mbit/s (log scale)", color=charts_SECONDARY)
-        axis.grid(True, color=charts_GRID, linewidth=0.6, zorder=0)
+        axis.set_title(title, fontsize=11.5, color=CHARTS_INK, loc="left")
+        axis.set_xlabel("Rate on the wire, Mbit/s (log scale)", color=CHARTS_SECONDARY)
+        axis.grid(True, color=CHARTS_GRID, linewidth=0.6, zorder=0)
         axis.set_ylim(20, 102)
         axis.margins(x=0.18)
         for side in ("top", "right"):
             axis.spines[side].set_visible(False)
     for axis in axes:
-        axis.set_ylabel("VMAF (mean)", color=charts_SECONDARY)
+        axis.set_ylabel("VMAF (mean)", color=CHARTS_SECONDARY)
         axis.xaxis.set_tick_params(labelbottom=True)
     handles, labels = axes[0].get_legend_handles_labels()
     figure.legend(handles, labels, loc="lower center", ncol=4, frameon=False, fontsize=10)
     figure.tight_layout(rect=(0, 0.04, 1, 1))
-    figure.savefig(IMAGES / "codecs.png", dpi=120, facecolor=charts_SURFACE)
+    figure.savefig(IMAGES / "codecs.png", dpi=120, facecolor=CHARTS_SURFACE)
     pyplot.close(figure)
 
 
@@ -2507,7 +2507,7 @@ def charts_ablation_rates(ablation):
     results = []
     for feature in ablation.get("features", []):
         row = {"id": feature["id"], "name": feature["name"]}
-        for source, _ in charts_SOURCES:
+        for source, _ in CHARTS_SOURCES:
             baseline = [(point["zlib_mbps"], point["vmaf_mean"]) for point in ablation["baseline"][source]]
             test = [(point["zlib_mbps"], point["vmaf_mean"]) for point in feature["points"][source]]
             row[source] = bd_rate(baseline, test)
@@ -2518,15 +2518,15 @@ def charts_ablation_rates(ablation):
 def charts_draw_features(rows):
     pyplot = figure_pyplot()
     rows = sorted(rows, key=lambda row: row["gameplay30"][0] + row["proxy30"][0])
-    values = [row[source][0] for row in rows for source, _ in charts_SOURCES]
+    values = [row[source][0] for row in rows for source, _ in CHARTS_SOURCES]
     ordered = sorted(values, reverse=True)
     limit = max(ordered[1] * 1.35, 10) if len(ordered) > 1 and ordered[0] > 2.5 * ordered[1] else None
     height = 0.38
     figure, axis = pyplot.subplots(figsize=(9.5, 0.55 * len(rows) + 1.6))
-    for index, (source, title) in enumerate(charts_SOURCES):
+    for index, (source, title) in enumerate(CHARTS_SOURCES):
         positions = [row_index + (0.5 - index) * (height + 0.02) for row_index in range(len(rows))]
         shown = [min(row[source][0], limit) if limit else row[source][0] for row in rows]
-        axis.barh(positions, shown, height=height, color=charts_SOURCE_COLOURS[source], label=title, zorder=3)
+        axis.barh(positions, shown, height=height, color=CHARTS_SOURCE_COLOURS[source], label=title, zorder=3)
         for position, row, value in zip(positions, rows, shown):
             if limit and row[source][0] > limit:
                 axis.annotate(
@@ -2537,21 +2537,21 @@ def charts_draw_features(rows):
                     ha="right",
                     va="center",
                     fontsize=8.5,
-                    color=charts_SURFACE,
+                    color=CHARTS_SURFACE,
                     zorder=4,
                 )
     axis.set_yticks(range(len(rows)))
-    axis.set_yticklabels([row["name"] for row in rows], color=charts_INK)
-    axis.axvline(0, color=charts_SECONDARY, linewidth=0.8, zorder=2)
-    axis.set_xlabel("Extra rate on the wire with the feature turned off (BD-rate, %)", color=charts_SECONDARY)
-    axis.grid(True, axis="x", color=charts_GRID, linewidth=0.6, zorder=0)
+    axis.set_yticklabels([row["name"] for row in rows], color=CHARTS_INK)
+    axis.axvline(0, color=CHARTS_SECONDARY, linewidth=0.8, zorder=2)
+    axis.set_xlabel("Extra rate on the wire with the feature turned off (BD-rate, %)", color=CHARTS_SECONDARY)
+    axis.grid(True, axis="x", color=CHARTS_GRID, linewidth=0.6, zorder=0)
     if limit:
         axis.set_xlim(right=limit * 1.02)
     for side in ("top", "right"):
         axis.spines[side].set_visible(False)
     axis.legend(loc="lower right", frameon=False, fontsize=10)
     figure.tight_layout()
-    figure.savefig(IMAGES / "features.png", dpi=120, facecolor=charts_SURFACE)
+    figure.savefig(IMAGES / "features.png", dpi=120, facecolor=CHARTS_SURFACE)
     pyplot.close(figure)
 
 
@@ -2562,42 +2562,42 @@ def charts_signed(value):
 
 def charts_print_tables(data, rows, removed):
     print("Rate on the wire (Mbit/s) for the same VMAF mean, log-linear between measured points:\n")
-    print("| VMAF mean | " + " | ".join(name for _, name, _, _ in charts_CODECS) + " |")
-    print("|---:|" + "---:|" * len(charts_CODECS))
-    for source, title in charts_SOURCES:
-        print(f"| **{title}** |" + " |" * len(charts_CODECS))
-        for level in charts_LEVELS:
+    print("| VMAF mean | " + " | ".join(name for _, name, _, _ in CHARTS_CODECS) + " |")
+    print("|---:|" + "---:|" * len(CHARTS_CODECS))
+    for source, title in CHARTS_SOURCES:
+        print(f"| **{title}** |" + " |" * len(CHARTS_CODECS))
+        for level in CHARTS_LEVELS:
             cells = []
-            for codec, _, _, _ in charts_CODECS:
+            for codec, _, _, _ in CHARTS_CODECS:
                 rate = charts_rate_at(charts_curve(data, source, codec), level)
                 cells.append("-" if rate is None else f"{rate:.2f}")
             print(f"| {level} | " + " | ".join(cells) + " |")
     print(
         "\nBD-rate of MCV2 against each codec (positive: MCV2 needs more), over the VMAF range both cover:\n"
     )
-    for source, title in charts_SOURCES:
+    for source, title in CHARTS_SOURCES:
         mcv2 = charts_curve(data, source, "mcv2")
         cells = []
-        for codec, name, _, _ in charts_CODECS[1:]:
+        for codec, name, _, _ in CHARTS_CODECS[1:]:
             percent, low, high = bd_rate(charts_curve(data, source, codec), mcv2)
             cells.append(f"{name} {percent:+.1f}% (VMAF {low:.1f}-{high:.1f})")
         print(f"- {title}: " + "; ".join(cells))
     if rows:
         print("\nExtra rate on the wire without each feature (BD-rate against the full encoder):\n")
-        print("| Feature turned off | " + " | ".join(title for _, title in charts_SOURCES) + " |")
-        print("|---|" + "---:|" * len(charts_SOURCES))
+        print("| Feature turned off | " + " | ".join(title for _, title in CHARTS_SOURCES) + " |")
+        print("|---|" + "---:|" * len(CHARTS_SOURCES))
         for row in sorted(rows, key=lambda row: -(row["gameplay30"][0] + row["proxy30"][0])):
             cells = [
                 f"{charts_signed(row[source][0])} ({row[source][1]:.0f}-{row[source][2]:.0f})"
-                for source, _ in charts_SOURCES
+                for source, _ in CHARTS_SOURCES
             ]
             print(f"| {row['name']} | " + " | ".join(cells) + " |")
     if removed:
         print("\nWhat each feature MCV2 no longer has was worth (BD-rate when it was measured):\n")
-        print("| Feature | " + " | ".join(title for _, title in charts_SOURCES) + " | Mean |")
-        print("|---|" + "---:|" * (len(charts_SOURCES) + 1))
+        print("| Feature | " + " | ".join(title for _, title in CHARTS_SOURCES) + " | Mean |")
+        print("|---|" + "---:|" * (len(CHARTS_SOURCES) + 1))
         for row in sorted(removed, key=lambda row: -row["bd_rate"]["mean"]):
-            cells = [charts_signed(row["bd_rate"][source]) for source, _ in charts_SOURCES]
+            cells = [charts_signed(row["bd_rate"][source]) for source, _ in CHARTS_SOURCES]
             print(f"| {row['name']} | " + " | ".join(cells) + f" | {charts_signed(row['bd_rate']['mean'])} |")
 
 
@@ -2614,9 +2614,9 @@ def charts_main():
     logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
     charts_style()
     IMAGES.mkdir(parents=True, exist_ok=True)
-    data = json.loads((charts_DATA / "codec_curves.json").read_text())
+    data = json.loads((CHARTS_DATA / "codec_curves.json").read_text())
     charts_draw_codecs(data)
-    ablation_file = charts_DATA / "ablation.json"
+    ablation_file = CHARTS_DATA / "ablation.json"
     ablation = json.loads(ablation_file.read_text()) if ablation_file.exists() else {}
     rows = charts_ablation_rates(ablation)
     if rows:
@@ -2625,7 +2625,7 @@ def charts_main():
         charts_print_tables(data, rows, ablation.get("removed", []))
 
 
-samples_MODES = [
+SAMPLES_MODES = [
     (mcv2_reference.SKIP, "SKIP", "#e4e3df"),
     (mcv2_reference.MOTION, "MOTION", "#2a78d6"),
     (mcv2_reference.SOLID, "SOLID", "#1baf7a"),
@@ -2671,7 +2671,7 @@ def samples_finish(axis, title):
     axis.set_yticks([])
     for spine in axis.spines.values():
         spine.set_visible(False)
-    axis.set_title(title, fontsize=10.5, color=charts_INK, loc="left")
+    axis.set_title(title, fontsize=10.5, color=CHARTS_INK, loc="left")
 
 
 def samples_draw_tree(arguments):
@@ -2681,7 +2681,7 @@ def samples_draw_tree(arguments):
     numbers = [int(value) for value in arguments.frames.split(",")]
     frames = samples_decoded(arguments.archive, set(numbers))
     pixel_x, pixel_y, width, height = crop = samples_crop_of(arguments.crop)
-    colours = {mode: colour for mode, _, colour in samples_MODES}
+    colours = {mode: colour for mode, _, colour in SAMPLES_MODES}
     figure, axes = pyplot.subplots(2, len(numbers), figsize=(5.4 * len(numbers), 6.6), squeeze=False)
     for column, number in enumerate(numbers):
         frame, picture = frames[number]
@@ -2702,7 +2702,7 @@ def samples_draw_tree(arguments):
                     leaf.size,
                     leaf.size,
                     facecolor=colours[leaf.mode],
-                    edgecolor=charts_SURFACE,
+                    edgecolor=CHARTS_SURFACE,
                     linewidth=0.5,
                 )
             )
@@ -2712,13 +2712,13 @@ def samples_draw_tree(arguments):
         samples_finish(top, f"Frame {number} ({kind}): {frame.total:,} bytes, {len(frame.leaves):,} leaves")
         samples_finish(bottom, f"The leaves of frame {number} by mode")
     handles = [
-        Patch(facecolor=colour, edgecolor=charts_SECONDARY, linewidth=0.5, label=name)
-        for _, name, colour in samples_MODES
+        Patch(facecolor=colour, edgecolor=CHARTS_SECONDARY, linewidth=0.5, label=name)
+        for _, name, colour in SAMPLES_MODES
     ]
-    columns = min(len(samples_MODES), 3 * len(numbers))
+    columns = min(len(SAMPLES_MODES), 3 * len(numbers))
     figure.legend(handles=handles, loc="lower center", ncol=columns, frameon=False, fontsize=9.5)
-    figure.tight_layout(rect=(0, 0.05 * len(samples_MODES) / columns, 1, 1), h_pad=2)
-    figure.savefig(IMAGES / arguments.out, dpi=120, facecolor=charts_SURFACE)
+    figure.tight_layout(rect=(0, 0.05 * len(SAMPLES_MODES) / columns, 1, 1), h_pad=2)
+    figure.savefig(IMAGES / arguments.out, dpi=120, facecolor=CHARTS_SURFACE)
     pyplot.close(figure)
     for number in numbers:
         frame = frames[number][0]
@@ -2730,7 +2730,7 @@ def samples_draw_tree(arguments):
             + str(
                 {
                     name: sum(1 for leaf in frame.leaves if leaf.mode == mode)
-                    for mode, name, _ in samples_MODES
+                    for mode, name, _ in SAMPLES_MODES
                 }
             )
         )
@@ -2781,13 +2781,13 @@ def samples_draw_leaves(arguments):
                 ha="center",
                 va="center",
                 fontsize=9.5,
-                color=charts_INK if light else charts_SURFACE,
+                color=CHARTS_INK if light else CHARTS_SURFACE,
             )
         samples_finish(row[1], "its two colours")
         row[2].imshow(bits, cmap="gray_r", vmin=0, vmax=1.6, interpolation="nearest")
         for edge in range(size + 1):
-            row[2].axhline(edge - 0.5, color=charts_GRID, linewidth=0.4)
-            row[2].axvline(edge - 0.5, color=charts_GRID, linewidth=0.4)
+            row[2].axhline(edge - 0.5, color=CHARTS_GRID, linewidth=0.4)
+            row[2].axvline(edge - 0.5, color=CHARTS_GRID, linewidth=0.4)
         if leaf.mode == mcv2_reference.PALETTE:
             what = f"{size * size} bits, one per pixel"
         else:
@@ -2802,7 +2802,7 @@ def samples_draw_leaves(arguments):
             f"{name} {size}x{size} at ({leaf.pixel_x}, {leaf.pixel_y}) colours {colours} record {leaf.record.hex()}"
         )
     figure.tight_layout()
-    figure.savefig(IMAGES / "leaves.png", dpi=120, facecolor=charts_SURFACE)
+    figure.savefig(IMAGES / "leaves.png", dpi=120, facecolor=CHARTS_SURFACE)
     pyplot.close(figure)
 
 
@@ -2832,7 +2832,7 @@ def samples_print_bytes(arguments):
     print(
         f"masks {[hex(mask) for mask in frame.masks]} directory {list(frame.directory)} levels {frame.level_counts} walk {[(value & 131071, value >> 17) for value in frame.walk]}"
     )
-    names = {mode: name for mode, name, _ in samples_MODES}
+    names = {mode: name for mode, name, _ in SAMPLES_MODES}
     names[mcv2_reference.SPLIT] = "SPLIT"
     for index, descriptor in enumerate(frame.descriptors):
         print(f"descriptor {index}: 0x{descriptor:02x} = {names[descriptor & 31]} q={descriptor >> 5}")

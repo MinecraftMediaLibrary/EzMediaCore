@@ -113,8 +113,8 @@ def run(*options, missed=(), again=(), changed=(), version=3, received=None):
     ):
         try:
             mcv2_tools.shader_timing_main()
-        except SystemExit as exit:
-            return exit.code
+        except SystemExit as exception:
+            return exception.code
     return 0
 
 
@@ -176,7 +176,7 @@ class TimerAccountingTest(unittest.TestCase):
 
         self.assertEqual(["mcav:mcv2_previous_0", "mcav:mcv2_state_0", "minecraft:entity_outline"], drawn)
 
-    def test_should_classify_keyframes_and_p_frames_separately_by_their_version_three_ids(self):
+    def test_should_classify_keyframes_and_predicted_frames_separately_by_their_version_three_ids(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "timings.json"
             status = run("--json", str(path))
@@ -186,8 +186,8 @@ class TimerAccountingTest(unittest.TestCase):
             keyframes = stream["new_keyframe"]["total"]["n"]
             self.assertEqual(2, keyframes)
 
-            p_frames = stream["new_p"]["total"]["n"]
-            self.assertEqual(2, p_frames)
+            predicted_frames = stream["new_p"]["total"]["n"]
+            self.assertEqual(2, predicted_frames)
 
             idle = stream["idle"]["total"]["n"]
             self.assertEqual(4, idle)
@@ -202,8 +202,8 @@ class TimerAccountingTest(unittest.TestCase):
             keyframes = stream["new_keyframe"]["total"]["n"]
             self.assertEqual(2, keyframes)
 
-            p_frames = stream["new_p"]["total"]["n"]
-            self.assertEqual(2, p_frames)
+            predicted_frames = stream["new_p"]["total"]["n"]
+            self.assertEqual(2, predicted_frames)
 
     def test_should_import_the_transport_of_the_reference_option_from_the_archived_package_directory(self):
         with tempfile.TemporaryDirectory() as directory:

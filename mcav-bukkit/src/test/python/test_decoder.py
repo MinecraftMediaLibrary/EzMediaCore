@@ -53,7 +53,7 @@ class ReconstructionTest(unittest.TestCase):
         decoded = decode(frame(Node(mcv2_reference.SOLID, record=b'\4\5\6')))
         numpy.testing.assert_array_equal(numpy.array([[[4, 5, 6]] * 3] * 2, numpy.uint8), decoded)
 
-    def test_should_read_palette_selectors_lsb_first_and_row_major_at_all_sizes(self):
+    def test_should_read_palette_selectors_least_significant_bit_first_and_row_major_at_all_sizes(self):
         for size in (8, 16, 32):
             selectors = bytearray(size * size // 8)
             selectors[0], selectors[size // 8] = 0b00000101, 0b00000010

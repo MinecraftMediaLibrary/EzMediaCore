@@ -132,7 +132,7 @@ class ChartCommandTest(unittest.TestCase):
         except ImportError:
             message: str = "Matplotlib is missing, but the chart pixels need matplotlib 3.11.2 and the Liberation Sans font!"
             self.skipTest(message)
-        font_path = font_manager.findfont(font_manager.FontProperties(family=mcv2_tools.charts_FONT))
+        font_path = font_manager.findfont(font_manager.FontProperties(family=mcv2_tools.CHARTS_FONT))
         font = font_manager.FontProperties(fname=font_path).get_name()
         if matplotlib.__version__ != "3.11.2" or font != "Liberation Sans":
             version: str = matplotlib.__version__

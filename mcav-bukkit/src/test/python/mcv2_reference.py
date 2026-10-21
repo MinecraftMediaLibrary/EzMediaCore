@@ -34,10 +34,10 @@ HEIGHT_OFFSET = 10
 FRAME_ID_OFFSET = 12
 REFERENCE_ID_OFFSET = 16
 KEYFRAME = 1
-MIN_DIMENSION = 1
-MAX_DIMENSION = 4096
-MIN_FRAME_BYTES = 20
-MAX_FRAME_BYTES = 131071
+MINIMUM_DIMENSION = 1
+MAXIMUM_DIMENSION = 4096
+MINIMUM_FRAME_BYTES = 20
+MAXIMUM_FRAME_BYTES = 131071
 ID_MASK = 0xFFFFFFFF
 ID_HALF_RANGE = 0x80000000
 SUPERBLOCK_SIZE = 32
@@ -46,7 +46,7 @@ MASK_BITS = 32
 DIRECTORY_GROUPS = 8
 WALK_STRIDE = 8
 WALK_CURSOR_BITS = 17
-MAX_QUANTIZER = 2
+MAXIMUM_QUANTIZER = 2
 SKIP, MOTION, SOLID, PALETTE, PATTERN, COMPACT, SPLIT = range(7)
 MODE_MASK = 31
 QUANTIZER_SHIFT = 5
@@ -57,9 +57,9 @@ SYMBOL_BITS = 6
 PAGE_SYMBOLS = 128 * 128
 PAGE_HEADER_BYTES = 32
 PAGE_CAPACITY = 12256
-MAX_PENDING = 4
-MAX_PAGE_SLOTS = 8
-SCREEN_CAPACITY = MAX_PAGE_SLOTS * PAGE_CAPACITY
+MAXIMUM_PENDING = 4
+MAXIMUM_PAGE_SLOTS = 8
+SCREEN_CAPACITY = MAXIMUM_PAGE_SLOTS * PAGE_CAPACITY
 
 INVALID_DIMENSIONS_MESSAGE: str = "The picture dimensions are invalid!"
 NONZERO_QUANTIZER_MESSAGE: str = "A non-COMPACT quantizer must be zero!"
@@ -139,10 +139,10 @@ def parse_frame(data: bytes) -> Frame:
         message: str = "MCV2 version 2 is no longer supported; re-encode the video!"
         raise ValueError(message)
     total = len(data)
-    _require(MIN_FRAME_BYTES <= total <= MAX_FRAME_BYTES, "The frame length is invalid!")
+    _require(MINIMUM_FRAME_BYTES <= total <= MAXIMUM_FRAME_BYTES, "The frame length is invalid!")
     magic, version, width, height, frame_id, reference_id = HEADER.unpack_from(data)
     _require(magic == MAGIC and version == VERSION, "The data is not an MCV2 version 3 frame!")
-    _require(1 <= width <= MAX_DIMENSION and 1 <= height <= MAX_DIMENSION, INVALID_DIMENSIONS_MESSAGE)
+    _require(1 <= width <= MAXIMUM_DIMENSION and 1 <= height <= MAXIMUM_DIMENSION, INVALID_DIMENSIONS_MESSAGE)
     keyframe = frame_id == reference_id
     columns = (width + 31) // 32
     root_count = columns * ((height + 31) // 32)
@@ -170,7 +170,7 @@ def parse_frame(data: bytes) -> Frame:
     descriptors = data[descriptor_offset : descriptor_offset + count]
     walk = struct.unpack_from(f"<{walk_count}I", data, descriptor_offset + count)
     offsets, records = ([], [])
-    cursor = splits = splits0 = splits1 = 0
+    cursor = splits = level_zero_splits = level_one_splits = 0
     for index, descriptor in enumerate(descriptors):
         if index % 8 == 0:
             _require(walk[index // 8] == (cursor | (splits << 17)), "The frame has a walk checkpoint mismatch!")
@@ -178,7 +178,7 @@ def parse_frame(data: bytes) -> Frame:
         mode, quantizer = (descriptor & 31, descriptor >> 5)
         _require(mode <= SPLIT, "The frame has an invalid descriptor mode!")
         _require(mode == COMPACT or quantizer == 0, NONZERO_QUANTIZER_MESSAGE)
-        _require(quantizer <= MAX_QUANTIZER, "The frame has a COMPACT quantizer above 2!")
+        _require(quantizer <= MAXIMUM_QUANTIZER, "The frame has a COMPACT quantizer above 2!")
         _require(not keyframe or mode not in (MOTION, COMPACT), TEMPORAL_KEYFRAME_MESSAGE)
         _require(mode != SPLIT or size != 8, "The frame has a SPLIT in level 2!")
         offset = payload + cursor
@@ -192,10 +192,10 @@ def parse_frame(data: bytes) -> Frame:
         cursor += length
         if mode == SPLIT:
             splits += 1
-            splits0 += index < level_zero_count
-            splits1 += level_zero_count <= index < level_zero_count + level_one_count
-    _require(level_one_count == 4 * splits0, "The level 1 count differs from the SPLIT children!")
-    _require(level_two_count == 4 * splits1, "The level 2 count differs from the SPLIT children!")
+            level_zero_splits += index < level_zero_count
+            level_one_splits += level_zero_count <= index < level_zero_count + level_one_count
+    _require(level_one_count == 4 * level_zero_splits, "The level 1 count differs from the SPLIT children!")
+    _require(level_two_count == 4 * level_one_splits, "The level 2 count differs from the SPLIT children!")
     _require(payload + cursor == total, "The records do not end at the end of the frame!")
     root_indexes = [index for index in range(root_count) if (masks[index // 32] >> (index % 32)) & 1]
     coordinates = [(32 * (index % columns), 32 * (index // columns), 32) for index in root_indexes]
@@ -248,7 +248,7 @@ def parse_frame(data: bytes) -> Frame:
 
 def pack_frame(width: int, height: int, frame_id: int, reference_id: int, roots: Mapping[int, Node]) -> bytes:
     """Serialize a tree canonically. Absent roots stay absent; a frame is a keyframe when its ids are equal."""
-    _require(1 <= width <= MAX_DIMENSION and 1 <= height <= MAX_DIMENSION, INVALID_DIMENSIONS_MESSAGE)
+    _require(1 <= width <= MAXIMUM_DIMENSION and 1 <= height <= MAXIMUM_DIMENSION, INVALID_DIMENSIONS_MESSAGE)
     _require(0 <= frame_id <= ID_MASK and 0 <= reference_id <= ID_MASK, "The frame and reference ids must be u32!")
     keyframe = frame_id == reference_id
     root_count = (width + 31) // 32 * ((height + 31) // 32)
@@ -271,7 +271,7 @@ def pack_frame(width: int, height: int, frame_id: int, reference_id: int, roots:
         following = []
         for node in current:
             _require(
-                0 <= node.mode <= SPLIT and 0 <= node.quantizer <= MAX_QUANTIZER, "A node has an invalid descriptor!"
+                0 <= node.mode <= SPLIT and 0 <= node.quantizer <= MAXIMUM_QUANTIZER, "A node has an invalid descriptor!"
             )
             _require(node.mode == COMPACT or node.quantizer == 0, NONZERO_QUANTIZER_MESSAGE)
             _require(not keyframe or node.mode not in (MOTION, COMPACT), TEMPORAL_KEYFRAME_MESSAGE)
@@ -291,7 +291,7 @@ def pack_frame(width: int, height: int, frame_id: int, reference_id: int, roots:
             _require(len(record) == length, "A leaf record has an invalid length!")
             records.extend(record)
         current = following
-        _require(len(records) + len(descriptors) <= MAX_FRAME_BYTES, LENGTH_LIMIT_MESSAGE)
+        _require(len(records) + len(descriptors) <= MAXIMUM_FRAME_BYTES, LENGTH_LIMIT_MESSAGE)
     index = (
         struct.pack(f"<{len(masks)}I", *masks)
         + struct.pack(f"<{len(directory)}I", *directory)
@@ -300,7 +300,7 @@ def pack_frame(width: int, height: int, frame_id: int, reference_id: int, roots:
         + struct.pack(f"<{len(walk)}I", *walk)
     )
     total = HEADER_BYTES + len(index) + len(records)
-    _require(total <= MAX_FRAME_BYTES, LENGTH_LIMIT_MESSAGE)
+    _require(total <= MAXIMUM_FRAME_BYTES, LENGTH_LIMIT_MESSAGE)
     return HEADER.pack(MAGIC, VERSION, width, height, frame_id, reference_id) + index + records
 
 
@@ -500,7 +500,7 @@ def read_page(symbols: bytes, symbol_bits: int = 6) -> Page:
         message: str = "The page header is not supported!"
         raise ValueError(message)
     if (
-        not MIN_FRAME_BYTES <= total <= MAX_FRAME_BYTES
+        not MINIMUM_FRAME_BYTES <= total <= MAXIMUM_FRAME_BYTES
         or count != (total + PAGE_CAPACITY - 1) // PAGE_CAPACITY
         or number >= count
     ):
@@ -535,7 +535,7 @@ class Assembler:
         if page.stream_id != self.stream_id:
             message: str = "The page belongs to the wrong stream!"
             raise ValueError(message)
-        if page.frame_id not in self.pending and len(self.pending) >= MAX_PENDING:
+        if page.frame_id not in self.pending and len(self.pending) >= MAXIMUM_PENDING:
             del self.pending[next(iter(self.pending))]
         parts = self.pending.setdefault(page.frame_id, {})
         if parts:

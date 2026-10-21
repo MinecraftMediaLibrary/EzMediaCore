@@ -140,10 +140,10 @@ class FormatTest(unittest.TestCase):
                Node(mcv2_reference.SOLID, 1, bytes(3)), Node(mcv2_reference.PATTERN, record=bytes(2)), Node(mcv2_reference.PATTERN, record=bytes(12)),
                Node(mcv2_reference.PATTERN, record=bytes(6) + b'\2' + bytes(4)),
                Node(mcv2_reference.SKIP, children=(Node(mcv2_reference.SKIP),)), Node(31)]
-        split8 = Node(mcv2_reference.SPLIT, children=(Node(mcv2_reference.SKIP),) * 4)
+        too_deep_split = Node(mcv2_reference.SPLIT, children=(Node(mcv2_reference.SKIP),) * 4)
         for _ in range(2):
-            split8 = Node(mcv2_reference.SPLIT, children=(split8,) * 4)
-        bad.append(split8)
+            too_deep_split = Node(mcv2_reference.SPLIT, children=(too_deep_split,) * 4)
+        bad.append(too_deep_split)
         for node in bad:
             with self.subTest(node=node), self.assertRaises(ValueError):
                 pack_frame(32, 32, 1, 0, {0: node})
