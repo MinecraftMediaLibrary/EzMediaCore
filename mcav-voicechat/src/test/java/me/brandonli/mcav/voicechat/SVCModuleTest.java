@@ -52,7 +52,7 @@ final class SVCModuleTest {
     assertNull(api);
     final IllegalStateException exception = assertThrows(IllegalStateException.class, SVCModule::requireVoiceChatApi);
     final String message = exception.getMessage();
-    assertEquals("The Simple Voice Chat API was not injected; call SVCModule#inject from your voice chat plugin", message);
+    assertEquals("The Simple Voice Chat API was not injected; call SVCModule#inject from your voice chat plugin!", message);
   }
 
   @Test

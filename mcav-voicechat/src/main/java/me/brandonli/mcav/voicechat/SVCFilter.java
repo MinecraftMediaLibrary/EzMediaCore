@@ -75,12 +75,12 @@ public interface SVCFilter extends FunctionalAudioFilter {
   static SVCFilter withDistance(final float distance, final Object... entities) {
     final boolean finiteDistance = Float.isFinite(distance);
     final boolean validDistance = distance > 0 && finiteDistance;
-    Preconditions.checkArgument(validDistance, "Distance must be positive but was %s", distance);
+    Preconditions.checkArgument(validDistance, "Distance %s must be finite and positive!", distance);
 
-    Preconditions.checkNotNull(entities, "Entities must not be null");
-    Preconditions.checkArgument(entities.length > 0, "At least one entity is required");
+    Preconditions.checkNotNull(entities, "Entities must not be null!");
+    Preconditions.checkArgument(entities.length > 0, "At least one entity is required!");
     for (final Object entity : entities) {
-      Preconditions.checkNotNull(entity, "Entities must not contain null");
+      Preconditions.checkNotNull(entity, "Entities must not contain null!");
     }
 
     return new SVCFilterImpl(distance, entities);

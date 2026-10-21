@@ -51,7 +51,7 @@ public final class SVCModule implements MCAVModule {
    * @throws NullPointerException if {@code api} is null
    */
   public void inject(final VoicechatServerApi api) {
-    Preconditions.checkNotNull(api, "Voice chat API must not be null");
+    Preconditions.checkNotNull(api, "Voice chat API must not be null!");
     voiceChatApi = api;
   }
 
@@ -73,7 +73,8 @@ public final class SVCModule implements MCAVModule {
   static VoicechatServerApi requireVoiceChatApi() {
     final VoicechatServerApi api = voiceChatApi;
     if (api == null) {
-      throw new IllegalStateException("The Simple Voice Chat API was not injected; call SVCModule#inject from your voice chat plugin");
+      final String message = "The Simple Voice Chat API was not injected; call SVCModule#inject from your voice chat plugin!";
+      throw new IllegalStateException(message);
     }
     return api;
   }

@@ -40,7 +40,8 @@ import me.brandonli.mcav.utils.audio.MonoDownmixer;
 public final class MonoDownmixExample {
 
   private MonoDownmixExample() {
-    throw new UnsupportedOperationException("Example class cannot be instantiated");
+    final String message = "Example class cannot be instantiated!";
+    throw new UnsupportedOperationException(message);
   }
 
   /**

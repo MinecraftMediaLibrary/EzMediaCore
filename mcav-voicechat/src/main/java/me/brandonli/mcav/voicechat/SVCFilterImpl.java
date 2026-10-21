@@ -119,7 +119,8 @@ public final class SVCFilterImpl implements SVCFilter {
     final UUID channelId = UUID.randomUUID();
     final EntityAudioChannel channel = api.createEntityAudioChannel(channelId, entity);
     if (channel == null) {
-      throw new PlayerException("Simple Voice Chat refused to create an audio channel for " + platformEntity);
+      final String message = "Entity %s was refused an audio channel by Simple Voice Chat!".formatted(platformEntity);
+      throw new PlayerException(message);
     }
     channel.setDistance(this.distance);
 
@@ -205,8 +206,8 @@ public final class SVCFilterImpl implements SVCFilter {
    */
   @Override
   public synchronized boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     if (!this.running) {
       return false;
     }

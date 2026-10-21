@@ -78,7 +78,7 @@ final class SVCFilterImplTest {
   private final List<AudioPlayer> players = new CopyOnWriteArrayList<>();
   private final List<Supplier<short[]>> suppliers = new CopyOnWriteArrayList<>();
 
-  private final IllegalStateException failure = new IllegalStateException("voice chat failed");
+  private final IllegalStateException failure = new IllegalStateException("Voice chat failed!");
 
   private Object refusedEntity;
   private Object currentEntity;
@@ -517,9 +517,9 @@ final class SVCFilterImplTest {
     filter.start();
     final short[] input = constant(FRAME_SAMPLES + 10, 4);
     this.feed(filter, input);
-    final IllegalStateException stopping = new IllegalStateException("player stop failed");
-    final UnsatisfiedLinkError closing = new UnsatisfiedLinkError("encoder close failed");
-    final IllegalArgumentException later = new IllegalArgumentException("second player stop failed");
+    final IllegalStateException stopping = new IllegalStateException("Player stop failed!");
+    final UnsatisfiedLinkError closing = new UnsatisfiedLinkError("Encoder close failed!");
+    final IllegalArgumentException later = new IllegalArgumentException("Second player stop failed!");
     final AudioPlayer alice = this.players.get(0);
     final AudioPlayer bob = this.players.get(1);
     final OpusEncoder aliceEncoder = this.encoders.get(0);
@@ -563,7 +563,7 @@ final class SVCFilterImplTest {
   void shouldPreserveTheStartFailureWhenRollingBackSpeakersAlsoFails() {
     this.failingEntity = "bob";
     this.failingStep = "createEncoder";
-    final IllegalArgumentException cleanupFailure = new IllegalArgumentException("stop failed");
+    final IllegalArgumentException cleanupFailure = new IllegalArgumentException("Stop failed!");
     final Stubber playerCreation = Mockito.doAnswer(invocation -> {
       final AudioPlayer player = this.createPlayer(invocation);
       final Stubber failedStop = Mockito.doThrow(cleanupFailure);
@@ -591,7 +591,7 @@ final class SVCFilterImplTest {
   void shouldNeverSuppressACleanupExceptionOntoItself() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
-    final IllegalStateException sharedFailure = new IllegalStateException("shared cleanup failure");
+    final IllegalStateException sharedFailure = new IllegalStateException("Shared cleanup failure!");
     for (final AudioPlayer player : this.players) {
       final Stubber failedStop = Mockito.doThrow(sharedFailure);
       final AudioPlayer stubbedPlayer = failedStop.when(player);
@@ -615,7 +615,7 @@ final class SVCFilterImplTest {
   void shouldRethrowTheFirstRecoverableCleanupErrorAfterStoppingEverySpeaker() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
-    final UnsatisfiedLinkError failure = new UnsatisfiedLinkError("native encoder cleanup failed");
+    final UnsatisfiedLinkError failure = new UnsatisfiedLinkError("Native encoder cleanup failed!");
     final OpusEncoder first = this.encoders.getFirst();
     final Stubber failedClose = Mockito.doThrow(failure);
     final OpusEncoder stubbedEncoder = failedClose.when(first);
@@ -635,7 +635,7 @@ final class SVCFilterImplTest {
   void shouldPropagateFatalCleanupErrorsWithoutAttemptingMoreThirdPartyCalls() {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     filter.start();
-    final InternalError fatal = new InternalError("the VM cannot continue cleanup");
+    final InternalError fatal = new InternalError("The virtual machine cannot continue cleanup!");
     final AudioPlayer first = this.players.get(0);
     final AudioPlayer second = this.players.get(1);
     final Stubber failedStop = Mockito.doThrow(fatal);
@@ -681,7 +681,7 @@ final class SVCFilterImplTest {
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     final PlayerException exception = assertThrows(PlayerException.class, filter::start);
     final String message = exception.getMessage();
-    assertEquals("Simple Voice Chat refused to create an audio channel for bob", message);
+    assertEquals("Entity bob was refused an audio channel by Simple Voice Chat!", message);
     final int playerCount = this.players.size();
     final int encoderCount = this.encoders.size();
     assertEquals(1, playerCount);
@@ -720,7 +720,7 @@ final class SVCFilterImplTest {
 
   @Test
   void shouldReleaseEverythingItCreatedWhenVoiceChatCannotLinkItsCodec() {
-    final UnsatisfiedLinkError linkFailure = new UnsatisfiedLinkError("no opus in java.library.path");
+    final UnsatisfiedLinkError linkFailure = new UnsatisfiedLinkError("No opus in java.library.path!");
     this.failEncoderCreationForBob(linkFailure);
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     final UnsatisfiedLinkError thrown = assertThrows(UnsatisfiedLinkError.class, filter::start);
@@ -734,7 +734,7 @@ final class SVCFilterImplTest {
 
   @Test
   void shouldPassErrorsOfTheVirtualMachineOnUnchanged() {
-    final InternalError fatal = new InternalError("out of native memory");
+    final InternalError fatal = new InternalError("Out of native memory!");
     this.failEncoderCreationForBob(fatal);
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     final InternalError thrown = assertThrows(InternalError.class, filter::start);
@@ -760,7 +760,7 @@ final class SVCFilterImplTest {
 
   @Test
   void shouldLeaveTheSpeakerAloneWhenStartingItsPlayerFailsFatally() {
-    final InternalError fatal = new InternalError("the codec died");
+    final InternalError fatal = new InternalError("The codec died!");
     this.failPlayerCreationForBob(fatal);
     final SVCFilter filter = SVCFilter.svc("alice", "bob");
     final InternalError thrown = assertThrows(InternalError.class, filter::start);
