@@ -24,7 +24,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.FunctionalAudioFilte
  * Plays the audio of a pipeline through Simple Voice Chat, as if it came from one or more entities: every listed
  * entity becomes a speaker that nearby players hear with positional audio.
  *
- * <p>The {@link SVCModule} must have received the voice chat API before a filter is created. Call
+ * <p>The {@link SvcModule} must have received the voice chat API before a filter is created. Call
  * {@link #start()} before attaching the filter and {@link #release()} when playback ends. The filter owns its
  * voice chat audio players and Opus encoders; it does not own the injected API or the supplied entities.
  * Release all filters before stopping the module.
@@ -34,14 +34,14 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.FunctionalAudioFilte
  * an empty queue supplies silence. Input buffers must remain stable for the duration of a filter call.
  *
  * <pre><code>
- *   final SVCFilter speakers = SVCFilter.svc(player);
+ *   final SvcFilter speakers = SvcFilter.svc(player);
  *   speakers.start();
  *   final AudioAttachableCallback audio = videoPlayer.getAudioAttachableCallback();
  *   final AudioPipelineStep step = AudioPipelineStep.of(speakers);
  *   audio.attach(step);
  * </code></pre>
  */
-public interface SVCFilter extends FunctionalAudioFilter {
+public interface SvcFilter extends FunctionalAudioFilter {
   /**
    * The distance in blocks the audio can be heard from when none is specified.
    */
@@ -53,11 +53,11 @@ public interface SVCFilter extends FunctionalAudioFilter {
    * @param entities a non-null, nonempty array of non-null platform entities, such as Bukkit {@code Player}s;
    *                 the array is copied, while the entities are borrowed
    * @return a new stopped filter using {@link #DEFAULT_DISTANCE}
-   * @throws IllegalStateException    if the voice chat API was not injected into {@link SVCModule}
+   * @throws IllegalStateException    if the voice chat API was not injected into {@link SvcModule}
    * @throws NullPointerException     if the array or any entity is null
    * @throws IllegalArgumentException if no entities are supplied
    */
-  static SVCFilter svc(final Object... entities) {
+  static SvcFilter svc(final Object... entities) {
     return withDistance(DEFAULT_DISTANCE, entities);
   }
 
@@ -68,11 +68,11 @@ public interface SVCFilter extends FunctionalAudioFilter {
    * @param entities a non-null, nonempty array of non-null platform entities, such as Bukkit {@code Player}s;
    *                 the array is copied, while the entities are borrowed
    * @return a new stopped filter; call {@link #start()} to allocate and start its speakers
-   * @throws IllegalStateException    if the voice chat API was not injected into {@link SVCModule}
+   * @throws IllegalStateException    if the voice chat API was not injected into {@link SvcModule}
    * @throws NullPointerException     if the array or any entity is null
    * @throws IllegalArgumentException if the distance is nonpositive or nonfinite, or no entities are supplied
    */
-  static SVCFilter withDistance(final float distance, final Object... entities) {
+  static SvcFilter withDistance(final float distance, final Object... entities) {
     final boolean finiteDistance = Float.isFinite(distance);
     final boolean validDistance = distance > 0 && finiteDistance;
     Preconditions.checkArgument(validDistance, "Distance %s must be finite and positive!", distance);
@@ -83,7 +83,7 @@ public interface SVCFilter extends FunctionalAudioFilter {
       Preconditions.checkNotNull(entity, "Entities must not contain null!");
     }
 
-    return new SVCFilterImpl(distance, entities);
+    return new SvcFilterImpl(distance, entities);
   }
 
   /**

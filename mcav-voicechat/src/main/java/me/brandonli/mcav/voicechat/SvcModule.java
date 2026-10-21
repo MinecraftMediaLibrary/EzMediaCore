@@ -23,24 +23,24 @@ import me.brandonli.mcav.module.MCAVModule;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * Connects the library to Simple Voice Chat. Install it with {@code MCAV.api().install(SVCModule.class)}, then
+ * Connects the library to Simple Voice Chat. Install it with {@code MCAV.api().install(SvcModule.class)}, then
  * hand it the server API from your voice chat plugin once the voice chat server started:
  *
  * <pre><code>
  *   public void initialize(final VoicechatApi api) {
- *     final SVCModule module = mcav.getModule(SVCModule.class);
+ *     final SvcModule module = mcav.getModule(SvcModule.class);
  *     module.inject((VoicechatServerApi) api);
  *   }
  * </code></pre>
  */
-public final class SVCModule implements MCAVModule {
+public final class SvcModule implements MCAVModule {
 
   private static volatile @Nullable VoicechatServerApi voiceChatApi;
 
   /**
    * Constructs the module. The module loader creates it for you.
    */
-  public SVCModule() {}
+  public SvcModule() {}
 
   /**
    * Hands the Simple Voice Chat server API to the library. Call it from the {@code initialize} method of your
@@ -73,7 +73,7 @@ public final class SVCModule implements MCAVModule {
   static VoicechatServerApi requireVoiceChatApi() {
     final VoicechatServerApi api = voiceChatApi;
     if (api == null) {
-      final String message = "The Simple Voice Chat API was not injected; call SVCModule#inject from your voice chat plugin!";
+      final String message = "The Simple Voice Chat API was not injected; call SvcModule#inject from your voice chat plugin!";
       throw new IllegalStateException(message);
     }
     return api;

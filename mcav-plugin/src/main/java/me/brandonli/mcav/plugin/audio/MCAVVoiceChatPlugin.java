@@ -23,13 +23,13 @@ import de.maxhenkel.voicechat.api.VoicechatPlugin;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import me.brandonli.mcav.MCAVApi;
 import me.brandonli.mcav.plugin.MCAVSandbox;
-import me.brandonli.mcav.voicechat.SVCModule;
+import me.brandonli.mcav.voicechat.SvcModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * The plugin MCAV registers with Simple Voice Chat. Once Simple Voice Chat has started, it hands its server API to
- * the {@link SVCModule} of the library, which voice chat audio needs before it can play.
+ * the {@link SvcModule} of the library, which voice chat audio needs before it can play.
  */
 public final class MCAVVoiceChatPlugin implements VoicechatPlugin {
 
@@ -60,7 +60,7 @@ public final class MCAVVoiceChatPlugin implements VoicechatPlugin {
   }
 
   /**
-   * Hands the voice chat server API to the {@link SVCModule} of the library. Simple Voice Chat calls this once it has
+   * Hands the voice chat server API to the {@link SvcModule} of the library. Simple Voice Chat calls this once it has
    * started on the server, where the API it passes is always a {@link VoicechatServerApi}.
    *
    * @param api the voice chat API
@@ -69,7 +69,7 @@ public final class MCAVVoiceChatPlugin implements VoicechatPlugin {
   public void initialize(final VoicechatApi api) {
     Preconditions.checkNotNull(api, "Voice chat API must not be null");
     final MCAVApi library = this.sandbox.getMCAV();
-    final SVCModule module = library.getModule(SVCModule.class);
+    final SvcModule module = library.getModule(SvcModule.class);
     final VoicechatServerApi serverApi = (VoicechatServerApi) api;
     module.inject(serverApi);
     LOGGER.info(READY);

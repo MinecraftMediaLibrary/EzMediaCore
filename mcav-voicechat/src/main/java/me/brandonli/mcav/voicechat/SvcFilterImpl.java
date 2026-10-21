@@ -38,7 +38,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link SVCFilter}.
+ * The default {@link SvcFilter}.
  *
  * <p>Samples are mixed to mono and cut into 20 millisecond frames of {@value #FRAME_SAMPLES} samples. Every
  * speaker has its own queue, so each of them plays every frame; a speaker that falls behind drops its oldest
@@ -46,7 +46,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * stopping. When {@link #start()} fails part way, every speaker it created is stopped again, so the filter stays
  * stopped and can simply be started again.
  */
-public final class SVCFilterImpl implements SVCFilter {
+public final class SvcFilterImpl implements SvcFilter {
 
   /**
    * The number of mono samples in one 20 millisecond frame at 48 kHz.
@@ -65,14 +65,14 @@ public final class SVCFilterImpl implements SVCFilter {
   private boolean running;
 
   /**
-   * Constructs a stopped filter. {@link SVCFilter#withDistance(float, Object...)} validates the arguments.
+   * Constructs a stopped filter. {@link SvcFilter#withDistance(float, Object...)} validates the arguments.
    *
    * @param distance the distance in blocks the audio can be heard from
    * @param entities the platform entities the audio comes from; the array is copied
-   * @throws IllegalStateException if the voice chat API was not injected into {@link SVCModule}
+   * @throws IllegalStateException if the voice chat API was not injected into {@link SvcModule}
    */
-  SVCFilterImpl(final float distance, final Object[] entities) {
-    SVCModule.requireVoiceChatApi();
+  SvcFilterImpl(final float distance, final Object[] entities) {
+    SvcModule.requireVoiceChatApi();
     this.distance = distance;
     this.entities = entities.clone();
     this.speakers = new ArrayList<>();
@@ -84,7 +84,7 @@ public final class SVCFilterImpl implements SVCFilter {
    * nothing. When voice chat fails to create one of the speakers, the speakers created so far are stopped again and
    * the failure is rethrown, so the filter stays stopped.
    *
-   * @throws IllegalStateException if the voice chat API was removed from {@link SVCModule} after creation
+   * @throws IllegalStateException if the voice chat API was removed from {@link SvcModule} after creation
    * @throws PlayerException       if voice chat refuses to create an audio channel for an entity
    */
   @Override
@@ -93,7 +93,7 @@ public final class SVCFilterImpl implements SVCFilter {
       return;
     }
 
-    final VoicechatServerApi api = SVCModule.requireVoiceChatApi();
+    final VoicechatServerApi api = SvcModule.requireVoiceChatApi();
     try {
       this.createSpeakers(api);
     } catch (final RuntimeException | Error exception) {

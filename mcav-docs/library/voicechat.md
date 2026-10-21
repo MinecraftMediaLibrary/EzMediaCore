@@ -14,7 +14,7 @@ Unlike the other modules, you must shade this module into your plugin, because i
 loader that can see the classes of the Simple Voice Chat plugin.
 ```
 
-Install the `SVCModule` when you create the library instance, and hand it the voice chat server API from your
+Install the `SvcModule` when you create the library instance, and hand it the voice chat server API from your
 voice chat plugin once voice chat has started:
 
 ```java
@@ -34,7 +34,7 @@ voice chat plugin once voice chat has started:
     @Override
     public void initialize(final VoicechatApi api) {
       final VoicechatServerApi serverApi = (VoicechatServerApi) api; // on a server, the API is always a server API
-      final SVCModule voiceChatModule = this.mcav.getModule(SVCModule.class);
+      final SvcModule voiceChatModule = this.mcav.getModule(SvcModule.class);
       voiceChatModule.inject(serverApi);
     }
   }
@@ -45,7 +45,7 @@ server has loaded:
 
 ```java
   final MCAVApi mcav = MCAV.api();
-  mcav.install(SVCModule.class);
+  mcav.install(SvcModule.class);
 
   final Server server = Bukkit.getServer();
   final ServicesManager servicesManager = server.getServicesManager();
@@ -58,18 +58,18 @@ server has loaded:
 
 ## Playing Audio
 
-The `SVCFilter` is an audio filter that makes one or more entities speakers: nearby players hear the audio with
-positional voice chat audio. Pass the platform entities, such as Bukkit `Player`s, to `SVCFilter.svc(Object...)`, or
-use `SVCFilter.withDistance(float, Object...)` to set the distance in blocks the audio can be heard from instead of
-the default of 32 blocks (`SVCFilter.DEFAULT_DISTANCE`). At least one entity is required, and the distance must be
+The `SvcFilter` is an audio filter that makes one or more entities speakers: nearby players hear the audio with
+positional voice chat audio. Pass the platform entities, such as Bukkit `Player`s, to `SvcFilter.svc(Object...)`, or
+use `SvcFilter.withDistance(float, Object...)` to set the distance in blocks the audio can be heard from instead of
+the default of 32 blocks (`SvcFilter.DEFAULT_DISTANCE`). At least one entity is required, and the distance must be
 positive.
 
-Creating a filter throws an `IllegalStateException` if the voice chat API was not injected into the `SVCModule` yet.
+Creating a filter throws an `IllegalStateException` if the voice chat API was not injected into the `SvcModule` yet.
 Call `start()` before attaching the filter and `release()` when playback ends; the pipeline does not call them for you.
 
 ```java
   final Player[] speakers = {firstPlayer, secondPlayer};
-  final SVCFilter svc = SVCFilter.withDistance(48.0f, (Object[]) speakers);
+  final SvcFilter svc = SvcFilter.withDistance(48.0f, (Object[]) speakers);
   svc.start();
   final AudioPipelineStep audioPipelineStep = AudioPipelineStep.of(svc);
 

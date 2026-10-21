@@ -215,8 +215,9 @@ injection hooks and several resource-pack exception constructors changed as well
 
 Custom `HttpResult` implementations must now supply `getCurrentMedia`, `setCurrentMedia`, `getListenerCount` and
 `isRunning`. Custom `DiscordPlayer` implementations must supply `flush`, `getQueuedMillis` and `setPlaying`.
-Custom `SVCFilter` implementations must supply `getQueuedFrames`. Existing factory users usually need only to
-recompile, while implementation subclasses may also be affected by the new final modifiers.
+`SVCFilter` and `SVCModule` are now `SvcFilter` and `SvcModule`, and custom `SvcFilter` implementations must supply
+`getQueuedFrames`. Existing factory users usually need only to recompile, while implementation subclasses may also be
+affected by the new final modifiers.
 
 ## Virtual machines and VNC
 
