@@ -35,9 +35,6 @@ import me.brandonli.mcav.utils.os.Os;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link VmModule}.
- */
 final class VmModuleTest {
 
   private static final String RECORDS_FOLDER = "records";

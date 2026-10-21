@@ -56,36 +56,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A QEMU process with a VNC display on the local machine.
- *
- * <p>The process is started with the accelerator the machine supports; if QEMU exits right away, which is what
- * happens when the accelerator cannot be used, it is started again with software emulation. Output is drained
- * on a background thread and its tail is kept for error messages.
- *
- * <p>The display and the sound of the machine belong to mcav: a configuration that sets {@code -vnc},
- * {@code -audio} or {@code -audiodev}, or routes the PC speaker itself, is refused. The display is shared by every
- * client, and on x86 PC and Q35 machines an Intel HD Audio card and the PC speaker play into an audio backend without
- * a host device, whose sound QEMU's VNC server hands to the audio connection of the player
- * ({@link VmAudioClient}). Other machines have no sound.
- *
- * <p>The VNC port must be free before QEMU starts, and QEMU must still run a moment after the port accepts
- * connections, so the player never connects to another server that listens on the port. The display asks for a random
- * password, which QEMU reads from a file of a folder only the server's user can open; the file is deleted once QEMU
- * started, and the password reaches the players of the display through {@link #getPassword()}.
- */
+// A QEMU process with a VNC display on the local machine. The port must be free before QEMU starts, and QEMU must
+// still run a moment after the port accepts connections, so the player never connects to another server on it.
 final class VmProcess {
 
   static final int FIRST_VNC_PORT = 5900;
 
-  /**
-   * The id of the audio backend of the machine, which the sound cards and the VNC display name.
-   */
   private static final String AUDIO_ID = "mcav-audio";
 
-  /**
-   * The id of the secret object that holds the password of the display.
-   */
   private static final String PASSWORD_ID = "mcav-vnc-password";
 
   private static final String SOUND_CARD_ID = "mcav-sound";
@@ -183,19 +161,6 @@ final class VmProcess {
   private volatile @Nullable Process process;
   private volatile @Nullable Thread drainThread;
 
-  /**
-   * Constructs a process with its environment replaced, so tests can run without QEMU.
-   *
-   * @param settings                 the display settings
-   * @param architecture             the guest architecture
-   * @param executable               the QEMU program
-   * @param configuration            the QEMU options
-   * @param launcher                 starts the process from its command line
-   * @param os                       the operating system, which decides the accelerator
-   * @param kvmDevice                the KVM device, used on Linux
-   * @param startTimeoutMilliseconds how long the display may take to accept connections
-   * @param secretFolder             creates the folder of the password file of a start
-   */
   @VisibleForTesting
   VmProcess(
     final VmSettings settings,
@@ -222,7 +187,6 @@ final class VmProcess {
     );
   }
 
-  /** Constructs a process with a monotonic clock for deterministic startup deadline checks. */
   @VisibleForTesting
   VmProcess(
     final VmSettings settings,
@@ -250,15 +214,6 @@ final class VmProcess {
     this.outputTail = new ArrayDeque<>();
   }
 
-  /**
-   * Creates a QEMU process for the current operating system that has not started yet.
-   *
-   * @param settings      the display settings
-   * @param architecture  the guest architecture, which decides whether the machine has sound
-   * @param executable    the QEMU program
-   * @param configuration the QEMU options
-   * @return the process
-   */
   static VmProcess create(
     final VmSettings settings,
     final VmPlayer.Architecture architecture,
@@ -299,15 +254,7 @@ final class VmProcess {
     return posix ? FolderAccess.OWNER_ONLY : FolderAccess.INHERITED;
   }
 
-  /**
-   * Creates an empty folder that only the server's user can open. A file system without POSIX permissions is Windows,
-   * whose temporary folder of a user is private to that user already.
-   *
-   * @param parent the folder to create it in
-   * @param access how the folder is kept private
-   * @return the folder
-   * @throws IOException if it cannot be created
-   */
+  // INHERITED is for Windows, which has no POSIX permissions and whose per-user temporary folder is private already
   @VisibleForTesting
   static Path createSecretFolder(final Path parent, final FolderAccess access) throws IOException {
     return switch (access) {
@@ -316,13 +263,6 @@ final class VmProcess {
     };
   }
 
-  /**
-   * Starts QEMU and waits until its VNC display accepts connections.
-   *
-   * @throws IllegalArgumentException if the configuration sets an option MCAV owns
-   * @throws VmException              if the VNC port is taken, the password cannot be written, or QEMU cannot be started,
-   *                                  exits, or never opens its display
-   */
   void start() {
     checkModuleOptions(this.configuration);
     this.ensurePortIsFree();
@@ -353,12 +293,6 @@ final class VmProcess {
     this.launchWithSoftwareFallback(accelerator, passwordFile);
   }
 
-  /**
-   * Writes the password of the display into a new private folder.
-   *
-   * @return the folder
-   * @throws VmException if the folder or the file cannot be written
-   */
   private Path writePassword() {
     try {
       final Path folder = this.secretFolder.create();
@@ -384,12 +318,6 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Starts QEMU with a hardware accelerator, and again with software emulation if QEMU blames the accelerator.
-   *
-   * @param accelerator  the hardware accelerator to try first
-   * @param passwordFile the file that holds the password of the display
-   */
   private void launchWithSoftwareFallback(final String accelerator, final Path passwordFile) {
     try {
       this.launch(accelerator, passwordFile);
@@ -405,13 +333,6 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Refuses a configuration that sets the display or the sound of the machine, which mcav owns.
-   *
-   * @param configuration the QEMU options
-   * @throws IllegalArgumentException if the configuration sets {@code -vnc}, {@code -audio}, {@code -audiodev}, or routes
-   *                                  the PC speaker
-   */
   @VisibleForTesting
   static void checkModuleOptions(final VmConfiguration configuration) {
     for (final String option : MODULE_OPTIONS) {
@@ -429,24 +350,13 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Checks whether the machine gets sound: x86 PC and Q35 machines do, others have no sound card mcav can add.
-   *
-   * @return true if the machine plays into the audio backend of mcav
-   */
   boolean hasAudio() {
     final String type = machineType(this.configuration);
     final boolean pcMachine = isPcMachine(type);
     return this.architecture == VmPlayer.Architecture.X86_64 && pcMachine;
   }
 
-  /**
-   * Gets the machine type of a configuration as QEMU does: it merges every {@code -machine} and {@code -M} option, a
-   * value names the type in its first part or in {@code type=}, and the type named last wins.
-   *
-   * @param configuration the QEMU options
-   * @return the type in lower case, or empty for the default machine of QEMU
-   */
+  // QEMU merges every -machine and -M option: a value names the type first or in type=, and the last type wins
   @VisibleForTesting
   static String machineType(final VmConfiguration configuration) {
     String type = "";
@@ -472,24 +382,13 @@ final class VmProcess {
     return type;
   }
 
-  /**
-   * Gets the values of every {@code -machine} and {@code -M} option of a configuration, in the order QEMU reads them.
-   *
-   * @param configuration the QEMU options
-   * @return the values
-   */
   private static List<String> machineValues(final VmConfiguration configuration) {
     // in the order of the arguments QEMU gets: grouped by spelling, -M q35 -machine microvm would read as q35 where QEMU
     // runs microvm; and by option name, as a scan of every argument would read -name -M -cpu host as the machine -cpu
     return configuration.valuesOf(MACHINE_OPTIONS);
   }
 
-  /**
-   * Checks whether a machine type is an x86 PC or Q35 machine, which has a PC speaker and a PCI bus for a sound card.
-   *
-   * @param type the machine type in lower case, empty for the default machine, which is a PC
-   * @return true for the default machine, {@code pc}, {@code q35} and their versions
-   */
+  // an empty type is the default machine of QEMU, a PC
   @VisibleForTesting
   static boolean isPcMachine(final String type) {
     return type.isEmpty() || type.equals(PC_MACHINE) || type.equals(Q35_MACHINE) || type.startsWith(PC_VERSION_PREFIX);
@@ -508,13 +407,6 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Checks whether a failure message of QEMU blames the accelerator.
-   *
-   * @param reason      the failure message
-   * @param accelerator the accelerator that was used
-   * @return true if the message mentions the accelerator or hardware virtualization
-   */
   @VisibleForTesting
   static boolean mentionsAccelerator(final @Nullable String reason, final String accelerator) {
     final String message = Objects.requireNonNullElse(reason, "");
@@ -546,12 +438,6 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Starts the background thread that reads the output of a started QEMU process, forgetting the output of an
-   * earlier attempt.
-   *
-   * @param started the started process
-   */
   private void startDraining(final Process started) {
     synchronized (this.outputTail) {
       this.outputTail.clear();
@@ -564,13 +450,6 @@ final class VmProcess {
     drain.start();
   }
 
-  /**
-   * Builds the command line of QEMU.
-   *
-   * @param accelerator  the accelerator to add, or null to add none
-   * @param passwordFile the file QEMU reads the password of the display from
-   * @return the program followed by its arguments
-   */
   @VisibleForTesting
   List<String> buildCommand(final @Nullable String accelerator, final Path passwordFile) {
     final List<String> command = new ArrayList<>();
@@ -593,23 +472,12 @@ final class VmProcess {
     return command;
   }
 
-  /**
-   * Routes the PC speaker into the audio backend of mcav with a {@code -machine} option of its own, which QEMU merges
-   * with those of the configuration.
-   *
-   * @param command the command line so far, with the options of the configuration
-   */
+  // QEMU merges this -machine option with those of the configuration
   private void routeSpeaker(final List<String> command) {
     command.add("-machine");
     command.add(SPEAKER_PROPERTY + PROPERTY_ASSIGNMENT + AUDIO_ID);
   }
 
-  /**
-   * Adds the options MCAV relies on: a standard VGA card, no window on the host and a network that reaches neither
-   * the host nor the internet unless the configuration sets them itself, the sound of the machine, a VNC display on
-   * the configured port that every client shares and that asks for the password, and a USB tablet. The tablet reports absolute coordinates, so VNC
-   * pointer positions map straight onto the screen.
-   */
   private void addDefaultOptions(final List<String> command, final Path passwordFile) {
     this.addUnlessConfigured(command, "vga", "-vga", "std");
     this.addNoHostWindow(command);
@@ -663,12 +531,6 @@ final class VmProcess {
     command.add(vncWithAudio);
   }
 
-  /**
-   * Adds the audio backend, which plays into no host device at the rate of the audio pipeline, and an Intel HD Audio
-   * card with an output, the ICH9 variant on Q35 machines.
-   *
-   * @param command the command line so far
-   */
   private void addAudio(final List<String> command) {
     final String backend = "none,id=%s,out.frequency=%s".formatted(AUDIO_ID, AudioFilter.SAMPLE_RATE);
     command.add("-audiodev");
@@ -690,11 +552,7 @@ final class VmProcess {
     return type.equals(Q35_MACHINE) || type.startsWith(Q35_VERSION_PREFIX);
   }
 
-  /**
-   * Adds the USB controller and the tablet. The older {@code -usbdevice} option brings both; {@code usb=} in the
-   * machine type or the {@code usb} flag chooses the controller; {@code usb=off} means no USB, so no tablet either;
-   * and a tablet the configuration adds itself replaces the default one.
-   */
+  // -usbdevice brings its own controller and tablet, and usb=off means no USB at all
   private void addUsbTablet(final List<String> command) {
     final boolean legacyTablet = this.configuration.has("usbdevice");
     final Optional<String> usbProperty = this.findLastUsbProperty();
@@ -741,13 +599,6 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Picks the fastest accelerator of an operating system.
-   *
-   * @param os        the operating system
-   * @param kvmDevice the KVM device, which must be writable to use KVM on Linux
-   * @return the accelerator name
-   */
   @VisibleForTesting
   static String detectAccelerator(final Os os, final Path kvmDevice) {
     return switch (os) {
@@ -774,13 +625,6 @@ final class VmProcess {
     this.remember(last);
   }
 
-  /**
-   * Adds characters to the line being read, remembering every line a line break completes.
-   *
-   * @param characters the characters that were read
-   * @param count      how many of the characters are valid
-   * @param line       the incomplete line, which keeps what follows the last line break
-   */
   private void collectLines(final char[] characters, final int count, final StringBuilder line) {
     for (int index = 0; index < count; index++) {
       final char character = characters[index];
@@ -797,12 +641,6 @@ final class VmProcess {
     this.trimLine(line);
   }
 
-  /**
-   * Retains only the end of a long diagnostic line, including when QEMU never prints a line break.
-   * The reader supplies at most 4096 characters at once, so incomplete lines also have bounded storage.
-   *
-   * @param line the line being collected
-   */
   private void trimLine(final StringBuilder line) {
     final int excess = line.length() - OUTPUT_LINE_CHARACTERS;
     if (excess > 0) {
@@ -876,9 +714,6 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Waits a moment before the display is tried again, returning early if QEMU exits in the meantime.
-   */
   private void waitBeforeNextAttempt(final Process started) {
     try {
       started.waitFor(POLL_MILLISECONDS, TimeUnit.MILLISECONDS);
@@ -909,21 +744,11 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Checks whether QEMU is still running.
-   *
-   * @return true if the process is alive
-   */
   boolean isAlive() {
     final Process current = this.process;
     return current != null && current.isAlive();
   }
 
-  /**
-   * Stops QEMU, forcibly if it does not exit in time, and waits for its final output.
-   * Graceful and forced termination each have a bounded wait. Interrupts request forced termination immediately
-   * and are restored after cleanup. A process that survives the forced wait remains visible to liveness checks.
-   */
   void shutdown() {
     final Process current = this.process;
     if (current == null) {
@@ -966,11 +791,6 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Waits for asynchronous forced termination without letting interrupts abandon the child process.
-   *
-   * @param current the process whose termination was requested
-   */
   private void awaitForcedExit(final Process current) {
     final long timeoutNanoseconds = TimeUnit.SECONDS.toNanos(STOP_TIMEOUT_SECONDS);
     final long deadline = System.nanoTime() + timeoutNanoseconds;
@@ -991,26 +811,12 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Gets the password of the display, which a VNC client of the machine must send.
-   *
-   * @return the password, eight letters and digits
-   */
   String getPassword() {
     return this.password;
   }
 
-  /**
-   * Creates the folder of the password file of one start.
-   */
   @FunctionalInterface
   interface SecretFolder {
-    /**
-     * Creates an empty folder that only the server's user can open.
-     *
-     * @return the folder
-     * @throws IOException if it cannot be created
-     */
     Path create() throws IOException;
   }
 
@@ -1019,9 +825,6 @@ final class VmProcess {
     INHERITED,
   }
 
-  /**
-   * Starts QEMU and records it, so that a later start of the module stops it if this JVM is killed before it could.
-   */
   @VisibleForTesting
   static final class RecordingLauncher implements Launcher {
 
@@ -1053,25 +856,11 @@ final class VmProcess {
     }
   }
 
-  /**
-   * Starts a process from its command line.
-   */
   @FunctionalInterface
   interface Launcher {
-    /**
-     * Starts a process with its error output merged into its standard output.
-     *
-     * @param command the program followed by its arguments
-     * @return the started process
-     * @throws IOException if the process cannot be started
-     */
+    // the error output must be merged into the standard output, the only stream that is drained
     Process launch(List<String> command) throws IOException;
 
-    /**
-     * Learns that a process this launcher started has ended.
-     *
-     * @param process the process
-     */
     default void ended(final Process process) {}
   }
 }

@@ -49,18 +49,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.opentest4j.AssertionFailedError;
 
-/**
- * Runs real QEMU guests and listens to them through the audio pipeline of the player. The guests are boot sectors
- * in {@code /guests/}, whose sources lie next to them: {@code beep.asm} plays a 1000 Hz tone on the PC speaker, and
- * {@code toggle.asm} switches that tone and a red screen on and off together at irregular times, so the sound can be matched with the
- * picture. Skipped where QEMU for x86-64 is not installed; the matching times real events, so it only runs with
- * {@code -Pmcav.syncMeasurement=true}.
- */
+// The guests are boot sectors in /guests/ beside their sources: beep.asm plays 1000 Hz on the PC speaker, and toggle.asm
+// switches that tone and a red screen on and off together at irregular times.
 final class VmSoundTest {
 
   private static final int TONE_HERTZ = 1000;
 
-  /** The fewest changes of the picture a measurement must match to say anything of the sync. */
   private static final int MINIMUM_MATCHED = 10;
   private static final int WINDOW_FRAMES = AudioFilter.SAMPLE_RATE / 200;
 
@@ -125,14 +119,6 @@ final class VmSoundTest {
     }
   }
 
-  /**
-   * Measures how strong the tone is in a window of the left channel, compared with everything in it.
-   *
-   * @param left    the samples of the left channel
-   * @param start   the first sample of the window
-   * @param length  the number of samples
-   * @return the share of the energy at the tone, from 0 to 1, or 0 for silence
-   */
   private double toneShare(final short[] left, final int start, final int length) {
     final double omega = (2 * Math.PI * TONE_HERTZ) / AudioFilter.SAMPLE_RATE;
     final double coefficient = 2 * Math.cos(omega);
@@ -312,12 +298,6 @@ final class VmSoundTest {
     this.assertInSync(judgement);
   }
 
-  /**
-   * The measurement's verdict: enough changes of the picture matched, nearly every change has its sound near it, the
-   * two arrive together in the middle, and they do not drift apart.
-   *
-   * @param judgement the changes of the picture and how far their sound was from each
-   */
   private void assertInSync(final SyncJudgement judgement) {
     final List<Double> offsets = judgement.offsets();
     final int changes = judgement.changes();
@@ -385,13 +365,7 @@ final class VmSoundTest {
     return sorted.get(sorted.size() / 2);
   }
 
-  /**
-   * Finds the times at which a signal switches on: a sample that is on after one that is off, or after a gap. QEMU
-   * sends no sound at all while the speaker is off, so the sound has gaps where the picture has dark frames.
-   *
-   * @param samples pairs of a time in nanoseconds and a state, 1 for on
-   * @return the times the signal switched on
-   */
+  // QEMU sends nothing while the speaker is off, so the sound has gaps where the picture has dark frames
   private List<Long> onsets(final List<long[]> samples) {
     final List<long[]> ordered = new ArrayList<>(samples);
     ordered.sort((first, second) -> Long.compare(first[0], second[0]));
@@ -413,15 +387,8 @@ final class VmSoundTest {
     return onsets;
   }
 
-  /**
-   * What the changes of a picture and of its sound say about their sync. Every change of the picture is matched with
-   * the nearest change of the sound within a window of half the shortest time between two changes of the fixture, and a
-   * change without one counts against every rate: leaving those out before the rates were taken let a stream out of sync
-   * for most of its changes pass on the few that matched (deep review DR-016).
-   *
-   * @param changes the changes of the picture
-   * @param offsets the sound minus the picture of each matched change, in milliseconds, in the order of the picture
-   */
+  // a change of the picture without sound counts against every rate: leaving those out let a stream out of sync for
+  // most of its changes pass on the few that matched
   record SyncJudgement(int changes, List<Double> offsets) {
     static SyncJudgement of(final List<Long> pictureOnsets, final List<Long> soundOnsets, final long windowNanoseconds) {
       final List<Double> offsets = new ArrayList<>();
@@ -446,7 +413,6 @@ final class VmSoundTest {
       return nearest;
     }
 
-    /** How many changes of the picture had their sound in the range, in milliseconds; a change without sound never. */
     long within(final double low, final double high) {
       return this.offsets
         .stream()

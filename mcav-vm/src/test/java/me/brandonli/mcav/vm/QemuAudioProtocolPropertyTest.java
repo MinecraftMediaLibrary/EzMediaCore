@@ -36,10 +36,6 @@ import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 import net.jqwik.api.constraints.Size;
 
-/**
- * Properties of the reader of the audio connection: any sequence of messages QEMU may send is read back as sent, with
- * the same samples, however the network cuts the stream into pieces.
- */
 final class QemuAudioProtocolPropertyTest {
 
   private static final String SEED = "20260925";
@@ -104,9 +100,6 @@ final class QemuAudioProtocolPropertyTest {
     }
   }
 
-  /**
-   * A message and its samples.
-   */
   private static final class Sent {
 
     private final QemuAudioProtocol.Kind kind;
@@ -131,9 +124,7 @@ final class QemuAudioProtocolPropertyTest {
     }
   }
 
-  /**
-   * A stream that hands out its bytes in pieces of random sizes, as a network connection does.
-   */
+  // hands out its bytes in pieces of random sizes, as a network connection does
   private static final class Trickle extends InputStream {
 
     private final ByteArrayInputStream bytes;

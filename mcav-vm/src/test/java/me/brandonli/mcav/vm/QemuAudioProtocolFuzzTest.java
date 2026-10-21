@@ -28,13 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the audio connection to QEMU's VNC server with whatever a server could send: the handshake, then messages.
- * A VNC server is local, but the guest can reach the loopback interface of the host through QEMU's user networking,
- * so the reader treats it as untrusted. Whatever the bytes, it either refuses them with an {@link IOException} or
- * returns messages whose samples are whole frames within the limit; nothing else escapes, and no allocation grows
- * with a claimed length.
- */
+// the guest can reach the loopback interface of the host through QEMU's user networking, so the server is untrusted
 @Tag("fuzz")
 final class QemuAudioProtocolFuzzTest {
 

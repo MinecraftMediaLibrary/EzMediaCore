@@ -45,10 +45,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link QemuProcessRecords} with child JVMs in place of QEMU: a process a killed server left running is stopped
- * when the module starts again, and nothing else is.
- */
 final class QemuProcessRecordsTest {
 
   private static final long GONE = Long.MAX_VALUE;
@@ -89,12 +85,6 @@ final class QemuProcessRecordsTest {
     }
   }
 
-  /**
-   * Starts a JVM that sleeps for five minutes, standing in for QEMU.
-   *
-   * @param stopRequest whether it obeys or ignores a request to end; when it ignores it, only a kill ends it
-   * @return the process
-   */
   private Process child(final StopRequest stopRequest) throws IOException {
     final List<String> command = this.sleeper(stopRequest);
     // JVM startup diagnostics are separate from the fixture's readiness protocol.
@@ -108,12 +98,6 @@ final class QemuProcessRecordsTest {
     return process;
   }
 
-  /**
-   * Writes the program of a JVM that sleeps for five minutes, standing in for QEMU.
-   *
-   * @param stopRequest whether it obeys or ignores a request to end; when it ignores it, only a kill ends it
-   * @return the command that starts it
-   */
   private List<String> sleeper(final StopRequest stopRequest) throws IOException {
     final String hook = switch (stopRequest) {
       case OBEYED -> "";

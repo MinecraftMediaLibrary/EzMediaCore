@@ -25,6 +25,8 @@ import java.io.Serial;
  * the folders {@link ExecutableFinder} also searches.
  *
  * <p>It is a {@link VmException}, so catching that handles it too.
+ *
+ * @since 1.0.0
  */
 public final class ExecutableNotInPathException extends VmException {
 
@@ -36,6 +38,7 @@ public final class ExecutableNotInPathException extends VmException {
    *
    * @param executable the name of the missing program
    * @throws NullPointerException if the name is null
+   * @since 1.0.0
    */
   public ExecutableNotInPathException(final String executable) {
     Preconditions.checkNotNull(executable, "Executable must not be null!");

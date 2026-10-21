@@ -34,15 +34,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 
-/**
- * The audio connection to QEMU's VNC server: a second, shared RFB client of the display of the machine, which
- * receives the samples the guest plays through {@link QemuAudioProtocol} and hands them to a {@link Sink}.
- *
- * <p>QEMU is asked for the format of the audio pipeline, 16-bit little-endian stereo at 48 kHz, and converts to it
- * itself, so the samples need no conversion here. The whole handshake must finish within
- * {@value #HANDSHAKE_TIMEOUT_MILLISECONDS} ms; afterwards a reader thread waits for as long as the guest stays silent. A
- * connection that ends or breaks the protocol while nobody closed it, or whose sink fails, is reported, once.
- */
+// QEMU converts the sound to the format of the audio pipeline itself. Only the handshake has a deadline: afterwards
+// the reader waits as long as the guest stays silent, and an end nobody asked for is reported once.
 final class VmAudioClient implements Closeable {
 
   static final int HANDSHAKE_TIMEOUT_MILLISECONDS = 5_000;
@@ -67,16 +60,6 @@ final class VmAudioClient implements Closeable {
     this.reader = new Thread(UNSTARTED_READER_NAME);
   }
 
-  /**
-   * Connects to the VNC server of a machine, enables its audio and starts receiving samples.
-   *
-   * @param address  the address of the VNC server
-   * @param password the password of the display, or an empty string for a display without one
-   * @param sink     receives the samples
-   * @param failures receives an unexpected end of the connection
-   * @return the connected client
-   * @throws IOException if the connection or the handshake fails
-   */
   static VmAudioClient connect(
     final InetSocketAddress address,
     final String password,
@@ -117,15 +100,6 @@ final class VmAudioClient implements Closeable {
     return CompletableFuture.runAsync(() -> closeQuietly(socket), later);
   }
 
-  /**
-   * Agrees on RFB 3.8 with the password of the display, or without authentication if the server asks for none, shares
-   * the display, and enables the audio in the format of the audio pipeline.
-   *
-   * @param input    the stream from the server
-   * @param output   the stream to the server
-   * @param password the password of the display, or an empty string for none
-   * @throws IOException if the handshake fails
-   */
   private static void handshake(final DataInputStream input, final DataOutputStream output, final String password) throws IOException {
     QemuAudioProtocol.readVersion(input);
     QemuAudioProtocol.writeVersion(output);
@@ -183,9 +157,6 @@ final class VmAudioClient implements Closeable {
     }
   }
 
-  /**
-   * Closes the connection and waits for the reader thread to end. Safe to call more than once.
-   */
   @Override
   public void close() {
     this.closed = true;
@@ -197,12 +168,7 @@ final class VmAudioClient implements Closeable {
     Thread.ofVirtual().name(DEADLINE_THREAD_NAME).start(task);
   }
 
-  /**
-   * Waits for a thread of the sound to end, at most {@value #HANDSHAKE_TIMEOUT_MILLISECONDS} ms, unless it is the calling
-   * thread: a filter or a failure callback that releases the player runs on the thread it would wait for.
-   *
-   * @param thread the thread
-   */
+  // a filter or failure callback that releases the player runs on the thread it would wait for
   static void join(final Thread thread) {
     final Thread caller = Thread.currentThread();
     final boolean ownThread = thread.equals(caller);
@@ -217,11 +183,6 @@ final class VmAudioClient implements Closeable {
     }
   }
 
-  /**
-   * Closes a socket whose failure to close changes nothing, as the connection is gone either way.
-   *
-   * @param closeable the socket
-   */
   static void closeQuietly(final Closeable closeable) {
     try {
       closeable.close();
@@ -230,41 +191,21 @@ final class VmAudioClient implements Closeable {
     }
   }
 
-  /**
-   * Gets the thread that reads the connection, so tests can check how it runs.
-   *
-   * @return the reader thread
-   */
   @VisibleForTesting
   Thread getReader() {
     return this.reader;
   }
 
-  /**
-   * Checks whether the reader thread still runs.
-   *
-   * @return true while samples can arrive
-   */
   boolean isAlive() {
     return this.reader.isAlive();
   }
 
-  /**
-   * Receives the samples of the guest.
-   */
   @FunctionalInterface
   interface Sink {
-    /**
-     * Takes samples, which must be copied: the buffer is reused for the next message.
-     *
-     * @param samples the buffer, 16-bit little-endian stereo at 48 kHz
-     * @param length  the number of bytes of samples at its start, whole frames
-     */
+    // the buffer is reused for the next message, so the samples must be copied
     void accept(byte[] samples, int length);
 
-    /**
-     * Learns that the guest stopped playing: nothing arrives until it plays again.
-     */
+    // the guest stopped playing: nothing arrives until it plays again
     default void quiet() {}
   }
 }

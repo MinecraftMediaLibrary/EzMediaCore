@@ -27,6 +27,8 @@ import me.brandonli.mcav.MCAVException;
  *
  * <p>Every failure of {@code mcav-vm} that comes from QEMU or the machine is this type or a subtype; catch it to
  * handle them all. A failed VNC connection to the display of QEMU is a {@link me.brandonli.mcav.vnc.VncException}.
+ *
+ * @since 1.0.0
  */
 public class VmException extends MCAVException {
 
@@ -37,6 +39,7 @@ public class VmException extends MCAVException {
    * Creates an exception with a message.
    *
    * @param message the detail message
+   * @since 1.0.0
    */
   public VmException(final String message) {
     super(message);
@@ -47,6 +50,7 @@ public class VmException extends MCAVException {
    *
    * @param message the detail message
    * @param cause   the cause
+   * @since 1.0.0
    */
   public VmException(final String message, final Throwable cause) {
     super(message, cause);

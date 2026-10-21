@@ -23,6 +23,8 @@ package me.brandonli.mcav.vm;
  * {@code -device}, are added with {@link #repeatable(String, String)}. Built configurations keep their own settings.
  *
  * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
 public interface VmConfigurationBuilder {
   /**
@@ -31,6 +33,7 @@ public interface VmConfigurationBuilder {
    * @param memoryMegabytes the strictly positive memory amount, passed to QEMU with its {@code M} suffix
    * @return this builder
    * @throws IllegalArgumentException if {@code memoryMegabytes} is zero or negative
+   * @since 1.0.0
    */
   VmConfigurationBuilder memory(final int memoryMegabytes);
 
@@ -43,6 +46,7 @@ public interface VmConfigurationBuilder {
    * @return this builder
    * @throws IllegalArgumentException if {@code amount} is zero or negative
    * @throws NullPointerException     if {@code unit} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder memory(final int amount, final String unit);
 
@@ -52,6 +56,7 @@ public interface VmConfigurationBuilder {
    * @param cores the strictly positive number of virtual processors
    * @return this builder
    * @throws IllegalArgumentException if {@code cores} is zero or negative
+   * @since 1.0.0
    */
   VmConfigurationBuilder cores(final int cores);
 
@@ -61,6 +66,7 @@ public interface VmConfigurationBuilder {
    * @param isoPath the path of the image
    * @return this builder
    * @throws NullPointerException if {@code isoPath} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder cdrom(final String isoPath);
 
@@ -70,6 +76,7 @@ public interface VmConfigurationBuilder {
    * @param hdaPath the path of the image
    * @return this builder
    * @throws NullPointerException if {@code hdaPath} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder hda(final String hdaPath);
 
@@ -79,6 +86,7 @@ public interface VmConfigurationBuilder {
    * @param hdbPath the path of the image
    * @return this builder
    * @throws NullPointerException if {@code hdbPath} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder hdb(final String hdbPath);
 
@@ -88,6 +96,7 @@ public interface VmConfigurationBuilder {
    * @param bootOrder the boot order, such as {@code d} for the CD-ROM first
    * @return this builder
    * @throws NullPointerException if {@code bootOrder} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder boot(final String bootOrder);
 
@@ -97,6 +106,7 @@ public interface VmConfigurationBuilder {
    * @param networkConfiguration the configuration, such as {@code user,model=virtio-net-pci}
    * @return this builder
    * @throws NullPointerException if {@code networkConfiguration} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder network(final String networkConfiguration);
 
@@ -106,6 +116,7 @@ public interface VmConfigurationBuilder {
    * @param model the model, such as {@code host} or {@code max}
    * @return this builder
    * @throws NullPointerException if {@code model} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder cpu(final String model);
 
@@ -115,6 +126,7 @@ public interface VmConfigurationBuilder {
    * @param machineType the type, such as {@code q35} or {@code virt}
    * @return this builder
    * @throws NullPointerException if {@code machineType} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder machine(final String machineType);
 
@@ -125,6 +137,7 @@ public interface VmConfigurationBuilder {
    * @param accelerator the accelerator, such as {@code kvm}, {@code whpx}, {@code hvf}, or {@code tcg}
    * @return this builder
    * @throws NullPointerException if {@code accelerator} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder accelerator(final String accelerator);
 
@@ -134,6 +147,7 @@ public interface VmConfigurationBuilder {
    * @param adapter the adapter, such as {@code std} or {@code virtio}
    * @return this builder
    * @throws NullPointerException if {@code adapter} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder vga(final String adapter);
 
@@ -143,6 +157,7 @@ public interface VmConfigurationBuilder {
    * @param drive the drive specification, such as {@code file=disk.qcow2,format=qcow2}
    * @return this builder
    * @throws NullPointerException if {@code drive} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder drive(final String drive);
 
@@ -152,6 +167,7 @@ public interface VmConfigurationBuilder {
    * @param device the device specification, such as {@code usb-tablet}
    * @return this builder
    * @throws NullPointerException if {@code device} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder device(final String device);
 
@@ -163,6 +179,7 @@ public interface VmConfigurationBuilder {
    * @return this builder
    * @throws IllegalArgumentException if {@code key} is blank
    * @throws NullPointerException     if {@code key} or {@code value} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder option(final String key, final String value);
 
@@ -174,6 +191,7 @@ public interface VmConfigurationBuilder {
    * @return this builder
    * @throws IllegalArgumentException if {@code key} is blank
    * @throws NullPointerException     if {@code key} or {@code value} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder repeatable(final String key, final String value);
 
@@ -184,6 +202,7 @@ public interface VmConfigurationBuilder {
    * @return this builder
    * @throws IllegalArgumentException if {@code flag} is blank
    * @throws NullPointerException     if {@code flag} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder flag(final String flag);
 
@@ -193,6 +212,7 @@ public interface VmConfigurationBuilder {
    * @param key the option name without the leading dash
    * @return this builder
    * @throws NullPointerException if {@code key} is null
+   * @since 1.0.0
    */
   VmConfigurationBuilder remove(final String key);
 
@@ -200,6 +220,7 @@ public interface VmConfigurationBuilder {
    * Returns the configuration built so far.
    *
    * @return the configuration
+   * @since 1.0.0
    */
   VmConfiguration build();
 }

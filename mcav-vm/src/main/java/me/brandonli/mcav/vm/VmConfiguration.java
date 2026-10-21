@@ -48,10 +48,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * the USB controller yourself, set the {@code usb} flag or {@code usb=on} in the machine type, and to run without USB
  * at all, which also leaves out the tablet, set {@code usb=off}, as in {@code machine("q35,usb=off")}.
  *
- * <pre><code>
- *   final VmConfigurationBuilder builder = VmConfiguration.builder();
- *   final VmConfiguration configuration = builder.cdrom("alpine.iso").memory(2048).cores(2).build();
- * </code></pre>
+ * {@snippet :
+ * final String isoPath = "alpine.iso";
+ * final int memoryMegabytes = 2048;
+ * final int cores = 2;
+ * final VmConfigurationBuilder builder = VmConfiguration.builder();
+ * final VmConfiguration configuration = builder.cdrom(isoPath).memory(memoryMegabytes).cores(cores).build();
+ * }
+ *
+ * @since 1.0.0
  */
 public final class VmConfiguration {
 
@@ -79,6 +84,7 @@ public final class VmConfiguration {
    * Returns a builder for a configuration that starts empty.
    *
    * @return a new builder
+   * @since 1.0.0
    */
   public static VmConfigurationBuilder builder() {
     return new DefaultVmConfigurationBuilder();
@@ -90,6 +96,7 @@ public final class VmConfiguration {
    * @param key the option name without the leading dash
    * @return true if set
    * @throws NullPointerException if {@code key} is null
+   * @since 1.0.0
    */
   public boolean has(final String key) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
@@ -98,13 +105,6 @@ public final class VmConfiguration {
     return this.options.containsKey(key) || this.flags.contains(key) || !values.isEmpty();
   }
 
-  /**
-   * Gets the values of options in the order of {@link #getArguments()}, whether an option was set once or repeated.
-   * Only option names are matched, so the value of another option that looks like one of them is left out.
-   *
-   * @param keys the option names without the leading dash
-   * @return the values
-   */
   List<String> valuesOf(final Set<String> keys) {
     final List<String> values = new ArrayList<>();
     for (final Map.Entry<String, String> entry : this.options.entrySet()) {
@@ -131,6 +131,7 @@ public final class VmConfiguration {
    * Returns the command-line arguments as an array.
    *
    * @return a new array; changes to it do not affect this configuration
+   * @since 1.0.0
    */
   public String[] buildArguments() {
     final List<String> arguments = this.getArguments();
@@ -144,6 +145,7 @@ public final class VmConfiguration {
    * @return an unmodifiable snapshot in insertion order, empty if no repeatable values exist; singleton
    *         options and flags are not included
    * @throws NullPointerException if {@code key} is null
+   * @since 1.0.0
    */
   public List<String> getAll(final String key) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
@@ -167,6 +169,7 @@ public final class VmConfiguration {
    * @param key the option name without the leading dash
    * @return the value, or empty if the option is not set
    * @throws NullPointerException if {@code key} is null
+   * @since 1.0.0
    */
   public Optional<String> find(final String key) {
     Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
@@ -179,6 +182,7 @@ public final class VmConfiguration {
    * Returns the command-line arguments in order: options, repeatable options, then flags.
    *
    * @return the arguments, which cannot be modified
+   * @since 1.0.0
    */
   public List<String> getArguments() {
     final List<String> arguments = new ArrayList<>();
@@ -204,6 +208,7 @@ public final class VmConfiguration {
    *
    * @param other the object to compare with
    * @return whether both configurations match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -226,6 +231,7 @@ public final class VmConfiguration {
    * Returns a hash code built from the options, the repeatable options and the flags.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -236,6 +242,7 @@ public final class VmConfiguration {
    * Returns a debugging representation with the options, the repeatable options and the flags.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

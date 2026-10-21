@@ -66,10 +66,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Tests {@link VmProcess} with {@link FakeProcess} instances in place of QEMU and a local socket in place of its
- * VNC display.
- */
 final class VmProcessTest {
 
   private static final Path QEMU = Path.of("qemu-system-x86_64");
@@ -288,10 +284,6 @@ final class VmProcessTest {
     return process.buildCommand(null, this.passwordFile());
   }
 
-  /**
-   * Builds the command expected on VNC display 1: the program, the configured options, the display defaults, and
-   * the USB options the player adds.
-   */
   private List<String> expectedOnDisplayOne(final List<String> options, final List<String> usbOptions) {
     final String program = QEMU.toString();
     final List<String> displayDefaults = List.of(
@@ -1670,11 +1662,6 @@ final class VmProcessTest {
     }
   }
 
-  /**
-   * Waits until the thread that reads the output of QEMU runs.
-   *
-   * @return the live drain threads
-   */
   private List<Thread> awaitDrainThreads() {
     final long timeoutNanoseconds = TimeUnit.SECONDS.toNanos(10);
     final long pauseNanoseconds = TimeUnit.MILLISECONDS.toNanos(5);
@@ -1728,9 +1715,6 @@ final class VmProcessTest {
     assertEquals("Waiting for QEMU was interrupted!", message);
   }
 
-  /**
-   * A stream that blocks until it is released, and then reports the end of the output.
-   */
   private static final class BlockingStream extends InputStream {
 
     private final CountDownLatch finish;
@@ -1763,9 +1747,6 @@ final class VmProcessTest {
     }
   }
 
-  /**
-   * A stream that holds its content back for a while, then returns it.
-   */
   private static final class DelayedStream extends InputStream {
 
     private final byte[] content;
@@ -1812,9 +1793,6 @@ final class VmProcessTest {
     }
   }
 
-  /**
-   * A stream that returns its content one byte per read.
-   */
   private static final class OneByteStream extends InputStream {
 
     private final byte[] content;
@@ -1847,9 +1825,6 @@ final class VmProcessTest {
     }
   }
 
-  /**
-   * A stream that returns its content and then fails.
-   */
   private static final class FailingStream extends InputStream {
 
     private final byte[] content;

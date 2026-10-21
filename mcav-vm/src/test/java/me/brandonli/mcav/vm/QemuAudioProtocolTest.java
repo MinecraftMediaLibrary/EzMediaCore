@@ -61,13 +61,6 @@ final class QemuAudioProtocolTest {
 
   private static final int CUT_TEXT_PADDING_BYTES = 3;
 
-  /**
-   * Builds bytes with a writer.
-   *
-   * @param writer writes the bytes
-   * @return the bytes
-   * @throws IOException never
-   */
   static byte[] bytes(final Writer writer) throws IOException {
     final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
     final DataOutputStream output = new DataOutputStream(bytes);
@@ -87,13 +80,6 @@ final class QemuAudioProtocolTest {
     return QemuAudioProtocol.readMessage(input, FRAME, byte[]::new);
   }
 
-  /**
-   * Writes the audio data message of QEMU.
-   *
-   * @param output  the stream
-   * @param samples the samples
-   * @throws IOException never
-   */
   static void writeData(final DataOutputStream output, final byte[] samples) throws IOException {
     output.writeByte(QemuAudioProtocol.SERVER_QEMU);
     output.writeByte(QemuAudioProtocol.QEMU_AUDIO);
@@ -102,12 +88,6 @@ final class QemuAudioProtocolTest {
     output.write(samples);
   }
 
-  /**
-   * Writes the confirmation of the audio pseudo-encoding.
-   *
-   * @param output the stream
-   * @throws IOException never
-   */
   static void writeAcknowledgement(final DataOutputStream output) throws IOException {
     output.writeByte(QemuAudioProtocol.SERVER_UPDATE);
     output.writeByte(0);
@@ -459,9 +439,6 @@ final class QemuAudioProtocolTest {
     assertEquals(UnsupportedOperationException.class, causeType);
   }
 
-  /**
-   * Writes bytes.
-   */
   @FunctionalInterface
   interface Writer {
     void write(DataOutputStream output) throws IOException;

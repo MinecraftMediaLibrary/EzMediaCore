@@ -26,23 +26,12 @@ import java.util.Arrays;
 import java.util.List;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Assertions for the {@link Object#equals(Object)} and {@link Object#hashCode()} contract of value types.
- */
 public final class EqualityAssertions {
 
   private EqualityAssertions() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Asserts that two values are equal in both directions with equal hash codes, that neither equals {@code null} or
-   * an unrelated object, and that the value differs from every one of the different values in both directions.
-   *
-   * @param value           the value under test
-   * @param equalValue      a distinct instance that must be equal to the value
-   * @param differentValues instances that must not be equal to the value, ideally each differing in one property
-   */
   public static void assertEqualityContract(final Object value, final Object equalValue, final Object... differentValues) {
     Preconditions.checkNotNull(value, "Value must not be null!");
     Preconditions.checkNotNull(equalValue, "Equal value must not be null!");

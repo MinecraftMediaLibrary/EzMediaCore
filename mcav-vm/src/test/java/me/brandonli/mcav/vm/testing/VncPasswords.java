@@ -27,10 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-/**
- * Answers the challenge of VNC authentication the way Vernacular, the VNC client of mcav-vnc, answers it: an oracle
- * for the answer of the audio connection that shares none of its code.
- */
+// an oracle that shares no code with the audio connection: it answers as Vernacular, the client of mcav-vnc, does
 public final class VncPasswords {
 
   // RFB 3.8: the client sends the security type it chose before the challenge arrives
@@ -41,14 +38,6 @@ public final class VncPasswords {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Answers a challenge.
-   *
-   * @param challenge the 16 bytes the server sent
-   * @param password  the password
-   * @return the 16 bytes Vernacular sends back
-   * @throws IOException if Vernacular fails
-   */
   public static byte[] response(final byte[] challenge, final String password) throws IOException {
     final VernacularConfig configuration = new VernacularConfig();
     configuration.setPasswordSupplier(() -> password);

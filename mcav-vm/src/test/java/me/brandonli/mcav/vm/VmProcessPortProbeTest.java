@@ -39,7 +39,6 @@ import org.mockito.AdditionalAnswers;
 import org.mockito.MockSettings;
 import org.mockito.MockedConstruction;
 
-/** Checks the port probe's explicit pre-bind socket policy independently of platform defaults. */
 final class VmProcessPortProbeTest {
 
   private static final String UNUSED_EXECUTABLE = "unused-qemu";

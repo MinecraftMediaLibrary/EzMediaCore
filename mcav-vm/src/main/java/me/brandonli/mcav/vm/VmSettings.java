@@ -26,8 +26,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * How a virtual machine is streamed: the local VNC port QEMU listens on, the size frames are scaled to, and
- * the requested VNC update rate. This does not change the guest display rate. Instances are immutable and
- * may be shared across threads; creating settings does not reserve a port or start a machine.
+ * the requested VNC update rate. This does not change the guest display rate. Creating settings does not reserve a
+ * port or start a machine.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class VmSettings {
 
@@ -55,6 +59,7 @@ public final class VmSettings {
    * @return the settings
    * @throws IllegalArgumentException if a dimension or frame rate is nonpositive
    * @throws MCAVException            if no port in the VNC range can be bound by the probe
+   * @since 1.0.0
    */
   public static VmSettings of(final int width, final int height, final int targetFrameRate) {
     final int port = IoUtils.getNextFreeVncPort();
@@ -70,6 +75,7 @@ public final class VmSettings {
    * @param targetFrameRate the strictly positive requested frame rate in frames per second
    * @return the settings
    * @throws IllegalArgumentException if the port is outside 5900 through 65535, or a dimension or frame rate is nonpositive
+   * @since 1.0.0
    */
   public static VmSettings of(final int port, final int width, final int height, final int targetFrameRate) {
     Preconditions.checkArgument(
@@ -87,6 +93,7 @@ public final class VmSettings {
    * Returns the local VNC port.
    *
    * @return the configured TCP port, from 5900 through 65535; it is not reserved by these settings
+   * @since 1.0.0
    */
   public int getPort() {
     return this.port;
@@ -96,6 +103,7 @@ public final class VmSettings {
    * Returns the width the frames are scaled to.
    *
    * @return the width in pixels
+   * @since 1.0.0
    */
   public int getWidth() {
     return this.width;
@@ -105,6 +113,7 @@ public final class VmSettings {
    * Returns the height the frames are scaled to.
    *
    * @return the height in pixels
+   * @since 1.0.0
    */
   public int getHeight() {
     return this.height;
@@ -114,11 +123,19 @@ public final class VmSettings {
    * Returns the requested VNC update rate. This setting does not change the guest display rate.
    *
    * @return the strictly positive requested frames per second; actual updates depend on the remote display
+   * @since 1.0.0
    */
   public int getTargetFrameRate() {
     return this.targetFrameRate;
   }
 
+  /**
+   * Returns whether {@code other} is settings with the same port, size and frame rate.
+   *
+   * @param other the object to compare with
+   * @return whether both settings match
+   * @since 1.0.0
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -137,11 +154,23 @@ public final class VmSettings {
     );
   }
 
+  /**
+   * Returns a hash code built from the port, the size and the frame rate.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.port, this.width, this.height, this.targetFrameRate);
   }
 
+  /**
+   * Returns a debugging representation with the port, the size and the frame rate.
+   *
+   * @return the representation
+   * @since 1.0.0
+   */
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)

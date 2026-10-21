@@ -78,12 +78,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.verification.VerificationMode;
 
-/**
- * Tests {@link QemuVmPlayer} and the default methods of {@link VmPlayer}.
- *
- * <p>The unit tests replace QEMU and the VNC connection with mocks. One test starts a real QEMU, which is installed
- * on the development machines; it is skipped where QEMU is missing.
- */
 final class QemuVmPlayerTest {
 
   private static final String PASSWORD = "Pa55word";
@@ -916,13 +910,7 @@ final class QemuVmPlayerTest {
     this.assertDoesNotBlock("another thread releases after a release", () -> player.release());
   }
 
-  /**
-   * Asserts that an action which takes the lock of the player finishes on another thread, which it only does while
-   * no lock is left held.
-   *
-   * @param description what must not block
-   * @param action      the action
-   */
+  // the action takes the lock of the player, so it only finishes while no lock is left held
   private void assertDoesNotBlock(final String description, final Runnable action) {
     final CountDownLatch finished = new CountDownLatch(1);
     final Runnable probe = () -> {

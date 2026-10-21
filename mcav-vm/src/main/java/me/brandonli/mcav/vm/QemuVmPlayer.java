@@ -46,19 +46,16 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>The machine runs while QEMU runs: when QEMU exits on its own, as when the guest shuts down, the player stops
  * playing, ignores input, and can be started again. A sound connection that cannot be made is reported, and the
  * machine runs without sound.
+ *
+ * <p>This class is thread-safe: lifecycle calls are serialized, and input may be sent from any thread.
+ *
+ * @since 1.0.0
  */
 public final class QemuVmPlayer implements VmPlayer {
 
-  /**
-   * How long the sound of the guest is held before the pipeline gets it, in milliseconds. QEMU sends the sound of the
-   * guest about every 10 ms, but it refreshes the picture of its VNC display 30 ms after a change at the earliest, and
-   * later when the screen was idle, so without the delay the sound would run ahead of the picture.
-   */
+  // QEMU refreshes the VNC picture 30 ms or more after a change, so sound without this delay runs ahead of it
   private static final int AUDIO_DELAY_MILLISECONDS = 70;
 
-  /**
-   * The most sound of the guest that waits for the pipeline, the delay included, in milliseconds.
-   */
   private static final int MAXIMUM_QUEUED_AUDIO_MILLISECONDS = AUDIO_DELAY_MILLISECONDS + 60;
 
   private final VncPlayer vncPlayer;
@@ -75,14 +72,6 @@ public final class QemuVmPlayer implements VmPlayer {
   private volatile @Nullable DelayedAudioOutput audioOutput;
   private volatile @Nullable VmAudioClient audioClient;
 
-  /**
-   * Constructs a player from its parts, so tests can replace QEMU and the VNC connection.
-   *
-   * @param vncPlayer      the player that streams the display of the machine
-   * @param finder         finds the QEMU program
-   * @param processFactory creates the QEMU process
-   * @param audioConnector connects to the sound of the machine
-   */
   @VisibleForTesting
   QemuVmPlayer(
     final VncPlayer vncPlayer,
@@ -101,11 +90,6 @@ public final class QemuVmPlayer implements VmPlayer {
     this.released = new AtomicBoolean(false);
   }
 
-  /**
-   * Creates a player that runs QEMU from the {@code PATH} and streams its display with a new VNC player.
-   *
-   * @return the player
-   */
   static QemuVmPlayer createDefault() {
     final VncPlayer vncPlayer = VncPlayer.create();
     final ExecutableFinder finder = new ExecutableFinder();
@@ -113,8 +97,23 @@ public final class QemuVmPlayer implements VmPlayer {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code settings}, {@code architecture} or {@code configuration} is null
+   * Starts QEMU and connects to its display. Starting takes a few seconds; the call returns once the VNC display
+   * is reachable. Each QEMU launch waits up to 60 seconds for its display, and an automatic accelerator fallback
+   * can make another launch attempt. An audio connection failure is reported to the exception handler and may
+   * leave an otherwise successful machine running without audio.
+   *
+   * @param settings      the non-null output dimensions, requested frame rate and local VNC port
+   * @param architecture  the non-null guest architecture, which picks the QEMU program
+   * @param configuration the non-null QEMU options
+   * @return true if the machine started, false if the player is already running or released
+   * @throws ExecutableNotInPathException       if the QEMU program is not installed
+   * @throws IllegalArgumentException           if the configuration sets a display or sound option the player reserves
+   * @throws VmException                        if the port cannot be bound, QEMU cannot launch or exits, the display
+   *                                            does not open within the startup deadline, the wait is interrupted, or a
+   *                                            previous machine cannot be stopped
+   * @throws me.brandonli.mcav.vnc.VncException if the display opens but the VNC connection to it fails
+   * @throws NullPointerException               if any argument is null
+   * @since 1.0.0
    */
   @Override
   public boolean start(final VmSettings settings, final Architecture architecture, final VmConfiguration configuration) {
@@ -139,13 +138,7 @@ public final class QemuVmPlayer implements VmPlayer {
     }
   }
 
-  /**
-   * Starts QEMU and connects the VNC player to its display. The caller holds the lock.
-   *
-   * @param settings      how the machine is streamed
-   * @param architecture  the guest architecture
-   * @param configuration the QEMU command line
-   */
+  // the caller holds the lock
   private void launchMachine(final VmSettings settings, final Architecture architecture, final VmConfiguration configuration) {
     final Path executable = this.findExecutable(architecture);
     final VmProcess qemu = this.processFactory.create(settings, architecture, executable, configuration);
@@ -164,9 +157,6 @@ public final class QemuVmPlayer implements VmPlayer {
     }
   }
 
-  /**
-   * Cleans up the previous machine before replacement, retaining ownership if its bounded shutdown times out.
-   */
   private void clearPreviousMachine() {
     this.running.set(false);
     this.shutdownMachine();
@@ -177,7 +167,7 @@ public final class QemuVmPlayer implements VmPlayer {
     }
   }
 
-  /** Stops the owned machine, forgetting it only after its process has exited. The caller holds the lock. */
+  // the caller holds the lock
   private void shutdownMachine() {
     this.disconnectAudio();
 
@@ -194,7 +184,6 @@ public final class QemuVmPlayer implements VmPlayer {
     }
   }
 
-  /** Attempts cleanup without replacing an earlier failure with a recoverable shutdown failure. */
   private void shutdownAfterFailure(final Throwable failure) {
     try {
       this.shutdownMachine();
@@ -209,18 +198,12 @@ public final class QemuVmPlayer implements VmPlayer {
     }
   }
 
-  /**
-   * Checks whether the machine was started and QEMU still runs.
-   *
-   * @return true while the machine runs
-   */
   private boolean isActive() {
     final VmProcess qemu = this.process;
     final boolean alive = qemu != null && qemu.isAlive();
     return this.running.get() && alive;
   }
 
-  /** Connects the VNC player to the display; launchMachine retains responsibility for failed-start cleanup. */
   private void connectDisplay(final VmSettings settings, final VmProcess qemu) {
     final String password = qemu.getPassword();
     final VncSource source = this.createSource(settings, password);
@@ -231,12 +214,6 @@ public final class QemuVmPlayer implements VmPlayer {
     }
   }
 
-  /**
-   * Connects to the sound of a machine that has sound. A failure is reported, and the machine runs without sound.
-   *
-   * @param settings the display settings, whose port the sound comes from as well
-   * @param qemu     the started machine
-   */
   private void connectAudio(final VmSettings settings, final VmProcess qemu) {
     final boolean audio = qemu.hasAudio();
     if (!audio) {
@@ -264,7 +241,6 @@ public final class QemuVmPlayer implements VmPlayer {
     }
   }
 
-  /** Closes the sound connection and its output, if the machine has them. */
   private void disconnectAudio() {
     final VmAudioClient client = this.audioClient;
     if (client != null) {
@@ -312,6 +288,7 @@ public final class QemuVmPlayer implements VmPlayer {
    * makes further startup attempts return false.
    *
    * @return true for the first release, false for subsequent cleanup attempts
+   * @since 1.0.0
    */
   @Override
   public boolean release() {
@@ -343,6 +320,14 @@ public final class QemuVmPlayer implements VmPlayer {
     }
   }
 
+  /**
+   * Moves the mouse pointer while the machine is active, including while paused; otherwise does nothing.
+   * Coordinates are translated and clamped as {@link VncPlayer#moveMouse(int, int)} describes.
+   *
+   * @param frameX the horizontal pixel coordinate from the left edge of the output frame
+   * @param frameY the vertical pixel coordinate from the top edge of the output frame
+   * @since 1.0.0
+   */
   @Override
   public void moveMouse(final int frameX, final int frameY) {
     final boolean active = this.isActive();
@@ -352,8 +337,14 @@ public final class QemuVmPlayer implements VmPlayer {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code type} is null
+   * Moves the mouse pointer and performs a click while the machine is active, including while paused; otherwise does
+   * nothing.
+   *
+   * @param type   the kind of click
+   * @param frameX the horizontal pixel coordinate from the left edge of the output frame
+   * @param frameY the vertical pixel coordinate from the top edge of the output frame
+   * @throws NullPointerException if {@code type} is null, including while inactive
+   * @since 1.0.0
    */
   @Override
   public void sendMouseEvent(final MouseClick type, final int frameX, final int frameY) {
@@ -366,8 +357,13 @@ public final class QemuVmPlayer implements VmPlayer {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code text} is null
+   * Types text while the machine is active, including while paused; otherwise does nothing. A key name from the X11
+   * keysym table, such as {@code Return} or {@code Escape}, presses that key; any other text is typed character by
+   * character.
+   *
+   * @param text the text or key name
+   * @throws NullPointerException if {@code text} is null, including while inactive
+   * @since 1.0.0
    */
   @Override
   public void sendKeyEvent(final String text) {
@@ -384,6 +380,7 @@ public final class QemuVmPlayer implements VmPlayer {
    * and new audio is dropped until resume. Input can still be sent to the guest.
    *
    * @return true if an active display was paused, false if inactive or already paused
+   * @since 1.0.0
    */
   @Override
   public boolean pause() {
@@ -408,6 +405,7 @@ public final class QemuVmPlayer implements VmPlayer {
    * Resumes picture and sound delivery without replaying audio dropped during the pause.
    *
    * @return true if an active paused display resumed, false if inactive or already unpaused
+   * @since 1.0.0
    */
   @Override
   public boolean resume() {
@@ -427,30 +425,59 @@ public final class QemuVmPlayer implements VmPlayer {
     }
   }
 
+  /**
+   * Returns whether the machine is running and frames are delivered.
+   *
+   * @return true while running and not paused
+   * @since 1.0.0
+   */
   @Override
   public boolean isPlaying() {
     final boolean active = this.isActive();
     return active && this.vncPlayer.isPlaying();
   }
 
+  /**
+   * Returns the slot that holds the audio pipeline the sound of the guest is sent through: 16-bit little-endian stereo
+   * PCM at 48 kHz. Only x86 PC and Q35 machines have sound; while the player is paused, their sound is dropped.
+   *
+   * @return the audio pipeline slot
+   * @since 1.0.0
+   */
   @Override
   public AudioAttachableCallback getAudioAttachableCallback() {
     return this.audioCallback;
   }
 
+  /**
+   * Returns the slot that holds the video pipeline the frames are sent through.
+   *
+   * @return the video pipeline slot
+   * @since 1.0.0
+   */
   @Override
   public VideoAttachableCallback getVideoAttachableCallback() {
     return this.vncPlayer.getVideoAttachableCallback();
   }
 
+  /**
+   * Returns the handler that receives failures of the display and of the sound connection.
+   *
+   * @return the handler
+   * @since 1.0.0
+   */
   @Override
   public BiConsumer<String, Throwable> getExceptionHandler() {
     return this.vncPlayer.getExceptionHandler();
   }
 
   /**
-   * {@inheritDoc}
+   * Sets the handler that receives failures of the display and of the sound connection. The handler is called on the
+   * thread that failed, so it must be fast and must not throw.
+   *
+   * @param exceptionHandler the handler
    * @throws NullPointerException if {@code exceptionHandler} is null
+   * @since 1.0.0
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
@@ -459,27 +486,11 @@ public final class QemuVmPlayer implements VmPlayer {
     this.vncPlayer.setExceptionHandler(exceptionHandler);
   }
 
-  /**
-   * Creates the QEMU process of a machine.
-   */
   @FunctionalInterface
   interface ProcessFactory {
-    /**
-     * Creates a process that has not started yet.
-     *
-     * @param settings      the display settings
-     * @param architecture  the guest architecture
-     * @param executable    the QEMU program
-     * @param configuration the QEMU options
-     * @return the process
-     */
     VmProcess create(VmSettings settings, Architecture architecture, Path executable, VmConfiguration configuration);
   }
 
-  /**
-   * Hands the sound of the machine to its output, and the pauses of the guest's sound too, which the output fills with
-   * silence so the sound keeps its timing.
-   */
   private static final class OutputSink implements VmAudioClient.Sink {
 
     private final DelayedAudioOutput output;
@@ -499,21 +510,8 @@ public final class QemuVmPlayer implements VmPlayer {
     }
   }
 
-  /**
-   * Connects to the sound of a machine.
-   */
   @FunctionalInterface
   interface AudioConnector {
-    /**
-     * Connects to the VNC server of a machine and starts receiving its sound.
-     *
-     * @param address  the address of the VNC server
-     * @param password the password of the display
-     * @param sink     receives the samples
-     * @param failures receives an unexpected end of the connection
-     * @return the connection
-     * @throws IOException if the connection or its handshake fails
-     */
     VmAudioClient connect(InetSocketAddress address, String password, VmAudioClient.Sink sink, BiConsumer<String, Throwable> failures)
       throws IOException;
   }

@@ -103,21 +103,10 @@ final class VmAudioClientTest {
     );
   }
 
-  /**
-   * Plays the server side of the handshake QEMU does, and checks what the client sends.
-   *
-   * @param socket the connection
-   * @return the streams, for what follows the handshake
-   * @throws IOException if the connection fails
-   */
   private Streams handshake(final Socket socket) throws IOException {
     return handshake(socket, PASSWORD);
   }
 
-  /**
-   * Plays the server side of the handshake of a display with a password, as QEMU's with password-secret, or of one
-   * without, for an empty password.
-   */
   private Streams handshake(final Socket socket, final String password) throws IOException {
     final DataInputStream input = new DataInputStream(socket.getInputStream());
     final DataOutputStream output = new DataOutputStream(socket.getOutputStream());
@@ -333,11 +322,6 @@ final class VmAudioClientTest {
     }
   }
 
-  /**
-   * Keeps every worker of the common pool busy until the returned latch opens, as the tasks of other plugins can.
-   *
-   * @return the latch that frees the workers
-   */
   private CountDownLatch occupyTheCommonPool() throws InterruptedException {
     final int workers = ForkJoinPool.getCommonPoolParallelism();
     final CountDownLatch busy = new CountDownLatch(workers);
@@ -389,12 +373,7 @@ final class VmAudioClientTest {
     served.get(20, TimeUnit.SECONDS);
   }
 
-  /**
-   * Sends the banner of RFB one byte a second: every pause is shorter than the timeout of a read, the whole banner far
-   * longer than the handshake may take.
-   *
-   * @param server the listening socket
-   */
+  // each pause is shorter than a read timeout, the whole banner longer than the handshake deadline
   private void trickleTheBanner(final ServerSocket server) {
     try (final Socket socket = server.accept()) {
       final OutputStream output = socket.getOutputStream();
@@ -566,11 +545,5 @@ final class VmAudioClientTest {
     assertFalse(stillAlive);
   }
 
-  /**
-   * The streams of a connection.
-   *
-   * @param input  from the client
-   * @param output to the client
-   */
   private record Streams(DataInputStream input, DataOutputStream output) {}
 }

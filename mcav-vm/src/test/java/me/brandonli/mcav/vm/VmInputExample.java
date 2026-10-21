@@ -38,10 +38,7 @@ import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 import me.brandonli.mcav.vnc.VncModule;
 
-/**
- * Boots an ISO image in QEMU, shows the screen in a window, and forwards clicks and typed keys to the machine.
- * Pass the path of the ISO as the first argument.
- */
+// Boots the ISO image named by the first argument in QEMU, shows its screen in a window and forwards clicks and keys.
 public final class VmInputExample {
 
   private static final int WIDTH = 1024;
@@ -51,11 +48,6 @@ public final class VmInputExample {
     throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
 
-  /**
-   * Runs the example.
-   *
-   * @param args the path of the ISO image to boot
-   */
   static void main(final String[] args) {
     if (args.length == 0) {
       System.err.println("Usage: VmInputExample <iso>");

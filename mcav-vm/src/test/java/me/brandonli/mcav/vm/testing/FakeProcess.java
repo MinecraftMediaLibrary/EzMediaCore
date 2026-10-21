@@ -26,10 +26,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * A process for tests that runs no program. It prints prepared output, stays alive until it is told to exit or is
- * destroyed, and counts how it was destroyed.
- */
 public final class FakeProcess extends Process {
 
   private static final long LONGEST_WAIT_MILLISECONDS = 200L;
@@ -61,12 +57,6 @@ public final class FakeProcess extends Process {
     this.exitsOnDestroy = true;
   }
 
-  /**
-   * Creates a running process that prints the given text and then nothing more.
-   *
-   * @param text the output
-   * @return the process
-   */
   public static FakeProcess running(final String text) {
     Preconditions.checkNotNull(text, TEXT_NULL_MESSAGE);
     final byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
@@ -74,24 +64,11 @@ public final class FakeProcess extends Process {
     return new FakeProcess(stream);
   }
 
-  /**
-   * Creates a running process with the given output stream.
-   *
-   * @param stream the output
-   * @return the process
-   */
   public static FakeProcess running(final InputStream stream) {
     Preconditions.checkNotNull(stream, "Stream must not be null!");
     return new FakeProcess(stream);
   }
 
-  /**
-   * Creates a process that printed the given text and already exited.
-   *
-   * @param exitCode the exit code
-   * @param text     the output
-   * @return the process
-   */
   public static FakeProcess exited(final int exitCode, final String text) {
     Preconditions.checkNotNull(text, TEXT_NULL_MESSAGE);
     final FakeProcess process = running(text);
@@ -99,53 +76,27 @@ public final class FakeProcess extends Process {
     return process;
   }
 
-  /**
-   * Makes {@link #destroy()} leave the process running, like a program that ignores termination requests.
-   */
   public void ignoringDestroy() {
     this.exitsOnDestroy = false;
   }
 
-  /**
-   * Delays actual termination after the force request, as an operating system may do.
-   *
-   * @param delayMilliseconds the delay before the process exits
-   */
   public void delayingForcedExit(final long delayMilliseconds) {
     Preconditions.checkArgument(delayMilliseconds > 0, "Delay %s must be positive!", delayMilliseconds);
     this.forcedExitDelayMilliseconds = delayMilliseconds;
   }
 
-  /**
-   * Makes every timed wait throw an {@link InterruptedException}.
-   */
   public void interruptingWaits() {
     this.interruptsWaits = true;
   }
 
-  /**
-   * Makes only the first timed wait throw an {@link InterruptedException}; every later wait behaves normally, as a
-   * real process does once the interrupt of the thread was consumed.
-   */
   public void interruptingFirstWait() {
     this.interruptsFirstWait = true;
   }
 
-  /**
-   * Makes the process exit as soon as it is waited on with a timeout, as QEMU does when it fails right after
-   * starting.
-   *
-   * @param code the exit code
-   */
   public void exitingWhenWaitedOn(final int code) {
     this.exitCodeOnWait = code;
   }
 
-  /**
-   * Ends the process.
-   *
-   * @param code the exit code
-   */
   public void exit(final int code) {
     if (this.exited.getCount() > 0) {
       this.exitCode = code;
@@ -153,20 +104,10 @@ public final class FakeProcess extends Process {
     }
   }
 
-  /**
-   * Gets how often {@link #destroy()} was called.
-   *
-   * @return the number of calls
-   */
   public int getDestroyCalls() {
     return this.destroyCalls.get();
   }
 
-  /**
-   * Gets how often {@link #destroyForcibly()} was called.
-   *
-   * @return the number of calls
-   */
   public int getForcibleDestroyCalls() {
     return this.forcibleDestroyCalls.get();
   }

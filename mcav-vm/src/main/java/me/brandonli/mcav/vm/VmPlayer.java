@@ -45,21 +45,33 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
  * a surviving QEMU process. Pipelines and their filters remain caller-owned. Video and audio callbacks run
  * on background threads and must not retain borrowed buffers without copying them.
  *
- * <pre><code>
- *   final VmPlayer player = VmPlayer.create();
- *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
- *   video.attach(pipeline);
- *   final VmConfigurationBuilder builder = VmConfiguration.builder();
- *   final VmConfiguration configuration = builder.cdrom("alpine.iso").memory(1024).build();
- *   final VmSettings settings = VmSettings.of(1024, 768, 30);
- *   player.start(settings, VmPlayer.Architecture.X86_64, configuration);
- * </code></pre>
+ * {@snippet :
+ * final VmPlayer player = VmPlayer.create();
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * video.attach(videoPipeline);
+ * final String isoPath = "alpine.iso";
+ * final int memoryMegabytes = 1024;
+ * final VmConfigurationBuilder builder = VmConfiguration.builder();
+ * final VmConfiguration configuration = builder.cdrom(isoPath).memory(memoryMegabytes).build();
+ * final int width = 1024;
+ * final int height = 768;
+ * final int targetFrameRate = 30;
+ * final VmSettings settings = VmSettings.of(width, height, targetFrameRate);
+ * player.start(settings, VmPlayer.Architecture.X86_64, configuration);
+ * // when done
+ * player.release();
+ * }
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, ExceptionHandler {
   /**
    * Creates a player.
    *
    * @return the player
+   * @since 1.0.0
    */
   static VmPlayer create() {
     return QemuVmPlayer.createDefault();
@@ -82,6 +94,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    *                                            previous machine cannot be stopped
    * @throws me.brandonli.mcav.vnc.VncException if the display opens but the VNC connection to it fails
    * @throws NullPointerException               if any argument is null
+   * @since 1.0.0
    */
   boolean start(final VmSettings settings, final Architecture architecture, final VmConfiguration configuration);
 
@@ -97,6 +110,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @throws java.util.concurrent.RejectedExecutionException if the executor refuses the startup task
    * @throws NullPointerException                            if {@code settings}, {@code architecture}, {@code configuration} or
    *                                                         {@code executor} is null
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(
     final VmSettings settings,
@@ -121,6 +135,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @return a future that completes with the startup result, or exceptionally if startup fails; cancelling
    *         the future does not release the player or terminate its process
    * @throws NullPointerException if any argument is null
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(
     final VmSettings settings,
@@ -137,6 +152,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    *
    * @param frameX the horizontal pixel coordinate from the left edge of the output frame
    * @param frameY the vertical pixel coordinate from the top edge of the output frame
+   * @since 1.0.0
    */
   void moveMouse(final int frameX, final int frameY);
 
@@ -146,6 +162,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    *
    * @param text the text or key name
    * @throws NullPointerException if {@code text} is null, including while inactive
+   * @since 1.0.0
    */
   void sendKeyEvent(final String text);
 
@@ -156,6 +173,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @param frameX the horizontal pixel coordinate from the left edge of the output frame
    * @param frameY the vertical pixel coordinate from the top edge of the output frame
    * @throws NullPointerException if {@code type} is null, including while inactive
+   * @since 1.0.0
    */
   void sendMouseEvent(final MouseClick type, final int frameX, final int frameY);
 
@@ -163,6 +181,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * Returns whether the machine is running and frames are delivered.
    *
    * @return true while running and not paused
+   * @since 1.0.0
    */
   boolean isPlaying();
 
@@ -170,6 +189,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * Returns the slot that holds the video pipeline the frames are sent through.
    *
    * @return the video pipeline slot
+   * @since 1.0.0
    */
   VideoAttachableCallback getVideoAttachableCallback();
 
@@ -178,27 +198,38 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * PCM at 48 kHz. Only x86 PC and Q35 machines have sound; while the player is paused, their sound is dropped.
    *
    * @return the audio pipeline slot
+   * @since 1.0.0
    */
   AudioAttachableCallback getAudioAttachableCallback();
 
   /**
    * The guest architectures QEMU can emulate, each with its own program.
+   *
+   * @since 1.0.0
    */
   enum Architecture {
     /**
      * 64-bit x86 guests, run by {@code qemu-system-x86_64}.
+     *
+     * @since 1.0.0
      */
     X86_64("qemu-system-x86_64"),
     /**
      * 32-bit ARM guests, run by {@code qemu-system-arm}.
+     *
+     * @since 1.0.0
      */
     ARM("qemu-system-arm"),
     /**
      * 64-bit ARM guests, run by {@code qemu-system-aarch64}.
+     *
+     * @since 1.0.0
      */
     AARCH64("qemu-system-aarch64"),
     /**
      * 64-bit RISC-V guests, run by {@code qemu-system-riscv64}.
+     *
+     * @since 1.0.0
      */
     RISCV64("qemu-system-riscv64");
 
@@ -212,6 +243,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
      * Returns the name of the QEMU program for this architecture.
      *
      * @return the program name
+     * @since 1.0.0
      */
     public String getCommand() {
       return this.command;

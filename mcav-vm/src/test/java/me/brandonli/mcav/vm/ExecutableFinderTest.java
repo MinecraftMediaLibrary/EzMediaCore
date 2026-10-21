@@ -48,9 +48,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link ExecutableFinder}.
- */
 final class ExecutableFinderTest {
 
   private static final String PATH_VARIABLE = "PATH";
@@ -435,10 +432,6 @@ final class ExecutableFinderTest {
     assertTrue(linuxIsEmpty);
   }
 
-  /**
-   * Creates a macOS root folder whose {@code /etc/paths} lists one folder, between blank lines, and whose
-   * {@code /etc/paths.d} lists another in a file, next to a folder that must be skipped.
-   */
   private Path createMacRoot(final Path listedFolder, final Path pathsDFolder) throws IOException {
     final Path root = this.directory.resolve(MAC_ROOT_FOLDER);
     final Path etc = root.resolve(ETC_FOLDER);

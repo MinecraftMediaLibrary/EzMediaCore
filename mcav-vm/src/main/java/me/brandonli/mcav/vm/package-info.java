@@ -22,7 +22,8 @@
  * {@link me.brandonli.mcav.vm.VmSettings} for output dimensions, update rate and VNC port, and
  * {@link me.brandonli.mcav.vm.VmPlayer} for playback and input. QEMU must be available on the host;
  * {@link me.brandonli.mcav.vm.VmModule} only checks its availability and does not install or run it.
- * The player owns its QEMU process and local VNC connections, and reserves their display/audio options.
+ * The player owns its QEMU process and local VNC connections, and reserves their display and audio options.
+ * Failures of QEMU and the machine are reported as {@link me.brandonli.mcav.vm.VmException}.
  *
  * <p>Configurations and settings are immutable; configuration builders are not thread-safe. Video and audio
  * pipelines run on background threads. Pause suppresses output while the guest continues running. Release each
@@ -31,5 +32,7 @@
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
+ *
+ * @since 1.0.0
  */
 package me.brandonli.mcav.vm;

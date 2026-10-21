@@ -32,9 +32,6 @@ import java.util.function.UnaryOperator;
 import me.brandonli.mcav.vm.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link VmConfiguration}.
- */
 final class VmConfigurationTest {
 
   private static final String MEMORY_OPTION = "m";

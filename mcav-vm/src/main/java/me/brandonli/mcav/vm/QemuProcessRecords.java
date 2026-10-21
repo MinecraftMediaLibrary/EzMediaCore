@@ -37,17 +37,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Records the QEMU processes a JVM starts, so that a later start of the module stops those a killed JVM left
- * running.
- *
- * <p>QEMU is a process of its own: a JVM that is killed (a SIGKILL, a crash, the out-of-memory killer) cannot stop
- * it, and it keeps its memory and its VNC port. Every started process gets a file in the records folder, named after
- * its process id, with its start instant and the process id and start instant of the JVM that started it; the file is
- * deleted when the process ends. {@link #reap()} stops every recorded process whose JVM is gone while the process is
- * still the one recorded (the same start instant, so a reused process id is never touched), and deletes the records
- * of processes that ended.
- */
+// A killed JVM cannot stop its QEMU processes, which keep their memory and VNC port, so each one is recorded with its
+// start instant and that of its JVM. reap() stops those whose JVM is gone; a matching start instant keeps a reused id safe.
 final class QemuProcessRecords {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(QemuProcessRecords.class);
@@ -72,14 +63,6 @@ final class QemuProcessRecords {
   private final LongFunction<Optional<ProcessHandle>> lookup;
   private final Duration stopTimeout;
 
-  /**
-   * Creates records in a folder.
-   *
-   * @param folder the folder of the record files
-   * @param owner       the process that starts QEMU, this JVM outside of tests
-   * @param lookup      finds a running process by its id
-   * @param stopTimeout how long a process may take to end once asked to, before it is killed
-   */
   @VisibleForTesting
   QemuProcessRecords(
     final Path folder,
@@ -93,11 +76,6 @@ final class QemuProcessRecords {
     this.stopTimeout = stopTimeout;
   }
 
-  /**
-   * Creates the records of the user running the JVM, in {@code ~/.mcav/vm}.
-   *
-   * @return the records
-   */
   static QemuProcessRecords ofUser() {
     final @Nullable String homeOrNull = System.getProperty(HOME_PROPERTY);
     final String home = Objects.requireNonNull(homeOrNull, "The JVM always sets the user home!");
@@ -106,12 +84,7 @@ final class QemuProcessRecords {
     return new QemuProcessRecords(folder, owner, ProcessHandle::of, STOP_TIMEOUT);
   }
 
-  /**
-   * Records a started process. A process whose start instant the system does not report cannot be told from a later
-   * process with its id, so it is not recorded; nor is one that could not be written, which is logged.
-   *
-   * @param process the started process
-   */
+  // without start instants a reused process id could not be told apart, so the process is not recorded
   void add(final ProcessHandle process) {
     final long processId = process.pid();
     final @Nullable Instant started = this.startOf(process);
@@ -132,11 +105,6 @@ final class QemuProcessRecords {
     }
   }
 
-  /**
-   * Deletes the record of a process that ended.
-   *
-   * @param processId the process id
-   */
   void remove(final long processId) {
     final Path file = this.fileOf(processId);
     try {
@@ -146,12 +114,6 @@ final class QemuProcessRecords {
     }
   }
 
-  /**
-   * Stops every recorded process whose JVM is gone and that is still the recorded process, and deletes every record
-   * that no longer belongs to a running JVM.
-   *
-   * @return how many processes were stopped
-   */
   int reap() {
     final boolean folderExists = Files.isDirectory(this.folder);
     if (!folderExists) {
@@ -262,13 +224,5 @@ final class QemuProcessRecords {
     return this.folder.resolve(processId + SUFFIX);
   }
 
-  /**
-   * A recorded process: its id and start instant, and those of the JVM that started it.
-   *
-   * @param processId      the process id
-   * @param started        when the process started
-   * @param ownerProcessId the process id of the JVM that started it
-   * @param ownerStarted   when that JVM started
-   */
   private record ProcessRecord(long processId, Instant started, long ownerProcessId, Instant ownerStarted) {}
 }

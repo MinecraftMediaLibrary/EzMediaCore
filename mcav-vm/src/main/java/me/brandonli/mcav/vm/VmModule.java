@@ -25,7 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Registers the virtual machine backend. Install it with {@code MCAV.api().install(VmModule.class)}.
+ * Registers the virtual machine backend. The module needs no settings, so it only has to be installed:
+ *
+ * {@snippet :
+ * final MCAVApi api = MCAV.api();
+ * api.install(VmModule.class);
+ * }
  *
  * <p>The library does not install QEMU. Make it available on the
  * machine: through the package manager on Linux, Homebrew on macOS, or the installer from
@@ -36,6 +41,10 @@ import org.slf4j.LoggerFactory;
  * QEMU installed elsewhere must be added to the {@code PATH} of the service. Starting the module only checks whether
  * QEMU is available; {@link VmPlayer#start(VmSettings, VmPlayer.Architecture, VmConfiguration)} fails with an
  * {@link ExecutableNotInPathException} otherwise.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class VmModule implements MCAVModule {
 
@@ -50,6 +59,8 @@ public final class VmModule implements MCAVModule {
 
   /**
    * Constructs the module. The module loader creates it for you.
+   *
+   * @since 1.0.0
    */
   public VmModule() {
     final ExecutableFinder finder = new ExecutableFinder();
@@ -57,12 +68,6 @@ public final class VmModule implements MCAVModule {
     this(finder, records);
   }
 
-  /**
-   * Constructs a module that looks for QEMU with the given finder.
-   *
-   * @param finder  finds the QEMU program
-   * @param records the QEMU processes started by this and earlier servers
-   */
   @VisibleForTesting
   VmModule(final ExecutableFinder finder, final QemuProcessRecords records) {
     this.finder = finder;
@@ -76,6 +81,8 @@ public final class VmModule implements MCAVModule {
    *
    * <p>First, it stops every QEMU process that a server killed before it could release its players left running,
    * which would still hold its memory and its VNC port; each one is logged.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -98,6 +105,8 @@ public final class VmModule implements MCAVModule {
   /**
    * Stops the module without releasing any players or changing the recorded availability result.
    * Call {@link VmPlayer#release()} on every owned player before unloading the backend.
+   *
+   * @since 1.0.0
    */
   @Override
   public void stop() {}
@@ -106,6 +115,7 @@ public final class VmModule implements MCAVModule {
    * Returns the module identifier.
    *
    * @return {@code vm}
+   * @since 1.0.0
    */
   @Override
   public String getModuleName() {
@@ -116,6 +126,7 @@ public final class VmModule implements MCAVModule {
    * Returns whether QEMU for x86-64 guests was found when the module started.
    *
    * @return the result of the last module start, initially false; this does not recheck the executable
+   * @since 1.0.0
    */
   public boolean isQemuInstalled() {
     return this.qemuInstalled;

@@ -29,9 +29,6 @@ import java.util.Objects;
 import me.brandonli.mcav.vm.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link VmSettings}.
- */
 final class VmSettingsTest {
 
   private static final int PORT = 5901;
