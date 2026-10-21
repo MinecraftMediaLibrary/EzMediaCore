@@ -33,7 +33,7 @@ final class ExecutableNotInPathExceptionTest {
     final ExecutableNotInPathException exception = new ExecutableNotInPathException("qemu-system-arm");
     final String message = exception.getMessage();
     assertEquals("Program qemu-system-arm is not installed or not on the PATH!", message);
-    assertInstanceOf(RuntimeException.class, exception);
+    assertInstanceOf(VmException.class, exception);
   }
 
   @Test

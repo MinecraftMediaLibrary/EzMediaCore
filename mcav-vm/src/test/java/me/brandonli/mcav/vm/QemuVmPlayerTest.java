@@ -57,7 +57,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.attachable.AudioAttachableCallback;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder;
@@ -69,6 +68,7 @@ import me.brandonli.mcav.utils.audio.DelayedAudioOutput;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.vm.testing.FreePorts;
+import me.brandonli.mcav.vnc.VncException;
 import me.brandonli.mcav.vnc.VncPlayer;
 import me.brandonli.mcav.vnc.VncSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -567,11 +567,11 @@ final class QemuVmPlayerTest {
 
   @Test
   void shouldPassOnQemuStartFailures() {
-    final PlayerException failure = new PlayerException("QEMU exited with code 1!");
+    final VmException failure = new VmException("QEMU exited with code 1!");
     doThrow(failure).when(this.qemu).start();
     final QemuVmPlayer player = this.player();
 
-    final PlayerException exception = assertThrows(PlayerException.class, () -> this.startDefaultMachine(player));
+    final VmException exception = assertThrows(VmException.class, () -> this.startDefaultMachine(player));
 
     final boolean playing = player.isPlaying();
     assertSame(failure, exception);
@@ -584,7 +584,7 @@ final class QemuVmPlayerTest {
     when(this.vnc.start(any(VncSource.class))).thenReturn(false);
     final QemuVmPlayer player = this.player();
 
-    final PlayerException exception = assertThrows(PlayerException.class, () -> this.startDefaultMachine(player));
+    final VmException exception = assertThrows(VmException.class, () -> this.startDefaultMachine(player));
 
     final String message = exception.getMessage();
     assertEquals("VNC player could not be started!", message);
@@ -596,13 +596,13 @@ final class QemuVmPlayerTest {
 
   @Test
   void shouldShutQemuDownAndStartAgainWhenTheConnectionFails() {
-    final PlayerException failure = new PlayerException("Failed to connect!");
+    final VncException failure = new VncException("Failed to connect!");
     when(this.vnc.start(any(VncSource.class)))
       .thenThrow(failure)
       .thenReturn(true);
     final QemuVmPlayer player = this.player();
 
-    final PlayerException exception = assertThrows(PlayerException.class, () -> this.startDefaultMachine(player));
+    final VncException exception = assertThrows(VncException.class, () -> this.startDefaultMachine(player));
 
     assertSame(failure, exception);
     verify(this.qemu).shutdown();
@@ -734,7 +734,7 @@ final class QemuVmPlayerTest {
     assertSame(connectionFailure, original);
     this.assertIgnoresInputAndPlayback(player);
 
-    final PlayerException replacement = assertThrows(PlayerException.class, () -> this.startDefaultMachine(player));
+    final VmException replacement = assertThrows(VmException.class, () -> this.startDefaultMachine(player));
     final String message = replacement.getMessage();
     final int owners = created.get();
     assertEquals("Previous QEMU process is still alive after its shutdown!", message);
@@ -755,7 +755,7 @@ final class QemuVmPlayerTest {
   @Test
   void shouldRetainAChildThatSurvivesAPartiallyFailedQemuStart() {
     final QemuVmPlayer player = this.player();
-    final PlayerException startFailure = new PlayerException("display startup timed out!");
+    final VmException startFailure = new VmException("display startup timed out!");
     final AtomicBoolean alive = new AtomicBoolean(true);
     final AtomicInteger attempts = new AtomicInteger();
     when(this.qemu.isAlive()).thenAnswer(_ -> alive.get());
@@ -768,7 +768,7 @@ final class QemuVmPlayerTest {
     })
       .when(this.qemu)
       .shutdown();
-    final PlayerException thrown = assertThrows(PlayerException.class, () -> this.startDefaultMachine(player));
+    final VmException thrown = assertThrows(VmException.class, () -> this.startDefaultMachine(player));
     assertSame(startFailure, thrown);
     verify(this.qemu).shutdown();
 
@@ -809,11 +809,11 @@ final class QemuVmPlayerTest {
   @Test
   void shouldPreserveAStartFailureWhenItsProcessCleanupAlsoFails() {
     final QemuVmPlayer player = this.player();
-    final PlayerException primary = new PlayerException("VNC start failed!");
+    final VncException primary = new VncException("VNC start failed!");
     final IllegalStateException cleanup = new IllegalStateException(TERMINATION_FAILURE);
     when(this.vnc.start(any(VncSource.class))).thenThrow(primary);
     doThrow(cleanup).when(this.qemu).shutdown();
-    final PlayerException thrown = assertThrows(PlayerException.class, () -> this.startDefaultMachine(player));
+    final VncException thrown = assertThrows(VncException.class, () -> this.startDefaultMachine(player));
     assertSame(primary, thrown);
 
     final Throwable[] expectedSuppressed = new Throwable[] { cleanup };

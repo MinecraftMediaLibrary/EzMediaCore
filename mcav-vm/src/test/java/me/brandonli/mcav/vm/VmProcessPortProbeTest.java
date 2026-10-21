@@ -32,7 +32,6 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.utils.os.Os;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,7 +72,7 @@ final class VmProcessPortProbeTest {
         )
       ) {
         final VmProcess process = this.createProcess();
-        final PlayerException failure = assertThrows(PlayerException.class, process::start);
+        final VmException failure = assertThrows(VmException.class, process::start);
         final List<ServerSocket> constructed = sockets.constructed();
         final boolean noSocketConstructed = constructed.isEmpty();
         final Throwable cause = failure.getCause();

@@ -75,12 +75,13 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @param architecture  the non-null guest architecture, which picks the QEMU program
    * @param configuration the non-null QEMU options
    * @return true if the machine started, false if the player is already running or released
-   * @throws ExecutableNotInPathException                   if the QEMU program is not installed
-   * @throws me.brandonli.mcav.media.player.PlayerException if reserved display/audio options are configured, the port cannot be bound, QEMU
-   *                                                        cannot launch or exits, the display does not open within the startup deadline,
-   *                                                        the wait is interrupted, or a previous machine cannot be stopped
-   * @throws me.brandonli.mcav.vnc.VncException             if the display opens but the VNC connection to it fails
-   * @throws NullPointerException                           if any argument is null
+   * @throws ExecutableNotInPathException       if the QEMU program is not installed
+   * @throws IllegalArgumentException           if the configuration sets a display or sound option the player reserves
+   * @throws VmException                        if the port cannot be bound, QEMU cannot launch or exits, the display
+   *                                            does not open within the startup deadline, the wait is interrupted, or a
+   *                                            previous machine cannot be stopped
+   * @throws me.brandonli.mcav.vnc.VncException if the display opens but the VNC connection to it fails
+   * @throws NullPointerException               if any argument is null
    */
   boolean start(final VmSettings settings, final Architecture architecture, final VmConfiguration configuration);
 

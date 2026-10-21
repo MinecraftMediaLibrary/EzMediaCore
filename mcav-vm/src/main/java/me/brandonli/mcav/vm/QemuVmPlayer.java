@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.attachable.AudioAttachableCallback;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.utils.ThrowableUtils;
@@ -174,7 +173,7 @@ public final class QemuVmPlayer implements VmPlayer {
 
     if (this.process != null) {
       final String message = "Previous QEMU process is still alive after its shutdown!";
-      throw new PlayerException(message);
+      throw new VmException(message);
     }
   }
 
@@ -228,7 +227,7 @@ public final class QemuVmPlayer implements VmPlayer {
     final boolean connected = this.vncPlayer.start(source);
     if (!connected) {
       final String message = "VNC player could not be started!";
-      throw new PlayerException(message);
+      throw new VmException(message);
     }
   }
 

@@ -252,6 +252,12 @@ methods, such as `drive` and `accelerator`, for the QEMU command needed by the a
 separately. The player controls its own display and audio options; consult the [VM chapter](vm.md) before adding raw
 options.
 
+The VM player reports failures that come from QEMU or the machine as a `VmException`, the base of `mcav-vm` under
+`MCAVException`, rather than a `PlayerException`: a VNC port that is taken, a password file that cannot be written,
+and a QEMU that cannot start, exits early or never opens its display. `ExecutableNotInPathException` now extends
+`VmException` and is final. A configuration that sets an option the player reserves is refused with an
+`IllegalArgumentException`.
+
 ## Maven installer failures
 
 The installer reports failed resolution, verification and copying through `InstallationException`, an unchecked

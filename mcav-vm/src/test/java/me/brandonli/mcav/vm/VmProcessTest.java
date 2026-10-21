@@ -52,7 +52,6 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.LongSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.vm.testing.FakeProcess;
 import me.brandonli.mcav.vm.testing.FreePorts;
@@ -368,7 +367,7 @@ final class VmProcessTest {
     final FakeProcess failed = FakeProcess.exited(FAILURE_EXIT_CODE, WHPX_FAILURE_OUTPUT);
     final FakeProcess failedAgain = FakeProcess.exited(2, DISK_FAILURE_OUTPUT);
     final VmProcess process = this.reachable(Os.WINDOWS, failed, failedAgain);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     assertEquals("QEMU exited with code 2, printing \"could not open disk image alpine.qcow2\"!", message);
   }
@@ -377,7 +376,7 @@ final class VmProcessTest {
   void shouldFailWithoutRetryingWhenTheFailureIsUnrelatedToTheAccelerator() {
     final FakeProcess failed = FakeProcess.exited(FAILURE_EXIT_CODE, DISK_FAILURE_OUTPUT);
     final VmProcess process = this.reachable(Os.MAC, failed);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     final int launches = this.commands.size();
     final boolean alive = process.isAlive();
@@ -412,7 +411,7 @@ final class VmProcessTest {
   void shouldNotRetrySoftwareEmulation() {
     final FakeProcess failed = FakeProcess.exited(3, "tcg accel failed to start\n");
     final VmProcess process = this.reachable(Os.LINUX, failed);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     final int launches = this.commands.size();
     assertEquals("QEMU exited with code 3, printing \"tcg accel failed to start\"!", message);
@@ -444,7 +443,7 @@ final class VmProcessTest {
       clock,
       this::secretFolder
     );
-    assertThrows(PlayerException.class, process::start);
+    assertThrows(VmException.class, process::start);
 
     final boolean alive = process.isAlive();
     assertFalse(alive, "an expired startup must terminate QEMU even if its display is reachable");
@@ -489,7 +488,7 @@ final class VmProcessTest {
     final VmSettings settings = this.reachableSettings();
     final VmConfiguration configuration = VmConfiguration.builder().accelerator(KVM_ACCELERATOR).build();
     final VmProcess process = this.process(settings, configuration, Os.WINDOWS, failed);
-    assertThrows(PlayerException.class, process::start);
+    assertThrows(VmException.class, process::start);
 
     final List<String> expected = this.command(ACCELERATOR_ARGUMENT, KVM_ACCELERATOR);
     final List<List<String>> expectedCommands = List.of(expected);
@@ -694,7 +693,7 @@ final class VmProcessTest {
         throw new IOException("disk full!");
       }
     );
-    final PlayerException failure = assertThrows(PlayerException.class, process::start);
+    final VmException failure = assertThrows(VmException.class, process::start);
     final String message = failure.getMessage();
     final boolean alive = process.isAlive();
     assertEquals("Password of the display could not be written because of \"disk full!\"!", message);
@@ -704,7 +703,7 @@ final class VmProcessTest {
   @Test
   void shouldDeleteThePasswordOfAFailedStart() {
     final VmProcess process = this.reachable(Os.LINUX, new IOException("no QEMU!"));
-    assertThrows(PlayerException.class, process::start);
+    assertThrows(VmException.class, process::start);
 
     final Path folder = this.directory.resolve(SECRET_FOLDER);
     final boolean folderLeft = Files.exists(folder);
@@ -911,10 +910,10 @@ final class VmProcessTest {
     assertTrue(speakerRouted, command::toString);
 
     final VmConfiguration routed = VmConfiguration.builder().option(SHORT_MACHINE_OPTION, ROUTED_PC_MACHINE).build();
-    assertThrows(PlayerException.class, () -> VmProcess.checkModuleOptions(routed));
+    assertThrows(IllegalArgumentException.class, () -> VmProcess.checkModuleOptions(routed));
 
     final VmConfiguration repeated = VmConfiguration.builder().repeatable(MACHINE_OPTION, "pcspk-audiodev=snd0").build();
-    assertThrows(PlayerException.class, () -> VmProcess.checkModuleOptions(repeated));
+    assertThrows(IllegalArgumentException.class, () -> VmProcess.checkModuleOptions(repeated));
   }
 
   @Test
@@ -1013,14 +1012,16 @@ final class VmProcessTest {
   void shouldRefuseAConfigurationThatSetsTheDisplayOrTheSoundOfTheMachine() {
     for (final String option : List.of("vnc", "audio", "audiodev")) {
       final VmConfiguration configuration = VmConfiguration.builder().option(option, "x").build();
-      final PlayerException refused = assertThrows(PlayerException.class, () -> VmProcess.checkModuleOptions(configuration));
+      final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () ->
+        VmProcess.checkModuleOptions(configuration)
+      );
       final String expected = "Option -%s is set by MCAV itself and must be removed from the configuration!".formatted(option);
       final String message = refused.getMessage();
       assertEquals(expected, message);
     }
 
     final VmConfiguration speaker = VmConfiguration.builder().machine(ROUTED_PC_MACHINE).build();
-    final PlayerException refused = assertThrows(PlayerException.class, () -> VmProcess.checkModuleOptions(speaker));
+    final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () -> VmProcess.checkModuleOptions(speaker));
     final String message = refused.getMessage();
     assertEquals("PC speaker is routed by MCAV itself, so pcspk-audiodev must be removed from -machine!", message);
 
@@ -1029,7 +1030,7 @@ final class VmProcessTest {
     final VmSettings settings = this.reachableSettings();
     final VmConfiguration display = VmConfiguration.builder().option("vnc", ":7").build();
     final VmProcess process = this.process(settings, display, Os.LINUX);
-    assertThrows(PlayerException.class, process::start);
+    assertThrows(IllegalArgumentException.class, process::start);
     assertEquals(List.of(), this.commands, "a refused configuration never starts QEMU");
   }
 
@@ -1096,7 +1097,7 @@ final class VmProcessTest {
   void shouldFailWhenQemuCannotBeLaunched() {
     final IOException failure = new IOException("CreateProcess error=2!");
     final VmProcess process = this.reachable(Os.FREEBSD, failure);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
     final boolean alive = process.isAlive();
@@ -1111,7 +1112,7 @@ final class VmProcessTest {
     final Path missing = this.directory.resolve(MISSING_QEMU);
     final VmConfiguration configuration = VmConfiguration.builder().build();
     final VmProcess process = VmProcess.create(settings, VmPlayer.Architecture.X86_64, missing, configuration);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final Throwable cause = exception.getCause();
     final boolean alive = process.isAlive();
     assertInstanceOf(IOException.class, cause);
@@ -1132,7 +1133,7 @@ final class VmProcessTest {
     final String text = output.toString();
     final FakeProcess failed = FakeProcess.exited(2, text);
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     final List<String> kept = new ArrayList<>();
     for (int line = 6; line <= 45; line++) {
@@ -1154,7 +1155,7 @@ final class VmProcessTest {
     final String suffix = "z".repeat(4090) + "-tail!";
     final FakeProcess failed = FakeProcess.exited(FAILURE_EXIT_CODE, discarded + suffix + ending);
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     final String expected = "QEMU exited with code 1, printing \"%s\"!".formatted(suffix);
     assertEquals(expected, message);
@@ -1164,7 +1165,7 @@ final class VmProcessTest {
   void shouldKeepTheLastLineWithoutALineBreak() {
     final FakeProcess failed = FakeProcess.exited(FAILURE_EXIT_CODE, "first\nlast words");
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     final String separator = System.lineSeparator();
     final String expected = "QEMU exited with code 1, printing \"first%slast words\"!".formatted(separator);
@@ -1177,7 +1178,7 @@ final class VmProcessTest {
     final FakeProcess failed = FakeProcess.running(broken);
     failed.exit(FAILURE_EXIT_CODE);
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     final String separator = System.lineSeparator();
     final String expected = "QEMU exited with code 1, printing \"first%ssecond\"!".formatted(separator);
@@ -1190,7 +1191,7 @@ final class VmProcessTest {
     final FakeProcess failed = FakeProcess.running(trickle);
     failed.exit(FAILURE_EXIT_CODE);
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     assertEquals("QEMU exited with code 1, printing \"Gerät nicht gefunden: 磁盘\"!", message);
   }
@@ -1201,7 +1202,7 @@ final class VmProcessTest {
     final VmSettings settings = this.unreachableSettings();
     final VmConfiguration configuration = VmConfiguration.builder().build();
     final VmProcess process = this.process(settings, configuration, Os.FREEBSD, qemu);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     final int port = settings.getPort();
     final boolean alive = process.isAlive();
@@ -1222,9 +1223,9 @@ final class VmProcessTest {
     final VmSettings settings = this.unreachableSettings();
     final VmConfiguration configuration = VmConfiguration.builder().build();
     final VmProcess process = this.process(settings, configuration, Os.FREEBSD, qemu);
-    final PlayerException exception;
+    final VmException exception;
     try {
-      exception = assertThrows(PlayerException.class, process::start);
+      exception = assertThrows(VmException.class, process::start);
     } finally {
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted, "the interrupt must be kept for the caller");
@@ -1248,9 +1249,9 @@ final class VmProcessTest {
     final VmProcess process = this.reachable(Os.FREEBSD, failed);
     final Thread current = Thread.currentThread();
     current.interrupt();
-    final PlayerException exception;
+    final VmException exception;
     try {
-      exception = assertThrows(PlayerException.class, process::start);
+      exception = assertThrows(VmException.class, process::start);
     } finally {
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted, "the interrupt must be kept for the caller");
@@ -1542,7 +1543,7 @@ final class VmProcessTest {
     final ServerSocket other = this.listen(this.port);
     final FakeProcess qemu = FakeProcess.running("");
     final VmProcess process = this.reachable(Os.FREEBSD, qemu);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     final int launches = this.commands.size();
     final boolean namesPort = message.startsWith("VNC port %s is already in use".formatted(this.port));
@@ -1557,7 +1558,7 @@ final class VmProcessTest {
     final FakeProcess qemu = FakeProcess.running("Failed to start VNC server: address in use\n");
     qemu.exitingWhenWaitedOn(FAILURE_EXIT_CODE);
     final VmProcess process = this.reachable(Os.FREEBSD, qemu);
-    final PlayerException exception = assertThrows(PlayerException.class, process::start);
+    final VmException exception = assertThrows(VmException.class, process::start);
     final String message = exception.getMessage();
     final boolean alive = process.isAlive();
     assertEquals("QEMU exited with code 1, printing \"Failed to start VNC server: address in use\"!", message);
@@ -1715,9 +1716,9 @@ final class VmProcessTest {
     final VmSettings settings = this.unreachableSettings();
     final VmConfiguration configuration = VmConfiguration.builder().build();
     final VmProcess process = this.process(settings, configuration, Os.FREEBSD, qemu);
-    final PlayerException exception;
+    final VmException exception;
     try {
-      exception = assertThrows(PlayerException.class, process::start);
+      exception = assertThrows(VmException.class, process::start);
     } finally {
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted, "the interrupt of the waiting thread must reach the caller");

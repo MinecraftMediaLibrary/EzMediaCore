@@ -48,7 +48,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
@@ -320,7 +319,9 @@ final class VmProcess {
   /**
    * Starts QEMU and waits until its VNC display accepts connections.
    *
-   * @throws PlayerException if the VNC port is taken, or QEMU cannot be started, exits, or never opens its display
+   * @throws IllegalArgumentException if the configuration sets an option MCAV owns
+   * @throws VmException              if the VNC port is taken, the password cannot be written, or QEMU cannot be started,
+   *                                  exits, or never opens its display
    */
   void start() {
     checkModuleOptions(this.configuration);
@@ -356,7 +357,7 @@ final class VmProcess {
    * Writes the password of the display into a new private folder.
    *
    * @return the folder
-   * @throws PlayerException if the folder or the file cannot be written
+   * @throws VmException if the folder or the file cannot be written
    */
   private Path writePassword() {
     try {
@@ -369,7 +370,7 @@ final class VmProcess {
     } catch (final IOException exception) {
       final String reason = exception.getMessage();
       final String message = "Password of the display could not be written because of \"%s\"!".formatted(reason);
-      throw new PlayerException(message, exception);
+      throw new VmException(message, exception);
     }
   }
 
@@ -392,7 +393,7 @@ final class VmProcess {
   private void launchWithSoftwareFallback(final String accelerator, final Path passwordFile) {
     try {
       this.launch(accelerator, passwordFile);
-    } catch (final PlayerException exception) {
+    } catch (final VmException exception) {
       final String reason = exception.getMessage();
       final boolean acceleratorProblem = mentionsAccelerator(reason, accelerator);
       if (!acceleratorProblem) {
@@ -408,22 +409,22 @@ final class VmProcess {
    * Refuses a configuration that sets the display or the sound of the machine, which mcav owns.
    *
    * @param configuration the QEMU options
-   * @throws PlayerException if the configuration sets {@code -vnc}, {@code -audio}, {@code -audiodev}, or routes the
-   *                         PC speaker
+   * @throws IllegalArgumentException if the configuration sets {@code -vnc}, {@code -audio}, {@code -audiodev}, or routes
+   *                                  the PC speaker
    */
   @VisibleForTesting
   static void checkModuleOptions(final VmConfiguration configuration) {
     for (final String option : MODULE_OPTIONS) {
       if (configuration.has(option)) {
         final String message = "Option -%s is set by MCAV itself and must be removed from the configuration!".formatted(option);
-        throw new PlayerException(message);
+        throw new IllegalArgumentException(message);
       }
     }
 
     for (final String machine : machineValues(configuration)) {
       if (machine.contains(SPEAKER_PROPERTY)) {
         final String message = "PC speaker is routed by MCAV itself, so pcspk-audiodev must be removed from -machine!";
-        throw new PlayerException(message);
+        throw new IllegalArgumentException(message);
       }
     }
   }
@@ -503,7 +504,7 @@ final class VmProcess {
     } catch (final IOException exception) {
       final String reason = exception.getMessage();
       final String message = "VNC port %s is already in use because of \"%s\"!".formatted(port, reason);
-      throw new PlayerException(message, exception);
+      throw new VmException(message, exception);
     }
   }
 
@@ -541,7 +542,7 @@ final class VmProcess {
     } catch (final IOException exception) {
       final String reason = exception.getMessage();
       final String message = "QEMU could not be started because of \"%s\"!".formatted(reason);
-      throw new PlayerException(message, exception);
+      throw new VmException(message, exception);
     }
   }
 
@@ -846,7 +847,7 @@ final class VmProcess {
     this.shutdown();
 
     final String message = "QEMU display on port %s did not become reachable, and QEMU printed \"%s\"!".formatted(port, output);
-    throw new PlayerException(message);
+    throw new VmException(message);
   }
 
   private void checkAlive(final Process started) {
@@ -861,7 +862,7 @@ final class VmProcess {
     this.process = null;
 
     final String message = "QEMU exited with code %s, printing \"%s\"!".formatted(exitCode, output);
-    throw new PlayerException(message);
+    throw new VmException(message);
   }
 
   private void awaitOutput() {
@@ -887,7 +888,7 @@ final class VmProcess {
       this.shutdown();
 
       final String message = "Waiting for QEMU was interrupted!";
-      throw new PlayerException(message, exception);
+      throw new VmException(message, exception);
     }
   }
 

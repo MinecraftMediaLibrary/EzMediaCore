@@ -68,8 +68,9 @@ add. QEMU's own default network, which `network("user")` gives back, reaches the
 
 Options that QEMU accepts more than once, such as `-drive` or `-device`, are added to the builder with `drive(...)`,
 `device(...)`, or `repeatable(key, value)`; every other option replaces its earlier value. `start` throws an
-`ExecutableNotInPathException` when the QEMU program of the architecture is not installed, and a `PlayerException`
-with the output of QEMU when the machine fails to start.
+`ExecutableNotInPathException` when the QEMU program of the architecture is not installed, and a `VmException` with
+the output of QEMU when the machine fails to start; catch `VmException` to handle both. A configuration that sets an
+option the player reserves is refused with an `IllegalArgumentException`.
 
 Behind the scenes, the player starts QEMU with a VNC display bound to the local machine and connects the `mcav-vnc`
 player to it. **You are responsible for giving QEMU a valid configuration**; MCAV reports QEMU's errors but does not
