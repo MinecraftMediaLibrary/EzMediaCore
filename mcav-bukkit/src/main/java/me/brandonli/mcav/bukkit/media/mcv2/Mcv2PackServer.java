@@ -159,7 +159,7 @@ public final class Mcv2PackServer {
 
   private final Function<Path, PackHosting> hosting;
 
-  private final boolean showsDebugView;
+  private final Mcv2Pack.DebugView debugView;
 
   private final Consumer<Player> onOffered;
 
@@ -197,27 +197,26 @@ public final class Mcv2PackServer {
    * Constructs a server that writes the pack into a folder of its own and hosts it with the given strategy. Nothing is
    * written or served before {@link #start()} and the first {@link #open(Mcv2Configuration)}.
    *
-   * @param folder         where the pack is written; files of earlier runs left there are deleted
-   * @param hosting        hosts a written pack, for example {@code PackHosting::injector}; called off the main thread, once
-   *                       for every change of the pack
-   * @param showsDebugView whether the pack also draws every slot's decoded picture one to one below the strip, for
-   *                       testing
-   * @param onOffered      called with a player who is about to be asked to load the pack, for example to say why
-   * @param onRefused      called with a player whose client declined the pack or failed to load it, who keeps the dithered
-   *                       maps
-   * @throws NullPointerException if any argument other than the primitive flag is null
+   * @param folder    where the pack is written; files of earlier runs left there are deleted
+   * @param hosting   hosts a written pack, for example {@code PackHosting::injector}; called off the main thread, once for
+   *                  every change of the pack
+   * @param debugView whether the pack also draws every slot's decoded picture one to one below the strip, for testing
+   * @param onOffered called with a player who is about to be asked to load the pack, for example to say why
+   * @param onRefused called with a player whose client declined the pack or failed to load it, who keeps the dithered
+   *                  maps
+   * @throws NullPointerException if any argument is null
    */
   public Mcv2PackServer(
     final Path folder,
     final Function<Path, PackHosting> hosting,
-    final boolean showsDebugView,
+    final Mcv2Pack.DebugView debugView,
     final Consumer<Player> onOffered,
     final Consumer<Player> onRefused
   ) {
     this(
       folder,
       hosting,
-      showsDebugView,
+      debugView,
       onOffered,
       onRefused,
       Executors.newSingleThreadExecutor(Thread.ofPlatform().daemon().name("mcav-mcv2-pack").factory()),
@@ -228,7 +227,7 @@ public final class Mcv2PackServer {
   Mcv2PackServer(
     final Path folder,
     final Function<Path, PackHosting> hosting,
-    final boolean showsDebugView,
+    final Mcv2Pack.DebugView debugView,
     final Consumer<Player> onOffered,
     final Consumer<Player> onRefused,
     final ExecutorService writer,
@@ -236,12 +235,13 @@ public final class Mcv2PackServer {
   ) {
     Preconditions.checkNotNull(folder, "Folder must not be null!");
     Preconditions.checkNotNull(hosting, "Hosting must not be null!");
+    Preconditions.checkNotNull(debugView, "Debug view must not be null!");
     Preconditions.checkNotNull(onOffered, "Offered callback must not be null!");
     Preconditions.checkNotNull(onRefused, "Refused callback must not be null!");
 
     this.folder = folder;
     this.hosting = hosting;
-    this.showsDebugView = showsDebugView;
+    this.debugView = debugView;
     this.onOffered = onOffered;
     this.writer = writer;
     this.millisecondClock = millisecondClock;
@@ -499,7 +499,7 @@ public final class Mcv2PackServer {
     final Path archivePath = this.folder.resolve(FILE_PREFIX + wanted + FILE_SUFFIX);
     final Published published;
     try {
-      Mcv2Pack.write(screens, this.showsDebugView, archivePath);
+      Mcv2Pack.write(screens, this.debugView, archivePath);
       // The client checks a downloaded pack against its SHA-1.
       final String archiveHash = hash(archivePath, SHA_1_ALGORITHM);
       final UUID packId = UUID.nameUUIDFromBytes((PACK_ID_PREFIX + archiveHash).getBytes(StandardCharsets.UTF_8));

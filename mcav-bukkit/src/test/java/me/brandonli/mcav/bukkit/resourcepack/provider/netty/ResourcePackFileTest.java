@@ -35,7 +35,7 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 
 /**
@@ -112,13 +112,13 @@ final class ResourcePackFileTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldDetectSubmillisecondChangesAndReplacements(final boolean replacement) throws IOException {
+  @EnumSource(FileChange.class)
+  void shouldDetectSubmillisecondChangesAndReplacements(final FileChange change) throws IOException {
     final Path path = this.directory.resolve(PRECISE_FILE_NAME);
     final BasicFileAttributes first = mock(BasicFileAttributes.class);
     final BasicFileAttributes second = mock(BasicFileAttributes.class);
     final Instant initial = Instant.parse("2024-01-01T00:00:00.000000001Z");
-    final Instant updated = replacement ? initial : initial.plusNanos(1);
+    final Instant updated = change == FileChange.REPLACED ? initial : initial.plusNanos(1);
     final FileTime firstTime = FileTime.from(initial);
     final FileTime secondTime = FileTime.from(updated);
     when(first.lastModifiedTime()).thenReturn(firstTime);
@@ -126,7 +126,7 @@ final class ResourcePackFileTest {
     when(first.size()).thenReturn(3L);
     when(second.size()).thenReturn(3L);
     when(first.fileKey()).thenReturn("inode-one");
-    when(second.fileKey()).thenReturn(replacement ? "inode-two" : "inode-one");
+    when(second.fileKey()).thenReturn(change == FileChange.REPLACED ? "inode-two" : "inode-one");
     try (final MockedStatic<Files> files = mockStatic(Files.class)) {
       files.when(() -> Files.readAttributes(path, BasicFileAttributes.class)).thenReturn(first, second);
       files.when(() -> Files.readAllBytes(path)).thenReturn(ORIGINAL, SAME_SIZE);
@@ -136,5 +136,10 @@ final class ResourcePackFileTest {
       assertArrayEquals(ORIGINAL, original);
       assertArrayEquals(SAME_SIZE, changed);
     }
+  }
+
+  private enum FileChange {
+    MODIFIED,
+    REPLACED,
   }
 }

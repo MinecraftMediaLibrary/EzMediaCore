@@ -103,7 +103,7 @@ public final class Mcv2FileEncoder {
     Preconditions.checkNotNull(progress, "Progress must not be null!");
 
     try (frames) {
-      final Mcv2 encoder = budget.encoder(settings, false);
+      final Mcv2 encoder = budget.encoder(settings, Mcv2.Verification.UNVERIFIED);
       encoder.setFrameLimit(screenFrameLimit(width, height));
       final byte[] pictureBytes = new byte[Math.multiplyExact(Math.multiplyExact(width, height), Mcv2Decoder.CHANNELS)];
       final byte[] length = new byte[Integer.BYTES];

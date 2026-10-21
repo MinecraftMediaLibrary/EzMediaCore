@@ -153,7 +153,16 @@ final class Mcv2PatternRewriteTest {
   }
 
   private void assertCodedAsPattern(final byte[] source, final int size, final double lambda) throws Mcv2Exception {
-    final Mcv2BlockState state = new Mcv2BlockState(source, new byte[0], size, size, true, false, lambda, null);
+    final Mcv2BlockState state = new Mcv2BlockState(
+      source,
+      new byte[0],
+      size,
+      size,
+      Mcv2FrameKind.KEYFRAME,
+      Mcv2BlockState.Thresholds.STANDARD,
+      lambda,
+      null
+    );
     state.code(size, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
     final int mode = state.mode(0, 0);
     assertEquals(Mcv2Decoder.MODE_PATTERN, mode);

@@ -41,7 +41,7 @@ final class Mcv2SettingsTest {
   @Test
   void shouldSearchQuarterSizeMotionOnlyInTheDefaultPreset() throws ReflectiveOperationException {
     for (final Settings settings : new Settings[] { Settings.DEFAULT, Settings.FAST }) {
-      final Mcv2 encoder = new Mcv2(settings, ForkJoinPool.commonPool(), 1, true);
+      final Mcv2 encoder = new Mcv2(settings, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
       final Field factory = Mcv2.class.getDeclaredField("kernels");
       factory.setAccessible(true);
       final Supplier<?> original = (Supplier<?>) factory.get(encoder);
@@ -79,7 +79,7 @@ final class Mcv2SettingsTest {
     }
 
     for (final Settings settings : new Settings[] { Settings.DEFAULT, Settings.FAST }) {
-      final Mcv2 encoder = new Mcv2(settings, ForkJoinPool.commonPool(), 3, true);
+      final Mcv2 encoder = new Mcv2(settings, ForkJoinPool.commonPool(), 3, Mcv2.Verification.VERIFIED);
       encoder.encode(new byte[stripes.length], 8, 8, 0);
       final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(encoder.encode(stripes, 8, 8, 1));
       final boolean keyframe = frame.isKeyframe();

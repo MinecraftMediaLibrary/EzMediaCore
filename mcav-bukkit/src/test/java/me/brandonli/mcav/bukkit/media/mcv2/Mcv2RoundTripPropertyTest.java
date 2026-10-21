@@ -141,7 +141,7 @@ final class Mcv2RoundTripPropertyTest {
     @ForAll final long seed
   ) throws Mcv2Exception {
     final Random random = new Random(seed);
-    final Mcv2 encoder = new Mcv2(PROFILES.get(profile).withLambda(lambda), POOL, 2, true);
+    final Mcv2 encoder = new Mcv2(PROFILES.get(profile).withLambda(lambda), POOL, 2, Mcv2.Verification.VERIFIED);
     final Mcv2Receiver client = new Mcv2Receiver();
     byte[] rgb = picture(random, width, height);
     for (int frame = 0; frame < 4; frame++) {
@@ -172,7 +172,7 @@ final class Mcv2RoundTripPropertyTest {
       rgb[offset + 2] = (byte) color;
     }
 
-    final Mcv2 encoder = new Mcv2(PROFILES.get(profile).withLambda(lambda), POOL, 2, false);
+    final Mcv2 encoder = new Mcv2(PROFILES.get(profile).withLambda(lambda), POOL, 2, Mcv2.Verification.UNVERIFIED);
     final byte[] decoded = new Mcv2Receiver().accept(encoder.encode(rgb, width, height, 0));
     assertArrayEquals(rgb, decoded);
   }

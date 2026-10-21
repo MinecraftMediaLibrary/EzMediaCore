@@ -76,7 +76,7 @@ final class Mcv2SearchTest {
     final Class<?> encoderType = Mcv2.class;
     final Instrumentation instrumentation = PremainAttachAccess.getInstrumentation();
     final Set<String> clockedMethods = ConcurrentHashMap.newKeySet();
-    final ClassFileTransformer clock = new SearchClock(encoderType, false, clockedMethods);
+    final ClassFileTransformer clock = new SearchClock(encoderType, ClockScope.SEARCH, clockedMethods);
     instrumentation.addTransformer(clock, true);
     try {
       instrumentation.retransformClasses(encoderType);
@@ -107,21 +107,32 @@ final class Mcv2SearchTest {
 
   private void assertSearchAt(final Class<?> encoderType, final byte[] source, final long instant) {
     SEARCH_TIME.set(() -> instant);
-    final Mcv2BlockState state = new Mcv2BlockState(source, new byte[0], 32, 32, true, false, 72, null);
+    final Mcv2BlockState state = new Mcv2BlockState(
+      source,
+      new byte[0],
+      32,
+      32,
+      Mcv2FrameKind.KEYFRAME,
+      Mcv2BlockState.Thresholds.STANDARD,
+      72,
+      null
+    );
     final Class<?> frameType = Mcv2Internals.nested(FRAME_STATE_CLASS);
     final Object frame = Mcv2Internals.field(Mcv2BlockState.class, state, FRAME_FIELD);
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, false);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, Mcv2.Verification.UNVERIFIED);
       encoder.setFrameBudget(100);
+      final Class<?> effortType = Mcv2Internals.nested("SearchEffort");
+      final Object budgeted = Mcv2Internals.field(effortType, null, "BUDGETED");
       final Object result = Mcv2Internals.invoke(
         encoderType,
         encoder,
         SEARCH_METHOD,
-        new Class<?>[] { frameType, boolean[].class, long.class, boolean.class },
+        new Class<?>[] { frameType, boolean[].class, long.class, effortType },
         frame,
         new boolean[0],
         0L,
-        false
+        budgeted
       );
       final List<?> roots = (List<?>) Mcv2Internals.field(result.getClass(), result, "roots");
       final int rootCount = roots.size();
@@ -157,7 +168,7 @@ final class Mcv2SearchTest {
     final Class<?> encoderType = Mcv2.class;
     final Instrumentation instrumentation = PremainAttachAccess.getInstrumentation();
     final Set<String> clockedMethods = ConcurrentHashMap.newKeySet();
-    final ClassFileTransformer clock = new SearchClock(encoderType, true, clockedMethods);
+    final ClassFileTransformer clock = new SearchClock(encoderType, ClockScope.SEARCH_AND_BEGIN, clockedMethods);
     instrumentation.addTransformer(clock, true);
     try {
       instrumentation.retransformClasses(encoderType);
@@ -172,7 +183,7 @@ final class Mcv2SearchTest {
       this.fillQuarters(source, expected);
 
       try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-        final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(0), pool, 1, true);
+        final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(0), pool, 1, Mcv2.Verification.VERIFIED);
         encoder.setFrameBudget(100);
         encoder.setFrameLimit(60);
         final byte[] data = encoder.encode(source, 64, 32, 0);
@@ -265,12 +276,30 @@ final class Mcv2SearchTest {
     final byte[] source = Mcv2Pictures.scene(64, 64, 2, 3);
     final int[] field = new int[8 * 8];
     Arrays.fill(field, this.vector(6, 0));
-    final Mcv2BlockState job = new Mcv2BlockState(source, reference, 64, 64, false, false, 72, field);
+    final Mcv2BlockState job = new Mcv2BlockState(
+      source,
+      reference,
+      64,
+      64,
+      Mcv2FrameKind.PREDICTED,
+      Mcv2BlockState.Thresholds.STANDARD,
+      72,
+      field
+    );
     final int expectedPreviousMotion = this.vector(6, 0);
     final int previousMotion = job.previousMotion(-5, 100);
     assertEquals(expectedPreviousMotion, previousMotion);
 
-    final Mcv2BlockState fresh = new Mcv2BlockState(source, reference, 64, 64, false, false, 72, null);
+    final Mcv2BlockState fresh = new Mcv2BlockState(
+      source,
+      reference,
+      64,
+      64,
+      Mcv2FrameKind.PREDICTED,
+      Mcv2BlockState.Thresholds.STANDARD,
+      72,
+      null
+    );
     final int freshPreviousMotion = fresh.previousMotion(10, 10);
     assertEquals(0, freshPreviousMotion);
 
@@ -285,7 +314,16 @@ final class Mcv2SearchTest {
     }
 
     for (final int parent : new int[] { Mcv2BlockState.NO_VECTOR, this.vector(-6, -4) }) {
-      final Mcv2BlockState seeded = new Mcv2BlockState(source, reference, 64, 64, false, false, 0, field);
+      final Mcv2BlockState seeded = new Mcv2BlockState(
+        source,
+        reference,
+        64,
+        64,
+        Mcv2FrameKind.PREDICTED,
+        Mcv2BlockState.Thresholds.STANDARD,
+        0,
+        field
+      );
       final Object coder = seeded.code(16, 1, 5, 16, 16, parent);
       final int[] expected = {
         this.vector(3, -3),
@@ -303,22 +341,22 @@ final class Mcv2SearchTest {
   @Test
   void shouldSkipEarlyExactlyAtTheThresholdAndMonotonicallyInLambda() {
     final byte[] reference = Mcv2Pictures.scene(32, 32, 0, 0);
-    for (final boolean fast : new boolean[] { false, true }) {
+    for (final Mcv2BlockState.Thresholds thresholds : Mcv2BlockState.Thresholds.values()) {
       for (int amplitude = 0; amplitude <= 12; amplitude += 2) {
-        this.assertSkipsMonotonically(reference, fast, amplitude);
+        this.assertSkipsMonotonically(reference, thresholds, amplitude);
       }
     }
   }
 
-  private void assertSkipsMonotonically(final byte[] reference, final boolean fast, final int amplitude) {
+  private void assertSkipsMonotonically(final byte[] reference, final Mcv2BlockState.Thresholds thresholds, final int amplitude) {
     final byte[] source = this.noisySource(reference, amplitude);
     final long distortion = Mcv2SearchPropertyTest.distortion(source, reference);
     boolean skippedBefore = false;
     for (final double lambda : new double[] { 10, 30, 65.255994022, 150, 400, 1200 }) {
-      final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, fast, lambda, null);
+      final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, Mcv2FrameKind.PREDICTED, thresholds, lambda, null);
       final Object coder = job.code(32, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
       final boolean skipped = Mcv2BlockState.skipped(coder);
-      final boolean expectedSkipped = distortion / 96.0 + lambda <= (fast ? 60 : 28) * lambda;
+      final boolean expectedSkipped = distortion / 96.0 + lambda <= (thresholds == Mcv2BlockState.Thresholds.FAST ? 60 : 28) * lambda;
       assertEquals(expectedSkipped, skipped);
       final boolean monotonic = !skippedBefore || skipped;
       assertTrue(monotonic, "monotonic in lambda");
@@ -348,7 +386,16 @@ final class Mcv2SearchTest {
     }
 
     final double lambda = 864.0 / 59;
-    final Mcv2BlockState state = new Mcv2BlockState(source, new byte[source.length], 32, 32, false, true, lambda, null);
+    final Mcv2BlockState state = new Mcv2BlockState(
+      source,
+      new byte[source.length],
+      32,
+      32,
+      Mcv2FrameKind.PREDICTED,
+      Mcv2BlockState.Thresholds.FAST,
+      lambda,
+      null
+    );
     final Object coder = state.code(32, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
     final double expectedCost = 60 * lambda;
     final double cost = state.cost(0, 0);
@@ -377,7 +424,16 @@ final class Mcv2SearchTest {
       }
     }
 
-    final Mcv2BlockState state = new Mcv2BlockState(reference, reference, 32, 32, false, false, 72, null);
+    final Mcv2BlockState state = new Mcv2BlockState(
+      reference,
+      reference,
+      32,
+      32,
+      Mcv2FrameKind.PREDICTED,
+      Mcv2BlockState.Thresholds.STANDARD,
+      72,
+      null
+    );
     final Object root = state.code(32, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
     final Object child = state.code(16, 1, 0, 16, 16, Mcv2BlockState.NO_VECTOR);
     final Class<?> coderType = Mcv2Internals.nested(BLOCK_CODER_CLASS);
@@ -444,7 +500,16 @@ final class Mcv2SearchTest {
       source[pixel * 3 + 2] = 30;
     }
 
-    final Mcv2BlockState state = new Mcv2BlockState(source, new byte[0], 16, 16, true, false, 2, null);
+    final Mcv2BlockState state = new Mcv2BlockState(
+      source,
+      new byte[0],
+      16,
+      16,
+      Mcv2FrameKind.KEYFRAME,
+      Mcv2BlockState.Thresholds.STANDARD,
+      2,
+      null
+    );
     for (final int[] position : new int[][] { { 16, 0 }, { 0, 16 }, { 16, 16 } }) {
       final Object choice = descend(state, 1, position[0], position[1], 0);
       final Node node = new Node(Mcv2Internals.field(choice.getClass(), choice, NODE_FIELD));
@@ -466,7 +531,16 @@ final class Mcv2SearchTest {
       }
     }
 
-    final Mcv2BlockState state = new Mcv2BlockState(source, new byte[0], 32, 32, true, false, 1, null);
+    final Mcv2BlockState state = new Mcv2BlockState(
+      source,
+      new byte[0],
+      32,
+      32,
+      Mcv2FrameKind.KEYFRAME,
+      Mcv2BlockState.Thresholds.STANDARD,
+      1,
+      null
+    );
     state.code(32, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
     final double cost = state.cost(0, 0);
     final Object equal = descend(state, 0, 0, 0, cost);
@@ -498,7 +572,7 @@ final class Mcv2SearchTest {
   @Test
   void shouldReuseCodersWithoutRetainingBusyEntries() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, Mcv2.Verification.VERIFIED);
       final Collection<?> idle = (Collection<?>) Mcv2Internals.field(Mcv2.class, encoder, IDLE_CODERS_FIELD);
       final Collection<?> busy = (Collection<?>) Mcv2Internals.field(Mcv2.class, encoder, "busyCoders");
       encoder.encode(new byte[3], 1, 1, 0);
@@ -531,7 +605,7 @@ final class Mcv2SearchTest {
     final int halfHeight = dimensions[3];
     final int quarterWidth = dimensions[4];
     final int quarterHeight = dimensions[5];
-    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, true);
+    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, Mcv2.Verification.VERIFIED);
     final byte[] source = Mcv2Pictures.scene(width, height, 0, 0);
     encoder.encode(source, width, height, 0);
     final byte[] reference = encoder.getReference().orElseThrow();
@@ -587,7 +661,7 @@ final class Mcv2SearchTest {
     }
 
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(2), pool, 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(2), pool, 1, Mcv2.Verification.VERIFIED);
       final int firstLeafCount = Mcv2Decoder.parse(encoder.encode(reference, 32, 32, 0)).getLeafCount();
       assertEquals(4, firstLeafCount);
 
@@ -614,8 +688,17 @@ final class Mcv2SearchTest {
 
   @Test
   void shouldScaleTheMotionRangeToEachPyramidLevel() {
-    for (final boolean fast : new boolean[] { false, true }) {
-      final Mcv2BlockState state = new Mcv2BlockState(new byte[32 * 32 * 3], new byte[32 * 32 * 3], 32, 32, false, fast, 72, null);
+    for (final Mcv2BlockState.Thresholds thresholds : Mcv2BlockState.Thresholds.values()) {
+      final Mcv2BlockState state = new Mcv2BlockState(
+        new byte[32 * 32 * 3],
+        new byte[32 * 32 * 3],
+        32,
+        32,
+        Mcv2FrameKind.PREDICTED,
+        thresholds,
+        72,
+        null
+      );
       final Object frame = Mcv2Internals.field(Mcv2BlockState.class, state, FRAME_FIELD);
       final Class<?> kernelType = Mcv2Internals.nested(KERNELS_CLASS);
       final List<Integer> ranges = new ArrayList<>();
@@ -632,7 +715,7 @@ final class Mcv2SearchTest {
       );
       final Object coarseMotion = Mcv2Internals.invoke(coderType, coder, "coarseMotion", new Class<?>[] { int.class }, 2);
       assertEquals(0, coarseMotion);
-      final List<Integer> expectedRanges = fast ? List.of(12) : List.of(6, 12);
+      final List<Integer> expectedRanges = thresholds == Mcv2BlockState.Thresholds.FAST ? List.of(12) : List.of(6, 12);
       assertEquals(expectedRanges, ranges);
     }
   }
@@ -662,7 +745,7 @@ final class Mcv2SearchTest {
     }
 
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(2), pool, 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(2), pool, 1, Mcv2.Verification.VERIFIED);
       final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(encoder.encode(source, 32, 32, 0));
       final int leafCount = frame.getLeafCount();
       assertEquals(4, leafCount);
@@ -713,12 +796,12 @@ final class Mcv2SearchTest {
   private static final class SearchClock implements ClassFileTransformer {
 
     private final Class<?> encoderType;
-    private final boolean includeBegin;
+    private final ClockScope scope;
     private final Set<String> clockedMethods;
 
-    SearchClock(final Class<?> encoderType, final boolean includeBegin, final Set<String> clockedMethods) {
+    SearchClock(final Class<?> encoderType, final ClockScope scope, final Set<String> clockedMethods) {
       this.encoderType = encoderType;
-      this.includeBegin = includeBegin;
+      this.scope = scope;
       this.clockedMethods = clockedMethods;
     }
 
@@ -737,7 +820,7 @@ final class Mcv2SearchTest {
       // The incoming definition retains the mutation installed by PIT.
       final ClassReader reader = new ClassReader(original);
       final ClassWriter writer = new ClassWriter(reader, 0);
-      final ClassVisitor visitor = new ClockingClassVisitor(writer, this.includeBegin, this.clockedMethods);
+      final ClassVisitor visitor = new ClockingClassVisitor(writer, this.scope, this.clockedMethods);
       reader.accept(visitor, 0);
       return writer.toByteArray();
     }
@@ -745,12 +828,12 @@ final class Mcv2SearchTest {
 
   private static final class ClockingClassVisitor extends ClassVisitor {
 
-    private final boolean includeBegin;
+    private final ClockScope scope;
     private final Set<String> clockedMethods;
 
-    ClockingClassVisitor(final ClassWriter writer, final boolean includeBegin, final Set<String> clockedMethods) {
+    ClockingClassVisitor(final ClassWriter writer, final ClockScope scope, final Set<String> clockedMethods) {
       super(Opcodes.ASM9, writer);
-      this.includeBegin = includeBegin;
+      this.scope = scope;
       this.clockedMethods = clockedMethods;
     }
 
@@ -763,7 +846,7 @@ final class Mcv2SearchTest {
       final String[] exceptions
     ) {
       final MethodVisitor visitor = super.visitMethod(access, methodName, descriptor, signature, exceptions);
-      if (!methodName.startsWith("lambda$search$") && !(this.includeBegin && methodName.equals(BEGIN_METHOD))) {
+      if (!methodName.startsWith("lambda$search$") && !(this.scope == ClockScope.SEARCH_AND_BEGIN && methodName.equals(BEGIN_METHOD))) {
         return visitor;
       }
 
@@ -799,5 +882,10 @@ final class Mcv2SearchTest {
       this.clockedMethods.add(this.clockedMethod);
       super.visitMethodInsn(opcode, Mcv2SearchTest.class.getName().replace('.', '/'), "searchTime", descriptor, isInterface);
     }
+  }
+
+  private enum ClockScope {
+    SEARCH,
+    SEARCH_AND_BEGIN,
   }
 }

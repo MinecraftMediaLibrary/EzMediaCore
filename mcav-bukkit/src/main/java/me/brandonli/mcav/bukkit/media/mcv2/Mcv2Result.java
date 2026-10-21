@@ -219,7 +219,9 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     final LongSupplier clock,
     final @Nullable Executor dithering
   ) {
-    this(configuration, channel, fallbackAlgorithm, clock, dithering, settings -> configuration.getEncoderPool().encoder(settings, true));
+    this(configuration, channel, fallbackAlgorithm, clock, dithering, settings ->
+      configuration.getEncoderPool().encoder(settings, Mcv2.Verification.VERIFIED)
+    );
   }
 
   Mcv2Result(
@@ -592,7 +594,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     final List<int[]> sizes = new ArrayList<>();
     sizes.add(new int[] { this.requested.getVideoWidth(), this.requested.getVideoHeight() });
     sizes.addAll(this.smaller);
-    final Mcv2Pacer screenPacer = new Mcv2Pacer(sizes, this.presets, this.fallback != null);
+    final Mcv2Pacer.Floor floor = this.fallback != null ? Mcv2Pacer.Floor.DITHERED_MAPS : Mcv2Pacer.Floor.LOWEST_ENCODED_RUNG;
+    final Mcv2Pacer screenPacer = new Mcv2Pacer(sizes, this.presets, floor);
     synchronized (this.lock) {
       this.pacer = screenPacer;
       this.ditheredForAll = false;
@@ -641,11 +644,12 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     final long finished = this.clock.getAsLong();
+    final Mcv2FrameKind kind = isKeyframe ? Mcv2FrameKind.KEYFRAME : Mcv2FrameKind.PREDICTED;
     Optional<Mcv2Pacer.Change> change = Optional.empty();
     synchronized (this.lock) {
       final Mcv2Pacer screenPacer = this.pacer;
       if (screenPacer != null) {
-        change = this.followEncoding(screenPacer, (finished - started) / NANOSECONDS_PER_MILLISECOND, isKeyframe, finished);
+        change = this.followEncoding(screenPacer, (finished - started) / NANOSECONDS_PER_MILLISECOND, kind, finished);
       }
     }
 
@@ -659,10 +663,10 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   private Optional<Mcv2Pacer.Change> followEncoding(
     final Mcv2Pacer screenPacer,
     final double encodeMilliseconds,
-    final boolean isKeyframe,
+    final Mcv2FrameKind kind,
     final long finished
   ) {
-    final Optional<Mcv2Pacer.Change> change = screenPacer.encoded(encodeMilliseconds, isKeyframe, finished);
+    final Optional<Mcv2Pacer.Change> change = screenPacer.encoded(encodeMilliseconds, kind, finished);
     change.ifPresent(this::follow);
 
     return change;

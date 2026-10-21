@@ -36,22 +36,22 @@ final class Mcv2WriterTest {
     final List<Node> one = List.of(solid(1, 1, 1));
     for (final int[] size : new int[][] { { 0, 32 }, { 4097, 32 }, { 32, 0 }, { 32, 4097 } }) {
       final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-        Mcv2Trees.write(size[0], size[1], 0, 0, true, one)
+        Mcv2Trees.write(size[0], size[1], 0, 0, Mcv2FrameKind.KEYFRAME, one)
       );
       final String message = exception.getMessage();
       assertEquals("Invalid dimensions!", message);
     }
 
-    assertThrows(IllegalArgumentException.class, () -> Mcv2Trees.write(64, 32, 0, 0, true, one));
+    assertThrows(IllegalArgumentException.class, () -> Mcv2Trees.write(64, 32, 0, 0, Mcv2FrameKind.KEYFRAME, one));
     assertThrows(NullPointerException.class, () ->
       Mcv2Internals.call(
         Mcv2.class,
         null,
         "write",
-        new Class<?>[] { int.class, int.class, boolean.class, List.class, long.class, long.class },
+        new Class<?>[] { int.class, int.class, Mcv2FrameKind.class, List.class, long.class, long.class },
         32,
         32,
-        true,
+        Mcv2FrameKind.KEYFRAME,
         null,
         0L,
         0L

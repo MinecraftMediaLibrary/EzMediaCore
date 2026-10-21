@@ -53,7 +53,7 @@ final class Mcv2GoldenTest {
       "3b87eeea72858c4fe9160be1a7acc1fb6670bc0b7fe47bd8cfae346e70813d83"
     );
     for (int preset = 0; preset < settings.size(); preset++) {
-      final Mcv2 encoder = new Mcv2(settings.get(preset), ForkJoinPool.commonPool(), 3, true);
+      final Mcv2 encoder = new Mcv2(settings.get(preset), ForkJoinPool.commonPool(), 3, Mcv2.Verification.VERIFIED);
       final ByteArrayOutputStream stream = new ByteArrayOutputStream();
       for (int frame = 0; frame < 8; frame++) {
         stream.writeBytes(encoder.encode(Mcv2Pictures.scene(96, 64, frame, 2), 96, 64, frame));
@@ -65,32 +65,32 @@ final class Mcv2GoldenTest {
     }
   }
 
-  @ParameterizedTest(name = "{0} with {1} threads, verify {2}")
+  @ParameterizedTest(name = "{0} with {1} threads, {2}")
   @CsvSource({
-    "crop-default.mcs, 1, true",
-    "crop-default.mcs, 1, false",
-    "crop-default.mcs, 2, true",
-    "crop-default.mcs, 2, false",
-    "crop-default.mcs, 3, true",
-    "crop-default.mcs, 3, false",
-    "crop-default.mcs, 4, true",
-    "crop-default.mcs, 4, false",
-    "crop-fast.mcs, 1, true",
-    "crop-fast.mcs, 1, false",
-    "crop-fast.mcs, 2, true",
-    "crop-fast.mcs, 2, false",
-    "crop-fast.mcs, 3, true",
-    "crop-fast.mcs, 3, false",
-    "crop-fast.mcs, 4, true",
-    "crop-fast.mcs, 4, false",
+    "crop-default.mcs, 1, VERIFIED",
+    "crop-default.mcs, 1, UNVERIFIED",
+    "crop-default.mcs, 2, VERIFIED",
+    "crop-default.mcs, 2, UNVERIFIED",
+    "crop-default.mcs, 3, VERIFIED",
+    "crop-default.mcs, 3, UNVERIFIED",
+    "crop-default.mcs, 4, VERIFIED",
+    "crop-default.mcs, 4, UNVERIFIED",
+    "crop-fast.mcs, 1, VERIFIED",
+    "crop-fast.mcs, 1, UNVERIFIED",
+    "crop-fast.mcs, 2, VERIFIED",
+    "crop-fast.mcs, 2, UNVERIFIED",
+    "crop-fast.mcs, 3, VERIFIED",
+    "crop-fast.mcs, 3, UNVERIFIED",
+    "crop-fast.mcs, 4, VERIFIED",
+    "crop-fast.mcs, 4, UNVERIFIED",
   })
-  void shouldReproduceTheGoldenEncoder(final String stream, final int threads, final boolean shouldVerify) {
+  void shouldReproduceTheGoldenEncoder(final String stream, final int threads, final Mcv2.Verification verification) {
     final Settings settings = stream.equals(CROP_DEFAULT_STREAM) ? Settings.DEFAULT : Settings.FAST;
     final List<byte[]> expected = Mcv2Fixtures.frames(Mcv2Fixtures.read(ENCODER_FOLDER + stream));
     final byte[] source = Mcv2Fixtures.read(CROP_SOURCE_PATH);
     final ForkJoinPool pool = new ForkJoinPool(threads);
     try {
-      final Mcv2 encoder = new Mcv2(settings, pool, threads, shouldVerify);
+      final Mcv2 encoder = new Mcv2(settings, pool, threads, verification);
       final int frameBytes = WIDTH * HEIGHT * 3;
       final int expectedLength = expected.size() * frameBytes;
       final int sourceLength = source.length;

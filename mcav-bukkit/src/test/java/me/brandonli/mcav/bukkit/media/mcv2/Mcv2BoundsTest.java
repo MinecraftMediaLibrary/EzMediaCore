@@ -50,7 +50,7 @@ final class Mcv2BoundsTest {
       }
     }
 
-    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), THREADS, true);
+    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), THREADS, Mcv2.Verification.VERIFIED);
     encoder.setFrameBudget(1);
     encoder.setFrameLimit(1);
     final byte[] first = encoder.encode(picture, width, height, 0);
@@ -92,7 +92,7 @@ final class Mcv2BoundsTest {
     }
 
     // Zero lambda cannot reduce the detailed frame by raising its rate cost.
-    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(0), ForkJoinPool.commonPool(), THREADS, true);
+    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(0), ForkJoinPool.commonPool(), THREADS, Mcv2.Verification.VERIFIED);
     final byte[] data = encoder.encode(picture, width, width, 0);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
     final boolean withinLimit = data.length <= 131071;
@@ -152,10 +152,10 @@ final class Mcv2BoundsTest {
       Mcv2.class,
       null,
       "write",
-      new Class<?>[] { int.class, int.class, boolean.class, List.class, long.class, long.class },
+      new Class<?>[] { int.class, int.class, Mcv2FrameKind.class, List.class, long.class, long.class },
       LARGEST_SIDE,
       LARGEST_SIDE,
-      true,
+      Mcv2FrameKind.KEYFRAME,
       roots,
       0L,
       0L

@@ -62,7 +62,7 @@ final class Mcv2PipelineTest {
     final int panPerFrame,
     final int requestEvery
   ) {
-    final Mcv2 encoder = new Mcv2(settings, POOL, 2, true);
+    final Mcv2 encoder = new Mcv2(settings, POOL, 2, Mcv2.Verification.VERIFIED);
     final List<byte[]> stream = new ArrayList<>();
     for (int frameNumber = 0; frameNumber < frames; frameNumber++) {
       if (requestEvery > 0 && frameNumber % requestEvery == 0) {
@@ -83,7 +83,7 @@ final class Mcv2PipelineTest {
     final int panPerFrame,
     final int requestEvery
   ) throws InterruptedException, ExecutionException {
-    final Mcv2 encoder = new Mcv2(settings, POOL, 2, true);
+    final Mcv2 encoder = new Mcv2(settings, POOL, 2, Mcv2.Verification.VERIFIED);
     final ExecutorService verifier = Executors.newSingleThreadExecutor();
     try {
       return encodePipelined(encoder, verifier, width, height, frames, panPerFrame, requestEvery);
@@ -125,8 +125,8 @@ final class Mcv2PipelineTest {
 
   @Test
   void shouldNotAdvanceMotionHistoryOnAFailedSearch() throws ReflectiveOperationException {
-    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 1, true);
-    final Mcv2 control = new Mcv2(Settings.DEFAULT, POOL, 1, true);
+    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 1, Mcv2.Verification.VERIFIED);
+    final Mcv2 control = new Mcv2(Settings.DEFAULT, POOL, 1, Mcv2.Verification.VERIFIED);
     final Field factory = Mcv2.class.getDeclaredField(KERNELS_FIELD);
     factory.setAccessible(true);
     final Object original = factory.get(encoder);
@@ -157,7 +157,7 @@ final class Mcv2PipelineTest {
 
   @Test
   void shouldRetainRequestsAndSettingsChangedDuringBegin() throws Exception {
-    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 1, true);
+    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 1, Mcv2.Verification.VERIFIED);
     final Field factory = Mcv2.class.getDeclaredField(KERNELS_FIELD);
     factory.setAccessible(true);
     final Supplier<?> original = (Supplier<?>) factory.get(encoder);
@@ -238,7 +238,7 @@ final class Mcv2PipelineTest {
 
   @Test
   void shouldKeepOneFrameInFlightAtMost() {
-    final Mcv2 encoder = new Mcv2(Settings.FAST, POOL, 2, true);
+    final Mcv2 encoder = new Mcv2(Settings.FAST, POOL, 2, Mcv2.Verification.VERIFIED);
     final Mcv2.Pending first = encoder.begin(Mcv2Pictures.scene(64, 64, 0, 2), 64, 64, 0);
     encoder.begin(Mcv2Pictures.scene(64, 64, 1, 2), 64, 64, 1);
     final IllegalStateException beginException = assertThrows(IllegalStateException.class, () ->
@@ -257,7 +257,7 @@ final class Mcv2PipelineTest {
 
   @Test
   void shouldStopAfterAFrameFailsItsVerification() throws ReflectiveOperationException {
-    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, true);
+    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
     final Mcv2.Pending frame = encoder.begin(Mcv2Pictures.scene(64, 64, 0, 2), 64, 64, 0);
     final Mcv2.Pending next = encoder.begin(Mcv2Pictures.scene(64, 64, 1, 2), 64, 64, 1);
     final var picture = Mcv2.Pending.class.getDeclaredField(PICTURE_FIELD);
@@ -281,7 +281,7 @@ final class Mcv2PipelineTest {
 
   @Test
   void shouldVerifyNothingWithoutVerification() throws ReflectiveOperationException {
-    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, false);
+    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.UNVERIFIED);
     final Mcv2.Pending frame = encoder.begin(Mcv2Pictures.scene(64, 64, 0, 2), 64, 64, 0);
     final var picture = Mcv2.Pending.class.getDeclaredField(PICTURE_FIELD);
     picture.setAccessible(true);
@@ -300,7 +300,7 @@ final class Mcv2PipelineTest {
 
   @Test
   void shouldServeAKeyframeRequestMadeWhileAFrameIsInFlightWithTheFrameAfterIt() {
-    final Mcv2 encoder = new Mcv2(Settings.FAST, POOL, 2, true);
+    final Mcv2 encoder = new Mcv2(Settings.FAST, POOL, 2, Mcv2.Verification.VERIFIED);
     final List<Mcv2.Pending> frames = new ArrayList<>();
     final List<Boolean> keyframes = new ArrayList<>();
     for (int frameNumber = 0; frameNumber < 5; frameNumber++) {

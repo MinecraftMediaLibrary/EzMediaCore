@@ -28,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.clearInvocations;
@@ -1136,7 +1135,7 @@ final class Mcv2ResultTest {
     when(encoded.getStatistics()).thenReturn(Mcv2.Statistics.of(1, true, 1, 1, LAMBDA));
     when(slow.finish(pending)).thenReturn(encoded);
     final Pool budget = mock(Pool.class);
-    when(budget.encoder(any(), anyBoolean())).thenReturn(slow);
+    when(budget.encoder(any(), any())).thenReturn(slow);
     when(budget.run(any())).thenAnswer(invocation -> invocation.<Callable<?>>getArgument(0).call());
     final Mcv2Configuration own = Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK, WITHOUT))
@@ -1357,11 +1356,11 @@ final class Mcv2ResultTest {
     this.server.runTasks();
     result.getChannel().update();
     final List<byte[]> frames = List.of(
-      Mcv2ChannelTest.frame(0, 0, true),
-      Mcv2ChannelTest.frame(1, 0, false),
-      Mcv2ChannelTest.frame(2, 1, false),
-      Mcv2ChannelTest.frame(3, 2, false),
-      Mcv2ChannelTest.frame(4, 4, true)
+      Mcv2ChannelTest.frame(0, 0, Mcv2FrameKind.KEYFRAME),
+      Mcv2ChannelTest.frame(1, 0, Mcv2FrameKind.PREDICTED),
+      Mcv2ChannelTest.frame(2, 1, Mcv2FrameKind.PREDICTED),
+      Mcv2ChannelTest.frame(3, 2, Mcv2FrameKind.PREDICTED),
+      Mcv2ChannelTest.frame(4, 4, Mcv2FrameKind.KEYFRAME)
     );
     final Mcv2 encoder = mock(Mcv2.class);
     try (final Recording recording = new Recording()) {
@@ -1435,17 +1434,17 @@ final class Mcv2ResultTest {
    * Makes mock encoders of a screen: each frame begins, and finishes - once the gate is open - with a keyframe's bytes,
    * or fails its verification.
    */
-  private Function<Settings, Mcv2> mockEncoders(final List<Mcv2> made, final boolean failing, final CountDownLatch gate) {
-    return settings -> this.mockEncoder(settings, made, failing, gate);
+  private Function<Settings, Mcv2> mockEncoders(final List<Mcv2> made, final FinishOutcome outcome, final CountDownLatch gate) {
+    return settings -> this.mockEncoder(settings, made, outcome, gate);
   }
 
-  private Mcv2 mockEncoder(final Settings settings, final List<Mcv2> made, final boolean failing, final CountDownLatch gate) {
+  private Mcv2 mockEncoder(final Settings settings, final List<Mcv2> made, final FinishOutcome outcome, final CountDownLatch gate) {
     final Mcv2 encoder = mock(Mcv2.class);
     when(encoder.getSettings()).thenReturn(settings);
     final Mcv2.Pending pending = mock(Mcv2.Pending.class);
     when(encoder.begin(any(), anyInt(), anyInt(), anyLong())).thenReturn(pending);
 
-    if (failing) {
+    if (outcome == FinishOutcome.FAILS) {
       when(encoder.finish(pending)).thenThrow(new IllegalStateException(DISAGREEMENT_MESSAGE));
     } else {
       final Mcv2.Encoded encoded = mock(Mcv2.Encoded.class);
@@ -1485,7 +1484,7 @@ final class Mcv2ResultTest {
       this.algorithm,
       System::nanoTime,
       Runnable::run,
-      this.mockEncoders(made, false, gate)
+      this.mockEncoders(made, FinishOutcome.ENCODES, gate)
     );
     result.start();
     final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
@@ -1538,7 +1537,7 @@ final class Mcv2ResultTest {
       this.algorithm,
       System::nanoTime,
       Runnable::run,
-      this.mockEncoders(made, true, new CountDownLatch(0))
+      this.mockEncoders(made, FinishOutcome.FAILS, new CountDownLatch(0))
     );
     result.start();
     final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
@@ -2133,5 +2132,10 @@ final class Mcv2ResultTest {
       final boolean waiterAlive = waiter.isAlive();
       assertFalse(waiterAlive, "the fixture must stop its waiter even after an assertion fails");
     }
+  }
+
+  private enum FinishOutcome {
+    ENCODES,
+    FAILS,
   }
 }

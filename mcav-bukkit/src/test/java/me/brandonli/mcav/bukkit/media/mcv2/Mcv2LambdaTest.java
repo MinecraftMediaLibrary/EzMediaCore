@@ -31,7 +31,7 @@ final class Mcv2LambdaTest {
   void shouldStillSelectAKeyframeWithAnAdmittedFiniteLambda() {
     final Settings settings = Settings.DEFAULT.withLambda(Double.MAX_VALUE);
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(settings, pool, 1, true);
+      final Mcv2 encoder = new Mcv2(settings, pool, 1, Mcv2.Verification.VERIFIED);
       final byte[] frame = assertDoesNotThrow(() -> encoder.encode(new byte[] { 10, 20, 30 }, 1, 1, 0));
       final boolean hasBytes = frame.length > 0;
       assertTrue(hasBytes);
@@ -42,7 +42,7 @@ final class Mcv2LambdaTest {
   void shouldStillEncodeWhenALiveSearchIsRedoneForItsFrameLimitAtTheLargestLambda() {
     final Settings settings = Settings.DEFAULT.withLambda(Double.MAX_VALUE);
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(settings, pool, 1, true);
+      final Mcv2 encoder = new Mcv2(settings, pool, 1, Mcv2.Verification.VERIFIED);
       // a limit no frame meets, so every retry doubles the lambda
       encoder.setFrameLimit(1);
       final byte[] frame = assertDoesNotThrow(() -> encoder.encode(new byte[] { 10, 20, 30 }, 1, 1, 0));

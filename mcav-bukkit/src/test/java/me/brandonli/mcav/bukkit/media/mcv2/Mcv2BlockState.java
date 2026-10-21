@@ -42,20 +42,22 @@ final class Mcv2BlockState {
     final byte[] reference,
     final int width,
     final int height,
-    final boolean keyframe,
-    final boolean fast,
+    final Mcv2FrameKind kind,
+    final Thresholds thresholds,
     final double lambda,
     final int @Nullable [] previous
   ) {
     this.buffers = Mcv2Internals.construct(BUFFERS, new Class<?>[] { int.class, int.class }, width, height);
 
-    if (!keyframe) {
+    if (kind == Mcv2FrameKind.PREDICTED) {
       final byte[] half = (byte[]) Mcv2Internals.field(BUFFERS, this.buffers, HALF_MEMBER);
       final byte[] quarter = (byte[]) Mcv2Internals.field(BUFFERS, this.buffers, "quarter");
       half(reference, width, height, half);
       half(half, (width + 1) / 2, (height + 1) / 2, quarter);
     }
 
+    final boolean keyframe = kind == Mcv2FrameKind.KEYFRAME;
+    final boolean fast = thresholds == Thresholds.FAST;
     this.frame = Mcv2Internals.construct(
       FRAME,
       new Class<?>[] {
@@ -165,6 +167,11 @@ final class Mcv2BlockState {
 
   static int neededQuantizer(final float[] fit) {
     return (int) Mcv2Internals.invoke(Mcv2.class, null, "neededQuantizer", new Class<?>[] { float[].class }, fit);
+  }
+
+  enum Thresholds {
+    STANDARD,
+    FAST,
   }
 
   private record Block(int level, int index) {}

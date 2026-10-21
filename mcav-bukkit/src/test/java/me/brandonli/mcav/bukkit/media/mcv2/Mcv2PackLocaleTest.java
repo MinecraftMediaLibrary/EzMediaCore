@@ -80,7 +80,7 @@ final class Mcv2PackLocaleTest {
 
   private Map<String, String> shaders(final Mcv2Configuration configuration, final String name) throws IOException {
     final Path zip = this.directory.resolve(name);
-    Mcv2Pack.write(configuration, true, zip);
+    Mcv2Pack.write(configuration, Mcv2Pack.DebugView.SHOWN, zip);
     final Map<String, String> shaders = new HashMap<>();
     try (final ZipFile archive = new ZipFile(zip.toFile())) {
       final List<? extends ZipEntry> entries = archive.stream().filter(this::isShader).toList();

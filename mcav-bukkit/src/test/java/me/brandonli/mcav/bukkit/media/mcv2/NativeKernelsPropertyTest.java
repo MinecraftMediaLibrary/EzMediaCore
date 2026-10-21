@@ -78,8 +78,8 @@ final class NativeKernelsPropertyTest {
     final int height = 30 + random.nextInt(50);
     final int panPerFrame = random.nextInt(7) - 3;
     final Settings settings = search;
-    final Mcv2 java = NativeTesting.encoder(settings, 2, true, NativeTesting.javaFactory());
-    final Mcv2 other = NativeTesting.encoder(settings, 2, true, NativeTesting.factory(level));
+    final Mcv2 java = NativeTesting.encoder(settings, 2, Mcv2.Verification.VERIFIED, NativeTesting.javaFactory());
+    final Mcv2 other = NativeTesting.encoder(settings, 2, Mcv2.Verification.VERIFIED, NativeTesting.factory(level));
     for (int frameNumber = 0; frameNumber < 4; frameNumber++) {
       if (frameNumber == 3) {
         java.requestKeyframe();

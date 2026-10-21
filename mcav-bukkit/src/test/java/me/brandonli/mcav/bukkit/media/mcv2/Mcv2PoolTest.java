@@ -201,14 +201,14 @@ final class Mcv2PoolTest {
   @Test
   void shouldEncodeInsideTheBudget() throws InterruptedException {
     try (final Pool pool = new Pool(2)) {
-      final Mcv2 encoder = pool.encoder(Mcv2.Settings.DEFAULT, true);
+      final Mcv2 encoder = pool.encoder(Mcv2.Settings.DEFAULT, Mcv2.Verification.VERIFIED);
       final byte[] rgb = new byte[32 * 16 * 3];
       for (int index = 0; index < rgb.length; index++) {
         rgb[index] = (byte) (index * 7);
       }
 
       final byte[] inside = pool.run(() -> encoder.encode(rgb, 32, 16, 0));
-      final Mcv2 alone = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
+      final Mcv2 alone = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
       final byte[] expected = alone.encode(rgb, 32, 16, 0);
       assertArrayEquals(expected, inside);
     }

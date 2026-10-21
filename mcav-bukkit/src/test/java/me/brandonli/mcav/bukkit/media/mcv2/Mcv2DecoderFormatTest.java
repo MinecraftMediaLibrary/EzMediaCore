@@ -124,7 +124,14 @@ final class Mcv2DecoderFormatTest {
   void shouldSizeTheWalkRegion() throws Mcv2Exception {
     for (int descriptors = 0; descriptors < 40; descriptors++) {
       final byte[] modes = new byte[descriptors];
-      final byte[] frame = Mcv2WireFrames.frame(1280, 32, true, modes, new byte[descriptors][0], new int[] { descriptors, 0, 0 });
+      final byte[] frame = Mcv2WireFrames.frame(
+        1280,
+        32,
+        Mcv2FrameKind.KEYFRAME,
+        modes,
+        new byte[descriptors][0],
+        new int[] { descriptors, 0, 0 }
+      );
       final int expectedPayloadStart = 20 + 8 + 4 + 12 + descriptors + 4 * ((descriptors + 7) / 8);
       final int payloadStart = Mcv2Decoder.parse(frame).getPayloadStart();
       assertEquals(expectedPayloadStart, payloadStart);

@@ -178,7 +178,8 @@ public final class Mcv2Channel {
     final Set<UUID> far = new HashSet<>();
     for (final UUID viewer : this.configuration.getViewers()) {
       final Player player = Bukkit.getPlayer(viewer);
-      if (player != null && this.isFarAway(player, before.contains(viewer))) {
+      final int margin = before.contains(viewer) ? 0 : RANGE_MARGIN;
+      if (player != null && this.isFarAway(player, margin)) {
         far.add(viewer);
       }
     }
@@ -186,7 +187,7 @@ public final class Mcv2Channel {
     this.farAway = Set.copyOf(far);
   }
 
-  private boolean isFarAway(final Player player, final boolean wasFarAway) {
+  private boolean isFarAway(final Player player, final int margin) {
     final int viewDistance = player.getViewDistance();
     if (viewDistance <= 0) {
       return false;
@@ -198,7 +199,7 @@ public final class Mcv2Channel {
       return true;
     }
 
-    final double reach = viewDistance * CHUNK_BLOCKS + (wasFarAway ? 0 : RANGE_MARGIN);
+    final double reach = viewDistance * CHUNK_BLOCKS + margin;
     return this.distanceToWall(player.getLocation()) > reach;
   }
 
@@ -416,8 +417,8 @@ public final class Mcv2Channel {
       patches.add(new MapTilePatch(this.configuration.getPageMap() + page, 0, 0, MapLayout.MAP_SIZE, rows, mapColors));
     }
 
-    final boolean isKeyframe = header.isKeyframe();
-    if (isKeyframe) {
+    final Mcv2FrameKind kind = header.isKeyframe() ? Mcv2FrameKind.KEYFRAME : Mcv2FrameKind.PREDICTED;
+    if (kind == Mcv2FrameKind.KEYFRAME) {
       patches.addAll(this.screen.anchors());
     }
 
@@ -431,7 +432,7 @@ public final class Mcv2Channel {
       final UUID viewer = recipient.getKey();
       final Mcv2Link link = recipient.getValue();
       final long behind = link.getBehind();
-      if (link.offer(header.getFrameId(), header.getReferenceId(), isKeyframe, bytes)) {
+      if (link.offer(header.getFrameId(), header.getReferenceId(), kind, bytes)) {
         event.sentTo++;
         this.sendBundles(viewer, link, bundles);
       } else if (link.getBehind() > behind) {

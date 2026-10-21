@@ -46,6 +46,7 @@ public final class TransportPages {
   private static final String SYMBOLS_NULL_MESSAGE = "Symbols must not be null!";
   private static final String FRAME_NULL_MESSAGE = "Frame must not be null!";
   private static final String STREAM_ID_RANGE_MESSAGE = "Stream id must be an unsigned 32-bit value!";
+  private static final String PAGES_NULL_MESSAGE = "Pages must not be null!";
 
   static final int MAP_SIDE = 128;
 
@@ -352,23 +353,39 @@ public final class TransportPages {
   }
 
   /**
-   * The reference's conservative, uncompressed Map Data wire model: every page is sent as whole 128-symbol rows plus
-   * a fixed per-packet envelope.
+   * Returns the bytes the pages take on the wire under the reference's conservative, uncompressed Map Data model:
+   * every page is sent as whole 128-symbol rows plus a fixed per-packet envelope.
    *
    * @param pages          the pages, each as its useful symbols
-   * @param fullMaps       whether every page is sent as a complete map instead of whole rows
+   * @param packetOverhead the nonnegative estimated bytes charged per packet; not validated here
+   * @return the modeled wire bytes
+   * @throws NullPointerException if {@code pages} is null
+   * @see #fullMapWireBytes(List, int)
+   */
+  public static long wireBytes(final List<byte[]> pages, final int packetOverhead) {
+    Preconditions.checkNotNull(pages, PAGES_NULL_MESSAGE);
+
+    long total = 0;
+    for (final byte[] page : pages) {
+      total += (long) Math.ceilDiv(page.length, MAP_SIDE) * MAP_SIDE + packetOverhead;
+    }
+
+    return total;
+  }
+
+  /**
+   * Returns the bytes the pages take on the wire under the model of {@link #wireBytes(List, int)}, with every page
+   * sent as a complete map instead of whole rows.
+   *
+   * @param pages          the pages, each as its useful symbols
    * @param packetOverhead the nonnegative estimated bytes charged per packet; not validated here
    * @return the modeled wire bytes
    * @throws NullPointerException if {@code pages} is null
    */
-  public static long wireBytes(final List<byte[]> pages, final boolean fullMaps, final int packetOverhead) {
-    Preconditions.checkNotNull(pages, "Pages must not be null!");
+  public static long fullMapWireBytes(final List<byte[]> pages, final int packetOverhead) {
+    Preconditions.checkNotNull(pages, PAGES_NULL_MESSAGE);
 
-    long total = 0;
-    for (final byte[] page : pages) {
-      total += (fullMaps ? PAGE_SYMBOLS : (long) Math.ceilDiv(page.length, MAP_SIDE) * MAP_SIDE) + packetOverhead;
-    }
-
-    return total;
+    final long pageBytes = (long) PAGE_SYMBOLS + packetOverhead;
+    return pages.size() * pageBytes;
   }
 }

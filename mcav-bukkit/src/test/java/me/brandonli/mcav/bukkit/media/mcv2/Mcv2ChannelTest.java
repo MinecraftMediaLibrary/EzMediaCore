@@ -128,19 +128,34 @@ final class Mcv2ChannelTest {
   }
 
   static byte[] keyframe() {
-    return Mcv2Trees.write(FRAME_SIZE, FRAME_SIZE, 0, 0, true, List.of(Node.leaf(Mcv2Decoder.MODE_SOLID, 0, new byte[] { 1, 2, 3 })));
+    return Mcv2Trees.write(
+      FRAME_SIZE,
+      FRAME_SIZE,
+      0,
+      0,
+      Mcv2FrameKind.KEYFRAME,
+      List.of(Node.leaf(Mcv2Decoder.MODE_SOLID, 0, new byte[] { 1, 2, 3 }))
+    );
   }
 
   private static byte[] predicted() {
-    return Mcv2Trees.write(FRAME_SIZE, FRAME_SIZE, 1, 0, false, List.of(Node.leaf(Mcv2Decoder.MODE_MOTION, 0, new byte[] { 1, 1 })));
+    return Mcv2Trees.write(
+      FRAME_SIZE,
+      FRAME_SIZE,
+      1,
+      0,
+      Mcv2FrameKind.PREDICTED,
+      List.of(Node.leaf(Mcv2Decoder.MODE_MOTION, 0, new byte[] { 1, 1 }))
+    );
   }
 
   /** A frame of the 32x32 test video: one solid root in a keyframe, one motion root in a P frame. */
-  static byte[] frame(final long id, final long reference, final boolean isKeyframe) {
-    final Node root = isKeyframe
-      ? Node.leaf(Mcv2Decoder.MODE_SOLID, 0, new byte[] { 1, 2, 3 })
-      : Node.leaf(Mcv2Decoder.MODE_MOTION, 0, new byte[] { 1, 1 });
-    return Mcv2Trees.write(32, 32, id, reference, isKeyframe, List.of(root));
+  static byte[] frame(final long id, final long reference, final Mcv2FrameKind kind) {
+    final Node root =
+      kind == Mcv2FrameKind.KEYFRAME
+        ? Node.leaf(Mcv2Decoder.MODE_SOLID, 0, new byte[] { 1, 2, 3 })
+        : Node.leaf(Mcv2Decoder.MODE_MOTION, 0, new byte[] { 1, 1 });
+    return Mcv2Trees.write(32, 32, id, reference, kind, List.of(root));
   }
 
   static byte[] large() {
@@ -435,11 +450,11 @@ final class Mcv2ChannelTest {
     channel.update();
     verify(this.screen).show(second);
 
-    channel.send(frame(0, 0, true));
+    channel.send(frame(0, 0, Mcv2FrameKind.KEYFRAME));
     this.server.completeWrites(other);
-    channel.send(frame(1, 0, false));
+    channel.send(frame(1, 0, Mcv2FrameKind.PREDICTED));
     this.server.completeWrites(other);
-    channel.send(frame(2, 1, false));
+    channel.send(frame(2, 1, Mcv2FrameKind.PREDICTED));
     this.server.completeWrites(other);
     final int otherPackets = this.server.getSentPackets(other).size();
     assertEquals(3, otherPackets);
@@ -459,14 +474,14 @@ final class Mcv2ChannelTest {
     final long backlog = slow.getBacklog();
     assertEquals(0, backlog);
 
-    channel.send(frame(3, 2, false));
+    channel.send(frame(3, 2, Mcv2FrameKind.PREDICTED));
     final int loadedPacketsWhileWaiting = this.server.getSentPackets(LOADED).size();
     assertEquals(2, loadedPacketsWhileWaiting);
 
     final long undecodable = slow.getUndecodable();
     assertEquals(1, undecodable);
 
-    channel.send(frame(4, 4, true));
+    channel.send(frame(4, 4, Mcv2FrameKind.KEYFRAME));
     final int loadedPacketsAfterKeyframe = this.server.getSentPackets(LOADED).size();
     assertEquals(3, loadedPacketsAfterKeyframe);
 
@@ -498,11 +513,11 @@ final class Mcv2ChannelTest {
       recording.enable("me.brandonli.mcav.Mcv2Send");
       recording.start();
       // sent, sent, held back by the backlog, then waiting for its reference, and one too large for the slot
-      channel.send(frame(0, 0, true));
-      channel.send(frame(1, 0, false));
-      channel.send(frame(2, 1, false));
+      channel.send(frame(0, 0, Mcv2FrameKind.KEYFRAME));
+      channel.send(frame(1, 0, Mcv2FrameKind.PREDICTED));
+      channel.send(frame(2, 1, Mcv2FrameKind.PREDICTED));
       this.server.completeWrites(LOADED);
-      channel.send(frame(3, 2, false));
+      channel.send(frame(3, 2, Mcv2FrameKind.PREDICTED));
       channel.send(large());
       recording.stop();
       final Path file = directory.resolve("sends.jfr");
@@ -551,7 +566,7 @@ final class Mcv2ChannelTest {
     channel.update();
     this.server.removePlayer(LOADED);
     PacketUtils.initialize();
-    channel.send(frame(0, 0, true));
+    channel.send(frame(0, 0, Mcv2FrameKind.KEYFRAME));
     // nothing reached a connection, so nothing waits to be written
     final long backlog = channel.getLinks().get(LOADED).getBacklog();
     assertEquals(0, backlog);
@@ -758,11 +773,11 @@ final class Mcv2ChannelTest {
     final boolean keyframeRequested = channel.takeKeyframeRequest();
     assertTrue(keyframeRequested);
 
-    channel.send(frame(1, 0, false));
+    channel.send(frame(1, 0, Mcv2FrameKind.PREDICTED));
     final List<Packet<?>> sentBeforeKeyframe = this.server.getSentPackets(LOADED);
     assertEquals(List.of(), sentBeforeKeyframe, "a P frame before the keyframe is useless to them");
 
-    channel.send(frame(2, 2, true));
+    channel.send(frame(2, 2, Mcv2FrameKind.KEYFRAME));
     final int packetCount = this.server.getSentPackets(LOADED).size();
     assertEquals(1, packetCount);
 

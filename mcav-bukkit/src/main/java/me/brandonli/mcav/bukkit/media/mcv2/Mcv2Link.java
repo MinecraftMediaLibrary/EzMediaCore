@@ -38,6 +38,8 @@ public final class Mcv2Link {
 
   private static final long NONE = -1;
 
+  private static final String KIND_NULL_MESSAGE = "Kind must not be null!";
+
   private final long limit;
 
   private final AtomicLong backlog = new AtomicLong();
@@ -66,12 +68,15 @@ public final class Mcv2Link {
   /**
    * Checks whether a frame is independent or predicts from the last frame this viewer was sent.
    *
-   * @param isKeyframe  whether the frame is a keyframe
+   * @param kind        whether the frame is a keyframe or a P frame
    * @param referenceId the id of the frame a P frame predicts from
    * @return true if the viewer holds what the frame needs
+   * @throws NullPointerException if kind is null
    */
-  public synchronized boolean canDecode(final boolean isKeyframe, final long referenceId) {
-    return isKeyframe || (referenceId != NONE && referenceId == this.lastFrame);
+  public synchronized boolean canDecode(final Mcv2FrameKind kind, final long referenceId) {
+    Preconditions.checkNotNull(kind, KIND_NULL_MESSAGE);
+
+    return kind == Mcv2FrameKind.KEYFRAME || (referenceId != NONE && referenceId == this.lastFrame);
   }
 
   /**
@@ -83,22 +88,24 @@ public final class Mcv2Link {
    *
    * @param frameId     the frame's id
    * @param referenceId the id of the frame a P frame predicts from
-   * @param isKeyframe  whether the frame is a keyframe
+   * @param kind        whether the frame is a keyframe or a P frame
    * @param bytes       the video bytes the frame puts on the viewer's connection
    * @return true if the frame is to be sent to the viewer
+   * @throws NullPointerException     if kind is null
    * @throws IllegalArgumentException if frameId is outside unsigned 32-bit range or bytes is negative
    */
-  public synchronized boolean offer(final long frameId, final long referenceId, final boolean isKeyframe, final long bytes) {
+  public synchronized boolean offer(final long frameId, final long referenceId, final Mcv2FrameKind kind, final long bytes) {
+    Preconditions.checkNotNull(kind, KIND_NULL_MESSAGE);
     Preconditions.checkArgument(frameId >= 0 && frameId <= Mcv2Decoder.MAXIMUM_UNSIGNED_INT, "Frame id must be an unsigned 32-bit value!");
     Preconditions.checkArgument(bytes >= 0, "Bytes must not be negative!");
 
-    if (this.backlog.get() > (isKeyframe ? allowance(this.limit) : this.limit)) {
+    if (this.backlog.get() > (kind == Mcv2FrameKind.KEYFRAME ? allowance(this.limit) : this.limit)) {
       this.behind++;
 
       return false;
     }
 
-    if (!this.canDecode(isKeyframe, referenceId)) {
+    if (!this.canDecode(kind, referenceId)) {
       this.undecodable++;
 
       return false;

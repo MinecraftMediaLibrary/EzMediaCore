@@ -197,7 +197,9 @@ final class Mcv2Tools {
       System.gc();
       final long heapBefore = usedHeap();
       final Pool budget = new Pool(threads);
-      final Mcv2 encoder = budget.encoder(settings(options), Boolean.parseBoolean(options.getOrDefault("verify", "false")));
+      final boolean verify = Boolean.parseBoolean(options.getOrDefault("verify", "false"));
+      final Mcv2.Verification verification = verify ? Mcv2.Verification.VERIFIED : Mcv2.Verification.UNVERIFIED;
+      final Mcv2 encoder = budget.encoder(settings(options), verification);
       if (options.containsKey("framebudget")) {
         encoder.setFrameBudget((long) (Double.parseDouble(options.get("framebudget")) * NANOSECONDS_PER_MILLISECOND));
       }
@@ -509,7 +511,7 @@ final class Mcv2Tools {
     final Map<String, Object> digests,
     final Map<String, Object> pages
   ) throws Exception {
-    final Mcv2 encoder = new Mcv2(settings, pool, 1, true);
+    final Mcv2 encoder = new Mcv2(settings, pool, 1, Mcv2.Verification.VERIFIED);
     final ByteArrayOutputStream archive = new ByteArrayOutputStream();
     final List<String> hashes = new ArrayList<>();
     final byte[] rgb = new byte[width * height * CHANNELS];
@@ -550,7 +552,7 @@ final class Mcv2Tools {
       throw new IllegalArgumentException("Expected exactly four 320x180 frames!");
     }
 
-    final Mcv2 encoder = new Mcv2(settings, pool, 1, true);
+    final Mcv2 encoder = new Mcv2(settings, pool, 1, Mcv2.Verification.VERIFIED);
     final ByteArrayOutputStream archive = new ByteArrayOutputStream();
     for (int id = 0; id < 4; id++) {
       frame(archive, encoder.encode(Arrays.copyOfRange(source, id * bytes, (id + 1) * bytes), FIXTURE_WIDTH, FIXTURE_HEIGHT, id));
@@ -647,7 +649,8 @@ final class Mcv2Tools {
         ShadercIncludeResultRelease.create((user, result) -> {}),
         0L
       );
-      final int kind = stage.equals(VERTEX_STAGE) ? Shaderc.shaderc_vertex_shader : Shaderc.shaderc_fragment_shader;
+      final ShaderStage shaderStage = stage.equals(VERTEX_STAGE) ? ShaderStage.VERTEX : ShaderStage.FRAGMENT;
+      final int kind = shaderStage == ShaderStage.VERTEX ? Shaderc.shaderc_vertex_shader : Shaderc.shaderc_fragment_shader;
       final long result = Shaderc.shaderc_compile_into_spv(compiler, text, kind, source.getFileName().toString(), "main", options);
       if (Shaderc.shaderc_result_get_compilation_status(result) != Shaderc.shaderc_compilation_status_success) {
         System.out.println("FAIL " + target.getFileName() + ": " + Shaderc.shaderc_result_get_error_message(result));
@@ -656,7 +659,7 @@ final class Mcv2Tools {
       }
 
       final ByteBuffer spirv = Shaderc.shaderc_result_get_bytes(result);
-      final String glsl = crossCompile(spirv, kind == Shaderc.shaderc_vertex_shader);
+      final String glsl = crossCompile(spirv, shaderStage);
       Shaderc.shaderc_result_release(result);
       Files.writeString(target, glsl);
       System.out.println("ok   " + target.getFileName());
@@ -702,7 +705,7 @@ final class Mcv2Tools {
     return result.address();
   }
 
-  private static String crossCompile(final ByteBuffer spirv, final boolean vertex) {
+  private static String crossCompile(final ByteBuffer spirv, final ShaderStage shaderStage) {
     try (MemoryStack stack = stackPush()) {
       final PointerBuffer pointer = stack.callocPointer(1);
       check(Spvc.spvc_context_create(pointer), "context");
@@ -734,6 +737,7 @@ final class Mcv2Tools {
         final long resources = pointer.get(0);
         // without separate shader objects the stages link by name, so the game names every stage input and output
         // after its location
+        final boolean vertex = shaderStage == ShaderStage.VERTEX;
         final int attributes = vertex ? Spvc.SPVC_RESOURCE_TYPE_STAGE_INPUT : Spvc.SPVC_RESOURCE_TYPE_STAGE_OUTPUT;
         final int varyings = vertex ? Spvc.SPVC_RESOURCE_TYPE_STAGE_OUTPUT : Spvc.SPVC_RESOURCE_TYPE_STAGE_INPUT;
         renameByLocation(compiler, resources, attributes, vertex ? "_vert_input_%02d" : "_frag_output_%02d");
@@ -765,6 +769,11 @@ final class Mcv2Tools {
       final String message = "SPIRV-Cross failed at %s with result %s!".formatted(step, result);
       throw new IllegalStateException(message);
     }
+  }
+
+  private enum ShaderStage {
+    VERTEX,
+    FRAGMENT,
   }
 
   private static final class Measurement {
@@ -867,7 +876,7 @@ final class Mcv2Tools {
 
       this.measured.logical += data.length;
       final List<byte[]> pages = TransportPages.makePages(data, STREAM_ID);
-      this.measured.wire += TransportPages.wireBytes(pages, false, TransportPages.PACKET_OVERHEAD);
+      this.measured.wire += TransportPages.wireBytes(pages, TransportPages.PACKET_OVERHEAD);
       this.measured.zlib += zlibBytes(pages, this.deflater, this.buffer);
       final byte[] picture = decoded(data, predictFrom);
       final double mse = squaredError(rgb, picture) / (double) rgb.length;
@@ -956,8 +965,8 @@ final class Mcv2Tools {
 
       final Map<String, Object> expected = new LinkedHashMap<>();
       expected.put("pages", pageHashes);
-      expected.put("wire", TransportPages.wireBytes(symbols, false, TransportPages.PACKET_OVERHEAD));
-      expected.put("wire_full", TransportPages.wireBytes(symbols, true, TransportPages.PACKET_OVERHEAD));
+      expected.put("wire", TransportPages.wireBytes(symbols, TransportPages.PACKET_OVERHEAD));
+      expected.put("wire_full", TransportPages.fullMapWireBytes(symbols, TransportPages.PACKET_OVERHEAD));
       return expected;
     }
   }

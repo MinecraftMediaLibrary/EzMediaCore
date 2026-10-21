@@ -708,7 +708,7 @@ final class Mcv2NativesTest {
     // the library loads from NativeTesting's folder, not the temporary one: Windows keeps a loaded library locked, so
     // JUnit could not delete the temporary folder after the test
     Mcv2.installNatives(NativeTesting.FOLDER, Mcv2.NATIVE_OFF);
-    final Mcv2 java = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
+    final Mcv2 java = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
     final Supplier<?> javaFactory = (Supplier<?>) Mcv2Internals.field(Mcv2.class, java, "kernels");
     final Supplier<?> expectedJavaFactory = NativeTesting.javaFactory();
     assertSame(expectedJavaFactory, javaFactory);
@@ -720,7 +720,7 @@ final class Mcv2NativesTest {
       System.setProperty(LEVEL_PROPERTY, level.symbol());
       System.clearProperty(Mcv2.NATIVE_PROPERTY);
       Mcv2.installNatives(NativeTesting.FOLDER, Mcv2.NATIVE_AUTO);
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
       final Supplier<?> nativeFactory = (Supplier<?>) Mcv2Internals.field(Mcv2.class, encoder, "kernels");
       final Level nativeLevel = NativeTesting.view(nativeFactory.get()).level();
       assertEquals(level, nativeLevel);
@@ -731,7 +731,7 @@ final class Mcv2NativesTest {
 
       System.setProperty(Mcv2.NATIVE_PROPERTY, Mcv2.NATIVE_OFF);
       Mcv2.installNatives(NativeTesting.FOLDER, Mcv2.NATIVE_AUTO);
-      final Mcv2 disabled = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
+      final Mcv2 disabled = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
       final Object disabledKernels = Mcv2Internals.field(Mcv2.class, disabled, "kernels");
       assertSame(javaFactory, disabledKernels);
       final Object encoderKernels = Mcv2Internals.field(Mcv2.class, encoder, "kernels");

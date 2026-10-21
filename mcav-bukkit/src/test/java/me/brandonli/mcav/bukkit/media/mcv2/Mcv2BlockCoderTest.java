@@ -41,7 +41,16 @@ final class Mcv2BlockCoderTest {
   }
 
   private static Mcv2BlockState code(final byte[] source, final byte[] reference) {
-    final Mcv2BlockState job = new Mcv2BlockState(source, reference, 8, 8, false, false, LAMBDA, null);
+    final Mcv2BlockState job = new Mcv2BlockState(
+      source,
+      reference,
+      8,
+      8,
+      Mcv2FrameKind.PREDICTED,
+      Mcv2BlockState.Thresholds.STANDARD,
+      LAMBDA,
+      null
+    );
     job.code(8, 2, 0, 0, 0, 0);
     return job;
   }
@@ -146,7 +155,16 @@ final class Mcv2BlockCoderTest {
       source[offset + 2] = 30;
     }
 
-    final Mcv2BlockState job = new Mcv2BlockState(source, new byte[0], 8, 8, true, false, LAMBDA, null);
+    final Mcv2BlockState job = new Mcv2BlockState(
+      source,
+      new byte[0],
+      8,
+      8,
+      Mcv2FrameKind.KEYFRAME,
+      Mcv2BlockState.Thresholds.STANDARD,
+      LAMBDA,
+      null
+    );
     job.code(8, 2, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
 
     final int mode = job.mode(2, 0);
@@ -175,7 +193,16 @@ final class Mcv2BlockCoderTest {
 
     // The brightness step reaches motion search past the fixed early SKIP threshold.
     for (final int parent : new int[] { -4 << 16, 0x0000fffc, 4 << 16, -1 }) {
-      final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, false, LAMBDA, null);
+      final Mcv2BlockState job = new Mcv2BlockState(
+        source,
+        reference,
+        32,
+        32,
+        Mcv2FrameKind.PREDICTED,
+        Mcv2BlockState.Thresholds.STANDARD,
+        LAMBDA,
+        null
+      );
       final Object coder = job.code(8, 2, 5, 8, 8, parent);
       final int vector = Mcv2BlockState.localVector(coder);
       assertEquals(parent, vector);
@@ -196,7 +223,16 @@ final class Mcv2BlockCoderTest {
     }
 
     for (final int size : new int[] { 16, 32 }) {
-      final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, false, LAMBDA, null);
+      final Mcv2BlockState job = new Mcv2BlockState(
+        source,
+        reference,
+        32,
+        32,
+        Mcv2FrameKind.PREDICTED,
+        Mcv2BlockState.Thresholds.STANDARD,
+        LAMBDA,
+        null
+      );
       final int level = size == 16 ? 1 : 0;
       final int parent = size == 16 ? -4 << 16 : Mcv2BlockState.NO_VECTOR;
       final Object coder = job.code(size, level, 0, 0, 0, parent);

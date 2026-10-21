@@ -28,6 +28,7 @@ import java.util.function.Function;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Configuration;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Pack;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2PackServer;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Result;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Viewers;
@@ -91,7 +92,7 @@ public final class Mcv2Support {
       new Mcv2PackServer(
         dataFolder.resolve(Mcv2PlayCommand.STREAMS).resolve(PACK_FOLDER),
         hosting,
-        Boolean.getBoolean(DEBUG_VIEW),
+        Boolean.getBoolean(DEBUG_VIEW) ? Mcv2Pack.DebugView.SHOWN : Mcv2Pack.DebugView.HIDDEN,
         Mcv2Support::tellOffered,
         Mcv2Support::tellRefused
       )

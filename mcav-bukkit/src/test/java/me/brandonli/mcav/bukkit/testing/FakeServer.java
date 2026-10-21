@@ -131,11 +131,11 @@ public final class FakeServer implements AutoCloseable {
   private void stubScheduler() {
     final Answer<BukkitTask> repeatingTask = invocation -> {
       final Runnable runnable = invocation.getArgument(1);
-      return this.schedule(runnable, true);
+      return this.schedule(runnable, Repetition.REPEATING);
     };
     final Answer<BukkitTask> singleTask = invocation -> {
       final Runnable runnable = invocation.getArgument(1);
-      return this.schedule(runnable, false);
+      return this.schedule(runnable, Repetition.ONCE);
     };
     when(this.scheduler.runTaskTimer(any(Plugin.class), any(Runnable.class), anyLong(), anyLong())).thenAnswer(repeatingTask);
     when(this.scheduler.runTask(any(Plugin.class), any(Runnable.class))).thenAnswer(singleTask);
@@ -147,7 +147,7 @@ public final class FakeServer implements AutoCloseable {
 
   private BukkitTask scheduleLater(final Runnable runnable) {
     final BukkitTask task = mock(BukkitTask.class);
-    final ScheduledTask scheduled = new ScheduledTask(runnable, false, task);
+    final ScheduledTask scheduled = new ScheduledTask(runnable, Repetition.ONCE, task);
     doAnswer(_ -> {
       this.laterTasks.remove(scheduled);
 
@@ -174,9 +174,9 @@ public final class FakeServer implements AutoCloseable {
     return staticBukkit;
   }
 
-  private BukkitTask schedule(final Runnable runnable, final boolean repeating) {
+  private BukkitTask schedule(final Runnable runnable, final Repetition repetition) {
     final BukkitTask task = mock(BukkitTask.class);
-    final ScheduledTask scheduled = new ScheduledTask(runnable, repeating, task);
+    final ScheduledTask scheduled = new ScheduledTask(runnable, repetition, task);
     doAnswer(_ -> {
       this.tasks.remove(scheduled);
 
@@ -394,7 +394,7 @@ public final class FakeServer implements AutoCloseable {
   public int runTasks() {
     final List<ScheduledTask> snapshot = new ArrayList<>(this.tasks);
     for (final ScheduledTask task : snapshot) {
-      if (!task.repeating) {
+      if (task.repetition == Repetition.ONCE) {
         this.tasks.remove(task);
       }
       task.runnable.run();
@@ -524,19 +524,24 @@ public final class FakeServer implements AutoCloseable {
 
     private final Runnable runnable;
 
-    private final boolean repeating;
+    private final Repetition repetition;
 
     private final BukkitTask task;
 
-    ScheduledTask(final Runnable runnable, final boolean repeating, final BukkitTask task) {
+    ScheduledTask(final Runnable runnable, final Repetition repetition, final BukkitTask task) {
       this.runnable = runnable;
-      this.repeating = repeating;
+      this.repetition = repetition;
       this.task = task;
     }
 
     @Override
     public String toString() {
-      return "ScheduledTask[repeating=" + this.repeating + ", task=" + this.task + "]";
+      return "ScheduledTask[repetition=" + this.repetition + ", task=" + this.task + "]";
     }
+  }
+
+  private enum Repetition {
+    ONCE,
+    REPEATING,
   }
 }

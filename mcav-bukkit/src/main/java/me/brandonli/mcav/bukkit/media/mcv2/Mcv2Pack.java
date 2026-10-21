@@ -192,33 +192,34 @@ public final class Mcv2Pack {
   /**
    * Writes the pack of one screen.
    *
-   * @param configuration  the screen
-   * @param showsDebugView whether the pack also draws the decoded picture one to one below the strip, for testing
-   * @param archivePath    where the pack is written, atomically
+   * @param configuration the screen
+   * @param debugView     whether the pack also draws the decoded picture one to one below the strip, for testing
+   * @param archivePath   where the pack is written, atomically
    * @throws UncheckedIOException if the pack cannot be written
-   * @throws NullPointerException if {@code configuration} or {@code archivePath} is null
+   * @throws NullPointerException if {@code configuration}, {@code debugView} or {@code archivePath} is null
    */
-  public static void write(final Mcv2Configuration configuration, final boolean showsDebugView, final Path archivePath) {
+  public static void write(final Mcv2Configuration configuration, final DebugView debugView, final Path archivePath) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
 
-    write(List.of(configuration), showsDebugView, archivePath);
+    write(List.of(configuration), debugView, archivePath);
   }
 
   /**
    * Writes the pack of every screen of the server.
    *
-   * @param screens        the screens, in the order of their place in the strip; their stream ids must differ, and they
-   *                       share the outline colour of the first
-   * @param showsDebugView whether the pack also draws every screen's decoded picture one to one below the strip, for
-   *                       testing
-   * @param archivePath    where the pack is written, atomically
+   * @param screens     the screens, in the order of their place in the strip; their stream ids must differ, and they
+   *                    share the outline colour of the first
+   * @param debugView   whether the pack also draws every screen's decoded picture one to one below the strip, for
+   *                    testing
+   * @param archivePath where the pack is written, atomically
    * @throws IllegalArgumentException if there are no screens or more than {@link #MAXIMUM_SCREENS}, two share a stream
    *                                  id, or their outline colours differ
    * @throws UncheckedIOException     if the pack cannot be written
-   * @throws NullPointerException     if {@code screens} or {@code archivePath} is null
+   * @throws NullPointerException     if {@code screens}, {@code debugView} or {@code archivePath} is null
    */
-  public static void write(final List<Mcv2Configuration> screens, final boolean showsDebugView, final Path archivePath) {
+  public static void write(final List<Mcv2Configuration> screens, final DebugView debugView, final Path archivePath) {
     Preconditions.checkNotNull(screens, "Screens must not be null!");
+    Preconditions.checkNotNull(debugView, "Debug view must not be null!");
     Preconditions.checkNotNull(archivePath, "Zip must not be null!");
     checkScreens(screens);
 
@@ -245,7 +246,7 @@ public final class Mcv2Pack {
     }
 
     pack.data(POST_CHAIN, postChain(screens).getBytes(StandardCharsets.UTF_8));
-    pack.data(INCLUDE + CONFIG_INCLUDE, packConstants(screens, showsDebugView).getBytes(StandardCharsets.UTF_8));
+    pack.data(INCLUDE + CONFIG_INCLUDE, packConstants(screens, debugView).getBytes(StandardCharsets.UTF_8));
     pack.data(INCLUDE + ALPHABET_INCLUDE, alphabet(palette()).getBytes(StandardCharsets.UTF_8));
     pack.data(MANIFEST_FILE, manifest(screens).getBytes(StandardCharsets.UTF_8));
     pack.zip(archivePath);
@@ -362,7 +363,7 @@ public final class Mcv2Pack {
     return (configuration.getVideoHeight() + CELL_PIXELS - 1) / CELL_PIXELS;
   }
 
-  static String packConstants(final List<Mcv2Configuration> screens, final boolean showsDebugView) {
+  static String packConstants(final List<Mcv2Configuration> screens, final DebugView debugView) {
     final int count = screens.size();
     final int color = screens.getFirst().getOutlineColor().value();
     final StringBuilder streams = new StringBuilder();
@@ -387,7 +388,7 @@ public final class Mcv2Pack {
         String.format(Locale.ROOT, "const uint MCV2_SCREEN_STREAMS[%d] = uint[%d](%s);", count, count, streams),
         String.format(Locale.ROOT, "const int MCV2_SCREEN_SLOTS[%d] = int[%d](%s);", count, count, slots),
         String.format(Locale.ROOT, "const int MCV2_SCREEN_FIRST_SLOTS[%d] = int[%d](%s);", count, count, firsts),
-        String.format(Locale.ROOT, "const bool MCV2_DEBUG_VIEW = %s;", showsDebugView),
+        String.format(Locale.ROOT, "const bool MCV2_DEBUG_VIEW = %s;", debugView == DebugView.SHOWN),
         String.format(
           Locale.ROOT,
           "const ivec3 MCV2_OUTLINE_COLOR = ivec3(%d, %d, %d);",
@@ -527,5 +528,26 @@ public final class Mcv2Pack {
 
     manifest.add("screens", list);
     return GSON.toJson(manifest);
+  }
+
+  /**
+   * Whether a pack also draws every screen's decoded picture one to one below the strip, for testing.
+   *
+   * @since 1.0.0
+   */
+  public enum DebugView {
+    /**
+     * The pack draws the decoded pictures below the strip.
+     *
+     * @since 1.0.0
+     */
+    SHOWN,
+
+    /**
+     * The pack draws only the screens.
+     *
+     * @since 1.0.0
+     */
+    HIDDEN,
   }
 }

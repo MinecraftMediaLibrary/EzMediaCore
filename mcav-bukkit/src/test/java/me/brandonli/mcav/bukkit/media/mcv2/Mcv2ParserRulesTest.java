@@ -105,7 +105,7 @@ final class Mcv2ParserRulesTest {
       roots.add(Node.skip());
     }
 
-    final byte[] frame = Mcv2Trees.write(4096, 64, 0, 0, true, roots);
+    final byte[] frame = Mcv2Trees.write(4096, 64, 0, 0, Mcv2FrameKind.KEYFRAME, roots);
     final String failureMessage = this.message(this.withWord(frame, 20, 0));
     assertEquals("Presence count differs from level zero!", failureMessage);
   }
@@ -128,7 +128,7 @@ final class Mcv2ParserRulesTest {
       roots.add(index % 7 == 0 ? motion(1, 1) : Node.skip());
     }
 
-    final byte[] frame = Mcv2Trees.write(32 * 33, 32 * 9, 1, 0, false, roots);
+    final byte[] frame = Mcv2Trees.write(32 * 33, 32 * 9, 1, 0, Mcv2FrameKind.PREDICTED, roots);
     final int expectedLeafCount = 33 * 9;
     final int leafCount = Mcv2Decoder.parse(frame).getLeafCount();
     assertEquals(expectedLeafCount, leafCount);

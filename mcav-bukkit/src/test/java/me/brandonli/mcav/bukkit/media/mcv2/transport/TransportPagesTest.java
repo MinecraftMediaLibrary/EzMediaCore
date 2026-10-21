@@ -34,6 +34,7 @@ import java.util.zip.CRC32;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Fixtures;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2FrameKind;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Trees;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Trees.Node;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
@@ -108,11 +109,11 @@ final class TransportPagesTest {
     }
 
     final long expectedWire = expected.get("wire").getAsLong();
-    final long wire = TransportPages.wireBytes(pages, false, TransportPages.PACKET_OVERHEAD);
+    final long wire = TransportPages.wireBytes(pages, TransportPages.PACKET_OVERHEAD);
     assertEquals(expectedWire, wire);
 
     final long expectedFullWire = expected.get("wire_full").getAsLong();
-    final long fullWire = TransportPages.wireBytes(pages, true, TransportPages.PACKET_OVERHEAD);
+    final long fullWire = TransportPages.fullMapWireBytes(pages, TransportPages.PACKET_OVERHEAD);
     assertEquals(expectedFullWire, fullWire);
 
     final PageAssembler assembler = new PageAssembler(7, bits);
@@ -314,7 +315,7 @@ final class TransportPagesTest {
   @Test
   void shouldNameInEveryPageTheFrameItsFrameIsPredictedFrom() throws Mcv2Exception {
     final Node root = Mcv2Trees.motion(1, 1);
-    final byte[] frame = Mcv2Trees.write(32, 32, 5, 4, false, List.of(root));
+    final byte[] frame = Mcv2Trees.write(32, 32, 5, 4, Mcv2FrameKind.PREDICTED, List.of(root));
     for (final byte[] page : TransportPages.makePages(frame, 7)) {
       final TransportPage read = TransportPages.readPage(page);
       final long frameId = read.getFrameId();
@@ -381,11 +382,11 @@ final class TransportPagesTest {
   @Test
   void shouldChargeWholeRowsAndTheEnvelope() {
     final long expectedWire = 128 + 18 + 256 + 18;
-    final long wire = TransportPages.wireBytes(List.of(new byte[1], new byte[129]), false, 18);
+    final long wire = TransportPages.wireBytes(List.of(new byte[1], new byte[129]), 18);
     assertEquals(expectedWire, wire);
 
     final long expectedFullWire = 2 * (16384 + 5);
-    final long fullWire = TransportPages.wireBytes(List.of(new byte[1], new byte[2]), true, 5);
+    final long fullWire = TransportPages.fullMapWireBytes(List.of(new byte[1], new byte[2]), 5);
     assertEquals(expectedFullWire, fullWire);
   }
 }

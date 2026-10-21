@@ -38,6 +38,7 @@ import java.util.function.Consumer;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Configuration;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Pacer;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Pack;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2PackServer;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Result;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Viewers;
@@ -325,5 +326,26 @@ final class Mcv2SupportTest {
     Mcv2Support.tellRefused(player);
     verify(player).sendMessage(Message.MCV2_PACK.build());
     verify(player).sendMessage(Message.MCV2_REFUSED.build());
+  }
+
+  @Test
+  void shouldShowTheDebugViewOnlyWhenItsPropertyIsSet() {
+    final List<Object> debugViews = new ArrayList<>();
+    try (
+      final MockedConstruction<Mcv2PackServer> _ = Mockito.mockConstruction(Mcv2PackServer.class, (_, context) ->
+        debugViews.add(context.arguments().get(2))
+      )
+    ) {
+      System.setProperty(Mcv2Support.DEBUG_VIEW, "true");
+      try {
+        final Mcv2Support _ = new Mcv2Support(this.folder, PackHosting::injector);
+      } finally {
+        System.clearProperty(Mcv2Support.DEBUG_VIEW);
+      }
+      final Mcv2Support _ = new Mcv2Support(this.folder, PackHosting::injector);
+    }
+
+    final List<Mcv2Pack.DebugView> expected = List.of(Mcv2Pack.DebugView.SHOWN, Mcv2Pack.DebugView.HIDDEN);
+    assertEquals(expected, debugViews);
   }
 }

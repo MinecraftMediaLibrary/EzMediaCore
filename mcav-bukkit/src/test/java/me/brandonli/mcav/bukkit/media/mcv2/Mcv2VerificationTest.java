@@ -44,7 +44,7 @@ final class Mcv2VerificationTest {
 
   @Test
   void shouldReuseVerificationStorageUntilThePictureSizeChanges() throws ReflectiveOperationException {
-    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 3, true);
+    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 3, Mcv2.Verification.VERIFIED);
     final Field storage = Mcv2.class.getDeclaredField("verificationPicture");
     storage.setAccessible(true);
     encoder.encode(new byte[32 * 32 * 3], 32, 32, 0);
@@ -90,7 +90,7 @@ final class Mcv2VerificationTest {
       roots.add(Mcv2TreePropertyTest.tree(random, 32));
     }
 
-    final byte[] data = Mcv2Trees.write(width, height, 2, 1, false, roots);
+    final byte[] data = Mcv2Trees.write(width, height, 2, 1, Mcv2FrameKind.PREDICTED, roots);
     final byte[] reference = new byte[width * height * 3];
     random.nextBytes(reference);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
@@ -110,7 +110,7 @@ final class Mcv2VerificationTest {
   }
 
   private static void verify(final Mcv2Decoder.Frame frame, final byte[] reference, final long referenceId, final byte[] picture) {
-    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 4, true);
+    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 4, Mcv2.Verification.VERIFIED);
     final Object pending = Mcv2Internals.construct(
       Mcv2.Pending.class,
       new Class<?>[] {
@@ -177,7 +177,7 @@ final class Mcv2VerificationTest {
 
   @Test
   void shouldStopTheEncoderWithTheDecoderFailureOnABrokenPendingReference() throws ReflectiveOperationException {
-    final Mcv2 encoder = new Mcv2(Mcv2.Settings.FAST, ForkJoinPool.commonPool(), 1, true);
+    final Mcv2 encoder = new Mcv2(Mcv2.Settings.FAST, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
     final byte[] picture = Mcv2Pictures.scene(32, 32, 0, 2);
     encoder.encode(picture, 32, 32, 0);
     final Mcv2.Pending pending = encoder.begin(picture, 32, 32, 1);
@@ -204,7 +204,7 @@ final class Mcv2VerificationTest {
 
   @Test
   void shouldReportAFrameTheParserRejects() throws ReflectiveOperationException {
-    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
+    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
     final Mcv2.Pending pending = encoder.begin(new byte[3], 1, 1, 0);
     final Field data = Mcv2.Pending.class.getDeclaredField("data");
     data.setAccessible(true);

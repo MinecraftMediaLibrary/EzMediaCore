@@ -266,10 +266,10 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
       return;
     }
 
-    this.respondWithFile(context, channel, isHead);
+    this.respondWithFile(context, channel, method);
   }
 
-  private void respondWithFile(final ChannelHandlerContext context, final FileChannel channel, final boolean isHeadRequest) {
+  private void respondWithFile(final ChannelHandlerContext context, final FileChannel channel, final String method) {
     final long fileLength;
     try {
       fileLength = channel.size();
@@ -280,21 +280,16 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     this.responded = true;
-    this.sendFile(context, channel, fileLength, isHeadRequest);
+    this.sendFile(context, channel, fileLength, method);
   }
 
   /**
    * Sends the headers and, unless only the headers were requested, the file itself without copying it into memory.
    * The file region closes the channel once it was sent.
    */
-  private void sendFile(
-    final ChannelHandlerContext context,
-    final FileChannel channel,
-    final long fileLength,
-    final boolean isHeadRequest
-  ) {
+  private void sendFile(final ChannelHandlerContext context, final FileChannel channel, final long fileLength, final String method) {
     final ByteBuf headers = this.createHeaders(fileLength, this.fileName);
-    if (isHeadRequest) {
+    if (method.equals(HEAD_METHOD)) {
       this.closeQuietly(channel);
       final ChannelFuture headersFuture = context.writeAndFlush(headers);
       headersFuture.addListener(ChannelFutureListener.CLOSE);

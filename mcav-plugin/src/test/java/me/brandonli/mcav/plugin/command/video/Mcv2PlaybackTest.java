@@ -43,7 +43,7 @@ final class Mcv2PlaybackTest {
   private Mcv2Channel channel;
 
   static List<byte[]> stream() {
-    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
+    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
     final byte[] rgb = new byte[32 * 32 * 3];
     for (int at = 0; at < rgb.length; at += 3) {
       rgb[at] = 1;

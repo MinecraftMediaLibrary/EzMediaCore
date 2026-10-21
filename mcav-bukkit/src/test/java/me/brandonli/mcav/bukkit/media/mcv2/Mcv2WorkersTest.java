@@ -121,21 +121,21 @@ final class Mcv2WorkersTest {
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAFailure() throws InterruptedException {
-    this.assertFailureWaitsForSibling(false, new IllegalStateException(BODY_FAILURE_MESSAGE));
+    this.assertFailureWaitsForSibling(FailurePlace.BODY, new IllegalStateException(BODY_FAILURE_MESSAGE));
   }
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAScratchFailure() throws InterruptedException {
-    this.assertFailureWaitsForSibling(true, new IllegalStateException("scratch failed!"));
+    this.assertFailureWaitsForSibling(FailurePlace.SCRATCH, new IllegalStateException("scratch failed!"));
   }
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAnError() throws InterruptedException {
-    this.assertFailureWaitsForSibling(false, new AssertionError(BODY_FAILURE_MESSAGE));
+    this.assertFailureWaitsForSibling(FailurePlace.BODY, new AssertionError(BODY_FAILURE_MESSAGE));
   }
 
-  private void assertFailureWaitsForSibling(final boolean failInSupplier, final Throwable failure) throws InterruptedException {
-    final SiblingFailure fixture = new SiblingFailure(failInSupplier, failure);
+  private void assertFailureWaitsForSibling(final FailurePlace place, final Throwable failure) throws InterruptedException {
+    final SiblingFailure fixture = new SiblingFailure(place, failure);
     final Thread caller = new Thread(fixture::callForEach, "workers-failure-caller");
     try {
       caller.start();
@@ -204,7 +204,7 @@ final class Mcv2WorkersTest {
 
   private static final class SiblingFailure {
 
-    private final boolean failInSupplier;
+    private final FailurePlace place;
     private final Throwable failure;
     private final AtomicReference<Thread> root;
     private final ForkJoinPool pool;
@@ -216,9 +216,9 @@ final class Mcv2WorkersTest {
     private final AtomicBoolean finishedBeforeReturn;
     private final AtomicReference<Throwable> reported;
 
-    SiblingFailure(final boolean failInSupplier, final Throwable failure) {
+    SiblingFailure(final FailurePlace place, final Throwable failure) {
       final AtomicReference<Thread> root = new AtomicReference<>();
-      this.failInSupplier = failInSupplier;
+      this.place = place;
       this.failure = failure;
       this.root = root;
       this.pool = new ForkJoinPool(2, owner -> newRecordedWorker(owner, root), null, false);
@@ -233,7 +233,7 @@ final class Mcv2WorkersTest {
 
     void callForEach() {
       try {
-        new Workers(this.pool, 2).forEach(2, this::isRootScratch, (rootWorker, _) -> this.runBody(rootWorker));
+        new Workers(this.pool, 2).forEach(2, this::createRoleScratch, (role, _) -> this.runBody(role));
       } catch (final RuntimeException | Error exception) {
         this.reported.set(exception);
       } finally {
@@ -242,17 +242,18 @@ final class Mcv2WorkersTest {
       }
     }
 
-    private boolean isRootScratch() {
+    private WorkerRole createRoleScratch() {
       final boolean rootWorker = Thread.currentThread().equals(this.root.get());
-      if (rootWorker && this.failInSupplier) {
+      final WorkerRole role = rootWorker ? WorkerRole.ROOT : WorkerRole.SIBLING;
+      if (role == WorkerRole.ROOT && this.place == FailurePlace.SCRATCH) {
         this.fail();
       }
 
-      return rootWorker;
+      return role;
     }
 
-    private void runBody(final boolean rootWorker) {
-      if (rootWorker) {
+    private void runBody(final WorkerRole role) {
+      if (role == WorkerRole.ROOT) {
         this.fail();
       }
 
@@ -271,5 +272,15 @@ final class Mcv2WorkersTest {
 
       throw (Error) this.failure;
     }
+  }
+
+  private enum FailurePlace {
+    BODY,
+    SCRATCH,
+  }
+
+  private enum WorkerRole {
+    ROOT,
+    SIBLING,
   }
 }

@@ -167,7 +167,15 @@ final class Mcv2PackServerTest {
   }
 
   private Mcv2PackServer packServer(final Function<Path, PackHosting> hosting) {
-    return new Mcv2PackServer(this.folder, hosting, false, this.offered::add, this.refused::add, this.writer, this.milliseconds::get);
+    return new Mcv2PackServer(
+      this.folder,
+      hosting,
+      Mcv2Pack.DebugView.HIDDEN,
+      this.offered::add,
+      this.refused::add,
+      this.writer,
+      this.milliseconds::get
+    );
   }
 
   private PackHosting hosting(final Path zip) {
@@ -996,7 +1004,7 @@ final class Mcv2PackServerTest {
     final Mcv2PackServer blocked = new Mcv2PackServer(
       file,
       this::hosting,
-      false,
+      Mcv2Pack.DebugView.HIDDEN,
       this.offered::add,
       this.refused::add,
       own,
@@ -1114,7 +1122,7 @@ final class Mcv2PackServerTest {
         writerThread.set(Thread.currentThread());
         return this.hosting(zip);
       },
-      true,
+      Mcv2Pack.DebugView.SHOWN,
       this.offered::add,
       this.refused::add
     );
@@ -1141,10 +1149,18 @@ final class Mcv2PackServerTest {
 
   @Test
   void shouldRejectMissingArguments() {
-    assertThrows(NullPointerException.class, () -> new Mcv2PackServer(null, this::hosting, false, this.offered::add, this.refused::add));
-    assertThrows(NullPointerException.class, () -> new Mcv2PackServer(this.folder, null, false, this.offered::add, this.refused::add));
-    assertThrows(NullPointerException.class, () -> new Mcv2PackServer(this.folder, this::hosting, false, null, this.refused::add));
-    assertThrows(NullPointerException.class, () -> new Mcv2PackServer(this.folder, this::hosting, false, this.offered::add, null));
+    assertThrows(NullPointerException.class, () ->
+      new Mcv2PackServer(null, this::hosting, Mcv2Pack.DebugView.HIDDEN, this.offered::add, this.refused::add)
+    );
+    assertThrows(NullPointerException.class, () ->
+      new Mcv2PackServer(this.folder, null, Mcv2Pack.DebugView.HIDDEN, this.offered::add, this.refused::add)
+    );
+    assertThrows(NullPointerException.class, () ->
+      new Mcv2PackServer(this.folder, this::hosting, Mcv2Pack.DebugView.HIDDEN, null, this.refused::add)
+    );
+    assertThrows(NullPointerException.class, () ->
+      new Mcv2PackServer(this.folder, this::hosting, Mcv2Pack.DebugView.HIDDEN, this.offered::add, null)
+    );
   }
 
   @Test

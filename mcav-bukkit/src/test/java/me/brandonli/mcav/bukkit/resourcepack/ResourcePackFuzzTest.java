@@ -89,10 +89,10 @@ final class ResourcePackFuzzTest {
     final List<String> acceptedSounds = new ArrayList<>();
     final int additions = data.consumeInt(0, 4);
     for (int addition = 0; addition < additions; addition++) {
-      final boolean sound = data.consumeBoolean();
+      final EntryKind kind = data.consumeBoolean() ? EntryKind.SOUND : EntryKind.EXTERNAL;
       final String name = data.consumeString(48);
       try {
-        this.addEntry(pack, sound, name, acceptedSounds);
+        this.addEntry(pack, kind, name, acceptedSounds);
       } catch (final IllegalArgumentException exception) {
         // refusing is always allowed; what was accepted is checked below
       }
@@ -111,8 +111,8 @@ final class ResourcePackFuzzTest {
     }
   }
 
-  private void addEntry(final SimpleResourcePack pack, final boolean sound, final String name, final List<String> acceptedSounds) {
-    if (!sound) {
+  private void addEntry(final SimpleResourcePack pack, final EntryKind kind, final String name, final List<String> acceptedSounds) {
+    if (kind == EntryKind.EXTERNAL) {
       pack.external(name, TEXT);
       return;
     }
@@ -168,5 +168,10 @@ final class ResourcePackFuzzTest {
       final JsonElement parsed = JsonParser.parseString(json);
       return parsed.getAsJsonObject();
     }
+  }
+
+  private enum EntryKind {
+    EXTERNAL,
+    SOUND,
   }
 }

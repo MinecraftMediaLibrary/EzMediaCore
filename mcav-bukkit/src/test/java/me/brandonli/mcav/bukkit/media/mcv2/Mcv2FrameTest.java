@@ -52,7 +52,7 @@ final class Mcv2FrameTest {
   }
 
   private Mcv2 encoder(final Settings settings) {
-    return new Mcv2(settings, POOL, 3, true);
+    return new Mcv2(settings, POOL, 3, Mcv2.Verification.VERIFIED);
   }
 
   private byte[] scene(final int width, final int height, final int frame, final int pan) {
@@ -127,9 +127,9 @@ final class Mcv2FrameTest {
 
   @Test
   void shouldRefuseInvalidArguments() {
-    assertThrows(IllegalArgumentException.class, () -> new Mcv2(Settings.DEFAULT, POOL, 0, true));
-    assertThrows(NullPointerException.class, () -> new Mcv2(null, POOL, 1, true));
-    assertThrows(NullPointerException.class, () -> new Mcv2(Settings.DEFAULT, null, 1, true));
+    assertThrows(IllegalArgumentException.class, () -> new Mcv2(Settings.DEFAULT, POOL, 0, Mcv2.Verification.VERIFIED));
+    assertThrows(NullPointerException.class, () -> new Mcv2(null, POOL, 1, Mcv2.Verification.VERIFIED));
+    assertThrows(NullPointerException.class, () -> new Mcv2(Settings.DEFAULT, null, 1, Mcv2.Verification.VERIFIED));
 
     final Mcv2 encoder = this.encoder(Settings.DEFAULT);
     assertThrows(NullPointerException.class, () -> encoder.encode(null, 8, 8, 0));
@@ -261,8 +261,8 @@ final class Mcv2FrameTest {
   void shouldWriteTheSameBytesWithoutVerification() {
     final byte[] picture = this.texture(64, 32, 6);
     final byte[] next = this.panned(picture, 64, 32, 2);
-    final Mcv2 checked = new Mcv2(Settings.DEFAULT, POOL, 1, true);
-    final Mcv2 unchecked = new Mcv2(Settings.DEFAULT, POOL, 3, false);
+    final Mcv2 checked = new Mcv2(Settings.DEFAULT, POOL, 1, Mcv2.Verification.VERIFIED);
+    final Mcv2 unchecked = new Mcv2(Settings.DEFAULT, POOL, 3, Mcv2.Verification.UNVERIFIED);
     final byte[] expectedFirst = checked.encode(picture, 64, 32, 0);
     final byte[] uncheckedFirst = unchecked.encode(picture, 64, 32, 0);
     assertArrayEquals(expectedFirst, uncheckedFirst);
@@ -300,7 +300,7 @@ final class Mcv2FrameTest {
 
   @Test
   void shouldStartAgainAfterASizeChange() throws Mcv2Exception {
-    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, true);
+    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
     final Client client = new Client();
     client.decode(encoder.encode(this.scene(64, 64, 0, 0), 64, 64, 0));
     final byte[] inverted = this.scene(64, 64, 0, 0);
@@ -342,7 +342,7 @@ final class Mcv2FrameTest {
 
   @Test
   void shouldEndAFrameSoonAfterItsBudgetWithTheCheapestChoices() throws Mcv2Exception {
-    final Mcv2 hurried = new Mcv2(Settings.DEFAULT, POOL, 2, true);
+    final Mcv2 hurried = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
     assertThrows(IllegalArgumentException.class, () -> hurried.setFrameBudget(-1));
     // a budget every superblock starts past: a keyframe of one solid colour per superblock, SKIP where the colour is
     // the frame's commonest, and a P frame of SKIP everywhere, each decoding to the encoder's own picture
@@ -381,9 +381,9 @@ final class Mcv2FrameTest {
     final byte[] decodedNext = client.decode(next);
     assertArrayEquals(expectedNext, decodedNext);
 
-    final Mcv2 patient = new Mcv2(Settings.DEFAULT, POOL, 2, true);
+    final Mcv2 patient = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
     patient.setFrameBudget(TimeUnit.HOURS.toNanos(1));
-    final Mcv2 unbounded = new Mcv2(Settings.DEFAULT, POOL, 2, true);
+    final Mcv2 unbounded = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
     for (int frameNumber = 0; frameNumber < 4; frameNumber++) {
       final byte[] picture = this.scene(96, 64, frameNumber, 3);
       final byte[] expected = unbounded.encode(picture, 96, 64, frameNumber);
@@ -399,7 +399,7 @@ final class Mcv2FrameTest {
 
   @Test
   void shouldSwitchLiveProfilesWithoutAKeyframe() throws Mcv2Exception {
-    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, true);
+    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
     final Client client = new Client();
     for (int frameNumber = 0; frameNumber < 8; frameNumber++) {
       if (frameNumber == 3) {
@@ -426,7 +426,12 @@ final class Mcv2FrameTest {
     final byte[] picture = this.noise(96, 64, 5);
     final byte[][] keyframes = new byte[LIMIT_TRIES][];
     for (int attempt = 0; attempt < LIMIT_TRIES; attempt++) {
-      keyframes[attempt] = new Mcv2(Settings.DEFAULT.withLambda(72 << attempt), POOL, 2, false).encode(picture, 96, 64, 0);
+      keyframes[attempt] = new Mcv2(Settings.DEFAULT.withLambda(72 << attempt), POOL, 2, Mcv2.Verification.UNVERIFIED).encode(
+        picture,
+        96,
+        64,
+        0
+      );
     }
 
     for (final int bound : new int[] { keyframes[0].length, keyframes[0].length - 1, keyframes[2].length, 1 }) {
@@ -434,14 +439,14 @@ final class Mcv2FrameTest {
       while (expected < LIMIT_TRIES - 1 && keyframes[expected].length > bound) {
         expected++;
       }
-      final Mcv2 bounded = new Mcv2(Settings.DEFAULT, POOL, 2, true);
+      final Mcv2 bounded = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
       bounded.setFrameLimit(bound);
       final byte[] actual = bounded.encode(picture, 96, 64, 0);
       if (keyframes[expected].length <= bound) {
         final byte[] expectedKeyframe = keyframes[expected];
         assertArrayEquals(expectedKeyframe, actual, "bound " + bound);
       } else {
-        final Mcv2 trivial = new Mcv2(Settings.DEFAULT, POOL, 2, true);
+        final Mcv2 trivial = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.VERIFIED);
         trivial.setFrameBudget(1);
         final byte[] expectedTrivial = trivial.encode(picture, 96, 64, 0);
         assertArrayEquals(expectedTrivial, actual, "bound " + bound);
@@ -458,7 +463,7 @@ final class Mcv2FrameTest {
       assertArrayEquals(expectedNext, reference, "bound " + bound);
     }
 
-    final Mcv2 unbounded = new Mcv2(Settings.DEFAULT, POOL, 2, false);
+    final Mcv2 unbounded = new Mcv2(Settings.DEFAULT, POOL, 2, Mcv2.Verification.UNVERIFIED);
     unbounded.setFrameLimit(0);
     final byte[] expectedFirstKeyframe = keyframes[0];
     final byte[] unboundedKeyframe = unbounded.encode(picture, 96, 64, 0);

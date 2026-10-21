@@ -72,17 +72,17 @@ public final class Mcv2Trees {
     final int height,
     final long id,
     final long reference,
-    final boolean keyframe,
+    final Mcv2FrameKind kind,
     final List<Node> roots
   ) {
     return (byte[]) invoke(
       Mcv2.class,
       null,
       "write",
-      new Class<?>[] { int.class, int.class, boolean.class, List.class, long.class, long.class },
+      new Class<?>[] { int.class, int.class, Mcv2FrameKind.class, List.class, long.class, long.class },
       width,
       height,
-      keyframe,
+      kind,
       roots.stream().map(Node::value).toList(),
       id,
       reference
@@ -109,11 +109,11 @@ public final class Mcv2Trees {
   }
 
   static byte[] keyframe(final int width, final int height, final Node... roots) {
-    return write(width, height, 0, 0, true, List.of(roots));
+    return write(width, height, 0, 0, Mcv2FrameKind.KEYFRAME, List.of(roots));
   }
 
   public static byte[] predicted(final int width, final int height, final Node... roots) {
-    return write(width, height, 1, 0, false, List.of(roots));
+    return write(width, height, 1, 0, Mcv2FrameKind.PREDICTED, List.of(roots));
   }
 
   static Node[] repeat(final Node node, final int count) {

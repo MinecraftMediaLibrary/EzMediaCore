@@ -204,7 +204,7 @@ public class CompressedMapResult implements DitherResultStep {
     for (final MapTilePatch patch : patches) {
       final int mapId = patch.getMapId();
       final BitSet pixels = this.sentPixels.computeIfAbsent(mapId, _ -> new BitSet(MapLayout.MAP_SIZE * MapLayout.MAP_SIZE));
-      this.setCoverage(pixels, patch, true);
+      this.setCoverage(pixels, patch, Coverage.COVERED);
     }
   }
 
@@ -225,7 +225,7 @@ public class CompressedMapResult implements DitherResultStep {
       final int mapId = patch.getMapId();
       final BitSet pixels = uncovered.get(mapId);
       if (pixels != null) {
-        this.setCoverage(pixels, patch, false);
+        this.setCoverage(pixels, patch, Coverage.UNCOVERED);
       }
     }
 
@@ -239,14 +239,14 @@ public class CompressedMapResult implements DitherResultStep {
     return clears;
   }
 
-  private void setCoverage(final BitSet pixels, final MapTilePatch patch, final boolean covered) {
+  private void setCoverage(final BitSet pixels, final MapTilePatch patch, final Coverage coverage) {
     final int left = patch.getX();
     final int top = patch.getY();
     final int width = patch.getWidth();
     final int height = patch.getHeight();
     for (int row = 0; row < height; row++) {
       final int start = (top + row) * MapLayout.MAP_SIZE + left;
-      pixels.set(start, start + width, covered);
+      pixels.set(start, start + width, coverage == Coverage.COVERED);
     }
   }
 
@@ -267,7 +267,7 @@ public class CompressedMapResult implements DitherResultStep {
       final byte[] transparent = new byte[width * height];
       final MapTilePatch clear = new MapTilePatch(mapId, left, top, width, height, transparent);
       clears.add(clear);
-      this.setCoverage(pixels, clear, false);
+      this.setCoverage(pixels, clear, Coverage.UNCOVERED);
       first = pixels.nextSetBit(0);
     }
   }
@@ -434,5 +434,10 @@ public class CompressedMapResult implements DitherResultStep {
     final int rows = this.configuration.getMapBlockHeight();
     final int mapCount = columns * rows;
     MapPacketFactory.clear(viewers, startMapId, mapCount);
+  }
+
+  private enum Coverage {
+    COVERED,
+    UNCOVERED,
   }
 }

@@ -189,7 +189,7 @@ public final class Mcv2 {
   private final AtomicBoolean keyframeRequested = new AtomicBoolean();
   private byte[] verificationPicture = NONE;
   private final Workers workers;
-  private final boolean shouldVerify;
+  private final Verification verification;
   private long frameBudget;
   private int frameLimit;
   private byte @Nullable [] reference;
@@ -261,15 +261,15 @@ public final class Mcv2 {
    *
    * @param settings initial live search settings
    * @param pool     worker pool, retained but never shut down by this encoder
-   * @param threads  maximum concurrent workers, at least one
-   * @param verify   whether finish checks every reconstructed pixel with Mcv2Decoder
-   * @throws NullPointerException     if settings or pool is null
+   * @param threads      maximum concurrent workers, at least one
+   * @param verification whether finish checks every reconstructed pixel with Mcv2Decoder
+   * @throws NullPointerException     if settings, pool or verification is null
    * @throws IllegalArgumentException if threads is less than one
    */
-  public Mcv2(final Settings settings, final ForkJoinPool pool, final int threads, final boolean verify) {
+  public Mcv2(final Settings settings, final ForkJoinPool pool, final int threads, final Verification verification) {
     this.settings = Preconditions.checkNotNull(settings, SETTINGS_NULL_MESSAGE);
     this.workers = new Workers(Preconditions.checkNotNull(pool, "Pool must not be null!"), threads);
-    this.shouldVerify = verify;
+    this.verification = Preconditions.checkNotNull(verification, "Verification must not be null!");
     this.kernels = Natives.resolved().factory();
     this.framesSinceKey = KEY_INTERVAL;
   }
@@ -353,6 +353,7 @@ public final class Mcv2 {
     final double base = settings.getLambda();
     double lambda = Math.min(this.motionLambda.lambda(base), Double.MAX_VALUE);
     final boolean keyframe = !predictable;
+    final Mcv2FrameKind kind = keyframe ? Mcv2FrameKind.KEYFRAME : Mcv2FrameKind.PREDICTED;
     final byte[] predictFrom = keyframe ? NONE : Preconditions.checkNotNull(previous);
     final long predictsId = keyframe ? frameId : this.lastFrameId;
     Buffers buffers = this.buffers;
@@ -388,19 +389,19 @@ public final class Mcv2 {
       buffers,
       picture
     );
-    SearchResult searched = this.search(frame, before, started, false);
-    byte[] data = write(width, height, keyframe, searched.roots, frameId, predictsId);
+    SearchResult searched = this.search(frame, before, started, SearchEffort.BUDGETED);
+    byte[] data = write(width, height, kind, searched.roots, frameId, predictsId);
     final int limit = this.frameLimit == 0 ? MAXIMUM_FRAME_BYTES : Math.min(this.frameLimit, MAXIMUM_FRAME_BYTES);
     for (int retry = 0; (data == null || data.length > limit) && lambda > 0 && retry < LIMIT_RETRIES; retry++) {
       lambda = Math.min(lambda * LAMBDA_GROWTH, Double.MAX_VALUE);
       frame.lambda = lambda;
-      searched = this.search(frame, before, started, false);
-      data = write(width, height, keyframe, searched.roots, frameId, predictsId);
+      searched = this.search(frame, before, started, SearchEffort.BUDGETED);
+      data = write(width, height, kind, searched.roots, frameId, predictsId);
     }
 
     if (data == null || data.length > limit) {
-      searched = this.search(frame, before, started, true);
-      data = write(width, height, keyframe, searched.roots, frameId, predictsId);
+      searched = this.search(frame, before, started, SearchEffort.TRIVIAL);
+      data = write(width, height, kind, searched.roots, frameId, predictsId);
       Preconditions.checkState(Objects.nonNull(data), "Trivial frame exceeds the format bound!");
     }
 
@@ -447,7 +448,7 @@ public final class Mcv2 {
     Preconditions.checkState(this.older == null || this.older.finished || pending == this.older, "Finish frames in creation order!");
 
     final long started = System.nanoTime();
-    if (this.shouldVerify) {
+    if (this.verification == Verification.VERIFIED) {
       try {
         this.verify(pending);
       } catch (final RuntimeException exception) {
@@ -579,9 +580,10 @@ public final class Mcv2 {
     }
   }
 
-  private SearchResult search(final FrameState frame, final boolean[] before, final long started, final boolean trivial) {
+  private SearchResult search(final FrameState frame, final boolean[] before, final long started, final SearchEffort effort) {
     final Buffers buffers = frame.buffers;
-    final BooleanSupplier late = () -> trivial || (this.frameBudget > 0 && System.nanoTime() - started >= this.frameBudget);
+    final BooleanSupplier late = () ->
+      effort == SearchEffort.TRIVIAL || (this.frameBudget > 0 && System.nanoTime() - started >= this.frameBudget);
     final RootSearch rootSearch = new RootSearch(frame, before, late);
     try {
       this.workers.forEach(buffers.roots, () -> this.coders(frame), rootSearch::searchRoot);
@@ -837,7 +839,7 @@ public final class Mcv2 {
   private static byte @Nullable [] write(
     final int width,
     final int height,
-    final boolean keyframe,
+    final Mcv2FrameKind kind,
     final List<TreeNode> input,
     final long frameId,
     final long referenceId
@@ -851,7 +853,7 @@ public final class Mcv2 {
     Preconditions.checkArgument(input.size() == columns * ((height + ROOT_SIZE - 1) / ROOT_SIZE), "Wrong root count!");
 
     for (final TreeNode root : input) {
-      validateTree(root, ROOT_SIZE, keyframe);
+      validateTree(root, ROOT_SIZE, kind);
     }
 
     final List<TreeNode> roots = input;
@@ -954,12 +956,12 @@ public final class Mcv2 {
     return mask;
   }
 
-  private static void validateTree(final TreeNode node, final int size, final boolean keyframe) {
+  private static void validateTree(final TreeNode node, final int size, final Mcv2FrameKind kind) {
     if (node.isSplit()) {
       Preconditions.checkArgument(size > SMALLEST_BLOCK, "Split below the bounded depth!");
 
       for (int corner = 0; corner < QUARTERS; corner++) {
-        validateTree(node.getChild(corner), size / QUARTERS_PER_SIDE, keyframe);
+        validateTree(node.getChild(corner), size / QUARTERS_PER_SIDE, kind);
       }
 
       return;
@@ -969,7 +971,7 @@ public final class Mcv2 {
     Preconditions.checkArgument(mode <= MODE_COMPACT, "Leaf mode %s is illegal!", mode);
     Preconditions.checkArgument(mode == MODE_COMPACT || node.quantizer == 0, "Quantizer on a mode without one!");
     Preconditions.checkArgument(
-      !keyframe || (mode != MODE_MOTION && mode != MODE_COMPACT),
+      kind == Mcv2FrameKind.PREDICTED || (mode != MODE_MOTION && mode != MODE_COMPACT),
       "The tree does not serialize to a valid frame: temporal keyframe leaf!"
     );
     final byte[] record = node.record;
@@ -1159,6 +1161,27 @@ public final class Mcv2 {
   }
 
   // Public API and stream state.
+  /**
+   * Whether an encoder checks every frame it finishes by decoding it again.
+   *
+   * @since 1.0.0
+   */
+  public enum Verification {
+    /**
+     * Finish decodes each frame with Mcv2Decoder and checks every reconstructed pixel.
+     *
+     * @since 1.0.0
+     */
+    VERIFIED,
+
+    /**
+     * Finish trusts the reconstruction without decoding the frame again.
+     *
+     * @since 1.0.0
+     */
+    UNVERIFIED,
+  }
+
   /**
    * Controls the live search without changing the version 3 syntax.
    *
@@ -1849,12 +1872,13 @@ public final class Mcv2 {
 
       this.localVector = this.size == SMALLEST_BLOCK ? parent : this.searchMotion(parent);
       this.predict(this.localVector, this.localPrediction);
-      boolean closer = false;
-      if (this.localVector != 0) {
-        closer = this.scoreMotion();
+      final boolean closer = this.localVector != 0 && this.scoreMotion();
+      if (closer) {
+        this.compact(this.localVector, this.localPrediction);
+        return;
       }
 
-      this.compact(closer);
+      this.compact(0, this.zeroPrediction);
     }
 
     private boolean scoreMotion() {
@@ -2071,17 +2095,16 @@ public final class Mcv2 {
       }
     }
 
-    private void compact(final boolean local) {
+    private void compact(final int vector, final int[] prediction) {
       if (!this.eligible(COMPACT_BYTES)) {
         return;
       }
 
-      final int[] prediction = local ? this.localPrediction : this.zeroPrediction;
       this.kernels.residualTarget(this.source, prediction, this.count, this.target);
       this.kernels.fit(this.target, this.size, this.fit);
       final int quantizer = neededQuantizer(this.fit);
-      this.record[0] = (byte) (local ? motionX(this.localVector) : 0);
-      this.record[1] = (byte) (local ? motionY(this.localVector) : 0);
+      this.record[0] = (byte) motionX(vector);
+      this.record[1] = (byte) motionY(vector);
       final int step = 1 << quantizer;
       for (int index = 0; index < GRID_NODES / NODES_PER_BYTE; index++) {
         final int low = quantize(this.fit[NODES_PER_BYTE * index], step) & NODE_MASK;
@@ -2132,8 +2155,12 @@ public final class Mcv2 {
       return bound == null ? JAVA : () -> new NativeKernels(bound);
     }
 
-    static Resolution java(final String reason, final boolean failed) {
-      return new Resolution(null, 0, "Java, " + reason, failed);
+    static Resolution java(final String reason) {
+      return new Resolution(null, 0, "Java, " + reason, false);
+    }
+
+    static Resolution failure(final String reason) {
+      return new Resolution(null, 0, "Java, " + reason, true);
     }
   }
 
@@ -2329,15 +2356,15 @@ public final class Mcv2 {
       final @Nullable String highest
     ) {
       if (NATIVE_OFF.equals(mode)) {
-        return Resolution.java("turned off by " + NATIVE_PROPERTY + "=" + NATIVE_OFF, false);
+        return Resolution.java("turned off by " + NATIVE_PROPERTY + "=" + NATIVE_OFF);
       }
 
       if (!NATIVE_AUTO.equals(mode)) {
-        return Resolution.java("unknown mode " + NATIVE_PROPERTY + "=" + mode, true);
+        return Resolution.failure("unknown mode " + NATIVE_PROPERTY + "=" + mode);
       }
 
       if (platform == null) {
-        return Resolution.java("no library for this operating system and processor", false);
+        return Resolution.java("no library for this operating system and processor");
       }
 
       final String digest = NATIVE_DIGESTS.get(platform);
@@ -2345,11 +2372,11 @@ public final class Mcv2 {
       try {
         bytes = digest == null ? null : resources.apply(platform);
       } catch (final UncheckedIOException exception) {
-        return Resolution.java("the library could not be read: " + exception, true);
+        return Resolution.failure("the library could not be read: " + exception);
       }
 
       if (digest == null || bytes == null) {
-        return Resolution.java("no library for " + platform, false);
+        return Resolution.java("no library for " + platform);
       }
 
       return load(platform, digest, bytes, folder, highest);
@@ -2364,25 +2391,25 @@ public final class Mcv2 {
       final @Nullable String highest
     ) {
       if (!digest.equals(Mcv2Resources.sha256(bytes))) {
-        return Resolution.java("the library for " + platform + " does not match its SHA-256", true);
+        return Resolution.failure("the library for " + platform + " does not match its SHA-256");
       }
 
       if (folder == null) {
-        return Resolution.java("no folder was given to extract the library into", true);
+        return Resolution.failure("no folder was given to extract the library into");
       }
 
       final Path file;
       try {
         file = extract(folder, EXTRACTED_PREFIX + digest + EXTRACTED_SEPARATOR + libraryName(platform), bytes, digest);
       } catch (final IOException exception) {
-        return Resolution.java("the library could not be extracted: " + exception, true);
+        return Resolution.failure("the library could not be extracted: " + exception);
       }
 
       final SymbolLookup library;
       try {
         library = SymbolLookup.libraryLookup(file, Arena.global());
       } catch (final IllegalCallerException | IllegalArgumentException exception) {
-        return Resolution.java("the library could not be loaded: " + exception, true);
+        return Resolution.failure("the library could not be loaded: " + exception);
       }
 
       return bind(library, platform, highest, ABI_VERSION);
@@ -2413,7 +2440,7 @@ public final class Mcv2 {
       try {
         final int interfaceVersion = (int) linker.downcallHandle(library.findOrThrow(ABI_SYMBOL), QUERY).invokeExact();
         if (interfaceVersion != expected) {
-          return Resolution.java("the library's interface " + interfaceVersion + " is not " + expected, true);
+          return Resolution.failure("the library's interface " + interfaceVersion + " is not " + expected);
         }
 
         // The dependency-free AArch64 library cannot query the kernel for SVE permission.
@@ -2427,7 +2454,7 @@ public final class Mcv2 {
         final Level level = level(levels, highest);
         return new Resolution(Binding.of(library, level), levels, "native " + level.symbol() + " (" + platform + ")", false);
       } catch (final Throwable exception) {
-        return Resolution.java("the library could not be bound: " + exception, true);
+        return Resolution.failure("the library could not be bound: " + exception);
       }
     }
 
@@ -3735,12 +3762,12 @@ public final class Mcv2 {
      * Creates a stream encoder sharing this pool's worker budget.
      *
      * @param settings     live search settings
-     * @param shouldVerify whether finish verifies reconstruction
+     * @param verification whether finish verifies reconstruction
      * @return a new stream encoder
-     * @throws NullPointerException if settings is null
+     * @throws NullPointerException if settings or verification is null
      */
-    public Mcv2 encoder(final Settings settings, final boolean shouldVerify) {
-      return new Mcv2(settings, this.pool, this.threads, shouldVerify);
+    public Mcv2 encoder(final Settings settings, final Verification verification) {
+      return new Mcv2(settings, this.pool, this.threads, verification);
     }
 
     /**
@@ -3807,5 +3834,10 @@ public final class Mcv2 {
         super(GROUP, pool, false);
       }
     }
+  }
+
+  private enum SearchEffort {
+    BUDGETED,
+    TRIVIAL,
   }
 }

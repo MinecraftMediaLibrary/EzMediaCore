@@ -112,7 +112,7 @@ final class DisplayableImageTest {
     return MapPackets.pattern(image);
   }
 
-  private MapConfiguration createMapConfiguration(final boolean shouldResize) {
+  private MapConfiguration createMapConfiguration(final Sizing sizing) {
     final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.map(2);
@@ -120,12 +120,8 @@ final class DisplayableImageTest {
     builder.mapBlockHeight(1);
     builder.mapWidthResolution(MAP_RESOLUTION);
     builder.mapHeightResolution(MAP_RESOLUTION);
-    this.configureResize(builder, shouldResize);
+    builder.resize(sizing == Sizing.RESIZED);
     return builder.build();
-  }
-
-  private void configureResize(final MapConfiguration.Builder<?> builder, final boolean shouldResize) {
-    builder.resize(shouldResize);
   }
 
   /**
@@ -143,7 +139,7 @@ final class DisplayableImageTest {
     builder.mapBlockHeight(rows);
     builder.mapWidthResolution(MAP_RESOLUTION);
     builder.mapHeightResolution(MAP_RESOLUTION);
-    this.configureResize(builder, false);
+    builder.resize(false);
     return builder.build();
   }
 
@@ -204,7 +200,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldCreateTheDisplayForEveryKindOfConfiguration() {
-    final MapConfiguration mapConfiguration = this.createMapConfiguration(false);
+    final MapConfiguration mapConfiguration = this.createMapConfiguration(Sizing.ORIGINAL);
     final ChatConfiguration chatConfiguration = this.createChatConfiguration();
     final EntityConfiguration entityConfiguration = this.createEntityConfiguration();
     final ScoreboardConfiguration scoreboardConfiguration = this.createScoreboardConfiguration();
@@ -225,7 +221,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldRejectMissingConfigurations() {
-    final MapConfiguration mapConfiguration = this.createMapConfiguration(false);
+    final MapConfiguration mapConfiguration = this.createMapConfiguration(Sizing.ORIGINAL);
 
     assertThrows(NullPointerException.class, () -> DisplayableImage.map(null, this.algorithm));
     assertThrows(NullPointerException.class, () -> DisplayableImage.map(mapConfiguration, null));
@@ -237,7 +233,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldKeepTheSizeOfMapImagesCenterThemAndClearThemAgain() {
-    final MapConfiguration configuration = this.createMapConfiguration(false);
+    final MapConfiguration configuration = this.createMapConfiguration(Sizing.ORIGINAL);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
     final ImageBuffer image = Images.solid(32, 16, GRAY);
 
@@ -279,7 +275,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldCropMapImagesLargerThanTheMapsEquallyOnEverySide() {
-    final MapConfiguration configuration = this.createMapConfiguration(false);
+    final MapConfiguration configuration = this.createMapConfiguration(Sizing.ORIGINAL);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
     final ImageBuffer image = Images.solid(256, 130, GRAY);
 
@@ -300,7 +296,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldResizeMapImagesWhenTheConfigurationAsksForIt() {
-    final MapConfiguration configuration = this.createMapConfiguration(true);
+    final MapConfiguration configuration = this.createMapConfiguration(Sizing.RESIZED);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
     final ImageBuffer image = Images.solid(MAP_SIZE, MAP_SIZE, GRAY);
 
@@ -411,5 +407,10 @@ final class DisplayableImageTest {
     verify(this.viewer).sendMultiBlockChange(shownBlocks);
     verify(this.viewer).sendMultiBlockChange(restoredBlocks);
     assertThrows(NullPointerException.class, () -> display.displayImage(null));
+  }
+
+  private enum Sizing {
+    RESIZED,
+    ORIGINAL,
   }
 }

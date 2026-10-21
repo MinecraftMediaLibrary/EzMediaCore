@@ -40,12 +40,12 @@ final class Mcv2TreePropertyTest {
       roots.add(tree(random, 32));
     }
 
-    final byte[] data = Mcv2Trees.write(width, height, 2, 1, false, roots);
+    final byte[] data = Mcv2Trees.write(width, height, 2, 1, Mcv2FrameKind.PREDICTED, roots);
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(data);
     final List<Node> readRoots = Mcv2Trees.read(parsed);
     assertEquals(roots, readRoots);
 
-    final byte[] rewritten = Mcv2Trees.write(width, height, 2, 1, false, Mcv2Trees.read(parsed));
+    final byte[] rewritten = Mcv2Trees.write(width, height, 2, 1, Mcv2FrameKind.PREDICTED, Mcv2Trees.read(parsed));
     assertArrayEquals(data, rewritten);
 
     final int groups = (roots.size() + 31) / 32;

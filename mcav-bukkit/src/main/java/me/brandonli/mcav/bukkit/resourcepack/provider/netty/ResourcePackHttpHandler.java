@@ -165,7 +165,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
       return;
     }
 
-    this.serve(context, data, isHeadRequest);
+    this.serve(context, data, type);
   }
 
   /**
@@ -178,12 +178,12 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     pipeline.remove(this);
   }
 
-  private void serve(final ChannelHandlerContext context, final ByteBuf data, final boolean isHeadRequest) {
+  private void serve(final ChannelHandlerContext context, final ByteBuf data, final RequestType type) {
     this.cumulation = null;
     this.served = true;
     data.release();
     this.replaceReadTimeout(context);
-    this.respond(context, isHeadRequest);
+    this.respond(context, type);
   }
 
   /**
@@ -240,7 +240,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     return composite;
   }
 
-  private void respond(final ChannelHandlerContext context, final boolean isHeadRequest) {
+  private void respond(final ChannelHandlerContext context, final RequestType type) {
     final byte[] body;
     try {
       body = this.packFile.read();
@@ -251,7 +251,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     }
 
     final ByteBuf headers = this.createHeaders(STATUS_OK, CONTENT_TYPE_ZIP, body.length);
-    if (isHeadRequest) {
+    if (type == RequestType.HEAD) {
       final ChannelFuture headersFuture = context.writeAndFlush(headers);
       headersFuture.addListener(ChannelFutureListener.CLOSE);
       return;

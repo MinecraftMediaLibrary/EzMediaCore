@@ -174,7 +174,7 @@ final class NativeTesting {
   }
 
   static Supplier<?> javaFactory() {
-    return factory(Resolution.java("test", false));
+    return factory(Resolution.java("test"));
   }
 
   static NativeKernels view(final Object kernels) {
@@ -205,8 +205,8 @@ final class NativeTesting {
     return Mcv2Internals.call(type, kernels, method.getName(), method.getParameterTypes(), arguments == null ? new Object[0] : arguments);
   }
 
-  static Mcv2 encoder(final Settings settings, final int threads, final boolean verify, final Supplier<?> factory) {
-    final Mcv2 encoder = new Mcv2(settings, ForkJoinPool.commonPool(), threads, verify);
+  static Mcv2 encoder(final Settings settings, final int threads, final Mcv2.Verification verification, final Supplier<?> factory) {
+    final Mcv2 encoder = new Mcv2(settings, ForkJoinPool.commonPool(), threads, verification);
     try {
       final Field kernels = Mcv2.class.getDeclaredField("kernels");
       kernels.setAccessible(true);

@@ -49,10 +49,6 @@ final class MapConfigurationTest {
     return builder;
   }
 
-  private Object configureResize(final MapConfiguration.Builder<?> builder, final boolean shouldResize) {
-    return builder.resize(shouldResize);
-  }
-
   @Test
   void shouldDefaultTheResolutionToTheNativeResolutionOfTheScreen() {
     final List<UUID> viewers = new ArrayList<>();
@@ -85,7 +81,7 @@ final class MapConfigurationTest {
     final MapConfiguration.Builder<?> builder = this.completeBuilder();
     builder.mapWidthResolution(100);
     builder.mapHeightResolution(50);
-    this.configureResize(builder, true);
+    builder.resize(true);
 
     final MapConfiguration configuration = builder.build();
 
@@ -107,7 +103,7 @@ final class MapConfigurationTest {
     final Object afterHeight = builder.mapBlockHeight(1);
     final Object afterWidthResolution = builder.mapWidthResolution(1);
     final Object afterHeightResolution = builder.mapHeightResolution(1);
-    final Object afterResize = this.configureResize(builder, false);
+    final Object afterResize = builder.resize(false);
 
     assertInstanceOf(MapConfiguration.MapResultBuilder.class, builder);
     assertSame(builder, afterViewers);

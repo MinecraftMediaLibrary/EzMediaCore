@@ -124,7 +124,7 @@ final class Mcv2FileEncoderTest {
       .sum();
     assertEquals(expectedBytes, writtenBytes);
 
-    final Mcv2 alone = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, false);
+    final Mcv2 alone = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.UNVERIFIED);
     alone.setFrameLimit(TransportPages.capacity());
     try (final Mcv2FileEncoder.FrameReader reader = Mcv2FileEncoder.ffmpeg(video, WIDTH, HEIGHT)) {
       final byte[] rgb = new byte[WIDTH * HEIGHT * 3];
@@ -149,7 +149,7 @@ final class Mcv2FileEncoderTest {
     final int height = 4 * MapLayout.MAP_SIZE;
     final int limit = Mcv2Configuration.MAXIMUM_PAGE_SLOTS * TransportPages.capacity();
     final byte[] checkerboard = this.checkerboard(width, height);
-    final Mcv2 unlimited = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, false);
+    final Mcv2 unlimited = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.UNVERIFIED);
     final boolean unlimitedFrameTooLarge = unlimited.encode(checkerboard, width, height, 0).length > limit;
     assertTrue(unlimitedFrameTooLarge);
 

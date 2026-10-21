@@ -125,7 +125,7 @@ final class Mcv2PackTest {
       .outlineColor(NamedTextColor.GOLD)
       .build();
     final Path zip = this.directory.resolve(PACK_FILE_NAME);
-    Mcv2Pack.write(configuration, true, zip);
+    Mcv2Pack.write(configuration, Mcv2Pack.DebugView.SHOWN, zip);
     final Map<String, String> entries = this.read(zip);
     for (final String name : new String[] {
       PACK_METADATA_ENTRY,
@@ -334,7 +334,7 @@ final class Mcv2PackTest {
 
     // every channel of the outline colour, the red one too
     final Mcv2Configuration purple = Mcv2ConfigurationTest.complete().outlineColor(NamedTextColor.DARK_PURPLE).build();
-    final boolean declaresThePurpleOutline = Mcv2Pack.packConstants(List.of(purple), false).contains(
+    final boolean declaresThePurpleOutline = Mcv2Pack.packConstants(List.of(purple), Mcv2Pack.DebugView.HIDDEN).contains(
       "const ivec3 MCV2_OUTLINE_COLOR = ivec3(170, 0, 170);"
     );
     assertTrue(declaresThePurpleOutline);
@@ -349,7 +349,7 @@ final class Mcv2PackTest {
       .build();
     final Mcv2Configuration large = Mcv2ConfigurationTest.complete().video(640, 360).pageSlots(8).streamId(3).build();
     final Path zip = this.directory.resolve(SCREENS_FILE_NAME);
-    Mcv2Pack.write(List.of(small, large), false, zip);
+    Mcv2Pack.write(List.of(small, large), Mcv2Pack.DebugView.HIDDEN, zip);
     final Map<String, String> entries = this.read(zip);
     final int entryCount = entries.size();
     assertEquals(33, entryCount);
@@ -427,10 +427,10 @@ final class Mcv2PackTest {
       tooMany.add(Mcv2ConfigurationTest.complete().streamId(stream).build());
     }
 
-    assertThrows(IllegalArgumentException.class, () -> Mcv2Pack.write(List.of(), false, zip));
-    assertThrows(IllegalArgumentException.class, () -> Mcv2Pack.write(tooMany, false, zip));
-    assertThrows(IllegalArgumentException.class, () -> Mcv2Pack.write(List.of(first, sameStream), false, zip));
-    assertThrows(IllegalArgumentException.class, () -> Mcv2Pack.write(List.of(first, otherColour), false, zip));
+    assertThrows(IllegalArgumentException.class, () -> Mcv2Pack.write(List.of(), Mcv2Pack.DebugView.HIDDEN, zip));
+    assertThrows(IllegalArgumentException.class, () -> Mcv2Pack.write(tooMany, Mcv2Pack.DebugView.HIDDEN, zip));
+    assertThrows(IllegalArgumentException.class, () -> Mcv2Pack.write(List.of(first, sameStream), Mcv2Pack.DebugView.HIDDEN, zip));
+    assertThrows(IllegalArgumentException.class, () -> Mcv2Pack.write(List.of(first, otherColour), Mcv2Pack.DebugView.HIDDEN, zip));
 
     final boolean written = Files.exists(zip);
     assertFalse(written);

@@ -77,7 +77,8 @@ final class Mcv2LinkPropertyTest {
       }
       final boolean over = outstanding > (isKeyframe ? Mcv2Link.allowance(limit) : limit);
       final boolean decodable = isKeyframe || reference == clientLast;
-      final boolean sent = link.offer(id, reference, isKeyframe, step.bytes());
+      final Mcv2FrameKind kind = isKeyframe ? Mcv2FrameKind.KEYFRAME : Mcv2FrameKind.PREDICTED;
+      final boolean sent = link.offer(id, reference, kind, step.bytes());
       if (sent && (over || !decodable)) {
         return false;
       }

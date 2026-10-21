@@ -66,12 +66,13 @@ final class Mcv2WriterConformanceTest {
       final byte[] data = frames.get(index);
       final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
       final byte[] expected = canonical.get(index);
+      final Mcv2FrameKind kind = frame.isKeyframe() ? Mcv2FrameKind.KEYFRAME : Mcv2FrameKind.PREDICTED;
       final byte[] rebuilt = Mcv2Trees.write(
         frame.getWidth(),
         frame.getHeight(),
         frame.getFrameId(),
         frame.getReferenceId(),
-        frame.isKeyframe(),
+        kind,
         Mcv2Trees.read(frame)
       );
       assertArrayEquals(expected, rebuilt);

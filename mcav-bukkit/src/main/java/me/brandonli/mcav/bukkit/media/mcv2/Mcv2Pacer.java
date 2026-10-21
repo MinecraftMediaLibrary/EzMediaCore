@@ -144,7 +144,7 @@ public final class Mcv2Pacer {
    * @throws NullPointerException     if the sizes or one of its arrays is null
    */
   public Mcv2Pacer(final List<int[]> sizes) {
-    this(sizes, true);
+    this(sizes, Floor.DITHERED_MAPS);
   }
 
   /**
@@ -155,13 +155,13 @@ public final class Mcv2Pacer {
    *
    * @param sizes    the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
    *                 can switch to
-   * @param dithered whether the screen can fall back to the dithered maps; without them, the lowest encoded rung is as
-   *                 low as the pacer goes, even when its frames take longer than they have
+   * @param floor    how low the ladder goes: down to the dithered maps, or only to the lowest encoded rung, even when
+   *                 its frames take longer than they have
    * @throws IllegalArgumentException if there is no size, or a size is not positive
-   * @throws NullPointerException     if the sizes or one of its arrays is null
+   * @throws NullPointerException     if the sizes, one of its arrays or the floor is null
    */
-  public Mcv2Pacer(final List<int[]> sizes, final boolean dithered) {
-    this(sizes, List.of(Preset.ONLY), dithered);
+  public Mcv2Pacer(final List<int[]> sizes, final Floor floor) {
+    this(sizes, List.of(Preset.ONLY), floor);
   }
 
   /**
@@ -173,13 +173,14 @@ public final class Mcv2Pacer {
    * @param sizes    the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
    *                 can switch to
    * @param presets  how hard the encoder can search, from the preset the screen was asked for down to the fastest
-   * @param dithered whether the screen can fall back to the dithered maps; without them, the lowest encoded rung is as
-   *                 low as the pacer goes, even when its frames take longer than they have
+   * @param floor    how low the ladder goes: down to the dithered maps, or only to the lowest encoded rung, even when
+   *                 its frames take longer than they have
    * @throws IllegalArgumentException if there is no size or no preset, a size is not positive, or a preset does not
    *                                  cost less than the one before it
-   * @throws NullPointerException     if the sizes or one of its arrays is null, or presets is null
+   * @throws NullPointerException     if the sizes, one of its arrays, the presets or the floor is null
    */
-  public Mcv2Pacer(final List<int[]> sizes, final List<Preset> presets, final boolean dithered) {
+  public Mcv2Pacer(final List<int[]> sizes, final List<Preset> presets, final Floor floor) {
+    Preconditions.checkNotNull(floor, "Floor must not be null!");
     Preconditions.checkArgument(!sizes.isEmpty(), "At least one size is needed!");
     Preconditions.checkArgument(!presets.isEmpty(), "At least one preset is needed!");
 
@@ -202,7 +203,7 @@ public final class Mcv2Pacer {
       }
     }
 
-    if (dithered) {
+    if (floor == Floor.DITHERED_MAPS) {
       rungs.add(Rung.DITHERED);
     }
 
@@ -239,7 +240,7 @@ public final class Mcv2Pacer {
     this.lastArrival = now;
     Optional<Change> change = Optional.empty();
     if (this.getRung().isDithered() && now >= this.retryAt) {
-      change = Optional.of(this.move(this.lowestEncoded(), false, 0, 0));
+      change = Optional.of(this.move(this.lowestEncoded(), Direction.UP, 0, 0));
     }
 
     this.arrivals++;
@@ -261,16 +262,18 @@ public final class Mcv2Pacer {
    * Reports an encoded frame.
    *
    * @param milliseconds how long the frame took to encode, waiting for the budget's threads included
-   * @param isKeyframe   whether it was a keyframe, which is left out
+   * @param kind         whether it was a keyframe, which is left out, or a P frame
    * @param now          the completion time in monotonic nanoseconds, from the same clock used for other calls
    * @return the step it causes, which the caller carries out, or empty
+   * @throws NullPointerException     if kind is null
    * @throws IllegalArgumentException if milliseconds is negative, NaN or infinite
    */
-  public Optional<Change> encoded(final double milliseconds, final boolean isKeyframe, final long now) {
+  public Optional<Change> encoded(final double milliseconds, final Mcv2FrameKind kind, final long now) {
+    Preconditions.checkNotNull(kind, "Kind must not be null!");
     Preconditions.checkArgument(milliseconds >= 0 && Double.isFinite(milliseconds), "Time must be finite and non-negative!");
 
     final Rung rung = this.getRung();
-    if (isKeyframe || rung.isDithered() || Double.isNaN(this.videoInterval)) {
+    if (kind == Mcv2FrameKind.KEYFRAME || rung.isDithered() || Double.isNaN(this.videoInterval)) {
       return Optional.empty();
     }
 
@@ -326,7 +329,7 @@ public final class Mcv2Pacer {
       return Optional.empty();
     }
 
-    final Change change = this.move(above, false, this.smoothed, frameMilliseconds);
+    final Change change = this.move(above, Direction.UP, this.smoothed, frameMilliseconds);
     return Optional.of(change);
   }
 
@@ -340,7 +343,7 @@ public final class Mcv2Pacer {
     for (final double share : new double[] { FIT, HIGH }) {
       final int next = this.findFittingRungBelow(from, share, encoded);
       if (next != NO_RUNG) {
-        return this.move(next, true, this.smoothed, frameMilliseconds);
+        return this.move(next, Direction.DOWN, this.smoothed, frameMilliseconds);
       }
     }
 
@@ -348,10 +351,10 @@ public final class Mcv2Pacer {
       final int lowest = this.lowestEncoded();
       this.overSince = NEVER;
 
-      return lowest > this.current ? this.move(lowest, true, this.smoothed, frameMilliseconds) : null;
+      return lowest > this.current ? this.move(lowest, Direction.DOWN, this.smoothed, frameMilliseconds) : null;
     }
 
-    final Change change = this.move(this.ladder.size() - 1, true, this.smoothed, frameMilliseconds);
+    final Change change = this.move(this.ladder.size() - 1, Direction.DOWN, this.smoothed, frameMilliseconds);
     this.retryAt = now + this.seconds(this.retrySeconds);
     this.retrySeconds = Math.min(MAXIMUM_RETRY_SECONDS, this.retrySeconds * BACKOFF_FACTOR);
 
@@ -374,11 +377,11 @@ public final class Mcv2Pacer {
     return this.ladder.getLast().isDithered() ? this.ladder.size() - 1 : this.ladder.size();
   }
 
-  private Change move(final int next, final boolean down, final double encodeMilliseconds, final double frameMilliseconds) {
+  private Change move(final int next, final Direction direction, final double encodeMilliseconds, final double frameMilliseconds) {
     final Change change = Change.of(
       this.getRung(),
       this.ladder.get(next),
-      down,
+      direction == Direction.DOWN,
       encodeMilliseconds,
       frameMilliseconds,
       this.getVideoFramesPerSecond()
@@ -918,5 +921,31 @@ public final class Mcv2Pacer {
         .add("videoFrameRate", this.videoFrameRate)
         .toString();
     }
+  }
+
+  /**
+   * How low a pacer's ladder goes when even its lowest encoded rung takes longer than its frames have.
+   *
+   * @since 1.0.0
+   */
+  public enum Floor {
+    /**
+     * The ladder ends at the dithered maps, which the screen falls back to.
+     *
+     * @since 1.0.0
+     */
+    DITHERED_MAPS,
+
+    /**
+     * The ladder ends at its lowest encoded rung, because the screen has no dithered maps to fall back to.
+     *
+     * @since 1.0.0
+     */
+    LOWEST_ENCODED_RUNG,
+  }
+
+  private enum Direction {
+    UP,
+    DOWN,
   }
 }

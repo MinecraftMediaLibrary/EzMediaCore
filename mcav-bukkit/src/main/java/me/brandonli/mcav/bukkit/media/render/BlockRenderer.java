@@ -282,9 +282,9 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
       return;
     }
 
-    final boolean shouldResendToEveryone = this.advanceResendCounter();
+    final WallRecipients recipients = this.advanceResendCounter();
     final Set<UUID> watchingViewers = new HashSet<>();
-    final List<Player> playersWithoutWall = this.updateActiveViewers(watchingViewers, shouldResendToEveryone);
+    final List<Player> playersWithoutWall = this.updateActiveViewers(watchingViewers, recipients);
     if (!playersWithoutWall.isEmpty()) {
       final Map<Position, BlockData> wall = this.createBlockMap(currentPositions, blocks);
       for (final Player player : playersWithoutWall) {
@@ -298,14 +298,15 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
   /**
    * Counts the tick and checks whether the complete wall is due for every viewer, starting the count over if so.
    */
-  private boolean advanceResendCounter() {
+  private WallRecipients advanceResendCounter() {
     this.ticksSinceFullResend++;
-    final boolean shouldResendToEveryone = this.ticksSinceFullResend >= FULL_RESEND_INTERVAL_TICKS;
-    if (shouldResendToEveryone) {
-      this.ticksSinceFullResend = 0;
+    if (this.ticksSinceFullResend < FULL_RESEND_INTERVAL_TICKS) {
+      return WallRecipients.NEW_VIEWERS;
     }
 
-    return shouldResendToEveryone;
+    this.ticksSinceFullResend = 0;
+
+    return WallRecipients.EVERY_VIEWER;
   }
 
   /**
@@ -314,7 +315,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    *
    * @return the online viewers who need the complete wall, because they just started watching or it is due
    */
-  private List<Player> updateActiveViewers(final Set<UUID> watchingViewers, final boolean shouldResendToEveryone) {
+  private List<Player> updateActiveViewers(final Set<UUID> watchingViewers, final WallRecipients recipients) {
     final List<Player> playersWithoutWall = new ArrayList<>();
     final Collection<UUID> viewers = this.configuration.getViewers();
     for (final UUID viewer : viewers) {
@@ -324,7 +325,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
       }
       watchingViewers.add(viewer);
       final boolean startedWatching = this.activeViewers.add(viewer);
-      if (startedWatching || shouldResendToEveryone) {
+      if (startedWatching || recipients == WallRecipients.EVERY_VIEWER) {
         playersWithoutWall.add(player);
       }
     }
@@ -393,5 +394,10 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     }
 
     return map;
+  }
+
+  private enum WallRecipients {
+    NEW_VIEWERS,
+    EVERY_VIEWER,
   }
 }

@@ -174,7 +174,7 @@ final class Mcv2DecoderTest {
     records[1] = new byte[11];
     records[1][6] = 2;
     records[290] = new byte[] { 0 };
-    final byte[] frame = Mcv2WireFrames.frame(4096, 96, false, descriptors, records, new int[] { count, 0, 0 });
+    final byte[] frame = Mcv2WireFrames.frame(4096, 96, Mcv2FrameKind.PREDICTED, descriptors, records, new int[] { count, 0, 0 });
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(frame));
     final String message = exception.getMessage();
     assertEquals("Invalid pattern selector!", message);

@@ -188,12 +188,12 @@ final class SimpleResourcePackTest {
     assertArrayEquals(expected, actual, name);
   }
 
-  private SimpleResourcePack.FileMover recordingMover(final List<List<CopyOption>> moves, final boolean atomicSupported) {
+  private SimpleResourcePack.FileMover recordingMover(final List<List<CopyOption>> moves, final AtomicMoves atomicMoves) {
     return (from, to, options) -> {
       final List<CopyOption> optionList = List.of(options);
       moves.add(optionList);
 
-      if (!atomicSupported && optionList.contains(StandardCopyOption.ATOMIC_MOVE)) {
+      if (atomicMoves == AtomicMoves.UNSUPPORTED && optionList.contains(StandardCopyOption.ATOMIC_MOVE)) {
         final String fromText = from.toString();
         final String toText = to.toString();
         throw new AtomicMoveNotSupportedException(fromText, toText, "network share");
@@ -399,7 +399,7 @@ final class SimpleResourcePackTest {
     final Path target = this.directory.resolve(TARGET_FILE_NAME);
     Files.write(source, CREDITS);
     final List<List<CopyOption>> moves = new ArrayList<>();
-    final SimpleResourcePack.FileMover mover = this.recordingMover(moves, true);
+    final SimpleResourcePack.FileMover mover = this.recordingMover(moves, AtomicMoves.SUPPORTED);
 
     SimpleResourcePack.moveIntoPlace(source, target, mover);
 
@@ -416,7 +416,7 @@ final class SimpleResourcePackTest {
     Files.write(source, CREDITS);
     Files.write(target, FIRST_SOUND);
     final List<List<CopyOption>> moves = new ArrayList<>();
-    final SimpleResourcePack.FileMover mover = this.recordingMover(moves, false);
+    final SimpleResourcePack.FileMover mover = this.recordingMover(moves, AtomicMoves.UNSUPPORTED);
 
     SimpleResourcePack.moveIntoPlace(source, target, mover);
 
@@ -634,5 +634,10 @@ final class SimpleResourcePackTest {
     final List<Path> outputFiles = this.listFiles(output);
     final List<Path> nothing = List.of();
     assertEquals(nothing, outputFiles, "neither the pack nor the temporary file exist");
+  }
+
+  private enum AtomicMoves {
+    SUPPORTED,
+    UNSUPPORTED,
   }
 }

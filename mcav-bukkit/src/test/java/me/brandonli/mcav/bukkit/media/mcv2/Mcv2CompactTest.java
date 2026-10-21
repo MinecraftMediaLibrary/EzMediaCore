@@ -33,7 +33,7 @@ final class Mcv2CompactTest {
     for (final int motionX : new int[] { -128, -7, 0, 7, 127 }) {
       for (final int motionY : new int[] { -128, -1, 0, 7, 127 }) {
         final byte[] record = { (byte) motionX, (byte) motionY, -128, 127, -1, 0, 0x18, 0x72, 0x4E, 0x5A };
-        final byte[] data = Mcv2WireFrames.block(32, 5, 2, record, false);
+        final byte[] data = Mcv2WireFrames.block(32, 5, 2, record, Mcv2FrameKind.PREDICTED);
         final int offset = Mcv2Decoder.parse(data).getLeaf(0).offset();
         final byte storedX = data[offset];
         assertEquals(motionX, storedX);
@@ -57,7 +57,7 @@ final class Mcv2CompactTest {
   }
 
   private void assertRecordLengthChecked(final int size, final int length) throws Mcv2Exception {
-    final byte[] data = Mcv2WireFrames.block(size, 5, 0, new byte[length], false);
+    final byte[] data = Mcv2WireFrames.block(size, 5, 0, new byte[length], Mcv2FrameKind.PREDICTED);
     if (length != RECORD_LENGTH) {
       assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
       return;
@@ -70,7 +70,7 @@ final class Mcv2CompactTest {
   @Test
   void shouldRefuseEveryQuantizerAboveTwo() {
     for (int quantizer = 3; quantizer < 8; quantizer++) {
-      final byte[] data = Mcv2WireFrames.block(32, 5, quantizer, new byte[RECORD_LENGTH], false);
+      final byte[] data = Mcv2WireFrames.block(32, 5, quantizer, new byte[RECORD_LENGTH], Mcv2FrameKind.PREDICTED);
       assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
     }
   }

@@ -1381,7 +1381,8 @@ instance with `inject`:
 
 ```java
 import java.nio.file.Path;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Pack;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2PackServer;
 import me.brandonli.mcav.bukkit.resourcepack.provider.PackHosting;
 
@@ -1391,7 +1392,7 @@ import me.brandonli.mcav.bukkit.resourcepack.provider.PackHosting;
     Mcv2.installNatives(dataFolder.resolve("natives"), "auto");
 
     final Path packFolder = dataFolder.resolve("mcv2-pack");
-    final boolean debugView = false;
+    final Mcv2Pack.DebugView debugView = Mcv2Pack.DebugView.HIDDEN;
     final Mcv2PackServer packs = new Mcv2PackServer(
       packFolder,
       PackHosting::injector,

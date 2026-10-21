@@ -97,7 +97,7 @@ final class Mcv2KernelPropertyTest {
 
     final int[] wholeExpected = new int[prediction.length];
     Mcv2Oracle.compact(prediction, record, quantizer, size, wholeExpected);
-    final byte[] decoded = Mcv2Decoder.decode(Mcv2WireFrames.block(size, 5, quantizer, record, false), reference, 0);
+    final byte[] decoded = Mcv2Decoder.decode(Mcv2WireFrames.block(size, 5, quantizer, record, Mcv2FrameKind.PREDICTED), reference, 0);
     for (int index = 0; index < decoded.length; index++) {
       final int expectedChannel = wholeExpected[index];
       final int decodedChannel = decoded[index] & 255;

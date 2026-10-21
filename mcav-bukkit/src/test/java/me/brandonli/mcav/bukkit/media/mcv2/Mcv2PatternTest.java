@@ -34,7 +34,7 @@ final class Mcv2PatternTest {
 
   @Test
   void shouldResolveAnInlineRecordAlongColumns() throws Mcv2Exception {
-    final byte[] data = Mcv2WireFrames.block(8, 4, 0, INLINE, true);
+    final byte[] data = Mcv2WireFrames.block(8, 4, 0, INLINE, Mcv2FrameKind.KEYFRAME);
     final byte[] picture = Mcv2Decoder.decode(data, null, 0);
     final int lastRowColor = this.colorAt(picture, 8, 0, 7);
     assertEquals(0x040506, lastRowColor);
@@ -53,18 +53,20 @@ final class Mcv2PatternTest {
 
   @Test
   void shouldRejectBrokenRecords() {
-    assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(Mcv2WireFrames.block(8, 4, 0, Arrays.copyOf(INLINE, 7), true)));
+    assertThrows(Mcv2Exception.class, () ->
+      Mcv2Decoder.parse(Mcv2WireFrames.block(8, 4, 0, Arrays.copyOf(INLINE, 7), Mcv2FrameKind.KEYFRAME))
+    );
 
     final byte[] orientation = INLINE.clone();
     orientation[6] = 2;
-    assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(Mcv2WireFrames.block(8, 4, 0, orientation, true)));
+    assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(Mcv2WireFrames.block(8, 4, 0, orientation, Mcv2FrameKind.KEYFRAME)));
   }
 
   @Test
   void shouldRefuseARecordThatRunsPastTheEndOfTheData() {
     final byte[] shifted = { 0, 1, 2, 3, 4, 5, 6 };
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () ->
-      Mcv2Decoder.parse(Mcv2WireFrames.block(8, 4, 0, shifted, true))
+      Mcv2Decoder.parse(Mcv2WireFrames.block(8, 4, 0, shifted, Mcv2FrameKind.KEYFRAME))
     );
     final String message = exception.getMessage();
     assertEquals("Truncated record!", message);

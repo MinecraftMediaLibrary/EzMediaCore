@@ -24,14 +24,14 @@ final class Mcv2WireFrames {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  static byte[] block(final int size, final int mode, final int quantizer, final byte[] record, final boolean keyframe) {
+  static byte[] block(final int size, final int mode, final int quantizer, final byte[] record, final Mcv2FrameKind kind) {
     final byte value = (byte) (mode | (quantizer << 5));
     final byte[] descriptors =
       size == 32 ? new byte[] { value } : size == 16 ? new byte[] { 6, value, 0, 0, 0 } : new byte[] { 6, 6, 0, 0, 0, value, 0, 0, 0 };
     return frame(
       size,
       size,
-      keyframe,
+      kind,
       descriptors,
       records(descriptors.length, size == 32 ? 0 : size == 16 ? 1 : 5, record),
       size == 32 ? new int[] { 1, 0, 0 } : size == 16 ? new int[] { 1, 4, 0 } : new int[] { 1, 4, 4 }
@@ -47,7 +47,7 @@ final class Mcv2WireFrames {
   static byte[] frame(
     final int width,
     final int height,
-    final boolean keyframe,
+    final Mcv2FrameKind kind,
     final byte[] descriptors,
     final byte[][] records,
     final int[] levels
@@ -69,7 +69,7 @@ final class Mcv2WireFrames {
     put(data, 8, width, 2);
     put(data, 10, height, 2);
     put(data, 12, 1, 4);
-    put(data, 16, keyframe ? 1 : 0, 4);
+    put(data, 16, kind == Mcv2FrameKind.KEYFRAME ? 1 : 0, 4);
     for (int index = 0; index < levels[0]; index++) {
       data[20 + index / 8] |= (byte) (1 << (index % 8));
     }

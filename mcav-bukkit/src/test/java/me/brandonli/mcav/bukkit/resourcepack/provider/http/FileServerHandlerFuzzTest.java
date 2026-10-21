@@ -100,11 +100,11 @@ final class FileServerHandlerFuzzTest {
 
     final int options = input[0] & 0xFF;
     final OpenMode mode = OpenMode.values()[(options & 0b11) % OpenMode.values().length];
-    final boolean hasReadTimeout = (options & 0b100) != 0;
+    final ReadTimeout readTimeout = (options & 0b100) != 0 ? ReadTimeout.INSTALLED : ReadTimeout.ABSENT;
     final byte[] content = (options & 0b1000) != 0 ? new byte[0] : PACK;
     final boolean sendsOtherMessage = (options & 0b1_0000) != 0;
-    final boolean fillerFirst = (options & 0b10_0000) != 0;
-    final Request request = Request.of(input, fillerFirst);
+    final FillerPlace fillerPlace = (options & 0b10_0000) != 0 ? FillerPlace.FIRST : FillerPlace.LAST;
+    final Request request = Request.of(input, fillerPlace);
 
     final List<FileChannel> opened = new ArrayList<>();
     final Path file = content.length == 0 ? EMPTY_FILE : PACK_FILE;
@@ -113,7 +113,7 @@ final class FileServerHandlerFuzzTest {
     final EmbeddedChannel channel = new EmbeddedChannel();
     channel.config().setAllocator(allocator);
     final ChannelPipeline pipeline = channel.pipeline();
-    if (hasReadTimeout) {
+    if (readTimeout == ReadTimeout.INSTALLED) {
       pipeline.addLast(
         FileHttpChannelInitializer.READ_TIMEOUT_NAME,
         new ReadTimeoutHandler(FileHttpChannelInitializer.READ_TIMEOUT_SECONDS)
@@ -140,9 +140,10 @@ final class FileServerHandlerFuzzTest {
     channel.checkException();
     final boolean openAfterReads = channel.isOpen();
     final boolean timeoutLeft = pipeline.get(FileHttpChannelInitializer.READ_TIMEOUT_NAME) != null;
+    final Outcome outcome = new Outcome(answered, openAfterReads, timeoutLeft);
 
     try {
-      this.assertBehaviour(request.stream, mode, content, hasReadTimeout, answered, openAfterReads, timeoutLeft);
+      this.assertBehaviour(request.stream, mode, content, readTimeout, outcome);
     } finally {
       for (final Object message : answered) {
         this.releaseAnswer(message);
@@ -197,11 +198,12 @@ final class FileServerHandlerFuzzTest {
     final byte[] stream,
     final OpenMode mode,
     final byte[] content,
-    final boolean hasReadTimeout,
-    final List<Object> answered,
-    final boolean openAfterReads,
-    final boolean timeoutLeft
+    final ReadTimeout readTimeout,
+    final Outcome outcome
   ) throws IOException {
+    final List<Object> answered = outcome.answered();
+    final boolean openAfterReads = outcome.openAfterReads();
+    final boolean timeoutLeft = outcome.timeoutLeft();
     final int headerEnd = this.indexOf(stream, HEADER_TERMINATOR);
     final boolean complete = headerEnd >= 0 && headerEnd + HEADER_TERMINATOR.length <= MAXIMUM_HEADER_BYTES;
     if (!complete) {
@@ -216,7 +218,8 @@ final class FileServerHandlerFuzzTest {
 
       assertEquals(List.of(), answered, "a request whose headers have not ended yet waits");
       assertTrue(openAfterReads, "a request whose headers have not ended yet keeps its connection");
-      assertEquals(hasReadTimeout, timeoutLeft, "a request that waits keeps its read timeout");
+      final boolean timeoutInstalled = readTimeout == ReadTimeout.INSTALLED;
+      assertEquals(timeoutInstalled, timeoutLeft, "a request that waits keeps its read timeout");
 
       return;
     }
@@ -334,6 +337,18 @@ final class FileServerHandlerFuzzTest {
     CANNOT_TELL_SIZE,
   }
 
+  private enum ReadTimeout {
+    INSTALLED,
+    ABSENT,
+  }
+
+  private enum FillerPlace {
+    FIRST,
+    LAST,
+  }
+
+  private record Outcome(List<Object> answered, boolean openAfterReads, boolean timeoutLeft) {}
+
   /**
    * The bytes a connection sends and the reads they arrive in.
    */
@@ -347,7 +362,7 @@ final class FileServerHandlerFuzzTest {
       this.reads = reads;
     }
 
-    private static Request of(final byte[] input, final boolean fillerFirst) {
+    private static Request of(final byte[] input, final FillerPlace fillerPlace) {
       final int splits = (input[1] & 0xFF) % (MAXIMUM_SPLITS + 1);
       final int header = 2 + 2 * splits + 3;
       final int fillerLength = ((byteAt(input, header - 3) << 8) | byteAt(input, header - 2)) % (MAXIMUM_FILLER + 1);
@@ -355,6 +370,7 @@ final class FileServerHandlerFuzzTest {
       Arrays.fill(filler, (byte) byteAt(input, header - 1));
       final byte[] rest = header < input.length ? Arrays.copyOfRange(input, header, input.length) : new byte[0];
       final ByteArrayOutputStream joined = new ByteArrayOutputStream();
+      final boolean fillerFirst = fillerPlace == FillerPlace.FIRST;
       joined.writeBytes(fillerFirst ? filler : rest);
       joined.writeBytes(fillerFirst ? rest : filler);
       final byte[] stream = joined.toByteArray();

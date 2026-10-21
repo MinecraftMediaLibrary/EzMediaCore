@@ -34,7 +34,7 @@ final class Mcv2ReceiverTest {
   private static final String STALE_FRAME_MESSAGE = "Stale or ambiguous frame number!";
 
   private byte[] keyframeWithId(final long id, final int gray) {
-    return Mcv2Trees.write(4, 4, id, id, true, List.of(solid(gray, gray, gray)));
+    return Mcv2Trees.write(4, 4, id, id, Mcv2FrameKind.KEYFRAME, List.of(solid(gray, gray, gray)));
   }
 
   @Test
@@ -88,7 +88,7 @@ final class Mcv2ReceiverTest {
   void shouldKeepItsStateWhenAFrameFails() throws Mcv2Exception {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     receiver.accept(this.keyframeWithId(1, 3));
-    final byte[] orphan = Mcv2Trees.write(4, 4, 2, 7, false, List.of(motion(0, 0)));
+    final byte[] orphan = Mcv2Trees.write(4, 4, 2, 7, Mcv2FrameKind.PREDICTED, List.of(motion(0, 0)));
     assertThrows(Mcv2Exception.class, () -> receiver.accept(orphan));
 
     final long frameIdAfterOrphan = receiver.getFrameId();
@@ -96,17 +96,17 @@ final class Mcv2ReceiverTest {
 
     final byte[] expected = new byte[4 * 4 * 3];
     Arrays.fill(expected, (byte) 3);
-    final byte[] next = Mcv2Trees.write(4, 4, 2, 1, false, List.of(motion(0, 0)));
+    final byte[] next = Mcv2Trees.write(4, 4, 2, 1, Mcv2FrameKind.PREDICTED, List.of(motion(0, 0)));
     final byte[] nextPicture = assertDoesNotThrow(() -> receiver.accept(next));
     assertArrayEquals(expected, nextPicture);
 
     final long frameIdAfterNext = receiver.getFrameId();
     assertEquals(2, frameIdAfterNext);
 
-    final byte[] anotherOrphan = Mcv2Trees.write(4, 4, 3, 8, false, List.of(motion(0, 0)));
+    final byte[] anotherOrphan = Mcv2Trees.write(4, 4, 3, 8, Mcv2FrameKind.PREDICTED, List.of(motion(0, 0)));
     assertThrows(Mcv2Exception.class, () -> receiver.accept(anotherOrphan));
 
-    final byte[] retry = Mcv2Trees.write(4, 4, 3, 2, false, List.of(motion(0, 0)));
+    final byte[] retry = Mcv2Trees.write(4, 4, 3, 2, Mcv2FrameKind.PREDICTED, List.of(motion(0, 0)));
     final byte[] retryPicture = assertDoesNotThrow(() -> receiver.accept(retry));
     assertArrayEquals(expected, retryPicture);
 
@@ -117,8 +117,8 @@ final class Mcv2ReceiverTest {
   @Test
   void shouldRejectAReferenceWithTheSamePixelCountButDifferentDimensions() throws Mcv2Exception {
     final Mcv2Receiver receiver = new Mcv2Receiver();
-    receiver.accept(Mcv2Trees.write(8, 16, 0, 0, true, List.of(solid(1, 2, 3))));
-    final byte[] wrongShape = Mcv2Trees.write(16, 8, 1, 0, false, List.of(motion(0, 0)));
+    receiver.accept(Mcv2Trees.write(8, 16, 0, 0, Mcv2FrameKind.KEYFRAME, List.of(solid(1, 2, 3))));
+    final byte[] wrongShape = Mcv2Trees.write(16, 8, 1, 0, Mcv2FrameKind.PREDICTED, List.of(motion(0, 0)));
     final Mcv2Exception shapeException = assertThrows(Mcv2Exception.class, () -> receiver.accept(wrongShape));
     final String shapeMessage = shapeException.getMessage();
     assertEquals("Reference frame dimensions mismatch!", shapeMessage);
@@ -126,7 +126,7 @@ final class Mcv2ReceiverTest {
     final long frameIdAfterWrongShape = receiver.getFrameId();
     assertEquals(0, frameIdAfterWrongShape);
 
-    final byte[] wrongHeight = Mcv2Trees.write(8, 8, 1, 0, false, List.of(motion(0, 0)));
+    final byte[] wrongHeight = Mcv2Trees.write(8, 8, 1, 0, Mcv2FrameKind.PREDICTED, List.of(motion(0, 0)));
     final Mcv2Exception heightException = assertThrows(Mcv2Exception.class, () -> receiver.accept(wrongHeight));
     final String heightMessage = heightException.getMessage();
     assertEquals("Reference frame dimensions mismatch!", heightMessage);
@@ -134,6 +134,6 @@ final class Mcv2ReceiverTest {
     final long frameIdAfterWrongHeight = receiver.getFrameId();
     assertEquals(0, frameIdAfterWrongHeight);
 
-    assertDoesNotThrow(() -> receiver.accept(Mcv2Trees.write(8, 16, 1, 0, false, List.of(motion(0, 0)))));
+    assertDoesNotThrow(() -> receiver.accept(Mcv2Trees.write(8, 16, 1, 0, Mcv2FrameKind.PREDICTED, List.of(motion(0, 0)))));
   }
 }

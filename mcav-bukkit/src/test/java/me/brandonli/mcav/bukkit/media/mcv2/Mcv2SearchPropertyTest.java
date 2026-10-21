@@ -56,8 +56,8 @@ final class Mcv2SearchPropertyTest {
     return sum;
   }
 
-  private static boolean skipped(final byte[][] frames, final double lambda, final boolean fast) {
-    final Mcv2BlockState job = new Mcv2BlockState(frames[0], frames[1], SIZE, SIZE, false, fast, lambda, null);
+  private static boolean skipped(final byte[][] frames, final double lambda, final Mcv2BlockState.Thresholds thresholds) {
+    final Mcv2BlockState job = new Mcv2BlockState(frames[0], frames[1], SIZE, SIZE, Mcv2FrameKind.PREDICTED, thresholds, lambda, null);
     return Mcv2BlockState.skipped(job.code(SIZE, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR));
   }
 
@@ -70,7 +70,8 @@ final class Mcv2SearchPropertyTest {
   ) {
     final byte[][] frames = frames(seed, amplitude);
     final double skipCost = distortion(frames[0], frames[1]) / 96.0 + lambda;
-    return skipped(frames, lambda, fast) == skipCost <= (fast ? 60 : 28) * lambda;
+    final Mcv2BlockState.Thresholds thresholds = fast ? Mcv2BlockState.Thresholds.FAST : Mcv2BlockState.Thresholds.STANDARD;
+    return skipped(frames, lambda, thresholds) == skipCost <= (fast ? 60 : 28) * lambda;
   }
 
   @Property(seed = SEED, tries = 200)
@@ -82,8 +83,9 @@ final class Mcv2SearchPropertyTest {
     @ForAll final boolean fast
   ) {
     final byte[][] frames = frames(seed, amplitude);
-    final boolean low = skipped(frames, Math.min(oneLambda, otherLambda), fast);
-    final boolean high = skipped(frames, Math.max(oneLambda, otherLambda), fast);
+    final Mcv2BlockState.Thresholds thresholds = fast ? Mcv2BlockState.Thresholds.FAST : Mcv2BlockState.Thresholds.STANDARD;
+    final boolean low = skipped(frames, Math.min(oneLambda, otherLambda), thresholds);
+    final boolean high = skipped(frames, Math.max(oneLambda, otherLambda), thresholds);
     return !low || high;
   }
 }

@@ -79,7 +79,7 @@ final class NativeConformanceTest {
   void shouldKeepNoFrameOnceItIsEncoded(final Level level) {
     final Supplier<?> factory = NativeTesting.factory(level);
     final List<NativeKernels> made = new CopyOnWriteArrayList<>();
-    final Mcv2 encoder = NativeTesting.encoder(Settings.DEFAULT, 2, false, () -> {
+    final Mcv2 encoder = NativeTesting.encoder(Settings.DEFAULT, 2, Mcv2.Verification.UNVERIFIED, () -> {
       final Object kernels = factory.get();
       made.add(NativeTesting.view(kernels));
       return kernels;
@@ -114,8 +114,8 @@ final class NativeConformanceTest {
 
   private void assertEncodesAsJava(final Level level, final Settings settings, final int threads, final byte[] source) {
     final int frameBytes = WIDTH * HEIGHT * 3;
-    final Mcv2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());
-    final Mcv2 other = NativeTesting.encoder(settings, threads, true, NativeTesting.factory(level));
+    final Mcv2 java = NativeTesting.encoder(settings, threads, Mcv2.Verification.VERIFIED, NativeTesting.javaFactory());
+    final Mcv2 other = NativeTesting.encoder(settings, threads, Mcv2.Verification.VERIFIED, NativeTesting.factory(level));
     for (int frameIndex = 0; frameIndex < 4; frameIndex++) {
       final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
       final String context = settings + " frame " + frameIndex + " threads " + threads + " level " + level;
@@ -155,8 +155,8 @@ final class NativeConformanceTest {
     final List<byte[]> expected
   ) {
     final int frameBytes = WIDTH * HEIGHT * 3;
-    final Mcv2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());
-    final Mcv2 other = NativeTesting.encoder(settings, threads, true, NativeTesting.factory(level));
+    final Mcv2 java = NativeTesting.encoder(settings, threads, Mcv2.Verification.VERIFIED, NativeTesting.javaFactory());
+    final Mcv2 other = NativeTesting.encoder(settings, threads, Mcv2.Verification.VERIFIED, NativeTesting.factory(level));
     for (int frameIndex = 0; frameIndex < expected.size(); frameIndex++) {
       final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
       final String context = stream + " frame " + frameIndex + " threads " + threads + " level " + level;
@@ -190,8 +190,8 @@ final class NativeConformanceTest {
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(stream));
     for (final Settings settings : List.of(Settings.DEFAULT, Settings.FAST)) {
       final Mcv2Receiver receiver = new Mcv2Receiver();
-      final Mcv2 java = NativeTesting.encoder(settings, 2, true, NativeTesting.javaFactory());
-      final Mcv2 other = NativeTesting.encoder(settings, 3, true, NativeTesting.factory(level));
+      final Mcv2 java = NativeTesting.encoder(settings, 2, Mcv2.Verification.VERIFIED, NativeTesting.javaFactory());
+      final Mcv2 other = NativeTesting.encoder(settings, 3, Mcv2.Verification.VERIFIED, NativeTesting.factory(level));
       for (int frameIndex = 0; frameIndex < frames.size(); frameIndex++) {
         final Frame frame = Mcv2Decoder.parse(frames.get(frameIndex));
         final byte[] picture = receiver.accept(frames.get(frameIndex));

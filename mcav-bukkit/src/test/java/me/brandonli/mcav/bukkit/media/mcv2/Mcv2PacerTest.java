@@ -105,7 +105,7 @@ final class Mcv2PacerTest {
 
   @Test
   void shouldBuildALadderOfPresetsBeforeTheFrameRates() {
-    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), true);
+    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), Mcv2Pacer.Floor.DITHERED_MAPS);
     final List<Mcv2Pacer.Rung> ladder = pacer.getLadder();
     final int size = ladder.size();
     assertEquals(13, size);
@@ -137,14 +137,20 @@ final class Mcv2PacerTest {
     final Mcv2Pacer.Rung last = ladder.getLast();
     assertEquals(Mcv2Pacer.Rung.DITHERED, last);
     // one preset is the ladder of a screen that does not step through presets
-    final List<Mcv2Pacer.Rung> expectedLadder = new Mcv2Pacer(List.of(FULL), false).getLadder();
-    final List<Mcv2Pacer.Rung> onePresetLadder = new Mcv2Pacer(List.of(FULL), List.of(Mcv2Pacer.Preset.ONLY), false).getLadder();
+    final List<Mcv2Pacer.Rung> expectedLadder = new Mcv2Pacer(List.of(FULL), Mcv2Pacer.Floor.LOWEST_ENCODED_RUNG).getLadder();
+    final List<Mcv2Pacer.Rung> onePresetLadder = new Mcv2Pacer(
+      List.of(FULL),
+      List.of(Mcv2Pacer.Preset.ONLY),
+      Mcv2Pacer.Floor.LOWEST_ENCODED_RUNG
+    ).getLadder();
     assertEquals(expectedLadder, onePresetLadder);
-    assertThrows(IllegalArgumentException.class, () -> new Mcv2Pacer(List.of(FULL), List.of(), true));
-    assertThrows(IllegalArgumentException.class, () -> new Mcv2Pacer(List.of(), List.of(LIVE), true));
+    assertThrows(IllegalArgumentException.class, () -> new Mcv2Pacer(List.of(FULL), List.of(), Mcv2Pacer.Floor.DITHERED_MAPS));
+    assertThrows(IllegalArgumentException.class, () -> new Mcv2Pacer(List.of(), List.of(LIVE), Mcv2Pacer.Floor.DITHERED_MAPS));
     // every preset costs less than the one before
-    assertThrows(IllegalArgumentException.class, () -> new Mcv2Pacer(List.of(FULL), List.of(FAST, LIVE), true));
-    assertThrows(IllegalArgumentException.class, () -> new Mcv2Pacer(List.of(FULL), List.of(LIVE, Mcv2Pacer.Preset.of("same", 1)), true));
+    assertThrows(IllegalArgumentException.class, () -> new Mcv2Pacer(List.of(FULL), List.of(FAST, LIVE), Mcv2Pacer.Floor.DITHERED_MAPS));
+    assertThrows(IllegalArgumentException.class, () ->
+      new Mcv2Pacer(List.of(FULL), List.of(LIVE, Mcv2Pacer.Preset.of("same", 1)), Mcv2Pacer.Floor.DITHERED_MAPS)
+    );
     assertThrows(IllegalArgumentException.class, () -> Mcv2Pacer.Preset.of("free", 0));
     assertThrows(IllegalArgumentException.class, () -> Mcv2Pacer.Preset.of("negative", -1));
     assertThrows(IllegalArgumentException.class, () -> Mcv2Pacer.Preset.of("unknown", Double.NaN));
@@ -195,7 +201,7 @@ final class Mcv2PacerTest {
   void shouldEncodeEveryFrameAtTheTopAndMeasureTheVideo() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     // nothing is judged before the video's frame rate is known
-    final Optional<Mcv2Pacer.Change> unknownRateChange = pacer.encoded(500, false, 0);
+    final Optional<Mcv2Pacer.Change> unknownRateChange = pacer.encoded(500, Mcv2FrameKind.PREDICTED, 0);
     assertTrue(unknownRateChange.isEmpty());
 
     final Driver driver = new Driver(pacer, 60, -5 * SECOND);
@@ -214,11 +220,11 @@ final class Mcv2PacerTest {
     final double frameRateAfterSameTime = pacer.getVideoFramesPerSecond();
     assertEquals(60, frameRateAfterSameTime, 0.1);
 
-    final Optional<Mcv2Pacer.Change> instantChange = pacer.encoded(0, false, 0);
+    final Optional<Mcv2Pacer.Change> instantChange = pacer.encoded(0, Mcv2FrameKind.PREDICTED, 0);
     assertTrue(instantChange.isEmpty());
-    assertThrows(IllegalArgumentException.class, () -> pacer.encoded(-1, false, 0));
-    assertThrows(IllegalArgumentException.class, () -> pacer.encoded(Double.NaN, false, 0));
-    assertThrows(IllegalArgumentException.class, () -> pacer.encoded(Double.POSITIVE_INFINITY, false, 0));
+    assertThrows(IllegalArgumentException.class, () -> pacer.encoded(-1, Mcv2FrameKind.PREDICTED, 0));
+    assertThrows(IllegalArgumentException.class, () -> pacer.encoded(Double.NaN, Mcv2FrameKind.PREDICTED, 0));
+    assertThrows(IllegalArgumentException.class, () -> pacer.encoded(Double.POSITIVE_INFINITY, Mcv2FrameKind.PREDICTED, 0));
   }
 
   @Test
@@ -227,7 +233,7 @@ final class Mcv2PacerTest {
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
     for (int frameNumber = 0; frameNumber < 200; frameNumber++) {
-      final Optional<Mcv2Pacer.Change> change = pacer.encoded(1000, true, driver.now + (frameNumber * SECOND) / 60);
+      final Optional<Mcv2Pacer.Change> change = pacer.encoded(1000, Mcv2FrameKind.KEYFRAME, driver.now + (frameNumber * SECOND) / 60);
       assertTrue(change.isEmpty());
     }
 
@@ -275,7 +281,7 @@ final class Mcv2PacerTest {
 
   @Test
   void shouldStepDownThePresetsBeforeTheFrameRate() {
-    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), true);
+    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), Mcv2Pacer.Floor.DITHERED_MAPS);
     final Driver driver = new Driver(pacer, 50, 0);
     driver.play(5, 5);
     // 22 ms per frame is more than the 20 ms a frame has at 50 fps; the faster preset's predicted 11 ms fits 17 ms
@@ -323,7 +329,7 @@ final class Mcv2PacerTest {
 
   @Test
   void shouldTakeAFasterPresetThatOnlyKeepsUpBeforeALowerFrameRate() {
-    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), true);
+    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), Mcv2Pacer.Floor.DITHERED_MAPS);
     final Driver driver = new Driver(pacer, 50, 0);
     driver.play(5, 5);
     // 38 ms per frame: the faster preset's 19 ms keeps up with 20 ms without fitting 17 ms, and keeps every frame
@@ -337,7 +343,7 @@ final class Mcv2PacerTest {
 
   @Test
   void shouldStepDownTheFrameRateAtTheFastestPreset() {
-    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), true);
+    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), Mcv2Pacer.Floor.DITHERED_MAPS);
     final Driver driver = new Driver(pacer, 50, 0);
     driver.play(5, 5);
     // 44 ms per frame: the faster preset's 22 ms does not keep up with 20 ms at 50 fps, and fits 34 ms at 25 fps
@@ -442,7 +448,7 @@ final class Mcv2PacerTest {
     final boolean encoded = pacer.isEncoded();
     assertFalse(encoded);
 
-    final Optional<Mcv2Pacer.Change> reported = pacer.encoded(1, false, driver.now);
+    final Optional<Mcv2Pacer.Change> reported = pacer.encoded(1, Mcv2FrameKind.PREDICTED, driver.now);
     assertTrue(reported.isEmpty());
 
     // 30 seconds after it fell back, the lowest encoded rung is tried, which fails again two seconds later (ten frames
@@ -727,7 +733,7 @@ final class Mcv2PacerTest {
   @Test
   void shouldStayOnTheLowestRungWithoutDitheredMaps() {
     // 2 s per frame fits nothing; without dithered maps the floor is the lowest rung that keeps 10 fps: 12.5 fps
-    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL), false);
+    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL), Mcv2Pacer.Floor.LOWEST_ENCODED_RUNG);
     final Exact clock = new Exact(pacer, FRAME_50, 0);
     final Mcv2Pacer.Rung expectedTo = Mcv2Pacer.Rung.of(FULL_WIDTH, FULL_HEIGHT, 4);
     final Mcv2Pacer.Rung to = clock.until(2000, 1000).getTo();
@@ -1146,7 +1152,7 @@ final class Mcv2PacerTest {
       final Mcv2Pacer.Rung rung = this.pacer.getRung();
       final double milliseconds =
         (fullMilliseconds * rung.getWidth() * rung.getHeight() * rung.getPreset().getCost()) / (FULL[0] * FULL[1]);
-      return this.pacer.encoded(milliseconds, false, this.now).orElse(null);
+      return this.pacer.encoded(milliseconds, Mcv2FrameKind.PREDICTED, this.now).orElse(null);
     }
   }
 
@@ -1173,7 +1179,7 @@ final class Mcv2PacerTest {
         return tried;
       }
 
-      return this.pacer.isEncoded() ? this.pacer.encoded(milliseconds, false, this.now).orElse(null) : null;
+      return this.pacer.isEncoded() ? this.pacer.encoded(milliseconds, Mcv2FrameKind.PREDICTED, this.now).orElse(null) : null;
     }
 
     /** Frames until one causes a change, which it returns; the clock is then at that frame. */

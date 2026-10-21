@@ -39,7 +39,7 @@ final class Mcv2Test {
   @Test
   void shouldWriteTheHandComputedUniformKeyframeAndPredictedGolden() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, Mcv2.Verification.VERIFIED);
       final byte[] picture = { 10, 20, 30 };
       final byte[] expected = HexFormat.of().parseHex(
         "4d43563203000000010001000100000001000000" + "0100000000000000010000000000000000000000" + "02000000000a141e"
@@ -77,7 +77,7 @@ final class Mcv2Test {
 
   private void assertReconstructsEveryFrame(final Mcv2.Settings settings, final Random random) throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(4)) {
-      final Mcv2 encoder = new Mcv2(settings, pool, 4, true);
+      final Mcv2 encoder = new Mcv2(settings, pool, 4, Mcv2.Verification.VERIFIED);
       byte[] reference = null;
       for (int index = 0; index < 12; index++) {
         reference = this.reconstructCheckedFrame(encoder, random, index, reference);
@@ -135,7 +135,7 @@ final class Mcv2Test {
   private byte[][] encodeOnThreads(final Mcv2.Settings settings, final byte[][] source, final int threads) {
     final byte[][] encoded = new byte[source.length][];
     try (final ForkJoinPool pool = new ForkJoinPool(threads)) {
-      final Mcv2 encoder = new Mcv2(settings, pool, threads, true);
+      final Mcv2 encoder = new Mcv2(settings, pool, threads, Mcv2.Verification.VERIFIED);
       for (int index = 0; index < source.length; index++) {
         encoded[index] = encoder.encode(source[index], 128, 96, index);
       }
@@ -147,7 +147,7 @@ final class Mcv2Test {
   @Test
   void shouldRetryAndFallBackFromTheSameReference() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(2)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(0), pool, 2, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(0), pool, 2, Mcv2.Verification.VERIFIED);
       final byte[] source = new byte[63 * 65 * 3];
       new Random(17).nextBytes(source);
       encoder.setFrameLimit(56);
@@ -178,7 +178,7 @@ final class Mcv2Test {
   @Test
   void shouldRetryAtMostFourTimesWhenEvenTheTrivialFrameExceedsTheLimit() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(1), pool, 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(1), pool, 1, Mcv2.Verification.VERIFIED);
       encoder.setFrameLimit(40);
       final byte[] source = { 10, 20, 30 };
       final byte[] data = encoder.encode(source, 1, 1, 0);
@@ -196,7 +196,7 @@ final class Mcv2Test {
   @Test
   void shouldMeasureOnlyTheTimeSpentBeginningAndFinishing() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, Mcv2.Verification.VERIFIED);
       final long started = System.nanoTime();
       final Mcv2.Pending pending = encoder.begin(new byte[] { 10, 20, 30 }, 1, 1, 0);
       final long searched = (long) Mcv2Internals.field(Mcv2.Pending.class, pending, "nanoseconds");
@@ -213,7 +213,7 @@ final class Mcv2Test {
   @Test
   void shouldUseMeanSolidsAndThenSkipWhenTheBudgetIsExhausted() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(2)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 2, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 2, Mcv2.Verification.VERIFIED);
       encoder.setFrameBudget(1);
       final byte[] source = new byte[32 * 32 * 3];
       for (int pixel = 0; pixel < 32 * 32; pixel++) {
@@ -242,7 +242,7 @@ final class Mcv2Test {
   @Test
   void shouldPlaceKeyframesByRequestsSizesIntervalsAndWrappedIds() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.of(LAMBDA, false), pool, 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.of(LAMBDA, false), pool, 1, Mcv2.Verification.VERIFIED);
       final byte[] black = new byte[3];
       final boolean firstIsKeyframe = Mcv2Decoder.parse(encoder.encode(black, 1, 1, 0xFFFFFFFEL)).isKeyframe();
       assertTrue(firstIsKeyframe);
@@ -280,7 +280,7 @@ final class Mcv2Test {
   @Test
   void shouldKeepTheReferenceAndMotionLambdaWhenSwitchingSettings() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, Mcv2.Verification.VERIFIED);
       final byte[] source = new byte[32 * 32 * 3];
       encoder.encode(source, 32, 32, 0);
       Arrays.fill(source, (byte) 10);
@@ -312,8 +312,8 @@ final class Mcv2Test {
   @Test
   void shouldMatchSerialInThePipelineAndEnforceFinishOrderAndOwnership() {
     try (final ForkJoinPool pool = new ForkJoinPool(2)) {
-      final Mcv2 serial = new Mcv2(Mcv2.Settings.DEFAULT, pool, 2, true);
-      final Mcv2 pipelined = new Mcv2(Mcv2.Settings.DEFAULT, pool, 2, true);
+      final Mcv2 serial = new Mcv2(Mcv2.Settings.DEFAULT, pool, 2, Mcv2.Verification.VERIFIED);
+      final Mcv2 pipelined = new Mcv2(Mcv2.Settings.DEFAULT, pool, 2, Mcv2.Verification.VERIFIED);
       final byte[][] source = new byte[3][32 * 32 * 3];
       final Random random = new Random(171);
       for (final byte[] picture : source) {
@@ -345,7 +345,7 @@ final class Mcv2Test {
   @Test
   void shouldPermanentlyStopBothPipelineStagesOnAVerificationFailure() throws ReflectiveOperationException {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, true);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, Mcv2.Verification.VERIFIED);
       final Mcv2.Pending first = encoder.begin(new byte[3], 1, 1, 0);
       final Mcv2.Pending second = encoder.begin(new byte[3], 1, 1, 1);
       final Field picture = Mcv2.Pending.class.getDeclaredField("picture");
@@ -366,11 +366,11 @@ final class Mcv2Test {
       assertThrows(IllegalArgumentException.class, () -> Mcv2.Settings.of(-1, false));
       assertThrows(IllegalArgumentException.class, () -> Mcv2.Settings.of(Double.NaN, false));
       assertThrows(IllegalArgumentException.class, () -> Mcv2.Settings.of(Double.POSITIVE_INFINITY, false));
-      assertThrows(IllegalArgumentException.class, () -> new Mcv2(Mcv2.Settings.DEFAULT, pool, 0, false));
-      assertThrows(NullPointerException.class, () -> new Mcv2(null, pool, 1, false));
-      assertThrows(NullPointerException.class, () -> new Mcv2(Mcv2.Settings.DEFAULT, null, 1, false));
+      assertThrows(IllegalArgumentException.class, () -> new Mcv2(Mcv2.Settings.DEFAULT, pool, 0, Mcv2.Verification.UNVERIFIED));
+      assertThrows(NullPointerException.class, () -> new Mcv2(null, pool, 1, Mcv2.Verification.UNVERIFIED));
+      assertThrows(NullPointerException.class, () -> new Mcv2(Mcv2.Settings.DEFAULT, null, 1, Mcv2.Verification.UNVERIFIED));
 
-      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, false);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, Mcv2.Verification.UNVERIFIED);
       final Optional<byte[]> initialReference = encoder.getReference();
       assertTrue(initialReference.isEmpty());
 

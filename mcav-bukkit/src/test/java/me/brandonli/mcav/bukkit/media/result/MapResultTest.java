@@ -76,7 +76,7 @@ final class MapResultTest {
     this.server.close();
   }
 
-  private MapConfiguration createConfiguration(final boolean shouldResize) {
+  private MapConfiguration createConfiguration(final Sizing sizing) {
     final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.map(5);
@@ -84,12 +84,8 @@ final class MapResultTest {
     builder.mapBlockHeight(1);
     builder.mapWidthResolution(64);
     builder.mapHeightResolution(64);
-    this.configureResize(builder, shouldResize);
+    builder.resize(sizing == Sizing.RESIZED);
     return builder.build();
-  }
-
-  private void configureResize(final MapConfiguration.Builder<?> builder, final boolean shouldResize) {
-    builder.resize(shouldResize);
   }
 
   /**
@@ -107,7 +103,7 @@ final class MapResultTest {
     builder.mapBlockHeight(rows);
     builder.mapWidthResolution(64);
     builder.mapHeightResolution(64);
-    this.configureResize(builder, false);
+    builder.resize(false);
     return builder.build();
   }
 
@@ -124,7 +120,7 @@ final class MapResultTest {
 
   @Test
   void shouldSendTheCompletePictureInEveryFrame() {
-    final MapConfiguration configuration = this.createConfiguration(false);
+    final MapConfiguration configuration = this.createConfiguration(Sizing.ORIGINAL);
     final MapResult result = new MapResult(configuration);
     result.start();
     final ImageBuffer image = Images.solid(MAP_SIZE, MAP_SIZE, FRAME_COLOR);
@@ -142,7 +138,7 @@ final class MapResultTest {
 
   @Test
   void shouldResizeFramesWhenConfigured() {
-    final MapConfiguration configuration = this.createConfiguration(true);
+    final MapConfiguration configuration = this.createConfiguration(Sizing.RESIZED);
     final MapResult result = new MapResult(configuration);
     final ImageBuffer image = Images.solid(MAP_SIZE, MAP_SIZE, FRAME_COLOR);
     result.process(image, this.algorithm);
@@ -210,7 +206,7 @@ final class MapResultTest {
 
   @Test
   void shouldClearTheMapsWhenReleased() {
-    final MapConfiguration configuration = this.createConfiguration(false);
+    final MapConfiguration configuration = this.createConfiguration(Sizing.ORIGINAL);
     final MapResult result = new MapResult(configuration);
     result.release();
     final ClientboundMapItemDataPacket packet = this.onlyMapPacket(0);
@@ -241,7 +237,7 @@ final class MapResultTest {
   @ParameterizedTest
   @ValueSource(ints = { 3, 5 })
   void shouldRejectDitheredPixelsWhoseLengthDoesNotMatchTheImage(final int length) {
-    final MapResult result = new MapResult(this.createConfiguration(false));
+    final MapResult result = new MapResult(this.createConfiguration(Sizing.ORIGINAL));
     when(this.algorithm.ditherIntoBytes(any(ImageBuffer.class))).thenReturn(new byte[length]);
     try (final ImageBuffer image = Images.solid(2, 2, FRAME_COLOR)) {
       final IllegalArgumentException failure = assertThrows(IllegalArgumentException.class, () -> result.process(image, this.algorithm));
@@ -255,7 +251,7 @@ final class MapResultTest {
 
   @Test
   void shouldRejectMissingArguments() {
-    final MapConfiguration configuration = this.createConfiguration(false);
+    final MapConfiguration configuration = this.createConfiguration(Sizing.ORIGINAL);
     final MapResult result = new MapResult(configuration);
 
     assertThrows(NullPointerException.class, () -> new MapResult(null));
@@ -269,5 +265,10 @@ final class MapResultTest {
     final boolean nothingSent = packets.isEmpty();
 
     assertTrue(nothingSent);
+  }
+
+  private enum Sizing {
+    RESIZED,
+    ORIGINAL,
   }
 }

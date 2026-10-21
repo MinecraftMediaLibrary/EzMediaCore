@@ -162,7 +162,7 @@ final class Mcv2PacerPropertyTest {
       this.pacer = new Mcv2Pacer(
         SIZES.subList(0, sizes),
         presets == 1 ? List.of(Mcv2Pacer.Preset.ONLY) : PRESETS.subList(0, presets),
-        true
+        Mcv2Pacer.Floor.DITHERED_MAPS
       );
       this.interval = Math.round(SECOND / framesPerSecond);
       this.noise = noise;
@@ -194,7 +194,7 @@ final class Mcv2PacerPropertyTest {
     private void finishEncodingsBy(final long arrival, final double fullMilliseconds) {
       while (this.encoding && this.busyUntil <= arrival) {
         this.encoding = false;
-        final Mcv2Pacer.@Nullable Change change = this.pacer.encoded(this.cost, false, this.busyUntil).orElse(null);
+        final Mcv2Pacer.@Nullable Change change = this.pacer.encoded(this.cost, Mcv2FrameKind.PREDICTED, this.busyUntil).orElse(null);
         if (change != null) {
           this.record(change, this.busyUntil);
           this.waiting = false;
