@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 """The subcommands of mcv2_tools: a usage naming them, their exit statuses and figures equal to the committed ones."""
 
 import json
@@ -32,7 +33,7 @@ import mcv2_tools
 
 
 class HelpCommandTest(unittest.TestCase):
-    def test_usage_names_each_subcommand_and_describes_its_exit_status(self):
+    def test_should_name_each_subcommand_and_describe_its_exit_status_in_the_usage(self):
         commands = (
             "bd_rate",
             "codec_curves",
@@ -56,10 +57,14 @@ class HelpCommandTest(unittest.TestCase):
                 with patch.object(sys, "argv", ["mcv2_tools.py", command, "--help"]), redirect_stdout(output):
                     with self.assertRaises(SystemExit) as status:
                         mcv2_tools.main()
-                self.assertEqual(0, status.exception.code)
-                self.assertIn(f"usage: mcv2_tools.py {command} ", output.getvalue())
-                self.assertIn("Exit 1", output.getvalue())
-                self.assertNotIn(mcv2_tools.__doc__, output.getvalue())
+
+                code = status.exception.code
+                self.assertEqual(0, code)
+
+                usage = output.getvalue()
+                self.assertIn(f"usage: mcv2_tools.py {command} ", usage)
+                self.assertIn("Exit 1", usage)
+                self.assertNotIn(mcv2_tools.__doc__, usage)
 
 
 class StripCommandTest(unittest.TestCase):
@@ -83,32 +88,44 @@ class StripCommandTest(unittest.TestCase):
             status = mcv2_tools.main()
         return status, json.loads(output.getvalue().splitlines()[-1])
 
-    def test_changed_scene_pixel_fails_the_subcommand(self):
+    def test_should_fail_the_subcommand_when_a_scene_pixel_changes(self):
         status, result = self.run_command(((160, 90), 0))
         self.assertEqual(1, status)
-        self.assertEqual(
-            ["160x90, where the strip does not fit: 1 pixels of the scene changed"], result["failures"]
-        )
-        self.assertEqual(7, result["checks"])
 
-    def test_second_screen_changing_the_first_screens_pixels_fails_the_subcommand(self):
+        failures = result["failures"]
+        self.assertEqual(
+            ["160x90, where the strip does not fit: 1 pixels of the scene changed"], failures
+        )
+
+        checks = result["checks"]
+        self.assertEqual(7, checks)
+
+    def test_should_fail_the_subcommand_when_the_second_screen_changes_the_pixels_of_the_first(self):
         status, result = self.run_command(((854, 480), 1))
         self.assertEqual(1, status)
+
+        failures = result["failures"]
         self.assertEqual(
             ["854x480, second screen: the screen pass changed 1 pixels the first screen's pass drew"],
-            result["failures"],
+            failures,
         )
-        self.assertEqual(7, result["checks"])
 
-    def test_unchanged_scene_passes_the_subcommand(self):
+        checks = result["checks"]
+        self.assertEqual(7, checks)
+
+    def test_should_pass_the_subcommand_when_the_scene_is_unchanged(self):
         status, result = self.run_command(None)
         self.assertEqual(0, status)
-        self.assertEqual([], result["failures"])
-        self.assertEqual(7, result["checks"])
+
+        failures = result["failures"]
+        self.assertEqual([], failures)
+
+        checks = result["checks"]
+        self.assertEqual(7, checks)
 
 
 class ChartCommandTest(unittest.TestCase):
-    def test_chart_command_reproduces_the_committed_pixels(self):
+    def test_should_reproduce_the_committed_chart_pixels(self):
         try:
             import matplotlib
             from matplotlib import font_manager
@@ -139,7 +156,8 @@ class ChartCommandTest(unittest.TestCase):
                     Image.open(root / "mcav-docs/images/mcv2" / f"{name}.png") as expected,
                     Image.open(output / f"{name}.png") as actual,
                 ):
-                    numpy.testing.assert_array_equal(numpy.array(expected), numpy.array(actual))
+                    pixels = numpy.array(actual)
+                    numpy.testing.assert_array_equal(numpy.array(expected), pixels)
 
 
 if __name__ == "__main__":

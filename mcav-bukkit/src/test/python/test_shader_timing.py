@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 """Checks mcv2_tools shader_timing without a GPU: its main() runs on a fake GL context, with a fake post chain
 that decodes as each test says, so what the run counts as a failure is tested on any machine.
 
@@ -118,27 +119,32 @@ def run(*options, missed=(), again=(), changed=(), version=3, received=None):
 
 
 class ExitCodeTest(unittest.TestCase):
-    def test_a_run_whose_frames_all_decode_once_to_the_same_pictures_passes(self):
-        self.assertEqual(0, run())
+    def test_should_pass_a_run_whose_frames_all_decode_once_to_the_same_pictures(self):
+        status = run()
+        self.assertEqual(0, status)
 
-    def test_a_frame_its_pages_did_not_decode_fails_the_run(self):
-        self.assertEqual(1, run(missed={(1, 1)}))
+    def test_should_fail_the_run_when_the_pages_of_a_frame_do_not_decode_it(self):
+        status = run(missed={(1, 1)})
+        self.assertEqual(1, status)
 
-    def test_a_frame_decoded_again_from_the_same_pages_fails_the_run(self):
-        self.assertEqual(1, run(again={(0, 0)}))
+    def test_should_fail_the_run_when_a_frame_decodes_again_from_the_same_pages(self):
+        status = run(again={(0, 0)})
+        self.assertEqual(1, status)
 
-    def test_another_picture_in_a_later_round_fails_the_run(self):
-        self.assertEqual(1, run(changed={(2, 1)}))
+    def test_should_fail_the_run_when_a_later_round_decodes_another_picture(self):
+        status = run(changed={(2, 1)})
+        self.assertEqual(1, status)
 
-    def test_a_run_that_would_time_nothing_is_refused(self):
+    def test_should_refuse_a_run_that_would_time_nothing(self):
         # the first round only warms the GPU up
         for options in (("--rounds", "1"), ("--repeats", "0"), ("--slots", "0")):
             with self.subTest(options=options):
-                self.assertEqual(2, run(*options))
+                status = run(*options)
+                self.assertEqual(2, status)
 
 
 class TimerAccountingTest(unittest.TestCase):
-    def test_each_copy_is_counted_and_vanilla_outline_blit_is_not_timed(self):
+    def test_should_count_each_copy_and_not_time_the_vanilla_outline_blit(self):
         class Query:
             elapsed = 2_000_000
 
@@ -162,28 +168,44 @@ class TimerAccountingTest(unittest.TestCase):
         chain.target = lambda name: types.SimpleNamespace(read=lambda: b"\x01\x00\x00\x00")
         decoded, times = chain.timed_frame(5)
         self.assertTrue(decoded)
+
         self.assertEqual({"mcv2_copy -> previous_0": 2.0, "mcv2_copy -> state_0": 2.0}, times)
-        self.assertEqual(4.0, sum(times.values()))
+
+        total = sum(times.values())
+        self.assertEqual(4.0, total)
+
         self.assertEqual(["mcav:mcv2_previous_0", "mcav:mcv2_state_0", "minecraft:entity_outline"], drawn)
 
-    def test_version_three_ids_classify_keyframes_and_p_frames_separately(self):
+    def test_should_classify_keyframes_and_p_frames_separately_by_their_version_three_ids(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "timings.json"
-            self.assertEqual(0, run("--json", str(path)))
-            stream = json.loads(path.read_text())["streams"]["stream.mcs"]
-            self.assertEqual(2, stream["new_keyframe"]["total"]["n"])
-            self.assertEqual(2, stream["new_p"]["total"]["n"])
-            self.assertEqual(4, stream["idle"]["total"]["n"])
+            status = run("--json", str(path))
+            self.assertEqual(0, status)
 
-    def test_archived_version_two_baseline_flags_still_classify_frames(self):
+            stream = json.loads(path.read_text())["streams"]["stream.mcs"]
+            keyframes = stream["new_keyframe"]["total"]["n"]
+            self.assertEqual(2, keyframes)
+
+            p_frames = stream["new_p"]["total"]["n"]
+            self.assertEqual(2, p_frames)
+
+            idle = stream["idle"]["total"]["n"]
+            self.assertEqual(4, idle)
+
+    def test_should_still_classify_frames_by_the_flags_of_the_archived_version_two_baseline(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "baseline.json"
-            self.assertEqual(0, run("--json", str(path), version=2))
-            stream = json.loads(path.read_text())["streams"]["stream.mcs"]
-            self.assertEqual(2, stream["new_keyframe"]["total"]["n"])
-            self.assertEqual(2, stream["new_p"]["total"]["n"])
+            status = run("--json", str(path), version=2)
+            self.assertEqual(0, status)
 
-    def test_reference_option_imports_transport_from_the_archived_package_directory(self):
+            stream = json.loads(path.read_text())["streams"]["stream.mcs"]
+            keyframes = stream["new_keyframe"]["total"]["n"]
+            self.assertEqual(2, keyframes)
+
+            p_frames = stream["new_p"]["total"]["n"]
+            self.assertEqual(2, p_frames)
+
+    def test_should_import_the_transport_of_the_reference_option_from_the_archived_package_directory(self):
         with tempfile.TemporaryDirectory() as directory:
             package = Path(directory) / "mcvideo"
             package.mkdir()
@@ -196,7 +218,9 @@ class TimerAccountingTest(unittest.TestCase):
             with mock.patch.object(sys, "path", sys.path.copy()), mock.patch.dict(sys.modules):
                 sys.modules.pop("mcvideo", None)
                 sys.modules.pop("mcvideo.transport", None)
-                self.assertEqual(0, run("--reference", directory, version=2, received=received))
+                status = run("--reference", directory, version=2, received=received)
+                self.assertEqual(0, status)
+
             expected = [
                 [b"archived-v2:\x07\x06" + frame(keyframe, 2)] for keyframe in (True, True, False, False)
             ]

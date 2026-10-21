@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 """Specification validation and serializer tests, including literal wire examples."""
 
 import random
@@ -25,42 +26,53 @@ from mcv2_reference import Node, pack_frame, parse_frame
 
 
 class FormatTest(unittest.TestCase):
-    def test_literal_frame_layout(self):
+    def test_should_pack_and_parse_the_literal_frame_layout(self):
         expected = bytes.fromhex(
             '4d435632 03000000 0100 0100 09000000 09000000'
             '01000000 00000000 01000000 00000000 00000000 02 00000000 abcdef')
         actual = pack_frame(1, 1, 9, 9, {0: Node(mcv2_reference.SOLID, record=b'\xab\xcd\xef')})
         self.assertEqual(expected, actual)
-        frame = parse_frame(expected)
-        self.assertEqual((1, 1, 9, 9, True, 45, 48),
-                         (frame.width, frame.height, frame.frame_id, frame.reference_id, frame.keyframe,
-                          frame.payload_start, frame.total))
-        self.assertEqual((0, 0, 32, mcv2_reference.SOLID, 0, 45),
-                         (frame.leaves[0].pixel_x, frame.leaves[0].pixel_y, frame.leaves[0].size,
-                          frame.leaves[0].mode, frame.leaves[0].quantizer, frame.leaves[0].offset))
 
-    def test_every_validation_rule(self):
+        frame = parse_frame(expected)
+        header = (frame.width, frame.height, frame.frame_id, frame.reference_id, frame.keyframe, frame.payload_start, frame.total)
+        self.assertEqual((1, 1, 9, 9, True, 45, 48), header)
+
+        leaf = frame.leaves[0]
+        placement = (leaf.pixel_x, leaf.pixel_y, leaf.size, leaf.mode, leaf.quantizer, leaf.offset)
+        self.assertEqual((0, 0, 32, mcv2_reference.SOLID, 0, 45), placement)
+
+    def test_should_reject_a_frame_for_every_validation_rule(self):
         cases = rejected_frames()
-        self.assertEqual({'9.1', '9.3', '9.4', '9.5', '9.6'}, {case['rule'] for case in cases.values()})
+        rules = {case['rule'] for case in cases.values()}
+        self.assertEqual({'9.1', '9.3', '9.4', '9.5', '9.6'}, rules)
+
         for name, case in cases.items():
             with self.subTest(name=name, rule=case['rule']):
                 with self.assertRaisesRegex(ValueError, case['reason']):
                     parse_frame(bytes.fromhex(case['frame']))
 
-    def test_level_order_coordinates_and_offsets(self):
+    def test_should_place_leaves_in_level_order_with_their_coordinates_and_offsets(self):
         fine = Node(mcv2_reference.SPLIT, children=tuple(Node(mcv2_reference.SOLID, record=bytes([index, index, index])) for index in range(4)))
         roots = {1: Node(mcv2_reference.SPLIT, children=(Node(mcv2_reference.SKIP), fine, Node(mcv2_reference.SKIP), Node(mcv2_reference.SKIP))),
                  0: Node(mcv2_reference.SOLID, record=b'abc')}
         frame = parse_frame(pack_frame(65, 17, 1, 1, roots))
-        self.assertEqual((2, 4, 4), frame.level_counts)
-        self.assertEqual(bytes([2, 6, 0, 6, 0, 0, 2, 2, 2, 2]), frame.descriptors)
-        self.assertEqual((0, 9 | 2 << 17), frame.walk)
-        self.assertEqual([(0, 0, 32), (32, 0, 16), (32, 16, 16), (48, 16, 16),
-                          (48, 0, 8), (56, 0, 8), (48, 8, 8), (56, 8, 8), (64, 0, 32)],
-                         [(leaf.pixel_x, leaf.pixel_y, leaf.size) for leaf in frame.leaves])
-        self.assertEqual(roots, frame.roots)
+        level_counts = frame.level_counts
+        self.assertEqual((2, 4, 4), level_counts)
 
-    def test_serializer_round_trips_whole_patterns_at_every_size(self):
+        descriptors = frame.descriptors
+        self.assertEqual(bytes([2, 6, 0, 6, 0, 0, 2, 2, 2, 2]), descriptors)
+
+        walk = frame.walk
+        self.assertEqual((0, 9 | 2 << 17), walk)
+
+        placements = [(leaf.pixel_x, leaf.pixel_y, leaf.size) for leaf in frame.leaves]
+        self.assertEqual([(0, 0, 32), (32, 0, 16), (32, 16, 16), (48, 16, 16),
+                          (48, 0, 8), (56, 0, 8), (48, 8, 8), (56, 8, 8), (64, 0, 32)], placements)
+
+        parsed_roots = frame.roots
+        self.assertEqual(roots, parsed_roots)
+
+    def test_should_round_trip_whole_patterns_at_every_size(self):
         randomizer = random.Random(1541)
         def leaf(size):
             return Node(mcv2_reference.PATTERN, record=bytes(randomizer.randrange(256) for _ in range(6))
@@ -73,38 +85,56 @@ class FormatTest(unittest.TestCase):
             roots = {0: tree(32), 1: leaf(32), 2: tree(32), 3: Node(mcv2_reference.SKIP)}
             data = pack_frame(51, 35, 44, 44, roots)
             frame = parse_frame(data)
-            self.assertEqual(roots, frame.roots)
-            self.assertEqual(len(data), frame.payload_start + sum(len(leaf.record) for leaf in frame.leaves))
-            self.assertEqual(data, pack_frame(frame.width, frame.height, frame.frame_id, frame.reference_id, frame.roots))
+            parsed_roots = frame.roots
+            self.assertEqual(roots, parsed_roots)
 
-    def test_present_skips_and_every_compact_quantizer_are_valid(self):
+            covered = frame.payload_start + sum(len(leaf.record) for leaf in frame.leaves)
+            self.assertEqual(len(data), covered)
+
+            repacked = pack_frame(frame.width, frame.height, frame.frame_id, frame.reference_id, frame.roots)
+            self.assertEqual(data, repacked)
+
+    def test_should_accept_present_skips_and_every_compact_quantizer(self):
         for quantizer in range(3):
             frame = parse_frame(pack_frame(1, 1, 1, 0, {0: Node(mcv2_reference.COMPACT, quantizer, bytes(10))}))
-            self.assertEqual((quantizer, 10), (frame.leaves[0].quantizer, len(frame.leaves[0].record)))
-        frame = parse_frame(pack_frame(1, 1, 0, 0, {0: Node(mcv2_reference.SKIP)}))
-        self.assertEqual({0: Node(mcv2_reference.SKIP)}, frame.roots)
+            quantizer_and_length = (frame.leaves[0].quantizer, len(frame.leaves[0].record))
+            self.assertEqual((quantizer, 10), quantizer_and_length)
 
-    def test_directory_and_maximum_dimensions(self):
+        frame = parse_frame(pack_frame(1, 1, 0, 0, {0: Node(mcv2_reference.SKIP)}))
+        roots = frame.roots
+        self.assertEqual({0: Node(mcv2_reference.SKIP)}, roots)
+
+    def test_should_build_the_directory_at_the_maximum_dimensions(self):
         roots = {index: Node(mcv2_reference.SKIP) for index in (0, 31, 32, 255, 256, 16383)}
         frame = parse_frame(pack_frame(4096, 4096, 0, 0, roots))
-        self.assertEqual((0, 4, 5), frame.directory[:3])
-        self.assertEqual(roots, frame.roots)
-        self.assertEqual(16384, len(frame.leaves))
+        directory = frame.directory[:3]
+        self.assertEqual((0, 4, 5), directory)
 
-    def test_inclusive_frame_length_limit(self):
+        parsed_roots = frame.roots
+        self.assertEqual(roots, parsed_roots)
+
+        leaf_count = len(frame.leaves)
+        self.assertEqual(16384, leaf_count)
+
+    def test_should_include_the_frame_length_limit(self):
         roots = {index: Node(mcv2_reference.PALETTE, record=bytes(134)) for index in range(965)}
         roots[965] = Node(mcv2_reference.PATTERN, record=bytes(11))
         roots.update({index: Node(mcv2_reference.SOLID, record=bytes(3)) for index in range(966, 993)})
         data = pack_frame(1024, 1024, 0, 0, roots)
-        self.assertEqual(131071, len(data))
-        self.assertEqual(131071, parse_frame(data).total)
+        length = len(data)
+        self.assertEqual(131071, length)
+
+        total = parse_frame(data).total
+        self.assertEqual(131071, total)
+
         with self.assertRaisesRegex(ValueError, 'frame length'):
             parse_frame(data + b'\0')
+
         roots[993] = Node(mcv2_reference.SOLID, record=bytes(3))
         with self.assertRaisesRegex(ValueError, 'length limit'):
             pack_frame(1024, 1024, 0, 0, roots)
 
-    def test_serializer_refuses_invalid_trees(self):
+    def test_should_refuse_to_serialize_invalid_trees(self):
         bad = [Node(mcv2_reference.SPLIT), Node(mcv2_reference.SKIP, 1), Node(mcv2_reference.SKIP, record=b'x'), Node(mcv2_reference.SOLID, record=b'x'),
                Node(mcv2_reference.COMPACT, record=b'\0'), Node(mcv2_reference.COMPACT, record=bytes(11)), Node(mcv2_reference.COMPACT, 3, bytes(10)),
                Node(mcv2_reference.SOLID, 1, bytes(3)), Node(mcv2_reference.PATTERN, record=bytes(2)), Node(mcv2_reference.PATTERN, record=bytes(12)),

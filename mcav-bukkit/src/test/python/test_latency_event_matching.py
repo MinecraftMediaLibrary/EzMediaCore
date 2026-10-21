@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 """Exact event matching for the MCV2 latency report, without JFR or a client."""
 
 import json
@@ -44,25 +45,31 @@ class LatencyTest(unittest.TestCase):
                 mcv2_tools.latency_main()
             return json.loads(output.read_text())
 
-    def test_repeated_number_uses_a_frame_sent_before_capture(self):
+    def test_should_use_a_frame_sent_before_the_capture_for_a_repeated_number(self):
         result = self.report(event(1, 150, 250))
-        self.assertEqual(1, result["displayed"])
+        displayed = result["displayed"]
+        self.assertEqual(1, displayed)
+
         for statistic in ("mean", "p50", "p95", "max"):
-            self.assertEqual(200, result["glass_to_glass_ms_" + statistic])
+            glass_to_glass = result["glass_to_glass_ms_" + statistic]
+            self.assertEqual(200, glass_to_glass)
 
-    def test_an_unsent_occurrence_cannot_replace_the_displayed_one(self):
+    def test_should_not_replace_the_displayed_frame_with_an_unsent_occurrence(self):
         result = self.report(event(1, 150, 175, sent_to=0))
-        self.assertEqual(200, result["glass_to_glass_ms_mean"])
+        glass_to_glass = result["glass_to_glass_ms_mean"]
+        self.assertEqual(200, glass_to_glass)
 
-    def test_a_later_sent_occurrence_can_be_displayed(self):
+    def test_should_display_a_later_sent_occurrence(self):
         result = self.report(event(1, 150, 175))
-        self.assertEqual(50, result["glass_to_glass_ms_mean"])
+        glass_to_glass = result["glass_to_glass_ms_mean"]
+        self.assertEqual(50, glass_to_glass)
 
-    def test_a_nonfinite_send_time_cannot_be_displayed(self):
+    def test_should_not_display_an_occurrence_with_a_nonfinite_send_time(self):
         for invalid in (float("nan"), float("inf")):
             with self.subTest(invalid=invalid):
                 result = self.report(event(1, 150, invalid))
-                self.assertEqual(200, result["glass_to_glass_ms_mean"])
+                glass_to_glass = result["glass_to_glass_ms_mean"]
+                self.assertEqual(200, glass_to_glass)
 
 
 if __name__ == "__main__":

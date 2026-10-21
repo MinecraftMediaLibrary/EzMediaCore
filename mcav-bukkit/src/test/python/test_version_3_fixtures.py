@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 """Version 3 fixture coverage, archive framing and Java-owned fixture preservation."""
 
 import hashlib
@@ -37,7 +38,7 @@ class FixtureCoverageTest(unittest.TestCase):
     def setUpClass(cls):
         cls.streams = mcv2_tools.edge_streams_build_streams()
 
-    def test_every_leaf_size_quantizer_vector_extreme_and_pattern_axis(self):
+    def test_should_cover_every_leaf_size_quantizer_vector_extreme_and_pattern_axis(self):
         modes, compacts, vectors, dimensions = set(), set(), set(), set()
         max_cursor = max_splits = max_length = 0
         for frames in self.streams.values():
@@ -53,13 +54,23 @@ class FixtureCoverageTest(unittest.TestCase):
                     if leaf.mode == mcv2_reference.COMPACT:
                         compacts.add((leaf.size, leaf.quantizer))
                         vectors.add(leaf.record[:2])
+
         self.assertEqual({(mode, size) for mode in range(6) for size in (8, 16, 32)}, modes)
+
         self.assertEqual({(size, quantizer) for size in (8, 16, 32) for quantizer in range(3)}, compacts)
-        self.assertTrue({b'\0\0', b'\x80\x7f', b'\x7f\x80', b'\x80\x80', b'\x7f\x7f'} <= vectors)
-        self.assertTrue({(1, 1), (1, 97), (97, 1), (97, 65), (4096, 4096)} <= dimensions)
+
+        extremes_covered = {b'\0\0', b'\x80\x7f', b'\x7f\x80', b'\x80\x80', b'\x7f\x7f'} <= vectors
+        self.assertTrue(extremes_covered)
+
+        dimensions_covered = {(1, 1), (1, 97), (97, 1), (97, 65), (4096, 4096)} <= dimensions
+        self.assertTrue(dimensions_covered)
+
         self.assertGreater(max_cursor, 128000)
+
         self.assertGreater(max_splits, 20000)
+
         self.assertEqual(131071, max_length)
+
         patterns = {(leaf.size, leaf.record[6], leaf.record[7:]) for leaf in
                     parse_frame(self.streams['edge-patterns.mcs'][0]).leaves}
         for size in (8, 16, 32):
@@ -67,29 +78,36 @@ class FixtureCoverageTest(unittest.TestCase):
                 for axis in (0, 255, 0xA5):
                     self.assertIn((size, orientation, bytes([axis]) * (size // 8)), patterns)
 
-    def test_committed_edge_streams_equal_the_deterministic_serializer_output(self):
+    def test_should_commit_edge_streams_equal_to_the_deterministic_serializer_output(self):
         root = ROOT / 'mcav-bukkit/src/test/resources/mcv2/edge'
-        self.assertEqual(set(self.streams), {path.name for path in root.glob('*.mcs')})
+        committed = {path.name for path in root.glob('*.mcs')}
+        self.assertEqual(set(self.streams), committed)
+
         for name, frames in self.streams.items():
             with self.subTest(stream=name):
-                self.assertEqual((root / name).read_bytes(), mcv2_tools.archive_bytes(frames))
+                archive = mcv2_tools.archive_bytes(frames)
+                self.assertEqual((root / name).read_bytes(), archive)
 
-    def test_random_streams_are_reproducible_and_decodable(self):
+    def test_should_reproduce_and_decode_random_streams(self):
         left = mcv2_tools.edge_streams_random_stream(random.Random(57))
         right = mcv2_tools.edge_streams_random_stream(random.Random(57))
         self.assertEqual(left, right)
-        self.assertEqual(6, len(mcv2_tools.fixtures_digests(mcv2_tools.archive_bytes(left))))
+
+        digest_count = len(mcv2_tools.fixtures_digests(mcv2_tools.archive_bytes(left)))
+        self.assertEqual(6, digest_count)
 
 
 class FixtureToolTest(unittest.TestCase):
-    def test_archive_round_trip_and_truncations(self):
+    def test_should_round_trip_archives_and_reject_truncations(self):
         values = [b'abcd', b'', b'MCV2']
-        self.assertEqual(values, list(mcv2_tools.archive_frames(mcv2_tools.archive_bytes(values))))
+        frames = list(mcv2_tools.archive_frames(mcv2_tools.archive_bytes(values)))
+        self.assertEqual(values, frames)
+
         for raw in (b'\1', b'\1\0', b'\1\0\0', b'\2\0\0\0a'):
             with self.subTest(raw=raw), self.assertRaises(ValueError):
                 list(mcv2_tools.archive_frames(raw))
 
-    def test_conformance_skips_version_2_and_checks_version_3_without_touching_streams(self):
+    def test_should_skip_version_2_and_check_version_3_conformance_without_touching_streams(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             output = root / 'conformance'
@@ -101,26 +119,47 @@ class FixtureToolTest(unittest.TestCase):
             messages = StringIO()
             with redirect_stderr(messages):
                 mcv2_tools.fixtures_conformance(root)
-            self.assertIn('skip non-v3 stream:', messages.getvalue())
-            self.assertEqual(old_digests, (output / 'digests.json').read_text())
+
+            warnings = messages.getvalue()
+            self.assertIn('skip non-v3 stream:', warnings)
+
+            digests = (output / 'digests.json').read_text()
+            self.assertEqual(old_digests, digests)
+
             data = pack_frame(1, 1, 3, 3, {0: Node(mcv2_reference.SOLID, record=bytes([10, 20, 30]))})
             archive = mcv2_tools.archive_bytes([data])
             (output / 'new.mcs').write_bytes(archive)
             with redirect_stderr(StringIO()):
                 mcv2_tools.fixtures_conformance(root)
                 mcv2_tools.fixtures_pages(root)
-            result = json.loads((output / 'digests.json').read_text())
-            self.assertEqual({'unchanged': True}, result['old.mcs'])
-            self.assertEqual([hashlib.sha256(bytes([10, 20, 30])).hexdigest()], result['new.mcs']['sha256_per_frame'])
-            self.assertEqual(old_stream, (output / 'old.mcs').read_bytes())
-            self.assertEqual(archive, (output / 'new.mcs').read_bytes())
-            pages = json.loads((output / 'pages.json').read_text())
-            self.assertEqual('committed v3 conformance streams', pages['source'])
-            self.assertEqual(6, pages['symbol_bits'])
-            self.assertEqual(4, len(pages['frames']))
-            self.assertEqual({'conformance/new.mcs'}, {entry['stream'] for entry in pages['frames']})
 
-    def test_encoder_only_decodes_and_never_rewrites(self):
+            result = json.loads((output / 'digests.json').read_text())
+            old_result = result['old.mcs']
+            self.assertEqual({'unchanged': True}, old_result)
+
+            new_digests = result['new.mcs']['sha256_per_frame']
+            self.assertEqual([hashlib.sha256(bytes([10, 20, 30])).hexdigest()], new_digests)
+
+            old_bytes = (output / 'old.mcs').read_bytes()
+            self.assertEqual(old_stream, old_bytes)
+
+            new_bytes = (output / 'new.mcs').read_bytes()
+            self.assertEqual(archive, new_bytes)
+
+            pages = json.loads((output / 'pages.json').read_text())
+            source = pages['source']
+            self.assertEqual('committed v3 conformance streams', source)
+
+            symbol_bits = pages['symbol_bits']
+            self.assertEqual(6, symbol_bits)
+
+            frame_count = len(pages['frames'])
+            self.assertEqual(4, frame_count)
+
+            streams = {entry['stream'] for entry in pages['frames']}
+            self.assertEqual({'conformance/new.mcs'}, streams)
+
+    def test_should_only_decode_encoder_fixtures_and_never_rewrite_them(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             output = root / 'encoder'
@@ -130,21 +169,31 @@ class FixtureToolTest(unittest.TestCase):
             golden.write_bytes(data)
             with redirect_stderr(StringIO()):
                 mcv2_tools.fixtures_encoder(root)
-            self.assertEqual(data, golden.read_bytes())
+
+            golden_bytes = golden.read_bytes()
+            self.assertEqual(data, golden_bytes)
+
             golden.write_bytes(mcv2_tools.archive_bytes([pack_frame(1, 1, 1, 0, {})]))
             with self.assertRaisesRegex(ValueError, 'reference'):
                 mcv2_tools.fixtures_encoder(root)
 
-    def test_committed_pages_cover_conformance_and_multi_page_edges(self):
+    def test_should_cover_conformance_and_multi_page_edges_in_the_committed_pages(self):
         root = ROOT / 'mcav-bukkit/src/test/resources/mcv2'
         table = json.loads((root / 'conformance/pages.json').read_text())
-        self.assertEqual(6, table['symbol_bits'])
-        self.assertEqual(6, len(table['frames']))
-        self.assertEqual({1, 2, 11}, {len(entry['pages']) for entry in table['frames']})
-        self.assertEqual({'conformance', 'edge'}, {entry['stream'].split('/')[0] for entry in table['frames']})
+        symbol_bits = table['symbol_bits']
+        self.assertEqual(6, symbol_bits)
+
+        frame_count = len(table['frames'])
+        self.assertEqual(6, frame_count)
+
+        page_counts = {len(entry['pages']) for entry in table['frames']}
+        self.assertEqual({1, 2, 11}, page_counts)
+
+        folders = {entry['stream'].split('/')[0] for entry in table['frames']}
+        self.assertEqual({'conformance', 'edge'}, folders)
 
 
-    def test_regenerated_pages_match_all_committed_vectors_byte_for_byte(self):
+    def test_should_regenerate_pages_that_match_every_committed_vector_byte_for_byte(self):
         root = ROOT / 'mcav-bukkit/src/test/resources/mcv2'
         expected = (root / 'conformance/pages.json').read_bytes()
         with tempfile.TemporaryDirectory() as directory:
@@ -152,7 +201,8 @@ class FixtureToolTest(unittest.TestCase):
             for name in ('conformance', 'edge'):
                 shutil.copytree(root / name, output / name)
             mcv2_tools.fixtures_pages(output)
-            self.assertEqual(expected, (output / 'conformance/pages.json').read_bytes())
+            regenerated = (output / 'conformance/pages.json').read_bytes()
+            self.assertEqual(expected, regenerated)
 
 
 if __name__ == '__main__':
