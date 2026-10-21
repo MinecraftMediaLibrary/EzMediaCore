@@ -38,8 +38,8 @@ using std::vector;
 namespace {
 
 struct level_kernels {
-  const char* name;
-#define MCV2_FIELD(type, name, parameters) type(*name) parameters;
+  const char* name_;
+#define MCV2_FIELD(type, name, parameters) type(*name##_) parameters;
   MCV2_KERNELS(MCV2_FIELD)
 };
 
@@ -80,8 +80,8 @@ namespace {
 #endif
 
 struct known_level {
-  const char* name;
-  int32_t bit;
+  const char* name_;
+  int32_t bit_;
 };
 
 constexpr known_level KNOWN_LEVELS[] = {{"scalar", MCV2_LEVEL_SCALAR}, {"sse2", MCV2_LEVEL_SSE2},
@@ -98,9 +98,9 @@ int64_t kernel_capabilities() {
 }
 
 struct random_generator {
-  uint64_t state;
+  uint64_t state_;
   uint64_t next() {
-    uint64_t mixed_value = (state += 0x9E3779B97F4A7C15ull);
+    uint64_t mixed_value = (state_ += 0x9E3779B97F4A7C15ull);
     mixed_value = (mixed_value ^ (mixed_value >> 30)) * 0xBF58476D1CE4E5B9ull;
     mixed_value = (mixed_value ^ (mixed_value >> 27)) * 0x94D049BB133111EBull;
     return mixed_value ^ (mixed_value >> 31);
@@ -152,11 +152,11 @@ struct random_generator {
 };
 
 struct fnv_digest {
-  uint64_t value = 0xCBF29CE484222325ull;
+  uint64_t value_ = 0xCBF29CE484222325ull;
   void add(const void* data, size_t length) {
     const uint8_t* bytes = (const uint8_t*)data;
     for (size_t index = 0; index < length; index++) {
-      value = (value ^ bytes[index]) * 0x100000001B3ull;
+      value_ = (value_ ^ bytes[index]) * 0x100000001B3ull;
     }
   }
   template <class ValueType> void add(const vector<ValueType>& values) {
@@ -177,7 +177,7 @@ template <class ValueType> bool same(const vector<ValueType>& actual, const vect
 
 void report(bool equal, const char* kernel, const level_kernels& level, int trial) {
   if (!equal && failures++ < 20) {
-    fprintf(stderr, "%s differs at %s, trial %d\n", kernel, level.name, trial);
+    fprintf(stderr, "%s differs at %s, trial %d\n", kernel, level.name_, trial);
   }
 }
 
@@ -205,36 +205,36 @@ void run(const vector<level_kernels>& levels, int trials) {
         vector<int8_t> bytes;
         switch (kernel) {
         case 0:
-          measured = level.predicted(prediction.data(), size, output.data(), source.data(), rate, limit);
+          measured = level.predicted_(prediction.data(), size, output.data(), source.data(), rate, limit);
           break;
         case 1:
-          measured = level.solid(inputs.range(0, 0xFFFFFF), size, output.data(), source.data(), rate, limit);
+          measured = level.solid_(inputs.range(0, 0xFFFFFF), size, output.data(), source.data(), rate, limit);
           break;
         case 2: {
           const vector<int8_t> record = inputs.bytes(6 + size * size / 8);
-          measured = level.palette(record.data(), size, output.data(), source.data(), rate, limit);
+          measured = level.palette_(record.data(), size, output.data(), source.data(), rate, limit);
           break;
         }
         case 3: {
           const int32_t quantizer = inputs.range(0, 2);
           const vector<int8_t> record = inputs.bytes(10);
-          measured = level.compact(prediction.data(), record.data(), quantizer, size, output.data(), source.data(),
-                                   rate, limit);
+          measured = level.compact_(prediction.data(), record.data(), quantizer, size, output.data(), source.data(),
+                                    rate, limit);
           break;
         }
         case 4: {
           const int32_t width = inputs.range(1, 80);
           const int32_t height = inputs.range(1, 60);
           const vector<uint8_t> reference = inputs.unsigned_bytes((size_t)width * height * 3);
-          level.predict(reference.data(), width, height, inputs.range(-10, width + 10), inputs.range(-10, height + 10),
-                        size, inputs.range(-40, 40), inputs.range(-40, 40), output.data());
+          level.predict_(reference.data(), width, height, inputs.range(-10, width + 10), inputs.range(-10, height + 10),
+                         size, inputs.range(-40, 40), inputs.range(-40, 40), output.data());
           break;
         }
         case 5: {
           const vector<float> values = inputs.floats((size_t)size * size);
           const vector<float> matrix = inputs.floats((size_t)4 * size);
           floats.assign(16, 0);
-          level.fit(values.data(), size, matrix.data(), floats.data());
+          level.fit_(values.data(), size, matrix.data(), floats.data());
           break;
         }
         case 6: {
@@ -248,7 +248,7 @@ void run(const vector<level_kernels>& levels, int trials) {
             }
           }
           integers.assign(6, 0);
-          level.cluster(block.data(), size, integers.data());
+          level.cluster_(block.data(), size, integers.data());
           break;
         }
         case 7:
@@ -256,9 +256,9 @@ void run(const vector<level_kernels>& levels, int trials) {
           const vector<int32_t> colors = inputs.integers(6, 0, 255);
           bytes.assign((size_t)size * size, 0);
           if (kernel == 7) {
-            level.assign(source.data(), size * size, colors.data(), bytes.data());
+            level.assign_(source.data(), size * size, colors.data(), bytes.data());
           } else {
-            measured = level.assign_pattern(source.data(), size, colors.data(), bytes.data());
+            measured = level.assign_pattern_(source.data(), size, colors.data(), bytes.data());
           }
           break;
         }
@@ -275,26 +275,26 @@ void run(const vector<level_kernels>& levels, int trials) {
           if (inputs.range(0, 7) == 0) {
             block[inputs.range(0, (int32_t)block.size() - 1)] = (int32_t)inputs.next();
           }
-          measured =
-              level.seeded(reference.data(), width, height, block.data(), inputs.range(0, width - 1),
-                           inputs.range(0, height - 1), size, inputs.range(0, 24), seeds.data(), (int32_t)seeds.size());
+          measured = level.seeded_(reference.data(), width, height, block.data(), inputs.range(0, width - 1),
+                                   inputs.range(0, height - 1), size, inputs.range(0, 24), seeds.data(),
+                                   (int32_t)seeds.size());
           break;
         }
         case 10: {
           const int32_t width = inputs.range(1, 70);
           const int32_t height = inputs.range(1, 70);
           const vector<uint8_t> image = inputs.unsigned_bytes((size_t)width * height * 3);
-          level.load_source(image.data(), width, height, inputs.range(0, width - 1), inputs.range(0, height - 1), size,
-                            output.data());
+          level.load_source_(image.data(), width, height, inputs.range(0, width - 1), inputs.range(0, height - 1), size,
+                             output.data());
           break;
         }
         case 11:
-          level.halve(source.data(), size, output.data());
+          level.halve_(source.data(), size, output.data());
           break;
         default: {
           const int32_t count = inputs.range(0, size * size);
           floats = inputs.floats((size_t)count + 2);
-          level.residual_target(source.data(), prediction.data(), count, floats.data());
+          level.residual_target_(source.data(), prediction.data(), count, floats.data());
           break;
         }
         }
@@ -324,17 +324,17 @@ void run(const vector<level_kernels>& levels, int trials) {
 
       random.next();
     }
-    printf("%-16s %016llx\n", names[kernel], (unsigned long long)digest.value);
-    total.add(digest.value);
+    printf("%-16s %016llx\n", names[kernel], (unsigned long long)digest.value_);
+    total.add(digest.value_);
   }
-  printf("%-16s %016llx\n", "all", (unsigned long long)total.value);
+  printf("%-16s %016llx\n", "all", (unsigned long long)total.value_);
 }
 
 const char* best_level_name(int32_t available) {
   const char* name = "none";
   for (const auto& level : KNOWN_LEVELS) {
-    if (available & level.bit) {
-      name = level.name;
+    if (available & level.bit_) {
+      name = level.name_;
     }
   }
   return name;
@@ -367,7 +367,7 @@ int main(int argument_count, char** arguments) {
   };
   for (const level_kernels& level : linked) {
     for (const auto& candidate : KNOWN_LEVELS) {
-      if (strcmp(candidate.name, level.name) == 0 && (available & candidate.bit)) {
+      if (strcmp(candidate.name_, level.name_) == 0 && (available & candidate.bit_)) {
         levels.push_back(level);
       }
     }
@@ -384,16 +384,16 @@ int main(int argument_count, char** arguments) {
   }
   const int32_t available = ((int32_t(*)(int64_t))dlsym(library, "mcv2_cpu_levels"))(kernel_capabilities());
   for (const auto& candidate : KNOWN_LEVELS) {
-    if (!(available & candidate.bit)) {
+    if (!(available & candidate.bit_)) {
       continue;
     }
     level_kernels level{};
-    level.name = candidate.name;
+    level.name_ = candidate.name_;
     char symbol[64];
 #define MCV2_LOAD(type, kernel, parameters)                                                                            \
-  snprintf(symbol, sizeof(symbol), "mcv2_%s_%s", candidate.name, #kernel);                                             \
-  level.kernel = (type(*) parameters)dlsym(library, symbol);                                                           \
-  if (level.kernel == nullptr) {                                                                                       \
+  snprintf(symbol, sizeof(symbol), "mcv2_%s_%s", candidate.name_, #kernel);                                            \
+  level.kernel##_ = (type(*) parameters)dlsym(library, symbol);                                                        \
+  if (level.kernel##_ == nullptr) {                                                                                    \
     fprintf(stderr, "missing %s\n", symbol);                                                                           \
     return 2;                                                                                                          \
   }
@@ -403,7 +403,7 @@ int main(int argument_count, char** arguments) {
 #endif
   printf("levels:");
   for (const level_kernels& level : levels) {
-    printf(" %s", level.name);
+    printf(" %s", level.name_);
   }
   printf("\ndispatched: %s\n", best_level_name(available));
   if (expected != nullptr && strcmp(expected, best_level_name(available)) != 0) {
