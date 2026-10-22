@@ -40,6 +40,7 @@ final class IoUtils {
       final String message = "Path %s has no file name!".formatted(file);
       throw new InstallationException(message);
     }
+
     return name.toString();
   }
 }

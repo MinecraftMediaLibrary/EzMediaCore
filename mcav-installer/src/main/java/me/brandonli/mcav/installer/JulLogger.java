@@ -85,10 +85,11 @@ final class JulLogger extends LegacyAbstractLogger {
     final Throwable throwable
   ) {
     final String message = MessageFormatter.basicArrayFormat(messagePattern, arguments);
-    this.logger.log(levelOf(level), message, throwable);
+    final Level loggingLevel = this.levelOf(level);
+    this.logger.log(loggingLevel, message, throwable);
   }
 
-  private static Level levelOf(
+  private Level levelOf(
     final org.slf4j.event.Level level // fqn: SLF4J's level beside java.util.logging's
   ) {
     return switch (level) {

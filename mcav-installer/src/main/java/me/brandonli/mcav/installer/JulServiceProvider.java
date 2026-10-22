@@ -51,6 +51,12 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
   }
 
   /**
+   * Prepares nothing: the factories are ready once the provider is constructed.
+   */
+  @Override
+  public void initialize() {}
+
+  /**
    * Returns the factory of loggers, each of which writes to the {@code java.util.logging} logger of its name.
    *
    * @return the factory
@@ -89,10 +95,4 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
   public String getRequestedApiVersion() {
     return API_VERSION;
   }
-
-  /**
-   * Prepares nothing: the factories are ready once the provider is constructed.
-   */
-  @Override
-  public void initialize() {}
 }

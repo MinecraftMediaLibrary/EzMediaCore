@@ -48,6 +48,7 @@ public final class UtilityClassAssertions {
 
     final Constructor<?>[] constructors = utilityClass.getDeclaredConstructors();
     assertEquals(1, constructors.length);
+
     final Constructor<?> constructor = constructors[0];
     final int constructorModifiers = constructor.getModifiers();
     final boolean hasPrivateConstructor = Modifier.isPrivate(constructorModifiers);

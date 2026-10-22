@@ -18,7 +18,6 @@
 package me.brandonli.mcav.installer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -27,22 +26,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.installer.testing.LocalMavenRepository;
+import me.brandonli.mcav.installer.testing.RecordingHandler;
+import me.brandonli.mcav.installer.testing.ResourceUtils;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,27 +76,6 @@ final class MCAVInstallerTest {
   private LocalMavenRepository repository;
   private Path folder;
 
-  /**
-   * A jar loader that remembers what it was asked to load.
-   */
-  private static final class RecordingLoader implements JarLoader {
-
-    private final List<Path> jars = new ArrayList<>();
-    private final List<ClassLoader> loaders = new ArrayList<>();
-
-    @Override
-    public void loadJars(final Collection<Path> jars, final ClassLoader loader) {
-      this.jars.addAll(jars);
-      this.loaders.add(loader);
-    }
-
-    private boolean isEmpty() {
-      final boolean noJars = this.jars.isEmpty();
-      final boolean noLoaders = this.loaders.isEmpty();
-      return noJars && noLoaders;
-    }
-  }
-
   @BeforeEach
   void publishTheModules() throws IOException {
     final Path remote = this.directory.resolve(REMOTE_FOLDER);
@@ -111,32 +87,6 @@ final class MCAVInstallerTest {
     this.repository.publish(Artifact.GROUP_ID, COMMON, SNAPSHOT, commonDependencies);
     this.repository.publish(Artifact.GROUP_ID, "mcav-bukkit", SNAPSHOT, NO_DEPENDENCIES);
     this.repository.publish(GROUP, HELPER, VERSION, NO_DEPENDENCIES);
-  }
-
-  private MCAVInstaller createInstaller(final ClassLoader classLoader) {
-    final String url = this.repository.getUrl();
-    final RemoteRepository remote = InstallationManager.createRepository("test", url);
-    final List<RemoteRepository> repositories = List.of(remote);
-    final Path localRepository = this.directory.resolve(LOCAL_FOLDER);
-    return new MCAVInstaller(this.folder, classLoader, target -> new InstallationManager(target, repositories, localRepository));
-  }
-
-  private static String readResource(final URLClassLoader loader, final String name) throws IOException {
-    try (final InputStream stream = loader.getResourceAsStream(name)) {
-      assertNotNull(stream, "missing resource " + name);
-      final byte[] bytes = stream.readAllBytes();
-      return new String(bytes, StandardCharsets.UTF_8);
-    }
-  }
-
-  private static List<String> fileNames(final List<Path> files) {
-    final List<String> names = new ArrayList<>();
-    for (final Path file : files) {
-      final Path name = file.getFileName();
-      final String text = name.toString();
-      names.add(text);
-    }
-    return names;
   }
 
   @Test
@@ -183,14 +133,23 @@ final class MCAVInstallerTest {
       installer.loadMCAVDependencies(Artifact.COMMON);
       final String commonName = LocalMavenRepository.resourceName(COMMON);
       final String helperName = LocalMavenRepository.resourceName(HELPER);
-      final String common = readResource(loader, commonName);
-      final String helper = readResource(loader, helperName);
+      final String common = ResourceUtils.readResource(loader, commonName);
+      final String helper = ResourceUtils.readResource(loader, helperName);
       assertEquals("me.brandonli:mcav-common:1.0.0-SNAPSHOT", common);
       assertEquals("me.test:helper:1.0", helper);
     }
+
     final Path copied = this.folder.resolve(COPIED_COMMON_JAR);
     final boolean exists = Files.isRegularFile(copied);
     assertTrue(exists);
+  }
+
+  private MCAVInstaller createInstaller(final ClassLoader classLoader) {
+    final String url = this.repository.getUrl();
+    final RemoteRepository remote = InstallationManager.createRepository("test", url);
+    final List<RemoteRepository> repositories = List.of(remote);
+    final Path localRepository = this.directory.resolve(LOCAL_FOLDER);
+    return new MCAVInstaller(this.folder, classLoader, target -> new InstallationManager(target, repositories, localRepository));
   }
 
   @Test
@@ -199,11 +158,15 @@ final class MCAVInstallerTest {
     final MCAVInstaller installer = this.createInstaller(classLoader);
     final RecordingLoader recording = new RecordingLoader();
     installer.loadMCAVDependencies(Artifact.BUKKIT, recording);
-    final List<String> names = fileNames(recording.jars);
+    final List<String> names = this.fileNames(recording.jars);
     final List<String> expectedNames = List.of(BUKKIT_JAR);
     final List<ClassLoader> expectedLoaders = List.of(classLoader);
     assertEquals(expectedNames, names);
     assertEquals(expectedLoaders, recording.loaders);
+  }
+
+  private List<String> fileNames(final List<Path> files) {
+    return files.stream().map(Path::getFileName).map(Path::toString).toList();
   }
 
   @Test
@@ -212,7 +175,7 @@ final class MCAVInstallerTest {
     final MCAVInstaller installer = this.createInstaller(classLoader);
     final RecordingLoader recording = new RecordingLoader();
     final List<Path> jars = installer.loadDependencies(GROUP, HELPER, VERSION, recording);
-    final List<String> names = fileNames(jars);
+    final List<String> names = this.fileNames(jars);
     final List<String> expectedNames = List.of(HELPER_JAR);
     assertEquals(expectedNames, names);
     assertEquals(jars, recording.jars);
@@ -229,6 +192,7 @@ final class MCAVInstallerTest {
     final MCAVInstaller installer = this.createInstaller(classLoader);
     final RecordingLoader recording = new RecordingLoader();
     assertThrows(InstallationException.class, () -> installer.loadDependencies(GROUP, "missing", VERSION, recording));
+
     final boolean nothingLoaded = recording.isEmpty();
     assertTrue(nothingLoaded);
   }
@@ -250,11 +214,12 @@ final class MCAVInstallerTest {
     final long after = System.currentTimeMillis();
     logger.removeHandler(handler);
 
-    final List<String> messages = handler.getMessages();
-    final String message = messages.stream().filter(LOADED_MESSAGE.asMatchPredicate()).findFirst().orElseThrow();
+    final List<LogRecord> records = handler.getRecords();
+    final String message = records.stream().map(LogRecord::getMessage).filter(LOADED_MESSAGE.asMatchPredicate()).findFirst().orElseThrow();
     final Matcher matcher = LOADED_MESSAGE.matcher(message);
     final boolean loaded = matcher.matches();
     assertTrue(loaded, message);
+
     final String elapsedText = matcher.group(ELAPSED_GROUP);
     final long elapsed = Long.parseLong(elapsedText);
     final long total = after - before;
@@ -275,32 +240,34 @@ final class MCAVInstallerTest {
     assertThrows(NullPointerException.class, () -> installer.loadDependencies(GROUP, null, VERSION, recording));
     assertThrows(NullPointerException.class, () -> installer.loadDependencies(GROUP, HELPER, null, recording));
     assertThrows(NullPointerException.class, () -> installer.loadDependencies(GROUP, HELPER, VERSION, null));
+
     final boolean nothingLoaded = recording.isEmpty();
     assertTrue(nothingLoaded);
   }
 
-  private static final class RecordingHandler extends Handler {
+  /**
+   * A jar loader that remembers what it was asked to load.
+   */
+  private static final class RecordingLoader implements JarLoader {
 
-    private final List<String> messages;
+    private final List<Path> jars;
+    private final List<ClassLoader> loaders;
 
-    private RecordingHandler() {
-      this.messages = new CopyOnWriteArrayList<>();
+    RecordingLoader() {
+      this.jars = new ArrayList<>();
+      this.loaders = new ArrayList<>();
     }
 
     @Override
-    public void publish(final LogRecord logRecord) {
-      final String message = logRecord.getMessage();
-      this.messages.add(message);
+    public void loadJars(final Collection<Path> jars, final ClassLoader loader) {
+      this.jars.addAll(jars);
+      this.loaders.add(loader);
     }
 
-    @Override
-    public void flush() {}
-
-    @Override
-    public void close() {}
-
-    private List<String> getMessages() {
-      return this.messages;
+    private boolean isEmpty() {
+      final boolean noJars = this.jars.isEmpty();
+      final boolean noLoaders = this.loaders.isEmpty();
+      return noJars && noLoaders;
     }
   }
 }

@@ -64,11 +64,11 @@ final class InstallationPathsFuzzTest {
     final String groupId = data.consumeString(30);
     final String artifact = data.consumeString(30);
     final String fileName = data.consumeRemainingAsString();
-    assertArtifactFolder(artifactId);
-    assertJarDestination(groupId, artifact, fileName);
+    this.assertArtifactFolder(artifactId);
+    this.assertJarDestination(groupId, artifact, fileName);
   }
 
-  private static void assertArtifactFolder(final String artifactId) throws IOException {
+  private void assertArtifactFolder(final String artifactId) throws IOException {
     WORKSPACE.completeTree.assertArtifactFolder(artifactId);
     final List<Path> before = WORKSPACE.list();
     boolean refused = false;
@@ -78,23 +78,27 @@ final class InstallationPathsFuzzTest {
       final String message = exception.getMessage();
       refused = message.endsWith(" must contain only letters, digits, dots, underscores or hyphens!");
     }
+
     final List<Path> created = new ArrayList<>(WORKSPACE.list());
     created.removeAll(before);
+
     if (refused) {
       assertEquals(List.of(), created, () -> "the refused id '" + artifactId + "' created " + created);
       return;
     }
+
     final Path ownFolder = WORKSPACE.folder.resolve(artifactId);
     final Path parent = ownFolder.getParent();
     final boolean directChild = WORKSPACE.folder.equals(parent) && Files.isDirectory(ownFolder);
     assertTrue(directChild, () -> "the id '" + artifactId + "' has no folder of its own right below the installation folder");
+
     for (final Path path : created) {
       final boolean allowed = path.startsWith(WORKSPACE.localRepository) || path.equals(ownFolder);
       assertTrue(allowed, () -> "the id '" + artifactId + "' created " + path);
     }
   }
 
-  private static void assertJarDestination(final String groupId, final String artifact, final String fileName) {
+  private void assertJarDestination(final String groupId, final String artifact, final String fileName) {
     final Path target = WORKSPACE.folder.resolve(ARTIFACT_FOLDER);
     final Path destination;
     try {
@@ -102,6 +106,7 @@ final class InstallationPathsFuzzTest {
     } catch (final IOException | InvalidPathException exception) {
       return;
     }
+
     final Path normalizedTarget = target.normalize();
     final Path normalizedDestination = destination.normalize();
     final boolean strictlyInside = normalizedDestination.startsWith(normalizedTarget) && !normalizedDestination.equals(normalizedTarget);

@@ -89,7 +89,7 @@ final class InstallationPathsPropertyTest {
   void deleteFolders() throws IOException {
     this.manager.close();
     this.completeTree.close();
-    deleteTree(this.root);
+    this.deleteTree(this.root);
   }
 
   @Provide
@@ -122,7 +122,7 @@ final class InstallationPathsPropertyTest {
     this.completeTree.assertArtifactFolder(artifactId);
     final Path installed = this.folder.toAbsolutePath();
     final Path cache = this.localRepository.toAbsolutePath();
-    final List<Path> before = listTree(this.root);
+    final List<Path> before = this.listTree(this.root);
     boolean refused = false;
     try {
       this.manager.downloadDependencies("me.test", artifactId, "1.0");
@@ -130,7 +130,8 @@ final class InstallationPathsPropertyTest {
       final String message = exception.getMessage();
       refused = message.endsWith(REFUSED);
     }
-    final List<Path> after = listTree(this.root);
+
+    final List<Path> after = this.listTree(this.root);
     final List<Path> created = new ArrayList<>(after);
     created.removeAll(before);
 
@@ -138,9 +139,11 @@ final class InstallationPathsPropertyTest {
       assertEquals(List.of(), created, () -> "a refused id created " + created);
       return;
     }
-    final List<String> children = listNames(this.folder);
+
+    final List<String> children = this.listNames(this.folder);
     final boolean ownFolder = children.contains(artifactId);
     assertTrue(ownFolder, () -> "the id '" + artifactId + "' has no folder of its own in " + installed + ": " + children);
+
     for (final Path path : created) {
       final boolean inLocalRepository = path.startsWith(cache);
       if (inLocalRepository) {
@@ -179,6 +182,7 @@ final class InstallationPathsPropertyTest {
     } catch (final IOException | InvalidPathException exception) {
       return;
     }
+
     final Path normalizedTarget = target.normalize();
     final Path normalizedDestination = destination.normalize();
     final boolean inside = normalizedDestination.startsWith(normalizedTarget);
@@ -192,7 +196,7 @@ final class InstallationPathsPropertyTest {
     );
   }
 
-  private static List<String> listNames(final Path directory) throws IOException {
+  private List<String> listNames(final Path directory) throws IOException {
     try (final Stream<Path> children = Files.list(directory)) {
       final Stream<Path> names = children.map(Path::getFileName);
       final Stream<String> strings = names.map(Path::toString);
@@ -200,32 +204,36 @@ final class InstallationPathsPropertyTest {
     }
   }
 
-  private static List<Path> listTree(final Path directory) throws IOException {
+  private List<Path> listTree(final Path directory) throws IOException {
     try (final Stream<Path> paths = Files.walk(directory)) {
       final Stream<Path> absolute = paths.map(Path::toAbsolutePath);
       return absolute.toList();
     }
   }
 
-  private static void deleteTree(final Path directory) throws IOException {
-    Files.walkFileTree(
-      directory,
-      new SimpleFileVisitor<>() {
-        @Override
-        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attributes) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+  private void deleteTree(final Path directory) throws IOException {
+    final TreeDeleter deleter = new TreeDeleter();
+    Files.walkFileTree(directory, deleter);
+  }
 
-        @Override
-        public FileVisitResult postVisitDirectory(final Path visited, final IOException failure) throws IOException {
-          if (failure != null) {
-            throw failure;
-          }
-          Files.delete(visited);
-          return FileVisitResult.CONTINUE;
-        }
+  private static final class TreeDeleter extends SimpleFileVisitor<Path> {
+
+    @Override
+    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attributes) throws IOException {
+      Files.delete(file);
+
+      return FileVisitResult.CONTINUE;
+    }
+
+    @Override
+    public FileVisitResult postVisitDirectory(final Path visited, final IOException failure) throws IOException {
+      if (failure != null) {
+        throw failure;
       }
-    );
+
+      Files.delete(visited);
+
+      return FileVisitResult.CONTINUE;
+    }
   }
 }

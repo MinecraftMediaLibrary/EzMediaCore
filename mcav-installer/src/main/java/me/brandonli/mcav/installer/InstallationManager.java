@@ -36,6 +36,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.checkerframework.checker.initialization.qual.UnderInitialization;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -148,33 +149,12 @@ final class InstallationManager implements AutoCloseable {
     this.folder = folder;
     this.repositories = List.copyOf(repositories);
     this.system = supplier.get();
-    this.session = createSession(this.system, localRepository);
+    this.session = this.createSession(this.system, localRepository);
 
     final Runtime runtime = Runtime.getRuntime();
     final int processors = runtime.availableProcessors();
     final int threads = Math.clamp(processors, MINIMUM_COPY_THREADS, MAXIMUM_COPY_THREADS);
     this.executor = Executors.newFixedThreadPool(threads, InstallationManager::createCopyThread);
-  }
-
-  /**
-   * Creates a copy thread. Copy threads are daemon threads, so a copy never keeps the JVM alive. Visible for testing.
-   *
-   * @param runnable the work of the thread
-   * @return the unstarted thread, named {@code mcav-installer}
-   */
-  static Thread createCopyThread(final Runnable runnable) {
-    final Thread thread = new Thread(runnable, COPY_THREAD_NAME);
-    thread.setDaemon(true);
-    return thread;
-  }
-
-  private static List<RemoteRepository> createDefaultRepositories() {
-    final RemoteRepository central = createRepository(CENTRAL_ID, CENTRAL_URL);
-    final RemoteRepository snapshots = createRepository(SNAPSHOTS_ID, SNAPSHOTS_URL);
-    final RemoteRepository paper = createRepository(PAPER_ID, PAPER_URL);
-    final RemoteRepository google = createRepository(GOOGLE_ID, GOOGLE_URL);
-    final RemoteRepository codemc = createRepository(CODEMC_ID, CODEMC_URL);
-    return List.of(central, snapshots, paper, google, codemc);
   }
 
   private static Path defaultLocalRepository() {
@@ -183,22 +163,11 @@ final class InstallationManager implements AutoCloseable {
     return Path.of(home, MAVEN_FOLDER, LOCAL_REPOSITORY_FOLDER);
   }
 
-  /**
-   * Creates a repository with the default Maven layout whose releases and snapshots are checked for updates daily
-   * and whose downloads fail when their checksum is missing or wrong.
-   *
-   * @param id  the repository id
-   * @param url the base URL, such as {@code https://repo.maven.apache.org/maven2/} or a {@code file:} URL
-   * @return the repository
-   */
-  static RemoteRepository createRepository(final String id, final String url) {
-    final RemoteRepository.Builder builder = new RemoteRepository.Builder(id, REPOSITORY_LAYOUT, url);
-    final RepositoryPolicy policy = new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_DAILY, RepositoryPolicy.CHECKSUM_POLICY_FAIL);
-    builder.setPolicy(policy);
-    return builder.build();
-  }
-
-  private static RepositorySystemSession.CloseableSession createSession(final RepositorySystem system, final Path localRepository) {
+  private RepositorySystemSession.CloseableSession createSession(
+    @UnderInitialization InstallationManager this,
+    final RepositorySystem system,
+    final Path localRepository
+  ) {
     final Map<String, String> systemProperties = copySystemProperties();
     final Map<String, String> configurationProperties = new HashMap<>();
     final String connectTimeout = String.valueOf(CONNECT_TIMEOUT_MILLISECONDS);
@@ -228,7 +197,77 @@ final class InstallationManager implements AutoCloseable {
       final String value = jvmProperties.getProperty(name, "");
       systemProperties.put(name, value);
     }
+
     return systemProperties;
+  }
+
+  /**
+   * Creates a copy thread. Copy threads are daemon threads, so a copy never keeps the JVM alive. Visible for testing.
+   *
+   * @param runnable the work of the thread
+   * @return the unstarted thread, named {@code mcav-installer}
+   */
+  static Thread createCopyThread(final Runnable runnable) {
+    final Thread thread = new Thread(runnable, COPY_THREAD_NAME);
+    thread.setDaemon(true);
+    return thread;
+  }
+
+  private static List<RemoteRepository> createDefaultRepositories() {
+    final RemoteRepository central = createRepository(CENTRAL_ID, CENTRAL_URL);
+    final RemoteRepository snapshots = createRepository(SNAPSHOTS_ID, SNAPSHOTS_URL);
+    final RemoteRepository paper = createRepository(PAPER_ID, PAPER_URL);
+    final RemoteRepository google = createRepository(GOOGLE_ID, GOOGLE_URL);
+    final RemoteRepository codemc = createRepository(CODEMC_ID, CODEMC_URL);
+    return List.of(central, snapshots, paper, google, codemc);
+  }
+
+  /**
+   * Creates a repository with the default Maven layout whose releases and snapshots are checked for updates daily
+   * and whose downloads fail when their checksum is missing or wrong.
+   *
+   * @param id  the repository id
+   * @param url the base URL, such as {@code https://repo.maven.apache.org/maven2/} or a {@code file:} URL
+   * @return the repository
+   */
+  static RemoteRepository createRepository(final String id, final String url) {
+    final RemoteRepository.Builder builder = new RemoteRepository.Builder(id, REPOSITORY_LAYOUT, url);
+    final RepositoryPolicy policy = new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_DAILY, RepositoryPolicy.CHECKSUM_POLICY_FAIL);
+    builder.setPolicy(policy);
+    return builder.build();
+  }
+
+  /**
+   * Stops the copy threads, waiting up to ten seconds for running copies before interrupting them, and then closes
+   * the resolver session and shuts the repository system down. The manager cannot be used afterwards.
+   */
+  @Override
+  public void close() {
+    shutdown(this.executor, SHUTDOWN_TIMEOUT_MILLISECONDS);
+    this.session.close();
+    this.system.shutdown();
+  }
+
+  /**
+   * Shuts an executor down, waiting for running tasks and interrupting them after a timeout. Visible for testing.
+   *
+   * @param executor            the executor
+   * @param timeoutMilliseconds how long to wait for running tasks
+   */
+  static void shutdown(final ExecutorService executor, final long timeoutMilliseconds) {
+    executor.shutdown();
+
+    try {
+      final boolean terminated = executor.awaitTermination(timeoutMilliseconds, TimeUnit.MILLISECONDS);
+      if (!terminated) {
+        executor.shutdownNow();
+      }
+    } catch (final InterruptedException exception) {
+      executor.shutdownNow();
+
+      final Thread current = Thread.currentThread();
+      current.interrupt();
+    }
   }
 
   /**
@@ -248,12 +287,15 @@ final class InstallationManager implements AutoCloseable {
       final String message = "Artifact id %s must contain only letters, digits, dots, underscores or hyphens!".formatted(artifactId);
       throw new InstallationException(message);
     }
+
     final Path target = this.folder.resolve(artifactId);
     try {
       Files.createDirectories(target);
+
       final List<Artifact> artifacts = this.resolve(groupId, artifactId, version);
       final List<Path> jars = this.copyAll(artifacts, target);
-      deleteObsoleteFiles(this.folder);
+      this.deleteObsoleteFiles(this.folder);
+
       return jars;
     } catch (final DependencyResolutionException exception) {
       final String message = "Artifact %s:%s:%s could not be resolved!".formatted(groupId, artifactId, version);
@@ -268,16 +310,10 @@ final class InstallationManager implements AutoCloseable {
     final DependencyRequest request = this.createRequest(groupId, artifactId, version);
     final DependencyResult result = this.system.resolveDependencies(this.session, request);
     final List<ArtifactResult> results = result.getArtifactResults();
-
-    final List<Artifact> artifacts = new ArrayList<>();
-    for (final ArtifactResult artifactResult : results) {
-      final Artifact resolved = artifactResult.getArtifact();
-      final Artifact artifact = Objects.requireNonNull(resolved, "Resolved artifacts must be present!");
-      artifacts.add(artifact);
-    }
-
+    final List<Artifact> artifacts = results.stream().map(this::artifactOf).toList();
     final int count = artifacts.size();
     LOGGER.debug("Resolved {} artifacts for {}.", count, artifactId);
+
     return artifacts;
   }
 
@@ -295,12 +331,18 @@ final class InstallationManager implements AutoCloseable {
     return request;
   }
 
+  private Artifact artifactOf(final ArtifactResult artifactResult) {
+    final Artifact resolved = artifactResult.getArtifact();
+    return Objects.requireNonNull(resolved, "Resolved artifacts must be present!");
+  }
+
   private List<Path> copyAll(final List<Artifact> artifacts, final Path target) throws IOException {
     final List<Future<Path>> futures = new ArrayList<>();
     for (final Artifact artifact : artifacts) {
-      final Future<Path> future = this.executor.submit(() -> copy(artifact, target));
+      final Future<Path> future = this.executor.submit(() -> this.copy(artifact, target));
       futures.add(future);
     }
+
     return awaitAll(futures);
   }
 
@@ -314,26 +356,33 @@ final class InstallationManager implements AutoCloseable {
   static List<Path> awaitAll(final List<Future<Path>> futures) throws IOException {
     final List<Path> jars = new ArrayList<>();
     for (final Future<Path> future : futures) {
-      try {
-        final Path jar = future.get();
-        jars.add(jar);
-      } catch (final InterruptedException exception) {
-        final Thread current = Thread.currentThread();
-        current.interrupt();
-        final String message = "Copying the dependencies was interrupted!";
-        throw new IOException(message, exception);
-      } catch (final ExecutionException exception) {
-        final Throwable cause = exception.getCause();
-        if (cause instanceof final IOException ioException) {
-          throw ioException;
-        }
-        throw new IOException(cause);
-      }
+      final Path jar = awaitJar(future);
+      jars.add(jar);
     }
+
     return Collections.unmodifiableList(jars);
   }
 
-  private static Path copy(final Artifact artifact, final Path target) throws IOException {
+  private static Path awaitJar(final Future<Path> future) throws IOException {
+    try {
+      return future.get();
+    } catch (final InterruptedException exception) {
+      final Thread current = Thread.currentThread();
+      current.interrupt();
+
+      final String message = "Copying the dependencies was interrupted!";
+      throw new IOException(message, exception);
+    } catch (final ExecutionException exception) {
+      final Throwable cause = exception.getCause();
+      if (cause instanceof final IOException ioException) {
+        throw ioException;
+      }
+
+      throw new IOException(cause);
+    }
+  }
+
+  private Path copy(final Artifact artifact, final Path target) throws IOException {
     final Path resolved = artifact.getPath();
     final Path source = Objects.requireNonNull(resolved, "Resolved artifacts must have a file!");
     final String groupId = artifact.getGroupId();
@@ -341,7 +390,7 @@ final class InstallationManager implements AutoCloseable {
     final String fileName = IoUtils.getFileName(source);
     final Path destination = destinationOf(target, groupId, artifactId, fileName);
 
-    final boolean upToDate = hasSameContent(source, destination);
+    final boolean upToDate = this.hasSameContent(source, destination);
     if (upToDate) {
       return destination;
     }
@@ -349,9 +398,11 @@ final class InstallationManager implements AutoCloseable {
     final Path parent = destination.getParent();
     final Path directory = Objects.requireNonNull(parent, "Destinations must have a parent folder!");
     Files.createDirectories(directory);
+
     final Path partial = destination.resolveSibling(fileName + PART_SUFFIX);
-    copyAtomically(source, partial, destination);
+    this.copyAtomically(source, partial, destination);
     LOGGER.debug("Copied {}.", artifact);
+
     return destination;
   }
 
@@ -379,11 +430,8 @@ final class InstallationManager implements AutoCloseable {
       final String message = "Jar %s:%s (%s) would land outside %s when copied!".formatted(groupId, artifactId, fileName, target);
       throw new IOException(message);
     }
-    // A path starts with itself; empty, dot and parent elements must not resolve the jar to a directory.
-    final Path destinationName = normalizedDestination.getFileName();
-    final String name = destinationName == null ? "" : destinationName.toString();
-    final boolean isTarget = normalizedDestination.equals(normalizedTarget);
-    final boolean keepsItsName = !isTarget && name.equals(fileName);
+
+    final boolean keepsItsName = keepsFileName(normalizedTarget, normalizedDestination, fileName);
     if (!keepsItsName) {
       final String message = "Jar %s:%s (%s) would not be copied into %s as a file of that name!".formatted(
         groupId,
@@ -393,14 +441,24 @@ final class InstallationManager implements AutoCloseable {
       );
       throw new IOException(message);
     }
+
     return destination;
   }
 
-  private static boolean hasSameContent(final Path source, final Path destination) throws IOException {
+  // A path starts with itself; empty, dot and parent elements must not resolve the jar to a directory.
+  private static boolean keepsFileName(final Path normalizedTarget, final Path normalizedDestination, final String fileName) {
+    final Path destinationName = normalizedDestination.getFileName();
+    final String name = destinationName == null ? "" : destinationName.toString();
+    final boolean isTarget = normalizedDestination.equals(normalizedTarget);
+    return !isTarget && name.equals(fileName);
+  }
+
+  private boolean hasSameContent(final Path source, final Path destination) throws IOException {
     final boolean exists = Files.isRegularFile(destination);
     if (!exists) {
       return false;
     }
+
     final long mismatch = Files.mismatch(source, destination);
     return mismatch == -1L;
   }
@@ -409,7 +467,7 @@ final class InstallationManager implements AutoCloseable {
    * Copies a file next to its destination first and then moves it into place, so a crash never leaves a
    * half-written jar behind.
    */
-  private static void copyAtomically(final Path source, final Path partial, final Path destination) throws IOException {
+  private void copyAtomically(final Path source, final Path partial, final Path destination) throws IOException {
     Files.copy(source, partial, StandardCopyOption.REPLACE_EXISTING);
     Files.move(partial, destination, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
   }
@@ -420,7 +478,7 @@ final class InstallationManager implements AutoCloseable {
    *
    * @param folder the folder the jars are copied into
    */
-  private static void deleteObsoleteFiles(final Path folder) {
+  private void deleteObsoleteFiles(final Path folder) {
     for (final String name : OBSOLETE_FILE_NAMES) {
       final Path file = folder.resolve(name);
       try {
@@ -432,42 +490,11 @@ final class InstallationManager implements AutoCloseable {
   }
 
   /**
-   * Stops the copy threads, waiting up to ten seconds for running copies before interrupting them, and then closes
-   * the resolver session and shuts the repository system down. The manager cannot be used afterwards.
-   */
-  @Override
-  public void close() {
-    shutdown(this.executor, SHUTDOWN_TIMEOUT_MILLISECONDS);
-    this.session.close();
-    this.system.shutdown();
-  }
-
-  /**
    * Checks whether the copy threads have stopped, which {@link #close()} waits for. Visible for testing.
    *
    * @return true once the copy threads have stopped
    */
   boolean isStopped() {
     return this.executor.isTerminated();
-  }
-
-  /**
-   * Shuts an executor down, waiting for running tasks and interrupting them after a timeout. Visible for testing.
-   *
-   * @param executor            the executor
-   * @param timeoutMilliseconds how long to wait for running tasks
-   */
-  static void shutdown(final ExecutorService executor, final long timeoutMilliseconds) {
-    executor.shutdown();
-    try {
-      final boolean terminated = executor.awaitTermination(timeoutMilliseconds, TimeUnit.MILLISECONDS);
-      if (!terminated) {
-        executor.shutdownNow();
-      }
-    } catch (final InterruptedException exception) {
-      executor.shutdownNow();
-      final Thread current = Thread.currentThread();
-      current.interrupt();
-    }
   }
 }

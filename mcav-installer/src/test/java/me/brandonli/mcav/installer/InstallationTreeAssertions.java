@@ -64,31 +64,38 @@ final class InstallationTreeAssertions implements AutoCloseable {
       final String message = exception.getMessage();
       refused = message.endsWith(" must contain only letters, digits, dots, underscores or hyphens!");
     }
+
     final Map<Path, StoredEntry> after = this.snapshot();
     for (final Map.Entry<Path, StoredEntry> entry : before.entrySet()) {
       final Path path = entry.getKey();
       final boolean survives = after.containsKey(path);
       assertTrue(survives, () -> "the existing path survives: " + path);
+
       final StoredEntry stored = entry.getValue();
       final StoredEntry current = after.get(path);
       final boolean storedDirectory = stored.directory();
       final boolean currentDirectory = current.directory();
       assertEquals(storedDirectory, currentDirectory, () -> "the path retains its type: " + path);
+
       final byte[] storedContents = stored.contents();
       final byte[] currentContents = current.contents();
       assertArrayEquals(storedContents, currentContents, () -> "the existing bytes survive: " + path);
     }
+
     if (refused) {
       final Set<Path> pathsBefore = before.keySet();
       final Set<Path> pathsAfter = after.keySet();
       assertEquals(pathsBefore, pathsAfter, "refused coordinates write nowhere in the filesystem");
       return;
     }
+
     final Path ownFolder = this.installed.resolve(artifactId);
     final Path ownFolderParent = ownFolder.getParent();
     assertEquals(this.installed, ownFolderParent);
+
     final boolean ownFolderIsDirectory = Files.isDirectory(ownFolder);
     assertTrue(ownFolderIsDirectory);
+
     for (final Path path : after.keySet()) {
       final boolean knownOrOwnFolder = before.containsKey(path) || path.equals(ownFolder);
       assertTrue(knownOrOwnFolder, () -> "the only new path is the artifact folder: " + path);
@@ -103,6 +110,7 @@ final class InstallationTreeAssertions implements AutoCloseable {
         entries.put(path, new StoredEntry(directory, directory ? new byte[0] : Files.readAllBytes(path)));
       }
     }
+
     return entries;
   }
 

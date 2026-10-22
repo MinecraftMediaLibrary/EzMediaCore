@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -38,11 +38,8 @@ final class ArtifactTest {
   @Test
   void shouldListEveryModuleWithItsArtifactId() {
     final Artifact[] values = Artifact.values();
-    final List<String> artifactIds = new ArrayList<>();
-    for (final Artifact artifact : values) {
-      final String artifactId = artifact.getArtifactId();
-      artifactIds.add(artifactId);
-    }
+    final List<String> artifactIds = Arrays.stream(values).map(Artifact::getArtifactId).toList();
+
     final List<String> expected = List.of(
       "mcav-common",
       "mcav-discord",
@@ -55,6 +52,7 @@ final class ArtifactTest {
       "mcav-bukkit"
     );
     assertEquals(expected, artifactIds);
+
     final Artifact common = Artifact.valueOf("COMMON");
     assertSame(Artifact.COMMON, common);
     assertThrows(IllegalArgumentException.class, () -> Artifact.valueOf("UNKNOWN"));

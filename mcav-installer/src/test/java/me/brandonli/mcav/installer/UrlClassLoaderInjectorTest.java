@@ -26,15 +26,14 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import me.brandonli.mcav.installer.testing.LocalMavenRepository;
+import me.brandonli.mcav.installer.testing.ResourceUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -52,38 +51,11 @@ final class UrlClassLoaderInjectorTest {
   @TempDir
   private Path directory;
 
-  /**
-   * Creates a stand-in for the {@code addURL} handle that takes a class loader and a URL and throws a failure
-   * instead of adding the URL.
-   *
-   * @param failure the failure to throw
-   * @return the handle
-   */
-  private static MethodHandle failingHandle(final Throwable failure) {
-    final MethodHandle thrower = MethodHandles.throwException(void.class, Throwable.class);
-    final MethodHandle boundThrower = thrower.bindTo(failure);
-    return MethodHandles.dropArguments(boundThrower, 0, URLClassLoader.class, URL.class);
-  }
-
-  private URL writeJar() throws IOException {
-    final Path jar = this.directory.resolve(LIBRARY_JAR);
-    LocalMavenRepository.writeJar(jar, RESOURCE, LIBRARY_CONTENT);
-    final URI uri = jar.toUri();
-    return uri.toURL();
-  }
-
-  private static String readResource(final URLClassLoader loader) throws IOException {
-    try (final InputStream stream = loader.getResourceAsStream(RESOURCE)) {
-      assertNotNull(stream, "missing resource " + RESOURCE);
-      final byte[] bytes = stream.readAllBytes();
-      return new String(bytes, StandardCharsets.UTF_8);
-    }
-  }
-
   @Test
   void shouldPreferTheReflectiveStrategyWhenJavaNetIsOpen() throws IOException {
     final MethodHandle addUrlHandle = ReflectiveInjector.ADD_URL;
     assertNotNull(addUrlHandle);
+
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
       final UrlClassLoaderInjector injector = UrlClassLoaderInjector.create(loader);
       final URLClassLoader target = injector.getClassLoader();
@@ -96,8 +68,10 @@ final class UrlClassLoaderInjectorTest {
   void shouldFallBackToUnsafeAndFailWithoutAnyStrategy() throws IOException {
     final UnsafeInjector.UnsafeAccess unsafe = UnsafeInjector.UNSAFE;
     assertNotNull(unsafe);
+
     final MethodHandle addUrlHandle = ReflectiveInjector.ADD_URL;
     assertNotNull(addUrlHandle);
+
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
       final UrlClassLoaderInjector reflective = UrlClassLoaderInjector.create(loader, addUrlHandle, unsafe);
       final UrlClassLoaderInjector fallback = UrlClassLoaderInjector.create(loader, null, unsafe);
@@ -130,15 +104,24 @@ final class UrlClassLoaderInjectorTest {
     final URL jar = this.writeJar();
     final MethodHandle addUrlHandle = ReflectiveInjector.ADD_URL;
     assertNotNull(addUrlHandle);
+
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
       final ReflectiveInjector injector = new ReflectiveInjector(loader, addUrlHandle);
       injector.addUrl(jar);
       final URL[] urls = loader.getURLs();
       final URL[] expected = { jar };
       assertArrayEquals(expected, urls);
-      final String content = readResource(loader);
+
+      final String content = ResourceUtils.readResource(loader, RESOURCE);
       assertEquals(LIBRARY_CONTENT, content);
     }
+  }
+
+  private URL writeJar() throws IOException {
+    final Path jar = this.directory.resolve(LIBRARY_JAR);
+    LocalMavenRepository.writeJar(jar, RESOURCE, LIBRARY_CONTENT);
+    final URI uri = jar.toUri();
+    return uri.toURL();
   }
 
   @Test
@@ -147,9 +130,9 @@ final class UrlClassLoaderInjectorTest {
     final IllegalStateException runtimeException = new IllegalStateException("Runtime failure!");
     final LinkageError linkageError = new LinkageError("Linkage failure!");
     final Exception checkedException = new Exception("Checked failure!");
-    final MethodHandle runtimeHandle = failingHandle(runtimeException);
-    final MethodHandle errorHandle = failingHandle(linkageError);
-    final MethodHandle checkedHandle = failingHandle(checkedException);
+    final MethodHandle runtimeHandle = this.failingHandle(runtimeException);
+    final MethodHandle errorHandle = this.failingHandle(linkageError);
+    final MethodHandle checkedHandle = this.failingHandle(checkedException);
 
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
       final ReflectiveInjector runtimeInjector = new ReflectiveInjector(loader, runtimeHandle);
@@ -162,6 +145,7 @@ final class UrlClassLoaderInjectorTest {
       final Throwable checkedCause = checkedFailure.getCause();
       assertSame(runtimeException, runtimeFailure);
       assertSame(linkageError, errorFailure);
+
       final String expectedMessage = "Jar %s could not be added to the class loader!".formatted(jar);
       assertEquals(expectedMessage, checkedMessage);
       assertSame(checkedException, checkedCause);
@@ -169,5 +153,18 @@ final class UrlClassLoaderInjectorTest {
       final URL[] urls = loader.getURLs();
       assertEquals(0, urls.length);
     }
+  }
+
+  /**
+   * Creates a stand-in for the {@code addURL} handle that takes a class loader and a URL and throws a failure
+   * instead of adding the URL.
+   *
+   * @param failure the failure to throw
+   * @return the handle
+   */
+  private MethodHandle failingHandle(final Throwable failure) {
+    final MethodHandle thrower = MethodHandles.throwException(void.class, Throwable.class);
+    final MethodHandle boundThrower = thrower.bindTo(failure);
+    return MethodHandles.dropArguments(boundThrower, 0, URLClassLoader.class, URL.class);
   }
 }

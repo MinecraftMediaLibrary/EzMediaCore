@@ -71,10 +71,12 @@ final class LoaderUtils {
     if (loader instanceof final URLClassLoader urlLoader) {
       return urlLoader;
     }
+
     final URLClassLoader knot = findKnotUrlLoader(loader);
     if (knot != null) {
       return knot;
     }
+
     final Class<? extends ClassLoader> type = loader.getClass();
     final String name = type.getName();
     final String message =
@@ -92,6 +94,7 @@ final class LoaderUtils {
       }
       type = type.getSuperclass();
     }
+
     return null;
   }
 
@@ -106,6 +109,7 @@ final class LoaderUtils {
         final String message = "The Fabric class loader has no URL class loader!";
         throw new JarInjectorException(message);
       }
+
       return urlLoader;
     } catch (final IllegalAccessException | NoSuchFieldException exception) {
       final String message = "The Fabric class loader cannot be accessed!";

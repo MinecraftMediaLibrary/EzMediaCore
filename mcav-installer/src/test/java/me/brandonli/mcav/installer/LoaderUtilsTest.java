@@ -20,12 +20,12 @@ package me.brandonli.mcav.installer;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.lang.classfile.ClassBuilder;
 import java.lang.classfile.ClassFile;
+import java.lang.classfile.CodeBuilder;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.ConstantDescs;
 import java.lang.reflect.Constructor;
@@ -33,10 +33,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import me.brandonli.mcav.installer.testing.LocalMavenRepository;
+import me.brandonli.mcav.installer.testing.ResourceUtils;
 import me.brandonli.mcav.installer.testing.UtilityClassAssertions;
 import net.fabricmc.loader.impl.launch.knot.KnotClassLoader;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +60,7 @@ final class LoaderUtilsTest {
   private static final String LIBRARY_JAR = "library.jar";
 
   private static final String KNOT = "net.fabricmc.loader.impl.launch.knot.KnotClassLoader";
+  private static final ClassDesc CLASS_LOADER_DESCRIPTOR = ClassDesc.of("java.lang.ClassLoader");
 
   @TempDir
   private Path directory;
@@ -67,93 +68,12 @@ final class LoaderUtilsTest {
   private Path firstJar;
   private Path secondJar;
 
-  /**
-   * A class loader that is neither a URL class loader nor the Fabric one.
-   */
-  private static final class PlainClassLoader extends ClassLoader {
-
-    PlainClassLoader() {
-      super(null);
-    }
-  }
-
-  /**
-   * A class loader that extends the Fabric one, as modded launchers do.
-   */
-  private static final class DerivedKnotClassLoader extends KnotClassLoader {
-
-    DerivedKnotClassLoader(final Object urlLoader) {
-      super(urlLoader);
-    }
-  }
-
-  /**
-   * Defines a Fabric class loader from bytes, isolated from the class path of the tests.
-   */
-  private static final class KnotDefiningClassLoader extends ClassLoader {
-
-    KnotDefiningClassLoader() {
-      super(null);
-    }
-
-    private Class<?> defineKnot(final byte[] bytes) {
-      return this.defineClass(KNOT, bytes, 0, bytes.length);
-    }
-  }
-
   @BeforeEach
   void writeTheJars() throws IOException {
     this.firstJar = this.directory.resolve(FIRST_JAR);
     this.secondJar = this.directory.resolve(SECOND_JAR);
     LocalMavenRepository.writeJar(this.firstJar, FIRST_RESOURCE, FIRST_CONTENT);
     LocalMavenRepository.writeJar(this.secondJar, SECOND_RESOURCE, SECOND_CONTENT);
-  }
-
-  private static String readResource(final URLClassLoader loader, final String name) throws IOException {
-    try (final InputStream stream = loader.getResourceAsStream(name)) {
-      assertNotNull(stream, "missing resource " + name);
-      final byte[] bytes = stream.readAllBytes();
-      return new String(bytes, StandardCharsets.UTF_8);
-    }
-  }
-
-  private static URL urlOf(final Path jar) throws MalformedURLException {
-    final URI uri = jar.toUri();
-    return uri.toURL();
-  }
-
-  private void assertBothJarsAreLoaded(final URLClassLoader loader) throws IOException {
-    final URL[] urls = loader.getURLs();
-    final URL firstUrl = urlOf(this.firstJar);
-    final URL secondUrl = urlOf(this.secondJar);
-    final URL[] expected = { firstUrl, secondUrl };
-    assertArrayEquals(expected, urls);
-
-    final String first = readResource(loader, FIRST_RESOURCE);
-    final String second = readResource(loader, SECOND_RESOURCE);
-    assertEquals(FIRST_CONTENT, first);
-    assertEquals(SECOND_CONTENT, second);
-  }
-
-  /**
-   * Builds a public class named like the Fabric class loader that extends {@link ClassLoader} but lacks the
-   * {@code urlLoader} field, as an unknown version of Fabric would.
-   *
-   * @return the bytes of the class file
-   */
-  private static byte[] knotClassWithoutField() {
-    final ClassDesc knotDescriptor = ClassDesc.of(KNOT);
-    final ClassDesc classLoaderDescriptor = ClassDesc.of("java.lang.ClassLoader");
-    final ClassFile classFile = ClassFile.of();
-    return classFile.build(knotDescriptor, classBuilder -> {
-      classBuilder.withFlags(ClassFile.ACC_PUBLIC);
-      classBuilder.withSuperclass(classLoaderDescriptor);
-      classBuilder.withMethodBody(ConstantDescs.INIT_NAME, ConstantDescs.MTD_void, ClassFile.ACC_PUBLIC, code -> {
-        code.aload(0);
-        code.invokespecial(classLoaderDescriptor, ConstantDescs.INIT_NAME, ConstantDescs.MTD_void);
-        code.return_();
-      });
-    });
   }
 
   @Test
@@ -166,6 +86,24 @@ final class LoaderUtilsTest {
       LoaderUtils.loadJarPaths(jars, loader);
       this.assertBothJarsAreLoaded(loader);
     }
+  }
+
+  private void assertBothJarsAreLoaded(final URLClassLoader loader) throws IOException {
+    final URL[] urls = loader.getURLs();
+    final URL firstUrl = this.urlOf(this.firstJar);
+    final URL secondUrl = this.urlOf(this.secondJar);
+    final URL[] expected = { firstUrl, secondUrl };
+    assertArrayEquals(expected, urls);
+
+    final String first = ResourceUtils.readResource(loader, FIRST_RESOURCE);
+    final String second = ResourceUtils.readResource(loader, SECOND_RESOURCE);
+    assertEquals(FIRST_CONTENT, first);
+    assertEquals(SECOND_CONTENT, second);
+  }
+
+  private URL urlOf(final Path jar) throws MalformedURLException {
+    final URI uri = jar.toUri();
+    return uri.toURL();
   }
 
   @Test
@@ -213,7 +151,7 @@ final class LoaderUtilsTest {
 
   @Test
   void shouldReportAFabricClassLoaderOfAnUnknownVersion() throws ReflectiveOperationException {
-    final byte[] bytes = knotClassWithoutField();
+    final byte[] bytes = this.knotClassWithoutField();
     final KnotDefiningClassLoader definer = new KnotDefiningClassLoader();
     final Class<?> knotWithoutField = definer.defineKnot(bytes);
     final Constructor<?> constructor = knotWithoutField.getConstructor();
@@ -225,6 +163,30 @@ final class LoaderUtilsTest {
     final Throwable cause = exception.getCause();
     assertEquals("The Fabric class loader cannot be accessed!", message);
     assertInstanceOf(NoSuchFieldException.class, cause);
+  }
+
+  /**
+   * Builds a public class named like the Fabric class loader that extends {@link ClassLoader} but lacks the
+   * {@code urlLoader} field, as an unknown version of Fabric would.
+   *
+   * @return the bytes of the class file
+   */
+  private byte[] knotClassWithoutField() {
+    final ClassDesc knotDescriptor = ClassDesc.of(KNOT);
+    final ClassFile classFile = ClassFile.of();
+    return classFile.build(knotDescriptor, this::buildKnotClass);
+  }
+
+  private void buildKnotClass(final ClassBuilder classBuilder) {
+    classBuilder.withFlags(ClassFile.ACC_PUBLIC);
+    classBuilder.withSuperclass(CLASS_LOADER_DESCRIPTOR);
+    classBuilder.withMethodBody(ConstantDescs.INIT_NAME, ConstantDescs.MTD_void, ClassFile.ACC_PUBLIC, this::callTheSuperConstructor);
+  }
+
+  private void callTheSuperConstructor(final CodeBuilder code) {
+    code.aload(0);
+    code.invokespecial(CLASS_LOADER_DESCRIPTOR, ConstantDescs.INIT_NAME, ConstantDescs.MTD_void);
+    code.return_();
   }
 
   @Test
@@ -256,6 +218,7 @@ final class LoaderUtilsTest {
       final Throwable cause = exception.getCause();
       assertEquals("Jar path library.jar is not a valid URL!", message);
       assertInstanceOf(MalformedURLException.class, cause);
+
       final URL[] urls = loader.getURLs();
       assertEquals(0, urls.length);
     }
@@ -264,5 +227,39 @@ final class LoaderUtilsTest {
   @Test
   void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(LoaderUtils.class);
+  }
+
+  /**
+   * A class loader that is neither a URL class loader nor the Fabric one.
+   */
+  private static final class PlainClassLoader extends ClassLoader {
+
+    PlainClassLoader() {
+      super(null);
+    }
+  }
+
+  /**
+   * A class loader that extends the Fabric one, as modded launchers do.
+   */
+  private static final class DerivedKnotClassLoader extends KnotClassLoader {
+
+    DerivedKnotClassLoader(final Object urlLoader) {
+      super(urlLoader);
+    }
+  }
+
+  /**
+   * Defines a Fabric class loader from bytes, isolated from the class path of the tests.
+   */
+  private static final class KnotDefiningClassLoader extends ClassLoader {
+
+    KnotDefiningClassLoader() {
+      super(null);
+    }
+
+    private Class<?> defineKnot(final byte[] bytes) {
+      return this.defineClass(KNOT, bytes, 0, bytes.length);
+    }
   }
 }

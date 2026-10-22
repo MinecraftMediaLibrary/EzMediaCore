@@ -169,48 +169,22 @@ final class InstallationManagerTest {
     this.repository.publish(GROUP, COMPILE_DEPENDENCY, VERSION, dependencies);
   }
 
-  /**
-   * Publishes a {@code platform} artifact that depends on a jar, two classifier jars of it, and a jar with the same
-   * artifact id in another group.
-   *
-   * @return the published jars by the path their copies are expected at, relative to the artifact folder
-   * @throws IOException if the files cannot be written
-   */
-  private Map<String, Path> publishPlatform() throws IOException {
-    final Path natives = this.repository.publish(GROUP, NATIVES, VERSION, NO_DEPENDENCIES);
-    final Path linux = this.repository.publishClassified(GROUP, NATIVES, VERSION, LINUX_CLASSIFIER);
-    final Path windows = this.repository.publishClassified(GROUP, NATIVES, VERSION, WINDOWS_CLASSIFIER);
-    final Path otherGroup = this.repository.publish(OTHER_GROUP, NATIVES, VERSION, NO_DEPENDENCIES);
-    final List<String> dependencies = platformDependencies();
-    final Path platform = this.repository.publish(GROUP, PLATFORM, VERSION, dependencies);
+  @ParameterizedTest
+  @ValueSource(strings = { "", ".", "..", "../escape", "nested/artifact", "nested\\artifact", "/absolute", "C:\\escape", "white space" })
+  void shouldRejectUnsafeRootArtifactIdsBeforeCreatingDirectories(final String artifactId) throws IOException {
+    final InstallationException failure = assertThrows(InstallationException.class, () -> this.download(artifactId));
+    final String message = failure.getMessage();
+    final String expected = "Artifact id %s must contain only letters, digits, dots, underscores or hyphens!".formatted(artifactId);
+    assertEquals(expected, message);
 
-    return Map.of(
-      PLATFORM_JAR,
-      platform,
-      NATIVES_JAR,
-      natives,
-      LINUX_NATIVES_JAR,
-      linux,
-      WINDOWS_NATIVES_JAR,
-      windows,
-      OTHER_GROUP_NATIVES_JAR,
-      otherGroup
-    );
-  }
+    try (final Stream<Path> entries = Files.list(this.folder)) {
+      final long count = entries.count();
+      assertEquals(0, count, "invalid coordinates must not create an installation tree");
+    }
 
-  private static List<String> platformDependencies() {
-    final String nativesDependency = LocalMavenRepository.dependency(GROUP, NATIVES, VERSION, COMPILE_SCOPE, false);
-    final String linuxDependency = LocalMavenRepository.classifiedDependency(GROUP, NATIVES, VERSION, LINUX_CLASSIFIER);
-    final String windowsDependency = LocalMavenRepository.classifiedDependency(GROUP, NATIVES, VERSION, WINDOWS_CLASSIFIER);
-    final String otherGroupDependency = LocalMavenRepository.dependency(OTHER_GROUP, NATIVES, VERSION, COMPILE_SCOPE, false);
-    return List.of(nativesDependency, linuxDependency, windowsDependency, otherGroupDependency);
-  }
-
-  private InstallationManager createManager() {
-    final String url = this.repository.getUrl();
-    final RemoteRepository remote = InstallationManager.createRepository(TEST_REPOSITORY_ID, url);
-    final List<RemoteRepository> repositories = List.of(remote);
-    return new InstallationManager(this.folder, repositories, this.localRepository);
+    final Path escaped = this.directory.resolve(ESCAPE_FOLDER);
+    final boolean escapedExists = Files.exists(escaped);
+    assertFalse(escapedExists);
   }
 
   private List<Path> download(final String artifactId) {
@@ -219,108 +193,11 @@ final class InstallationManagerTest {
     }
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = { "", ".", "..", "../escape", "nested/artifact", "nested\\artifact", "/absolute", "C:\\escape", "white space" })
-  void shouldRejectUnsafeRootArtifactIdsBeforeCreatingDirectories(final String artifactId) throws IOException {
-    final InstallationException failure = assertThrows(InstallationException.class, () -> this.download(artifactId));
-    final String message = failure.getMessage();
-    final String expected = "Artifact id %s must contain only letters, digits, dots, underscores or hyphens!".formatted(artifactId);
-    assertEquals(expected, message);
-    try (final Stream<Path> entries = Files.list(this.folder)) {
-      final long count = entries.count();
-      assertEquals(0, count, "invalid coordinates must not create an installation tree");
-    }
-    final Path escaped = this.directory.resolve(ESCAPE_FOLDER);
-    final boolean escapedExists = Files.exists(escaped);
-    assertFalse(escapedExists);
-  }
-
-  private Path publishedJar(final String artifactId) {
-    final Path versionDirectory = this.repository.directoryOf(GROUP, artifactId, VERSION);
-    return versionDirectory.resolve(artifactId + VERSION_SEPARATOR + VERSION + JAR_EXTENSION);
-  }
-
-  private Path publishedJarOf(final Path copiedJar) {
-    final Path fileName = copiedJar.getFileName();
-    final String name = fileName.toString();
-    final String artifactId = name.replace(VERSION_SEPARATOR + VERSION + JAR_EXTENSION, "");
-    return this.publishedJar(artifactId);
-  }
-
-  private Path copiedJar(final String installed, final String artifactId) {
-    return this.folder.resolve(
-      installed +
-        PATH_SEPARATOR +
-        GROUP +
-        PATH_SEPARATOR +
-        artifactId +
-        PATH_SEPARATOR +
-        artifactId +
-        VERSION_SEPARATOR +
-        VERSION +
-        JAR_EXTENSION
-    );
-  }
-
-  private static List<Path> regularFilesIn(final Path root) throws IOException {
-    final List<Path> files = new ArrayList<>();
-    try (final Stream<Path> walk = Files.walk(root)) {
-      final List<Path> paths = walk.toList();
-      for (final Path path : paths) {
-        final boolean regular = Files.isRegularFile(path);
-        if (regular) {
-          files.add(path);
-        }
-      }
-    }
-    return files;
-  }
-
-  private static String relativeName(final Path root, final Path file) {
-    final Path relative = root.relativize(file);
-    final String name = relative.toString();
-    return name.replace('\\', '/');
-  }
-
-  private static List<String> relativeNames(final Path root, final List<Path> files) {
-    final List<String> names = new ArrayList<>();
-    for (final Path file : files) {
-      final String name = relativeName(root, file);
-      names.add(name);
-    }
-    return names;
-  }
-
-  private static void assertSameContent(final Path expected, final Path actual, final String message) throws IOException {
-    final byte[] expectedBytes = Files.readAllBytes(expected);
-    final byte[] actualBytes = Files.readAllBytes(actual);
-    assertArrayEquals(expectedBytes, actualBytes, message);
-  }
-
-  private static void assertUnmodifiable(final List<Path> list, final Path element) {
-    assertThrows(UnsupportedOperationException.class, () -> list.add(element));
-  }
-
-  private static void assertFailsOnBadChecksumsAndChecksDaily(final RepositoryPolicy policy) {
-    final boolean enabled = policy.isEnabled();
-    final String checksumPolicy = policy.getChecksumPolicy();
-    final String artifactUpdates = policy.getArtifactUpdatePolicy();
-    final String metadataUpdates = policy.getMetadataUpdatePolicy();
-    assertTrue(enabled);
-    assertEquals(RepositoryPolicy.CHECKSUM_POLICY_FAIL, checksumPolicy);
-    assertEquals(RepositoryPolicy.UPDATE_POLICY_DAILY, artifactUpdates);
-    assertEquals(RepositoryPolicy.UPDATE_POLICY_DAILY, metadataUpdates);
-  }
-
-  private static boolean hasChecksumFailure(final Throwable throwable) {
-    Throwable current = throwable;
-    while (current != null) {
-      if (current instanceof ChecksumFailureException) {
-        return true;
-      }
-      current = current.getCause();
-    }
-    return false;
+  private InstallationManager createManager() {
+    final String url = this.repository.getUrl();
+    final RemoteRepository remote = InstallationManager.createRepository(TEST_REPOSITORY_ID, url);
+    final List<RemoteRepository> repositories = List.of(remote);
+    return new InstallationManager(this.folder, repositories, this.localRepository);
   }
 
   @Test
@@ -356,9 +233,20 @@ final class InstallationManagerTest {
     for (final RemoteRepository remote : repositories) {
       final RepositoryPolicy releases = remote.getPolicy(false);
       final RepositoryPolicy snapshots = remote.getPolicy(true);
-      assertFailsOnBadChecksumsAndChecksDaily(releases);
-      assertFailsOnBadChecksumsAndChecksDaily(snapshots);
+      this.assertFailsOnBadChecksumsAndChecksDaily(releases);
+      this.assertFailsOnBadChecksumsAndChecksDaily(snapshots);
     }
+  }
+
+  private void assertFailsOnBadChecksumsAndChecksDaily(final RepositoryPolicy policy) {
+    final boolean enabled = policy.isEnabled();
+    final String checksumPolicy = policy.getChecksumPolicy();
+    final String artifactUpdates = policy.getArtifactUpdatePolicy();
+    final String metadataUpdates = policy.getMetadataUpdatePolicy();
+    assertTrue(enabled);
+    assertEquals(RepositoryPolicy.CHECKSUM_POLICY_FAIL, checksumPolicy);
+    assertEquals(RepositoryPolicy.UPDATE_POLICY_DAILY, artifactUpdates);
+    assertEquals(RepositoryPolicy.UPDATE_POLICY_DAILY, metadataUpdates);
   }
 
   @Test
@@ -394,9 +282,11 @@ final class InstallationManagerTest {
       try {
         final boolean endedBefore = ended.get();
         assertFalse(endedBefore);
+
         manager.close();
         final boolean endedAfter = ended.get();
         assertTrue(endedAfter, "closing a manager must release its repository system, including registered services");
+
         final List<RepositorySystemSupplier> constructed = suppliers.constructed();
         final int constructedCount = constructed.size();
         assertEquals(1, constructedCount);
@@ -440,7 +330,7 @@ final class InstallationManagerTest {
   void shouldCopyTheArtifactWithItsCompileAndRuntimeDependenciesOnly() throws IOException {
     final List<Path> jars = this.download(APPLICATION);
     final Path target = this.folder.resolve(APPLICATION);
-    final List<String> names = relativeNames(target, jars);
+    final List<String> names = this.relativeNames(target, jars);
     final Set<String> nameSet = Set.copyOf(names);
     final Set<String> expected = Set.of(APPLICATION_JAR, COMPILE_DEPENDENCY_JAR, RUNTIME_DEPENDENCY_JAR, TRANSITIVE_JAR);
     final int count = names.size();
@@ -451,12 +341,54 @@ final class InstallationManagerTest {
 
     for (final Path jar : jars) {
       final Path source = this.publishedJarOf(jar);
-      assertSameContent(source, jar, "the copy has the content of the published jar");
+      this.assertSameContent(source, jar, "the copy has the content of the published jar");
     }
-    final List<Path> files = regularFilesIn(target);
+
+    final List<Path> files = this.regularFilesIn(target);
     final int fileCount = files.size();
     assertEquals(4, fileCount, "only the jars are left in the folder, no partial files");
-    assertUnmodifiable(jars, target);
+    this.assertUnmodifiable(jars, target);
+  }
+
+  private List<String> relativeNames(final Path root, final List<Path> files) {
+    return files
+      .stream()
+      .map(file -> this.relativeName(root, file))
+      .toList();
+  }
+
+  private String relativeName(final Path root, final Path file) {
+    final Path relative = root.relativize(file);
+    final String name = relative.toString();
+    return name.replace('\\', '/');
+  }
+
+  private Path publishedJarOf(final Path copiedJar) {
+    final Path fileName = copiedJar.getFileName();
+    final String name = fileName.toString();
+    final String artifactId = name.replace(VERSION_SEPARATOR + VERSION + JAR_EXTENSION, "");
+    return this.publishedJar(artifactId);
+  }
+
+  private Path publishedJar(final String artifactId) {
+    final Path versionDirectory = this.repository.directoryOf(GROUP, artifactId, VERSION);
+    return versionDirectory.resolve(artifactId + VERSION_SEPARATOR + VERSION + JAR_EXTENSION);
+  }
+
+  private void assertSameContent(final Path expected, final Path actual, final String message) throws IOException {
+    final byte[] expectedBytes = Files.readAllBytes(expected);
+    final byte[] actualBytes = Files.readAllBytes(actual);
+    assertArrayEquals(expectedBytes, actualBytes, message);
+  }
+
+  private List<Path> regularFilesIn(final Path root) throws IOException {
+    try (final Stream<Path> walk = Files.walk(root)) {
+      return walk.filter(Files::isRegularFile).toList();
+    }
+  }
+
+  private void assertUnmodifiable(final List<Path> list, final Path element) {
+    assertThrows(UnsupportedOperationException.class, () -> list.add(element));
   }
 
   @Test
@@ -472,19 +404,57 @@ final class InstallationManagerTest {
     assertEquals(5, distinctCount, "every jar has its own file");
 
     for (final Path jar : jars) {
-      final String name = relativeName(target, jar);
+      final String name = this.relativeName(target, jar);
       final Path source = expectedSources.get(name);
       assertNotNull(source, "unexpected jar " + name);
-      assertSameContent(source, jar, name);
+      this.assertSameContent(source, jar, name);
     }
-    final List<String> names = relativeNames(target, jars);
+
+    final List<String> names = this.relativeNames(target, jars);
     final Set<String> nameSet = Set.copyOf(names);
     final Set<String> expectedNames = expectedSources.keySet();
     assertEquals(expectedNames, nameSet);
 
-    final List<Path> files = regularFilesIn(target);
+    final List<Path> files = this.regularFilesIn(target);
     final int fileCount = files.size();
     assertEquals(5, fileCount, "no jar was overwritten and no partial file is left");
+  }
+
+  /**
+   * Publishes a {@code platform} artifact that depends on a jar, two classifier jars of it, and a jar with the same
+   * artifact id in another group.
+   *
+   * @return the published jars by the path their copies are expected at, relative to the artifact folder
+   * @throws IOException if the files cannot be written
+   */
+  private Map<String, Path> publishPlatform() throws IOException {
+    final Path natives = this.repository.publish(GROUP, NATIVES, VERSION, NO_DEPENDENCIES);
+    final Path linux = this.repository.publishClassified(GROUP, NATIVES, VERSION, LINUX_CLASSIFIER);
+    final Path windows = this.repository.publishClassified(GROUP, NATIVES, VERSION, WINDOWS_CLASSIFIER);
+    final Path otherGroup = this.repository.publish(OTHER_GROUP, NATIVES, VERSION, NO_DEPENDENCIES);
+    final List<String> dependencies = this.platformDependencies();
+    final Path platform = this.repository.publish(GROUP, PLATFORM, VERSION, dependencies);
+
+    return Map.of(
+      PLATFORM_JAR,
+      platform,
+      NATIVES_JAR,
+      natives,
+      LINUX_NATIVES_JAR,
+      linux,
+      WINDOWS_NATIVES_JAR,
+      windows,
+      OTHER_GROUP_NATIVES_JAR,
+      otherGroup
+    );
+  }
+
+  private List<String> platformDependencies() {
+    final String nativesDependency = LocalMavenRepository.dependency(GROUP, NATIVES, VERSION, COMPILE_SCOPE, false);
+    final String linuxDependency = LocalMavenRepository.classifiedDependency(GROUP, NATIVES, VERSION, LINUX_CLASSIFIER);
+    final String windowsDependency = LocalMavenRepository.classifiedDependency(GROUP, NATIVES, VERSION, WINDOWS_CLASSIFIER);
+    final String otherGroupDependency = LocalMavenRepository.dependency(OTHER_GROUP, NATIVES, VERSION, COMPILE_SCOPE, false);
+    return List.of(nativesDependency, linuxDependency, windowsDependency, otherGroupDependency);
   }
 
   @Test
@@ -502,11 +472,27 @@ final class InstallationManagerTest {
     Files.setLastModifiedTime(tampered, pastTime);
 
     this.download(APPLICATION);
-    assertSameContent(source, tampered, "a jar with the same size but other content is copied again");
+    this.assertSameContent(source, tampered, "a jar with the same size but other content is copied again");
+
     final FileTime untouchedTime = Files.getLastModifiedTime(untouched);
     final FileTime restoredTime = Files.getLastModifiedTime(tampered);
     assertEquals(pastTime, untouchedTime, "an up-to-date jar is not copied again");
     assertNotEquals(pastTime, restoredTime, "a changed jar is copied again");
+  }
+
+  private Path copiedJar(final String installed, final String artifactId) {
+    return this.folder.resolve(
+      installed +
+        PATH_SEPARATOR +
+        GROUP +
+        PATH_SEPARATOR +
+        artifactId +
+        PATH_SEPARATOR +
+        artifactId +
+        VERSION_SEPARATOR +
+        VERSION +
+        JAR_EXTENSION
+    );
   }
 
   @Test
@@ -514,6 +500,7 @@ final class InstallationManagerTest {
     final List<String> expectedNames = List.of(HASH_FILE, HASHES_FILE);
     final List<String> obsoleteNames = InstallationManager.OBSOLETE_FILE_NAMES;
     assertEquals(expectedNames, obsoleteNames);
+
     for (final String name : expectedNames) {
       final Path file = this.folder.resolve(name);
       Files.writeString(file, "me.test\\:app\\:1.0=\\uZZZZ\n");
@@ -523,6 +510,7 @@ final class InstallationManagerTest {
     final Path expected = this.copiedJar(RUNTIME_DEPENDENCY, RUNTIME_DEPENDENCY);
     final List<Path> expectedJars = List.of(expected);
     assertEquals(expectedJars, jars);
+
     for (final String name : expectedNames) {
       final Path file = this.folder.resolve(name);
       final boolean exists = Files.exists(file);
@@ -553,7 +541,7 @@ final class InstallationManagerTest {
 
     final InstallationException error = assertThrows(InstallationException.class, () -> this.download(RUNTIME_DEPENDENCY));
     final String message = error.getMessage();
-    final boolean checksumFailure = hasChecksumFailure(error);
+    final boolean checksumFailure = this.hasChecksumFailure(error);
     assertEquals("Artifact me.test:runtime-dep:1.0 could not be resolved!", message);
     assertTrue(checksumFailure, "the checksum mismatch fails the download instead of only warning");
 
@@ -562,13 +550,25 @@ final class InstallationManagerTest {
     assertFalse(exists);
   }
 
+  private boolean hasChecksumFailure(final Throwable throwable) {
+    Throwable current = throwable;
+    while (current != null) {
+      if (current instanceof ChecksumFailureException) {
+        return true;
+      }
+      current = current.getCause();
+    }
+
+    return false;
+  }
+
   @Test
   void shouldRejectDownloadsWithoutAChecksum() throws IOException {
     final Path jar = this.publishedJar(RUNTIME_DEPENDENCY);
     final Path checksum = LocalMavenRepository.checksumFileOf(jar);
     Files.delete(checksum);
     final InstallationException error = assertThrows(InstallationException.class, () -> this.download(RUNTIME_DEPENDENCY));
-    final boolean checksumFailure = hasChecksumFailure(error);
+    final boolean checksumFailure = this.hasChecksumFailure(error);
     assertTrue(checksumFailure);
   }
 
@@ -655,7 +655,7 @@ final class InstallationManagerTest {
     final List<Path> jars = InstallationManager.awaitAll(futures);
     final List<Path> expected = List.of(first, second);
     assertEquals(expected, jars);
-    assertUnmodifiable(jars, first);
+    this.assertUnmodifiable(jars, first);
   }
 
   @Test
@@ -701,36 +701,11 @@ final class InstallationManagerTest {
     assertTrue(done);
   }
 
-  /**
-   * Submits a task that blocks until it is interrupted.
-   *
-   * @param executor    the executor that runs the task
-   * @param interrupted counted down when the task is interrupted
-   * @return the future of the task, which completes once the task has been interrupted
-   * @throws InterruptedException if the test is interrupted before the task starts
-   */
-  private static Future<?> submitBlockingTask(final ExecutorService executor, final CountDownLatch interrupted)
-    throws InterruptedException {
-    final CountDownLatch started = new CountDownLatch(1);
-    final Future<?> task = executor.submit(() -> {
-      started.countDown();
-      final CountDownLatch never = new CountDownLatch(1);
-      try {
-        never.await();
-      } catch (final InterruptedException exception) {
-        interrupted.countDown();
-      }
-    });
-    final boolean running = started.await(10, TimeUnit.SECONDS);
-    assertTrue(running);
-    return task;
-  }
-
   @Test
   void shouldInterruptTasksThatRunTooLongOnShutdown() throws InterruptedException {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch interrupted = new CountDownLatch(1);
-    final Future<?> task = submitBlockingTask(executor, interrupted);
+    final Future<?> task = this.submitBlockingTask(executor, interrupted);
     InstallationManager.shutdown(executor, 50);
     final boolean taskInterrupted = interrupted.await(10, TimeUnit.SECONDS);
     final boolean terminated = executor.awaitTermination(10, TimeUnit.SECONDS);
@@ -740,11 +715,39 @@ final class InstallationManagerTest {
     assertTrue(done);
   }
 
+  /**
+   * Submits a task that blocks until it is interrupted.
+   *
+   * @param executor    the executor that runs the task
+   * @param interrupted counted down when the task is interrupted
+   * @return the future of the task, which completes once the task has been interrupted
+   * @throws InterruptedException if the test is interrupted before the task starts
+   */
+  private Future<?> submitBlockingTask(final ExecutorService executor, final CountDownLatch interrupted) throws InterruptedException {
+    final CountDownLatch started = new CountDownLatch(1);
+    final Future<?> task = executor.submit(() -> this.blockUntilInterrupted(started, interrupted));
+    final boolean running = started.await(10, TimeUnit.SECONDS);
+    assertTrue(running);
+
+    return task;
+  }
+
+  private void blockUntilInterrupted(final CountDownLatch started, final CountDownLatch interrupted) {
+    started.countDown();
+
+    final CountDownLatch never = new CountDownLatch(1);
+    try {
+      never.await();
+    } catch (final InterruptedException exception) {
+      interrupted.countDown();
+    }
+  }
+
   @Test
   void shouldStopWaitingOnShutdownWhenInterruptedAndKeepTheInterruptFlag() throws InterruptedException {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch interrupted = new CountDownLatch(1);
-    final Future<?> task = submitBlockingTask(executor, interrupted);
+    final Future<?> task = this.submitBlockingTask(executor, interrupted);
     final Thread current = Thread.currentThread();
     current.interrupt();
     InstallationManager.shutdown(executor, 60_000);

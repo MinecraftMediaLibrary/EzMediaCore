@@ -84,6 +84,7 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
       final String message = "Field %s of %s is not a collection!".formatted(name, typeName);
       throw new JarInjectorException(message);
     }
+
     return collection;
   }
 
@@ -95,6 +96,7 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
       if (known) {
         return;
       }
+
       this.pathSink.add(url);
       this.unopenedUrlsSink.add(url);
     }
@@ -152,6 +154,7 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
         if (instance == null) {
           return null;
         }
+
         return bind(unsafeType, instance);
       } catch (final ReflectiveOperationException | RuntimeException exception) {
         return null;
@@ -194,26 +197,29 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
      * @throws JarInjectorException if the field is missing, static, or null
      */
     Object readField(final Class<?> type, final Object owner, final String name) {
-      final String typeName = type.getName();
+      final @Nullable Object value = this.readValue(type, owner, name);
+      if (value == null) {
+        final String typeName = type.getName();
+        final String message = "Field %s of %s is null!".formatted(name, typeName);
+        throw new JarInjectorException(message);
+      }
+
+      return value;
+    }
+
+    private @Nullable Object readValue(final Class<?> type, final Object owner, final String name) {
       try {
         final Field field = type.getDeclaredField(name);
         final long offset = (long) this.objectFieldOffset.invoke(field);
-        final Object value = this.getObject.invoke(owner, offset);
-        if (value == null) {
-          final String message = "Field %s of %s is null!".formatted(name, typeName);
-          throw new JarInjectorException(message);
-        }
-        return value;
+        return this.getObject.invoke(owner, offset);
       } catch (final NoSuchFieldException exception) {
+        final String typeName = type.getName();
         final String message = "Field %s is missing from %s in this Java version!".formatted(name, typeName);
         throw new JarInjectorException(message, exception);
-      } catch (final JarInjectorException exception) {
-        throw exception;
       } catch (final VirtualMachineError exception) {
         throw exception;
       } catch (final Throwable exception) {
-        // Unsafe is an unsupported API that can fail in any other way on a new Java version, a LinkageError included,
-        // and every such failure means that this strategy cannot be used
+        // Unsafe may fail in any way on a new Java version, a LinkageError included; each failure rules this strategy out
         final String message = "Field %s could not be read!".formatted(name);
         throw new JarInjectorException(message, exception);
       }

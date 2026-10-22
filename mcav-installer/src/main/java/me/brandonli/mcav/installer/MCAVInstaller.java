@@ -75,24 +75,6 @@ public final class MCAVInstaller {
   }
 
   /**
-   * Returns the folder the jars are copied into.
-   *
-   * @return the folder
-   */
-  Path getFolder() {
-    return this.folder;
-  }
-
-  /**
-   * Returns the class loader the jars are added to.
-   *
-   * @return the class loader
-   */
-  ClassLoader getClassLoader() {
-    return this.classLoader;
-  }
-
-  /**
    * Creates an installer that loads into a class loader.
    *
    * @param folder      the non-null destination folder; artifact subdirectories are created when loading
@@ -103,6 +85,7 @@ public final class MCAVInstaller {
   public static MCAVInstaller injector(final Path folder, final ClassLoader classLoader) {
     Objects.requireNonNull(folder, FOLDER_NULL_MESSAGE);
     Objects.requireNonNull(classLoader, "Class loader must not be null!");
+
     return new MCAVInstaller(folder, classLoader);
   }
 
@@ -118,12 +101,14 @@ public final class MCAVInstaller {
   public static MCAVInstaller injector(final Path folder, final Object owner) {
     Objects.requireNonNull(folder, FOLDER_NULL_MESSAGE);
     Objects.requireNonNull(owner, "Owner must not be null!");
+
     final Class<?> type = owner.getClass();
     final ClassLoader classLoader = type.getClassLoader();
     if (classLoader == null) {
       final String message = "Classes of the bootstrap class loader cannot receive jars!";
       throw new JarInjectorException(message);
     }
+
     return injector(folder, classLoader);
   }
 
@@ -138,6 +123,7 @@ public final class MCAVInstaller {
    */
   public void loadMCAVDependencies(final Artifact artifact) {
     Objects.requireNonNull(artifact, ARTIFACT_NULL_MESSAGE);
+
     this.loadMCAVDependencies(artifact, JarLoader.DEFAULT_URL_LOADER);
   }
 
@@ -154,6 +140,7 @@ public final class MCAVInstaller {
   public void loadMCAVDependencies(final Artifact artifact, final JarLoader loader) {
     Objects.requireNonNull(artifact, ARTIFACT_NULL_MESSAGE);
     Objects.requireNonNull(loader, LOADER_NULL_MESSAGE);
+
     final String artifactId = artifact.getArtifactId();
     this.loadDependencies(Artifact.GROUP_ID, artifactId, Artifact.DEFAULT_VERSION, loader);
   }
@@ -183,16 +170,39 @@ public final class MCAVInstaller {
 
     final long start = System.currentTimeMillis();
     LOGGER.info("Downloading {}:{}:{} and its dependencies.", groupId, artifactId, version);
-    final List<Path> jars;
-    try (final InstallationManager manager = this.managerFactory.apply(this.folder)) {
-      jars = manager.downloadDependencies(groupId, artifactId, version);
-    }
+
+    final List<Path> jars = this.download(groupId, artifactId, version);
     loader.loadJars(jars, this.classLoader);
 
     final long end = System.currentTimeMillis();
     final long elapsed = end - start;
     final int count = jars.size();
     LOGGER.info("Loaded {} jars for {} in {} ms.", count, artifactId, elapsed);
+
     return jars;
+  }
+
+  private List<Path> download(final String groupId, final String artifactId, final String version) {
+    try (final InstallationManager manager = this.managerFactory.apply(this.folder)) {
+      return manager.downloadDependencies(groupId, artifactId, version);
+    }
+  }
+
+  /**
+   * Returns the folder the jars are copied into.
+   *
+   * @return the folder
+   */
+  Path getFolder() {
+    return this.folder;
+  }
+
+  /**
+   * Returns the class loader the jars are added to.
+   *
+   * @return the class loader
+   */
+  ClassLoader getClassLoader() {
+    return this.classLoader;
   }
 }

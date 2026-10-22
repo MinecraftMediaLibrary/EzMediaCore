@@ -168,7 +168,7 @@ public final class LocalMavenRepository {
     Files.createDirectories(directory);
     final String baseName = artifactId + VERSION_SEPARATOR + version;
     final Path pom = directory.resolve(baseName + POM_EXTENSION);
-    final String content = pomOf(groupId, artifactId, version, dependencies);
+    final String content = this.pomOf(groupId, artifactId, version, dependencies);
     Files.writeString(pom, content, StandardCharsets.UTF_8);
     writeChecksum(pom);
 
@@ -177,10 +177,11 @@ public final class LocalMavenRepository {
     final String resource = resourceName(artifactId);
     writeJar(jar, resource, coordinates);
     writeChecksum(jar);
+
     return jar;
   }
 
-  private static String pomOf(final String groupId, final String artifactId, final String version, final List<String> dependencies) {
+  private String pomOf(final String groupId, final String artifactId, final String version, final List<String> dependencies) {
     final String joined = String.join("", dependencies);
     return (
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -219,6 +220,7 @@ public final class LocalMavenRepository {
     final String resource = resourceName(artifactId);
     writeJar(jar, resource, coordinates);
     writeChecksum(jar);
+
     return jar;
   }
 
@@ -247,6 +249,7 @@ public final class LocalMavenRepository {
     } catch (final NoSuchAlgorithmException exception) {
       throw new IOException(exception);
     }
+
     final byte[] hash = digest.digest(content);
     final HexFormat hex = HexFormat.of();
     final String text = hex.formatHex(hash);
