@@ -846,25 +846,15 @@ def codec_curves_main():
         [arguments.ffmpeg, VERSION_FLAG], capture_output=True, text=True
     ).stdout.splitlines()[0]
     measured["ffmpeg"] = version
+    pending = [
+        (codec, quality)
+        for codec in arguments.codecs
+        for quality in arguments.qualities
+        if (arguments.name, codec, quality) not in done
+    ]
     with tempfile.TemporaryDirectory() as folder:
-        for codec in arguments.codecs:
-            for quality in arguments.qualities:
-                if (arguments.name, codec, quality) in done:
-                    continue
-                measured[CODECS_KEY].append(codec_curves_point(arguments, codec, quality, folder))
-                print(
-                    json.dumps(measured[CODECS_KEY][-1][CODEC_KEY]),
-                    quality,
-                    measured[CODECS_KEY][-1][CONTAINER_RATE_KEY],
-                    measured[CODECS_KEY][-1][VMAF_MEAN_KEY],
-                    flush=True,
-                )
-                measured[CODECS_KEY].sort(key=lambda point: (point[SOURCE_KEY], point[CODEC_KEY], point[QUALITY_KEY]))
-                temporary = arguments.out + PARTIAL_SUFFIX
-                with open(temporary, "w") as out:
-                    json.dump(measured, out, indent=JSON_INDENT)
-                    out.write(LINE_SEPARATOR)
-                os.replace(temporary, arguments.out)
+        for codec, quality in pending:
+            codec_curves_measure(arguments, measured, codec, quality, folder)
 
 
 def codec_curves_sha256(path):
@@ -895,6 +885,14 @@ def codec_curves_resume(out, name, identity):
 
     measured[SOURCES_KEY][name] = identity
     return measured
+
+
+def codec_curves_measure(arguments, measured, codec, quality, folder):
+    point = codec_curves_point(arguments, codec, quality, folder)
+    measured[CODECS_KEY].append(point)
+    print(json.dumps(point[CODEC_KEY]), quality, point[CONTAINER_RATE_KEY], point[VMAF_MEAN_KEY], flush=True)
+    measured[CODECS_KEY].sort(key=lambda entry: (entry[SOURCE_KEY], entry[CODEC_KEY], entry[QUALITY_KEY]))
+    codec_curves_save(arguments.out, measured)
 
 
 def codec_curves_point(arguments, codec, quality, folder):
@@ -1056,6 +1054,15 @@ def codec_curves_placeholders(command, replacements):
         text.append(part)
 
     return text
+
+
+def codec_curves_save(path, measured):
+    temporary = path + PARTIAL_SUFFIX
+    with open(temporary, "w") as out:
+        json.dump(measured, out, indent=JSON_INDENT)
+        out.write(LINE_SEPARATOR)
+
+    os.replace(temporary, path)
 
 
 def counter_video_main():
@@ -1327,15 +1334,7 @@ def edge_streams_generate(output, seed=EDGE_STREAMS_DEFAULT_SEED):
 
     rejected = rejected_frames()
     for name, case in rejected.items():
-        try:
-            parse_frame(bytes.fromhex(case["frame"]))
-        except ValueError as exception:
-            if case["reason"] not in str(exception):
-                message: str = f"Fixture {name} must be rejected for {case['reason']!r}, but it was rejected for {str(exception)!r} instead!"
-                raise ValueError(message) from exception
-        else:
-            message: str = f"Rejected fixture {name} was accepted!"
-            raise ValueError(message)
+        edge_streams_check_rejected(name, case)
     output.joinpath(REJECTED_NAME).write_text(json.dumps(rejected, indent=JSON_INDENT) + LINE_SEPARATOR)
     print(
         json.dumps(
@@ -1448,15 +1447,7 @@ def edge_streams_mode_stream(randomizer):
             for mode in range(mcv2_reference.COMPACT)
         )
         for quantizer in range(mcv2_reference.MAXIMUM_QUANTIZER + 1):
-            for vector, luma in (
-                (b"\x00\x00", edge_streams_random_bytes(randomizer, GRID_BYTES)),
-                (MOTION_MINIMUM_X_MAXIMUM_Y, bytes([MAXIMUM_NIBBLE_PAIR]) * GRID_BYTES),
-                (MOTION_MAXIMUM_X_MINIMUM_Y, bytes([MINIMUM_NIBBLE_PAIR]) * GRID_BYTES),
-                (edge_streams_random_bytes(randomizer, MOTION_BYTES), edge_streams_random_bytes(randomizer, GRID_BYTES)),
-            ):
-                nodes.append(
-                    edge_streams_repeated(Node(mcv2_reference.COMPACT, quantizer, vector + luma), size)
-                )
+            nodes.extend(edge_streams_compact_nodes(randomizer, size, quantizer))
     superblocks_per_row = EDGE_STREAMS_MODES_WIDTH // SUPERBLOCK_SIZE
     height = (len(nodes) + superblocks_per_row - 1) // superblocks_per_row * SUPERBLOCK_SIZE
     key_roots = {
@@ -1531,22 +1522,29 @@ def edge_streams_compact_record(randomizer):
     return edge_streams_random_bytes(randomizer, mcv2_reference.COMPACT_BYTES)
 
 
+def edge_streams_compact_nodes(randomizer, size, quantizer):
+    records = (
+        (b"\x00\x00", edge_streams_random_bytes(randomizer, GRID_BYTES)),
+        (MOTION_MINIMUM_X_MAXIMUM_Y, bytes([MAXIMUM_NIBBLE_PAIR]) * GRID_BYTES),
+        (MOTION_MAXIMUM_X_MINIMUM_Y, bytes([MINIMUM_NIBBLE_PAIR]) * GRID_BYTES),
+        (edge_streams_random_bytes(randomizer, MOTION_BYTES), edge_streams_random_bytes(randomizer, GRID_BYTES)),
+    )
+    return [edge_streams_repeated(Node(mcv2_reference.COMPACT, quantizer, vector + luma), size) for vector, luma in records]
+
+
 def edge_streams_pattern_stream(randomizer):
-    roots, index = ({}, 0)
-    for size in ASCENDING_LEAF_SIZES:
-        for orientation in (0, 1):
-            for axis in (
-                bytes(size // BITS_PER_BYTE),
-                bytes([EDGE_STREAMS_FULL_AXIS]) * (size // BITS_PER_BYTE),
-                bytes([EDGE_STREAMS_MIXED_AXIS]) * (size // BITS_PER_BYTE),
-                edge_streams_random_bytes(randomizer, size // BITS_PER_BYTE),
-            ):
-                endpoints = EDGE_STREAMS_PATTERN_ENDPOINTS[index % len(EDGE_STREAMS_PATTERN_ENDPOINTS)]
-                roots[index] = edge_streams_repeated(
-                    Node(mcv2_reference.PATTERN, record=endpoints + bytes([orientation]) + axis),
-                    size,
-                )
-                index += 1
+    leaves = [
+        (size, orientation, axis)
+        for size in ASCENDING_LEAF_SIZES
+        for orientation in (0, 1)
+        for axis in edge_streams_pattern_axes(randomizer, size)
+    ]
+    roots = {}
+    for index, (size, orientation, axis) in enumerate(leaves):
+        endpoints = EDGE_STREAMS_PATTERN_ENDPOINTS[index % len(EDGE_STREAMS_PATTERN_ENDPOINTS)]
+        record = endpoints + bytes([orientation]) + axis
+        roots[index] = edge_streams_repeated(Node(mcv2_reference.PATTERN, record=record), size)
+
     swapped = {
         index: Node(mcv2_reference.SKIP)
         if index % EDGE_STREAMS_SKIP_PERIOD == 0
@@ -1559,6 +1557,16 @@ def edge_streams_pattern_stream(randomizer):
         pack_frame(EDGE_STREAMS_PATTERN_WIDTH, EDGE_STREAMS_PATTERN_HEIGHT, 0, 0, roots),
         pack_frame(EDGE_STREAMS_PATTERN_WIDTH, EDGE_STREAMS_PATTERN_HEIGHT, 1, 0, swapped),
     ]
+
+
+def edge_streams_pattern_axes(randomizer, size):
+    axis_bytes = size // BITS_PER_BYTE
+    return (
+        bytes(axis_bytes),
+        bytes([EDGE_STREAMS_FULL_AXIS]) * axis_bytes,
+        bytes([EDGE_STREAMS_MIXED_AXIS]) * axis_bytes,
+        edge_streams_random_bytes(randomizer, axis_bytes),
+    )
 
 
 def edge_streams_random_stream(randomizer, width=None, height=None, frame_count=EDGE_STREAMS_FRAMES):
@@ -1592,6 +1600,18 @@ def edge_streams_tree(randomizer, size, keyframe, split_chance=EDGE_STREAMS_SPLI
 
 def archive_bytes(chunks):
     return b"".join(struct.pack(LENGTH_FORMAT, len(chunk)) + chunk for chunk in chunks)
+
+
+def edge_streams_check_rejected(name, case):
+    try:
+        parse_frame(bytes.fromhex(case["frame"]))
+    except ValueError as exception:
+        if case["reason"] not in str(exception):
+            message: str = f"Fixture {name} must be rejected for {case['reason']!r}, but it was rejected for {str(exception)!r} instead!"
+            raise ValueError(message) from exception
+    else:
+        message: str = f"Rejected fixture {name} was accepted!"
+        raise ValueError(message)
 
 
 def fixtures_main():
@@ -1874,17 +1894,24 @@ def differential_compare(expected, actual):
             disagreements.append(
                 dict(archive=name, reason="frame count", mcav=len(java), reference=len(expected_tokens))
             )
-        for index, token in enumerate(expected_tokens):
-            counts["frames"] += 1
-            other = java[index] if index < len(java) else None
-            if other != token:
-                disagreements.append(dict(archive=name, frame=index, mcav=other, reference=token))
-            else:
-                counts["refused" if token == REJECT_TOKEN else "decoded"] += 1
+        disagreements.extend(differential_compare_frames(name, expected_tokens, java, counts))
     for name in actual.keys() - expected.keys():
         disagreements.append(dict(archive=name, reason="unexpected archive from Java"))
     counts["disagreements"] = len(disagreements)
     return (counts, disagreements)
+
+
+def differential_compare_frames(name, expected_tokens, java, counts):
+    disagreements = []
+    for index, token in enumerate(expected_tokens):
+        counts["frames"] += 1
+        other = java[index] if index < len(java) else None
+        if other != token:
+            disagreements.append(dict(archive=name, frame=index, mcav=other, reference=token))
+        else:
+            counts["refused" if token == REJECT_TOKEN else "decoded"] += 1
+
+    return disagreements
 
 
 def rate_quality_main():
@@ -2532,11 +2559,14 @@ class TimedShaderChain(ShaderChain):
             query = self.queries[name]
             count = repeats if name == "mcv2_decode" else 1
             with query:
-                for _ in range(count):
-                    self.draw(program, inputs, output)
+                self.draw_repeatedly(count, program, inputs, output)
             times[name] = query.elapsed / count / NANOSECONDS_PER_MILLISECOND
         status = numpy.frombuffer(self.target(STATUS_TARGET).read(), numpy.uint8)
         return (bool(status[0]), times)
+
+    def draw_repeatedly(self, count, program, inputs, output):
+        for _ in range(count):
+            self.draw(program, inputs, output)
 
 
 def shader_timing_descriptor_row(width):
@@ -2994,9 +3024,9 @@ def latency_captures(path):
         stdout=subprocess.PIPE,
     ) as decoder:
         # Drain every frame so ffmpeg cannot block on a full pipe when timestamps run out.
-        for index, raw in enumerate(iter(lambda: decoder.stdout.read(size), b"")):
-            if index >= len(times) or len(raw) < size:
-                continue
+        frames = enumerate(iter(lambda: decoder.stdout.read(size), b""))
+        complete = ((index, raw) for index, raw in frames if index < len(times) and len(raw) >= size)
+        for index, raw in complete:
             pixels = numpy.frombuffer(raw, numpy.uint8).reshape(height, width, CHANNELS)[row, columns].astype(int)
             luma = ((pixels[:, 0] + LATENCY_LUMA_GREEN_WEIGHT * pixels[:, 1] + pixels[:, 2]) // LATENCY_LUMA_WEIGHT_TOTAL).tolist()
             result.append((times[index], counter_video_read(luma)))
@@ -3156,19 +3186,19 @@ def charts_draw_features(rows):
         positions = [row_index + (0.5 - index) * (height + CHARTS_BAR_GAP) for row_index in range(len(rows))]
         shown = [min(row[source][0], limit) if limit else row[source][0] for row in rows]
         axis.barh(positions, shown, height=height, color=CHARTS_SOURCE_COLOURS[source], label=title, zorder=CHARTS_FRONT_LAYER)
-        for position, row, value in zip(positions, rows, shown):
-            if limit and row[source][0] > limit:
-                axis.annotate(
-                    f"{row[source][0]:+.0f}% →",
-                    (value, position),
-                    textcoords="offset points",
-                    xytext=CHARTS_BAR_LABEL_OFFSET,
-                    ha="right",
-                    va="center",
-                    fontsize=CHARTS_BAR_LABEL_FONT_SIZE,
-                    color=CHARTS_SURFACE,
-                    zorder=CHARTS_LABEL_LAYER,
-                )
+        clipped = [(position, row, value) for position, row, value in zip(positions, rows, shown) if limit and row[source][0] > limit]
+        for position, row, value in clipped:
+            axis.annotate(
+                f"{row[source][0]:+.0f}% →",
+                (value, position),
+                textcoords="offset points",
+                xytext=CHARTS_BAR_LABEL_OFFSET,
+                ha="right",
+                va="center",
+                fontsize=CHARTS_BAR_LABEL_FONT_SIZE,
+                color=CHARTS_SURFACE,
+                zorder=CHARTS_LABEL_LAYER,
+            )
     axis.set_yticks(range(len(rows)))
     axis.set_yticklabels([row[FEATURE_NAME_KEY] for row in rows], color=CHARTS_INK)
     axis.axvline(0, color=CHARTS_SECONDARY, linewidth=CHARTS_AXIS_LINE_WIDTH, zorder=CHARTS_BACK_LAYER)
@@ -3191,10 +3221,7 @@ def charts_print_tables(data, rows, removed):
     for source, title in CHARTS_SOURCES:
         print(f"| **{title}** |" + MARKDOWN_ROW_END * len(CHARTS_CODECS))
         for level in CHARTS_LEVELS:
-            cells = []
-            for codec, _, _, _ in CHARTS_CODECS:
-                rate = charts_rate_at(charts_curve(data, source, codec), level)
-                cells.append("-" if rate is None else f"{rate:.2f}")
+            cells = [charts_rate_cell(data, source, codec, level) for codec, _, _, _ in CHARTS_CODECS]
             print(f"| {level} | " + MARKDOWN_CELL_SEPARATOR.join(cells) + MARKDOWN_ROW_END)
     print(
         "\nBD-rate of MCV2 against each codec (positive: MCV2 needs more), over the VMAF range both cover:\n"
@@ -3223,6 +3250,11 @@ def charts_print_tables(data, rows, removed):
         for row in sorted(removed, key=lambda row: -row[BD_RATE_KEY]["mean"]):
             cells = [charts_signed(row[BD_RATE_KEY][source]) for source, _ in CHARTS_SOURCES]
             print(f"| {row[FEATURE_NAME_KEY]} | " + MARKDOWN_CELL_SEPARATOR.join(cells) + f" | {charts_signed(row['bd_rate']['mean'])} |")
+
+
+def charts_rate_cell(data, source, codec, level):
+    rate = charts_rate_at(charts_curve(data, source, codec), level)
+    return "-" if rate is None else f"{rate:.2f}"
 
 
 def charts_rate_at(points, level):
@@ -3292,9 +3324,8 @@ def samples_draw_tree(arguments):
         top, bottom = (axes[0][column], axes[1][column])
         top.imshow(picture[pixel_y : pixel_y + height, pixel_x : pixel_x + width], interpolation="nearest")
         bottom.imshow(numpy.full((height, width, CHANNELS), MAXIMUM_CHANNEL, numpy.uint8))
-        for leaf in frame.leaves:
-            if not samples_inside(leaf, crop):
-                continue
+        inside = [leaf for leaf in frame.leaves if samples_inside(leaf, crop)]
+        for leaf in inside:
             corner = (leaf.pixel_x - pixel_x - SAMPLES_HALF_PIXEL, leaf.pixel_y - pixel_y - SAMPLES_HALF_PIXEL)
             top.add_patch(
                 Rectangle(corner, leaf.size, leaf.size, fill=False, edgecolor=SAMPLES_LEAF_OUTLINE, linewidth=CHARTS_FINE_LINE_WIDTH)
