@@ -18,7 +18,6 @@
 package me.brandonli.mcav.installer;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Thrown when Maven dependencies cannot be resolved, verified or copied, or an artifact id is invalid.
@@ -34,21 +33,21 @@ public class InstallationException extends RuntimeException {
   private static final long serialVersionUID = 6370074734200515542L;
 
   /**
-   * Constructs a new exception with a detail message and no cause.
+   * Creates an exception with a message.
    *
    * @param message the detail message, which says what could not be installed
    */
-  InstallationException(final @Nullable String message) {
+  public InstallationException(final String message) {
     super(message);
   }
 
   /**
-   * Constructs a new exception with a detail message and the failure that caused it.
+   * Creates an exception with a message and the exception that caused it.
    *
    * @param message the detail message, which says what could not be installed
-   * @param cause   the failure that caused this exception, such as a failed resolution, or null if it is unknown
+   * @param cause   the failure that caused this exception, such as a failed resolution
    */
-  InstallationException(final @Nullable String message, final @Nullable Throwable cause) {
+  public InstallationException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }
