@@ -106,12 +106,22 @@ final class InstallationTreeAssertions implements AutoCloseable {
     final Map<Path, StoredEntry> entries = new HashMap<>();
     try (final Stream<Path> paths = Files.walk(this.root)) {
       for (final Path path : paths.toList()) {
-        final boolean directory = Files.isDirectory(path);
-        entries.put(path, new StoredEntry(directory, directory ? new byte[0] : Files.readAllBytes(path)));
+        final StoredEntry entry = this.storedEntryOf(path);
+        entries.put(path, entry);
       }
     }
 
     return entries;
+  }
+
+  private StoredEntry storedEntryOf(final Path path) throws IOException {
+    final boolean directory = Files.isDirectory(path);
+    if (directory) {
+      return new StoredEntry(directory, new byte[0]);
+    }
+
+    final byte[] contents = Files.readAllBytes(path);
+    return new StoredEntry(directory, contents);
   }
 
   @Override
