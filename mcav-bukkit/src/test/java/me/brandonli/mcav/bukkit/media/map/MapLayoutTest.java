@@ -332,4 +332,31 @@ final class MapLayoutTest {
     assertThrows(IllegalArgumentException.class, () -> layout.extractAll(tooSmall));
     assertThrows(NullPointerException.class, () -> layout.extractAll(null));
   }
+
+  @Test
+  void shouldRejectGridsThatAreTooLargeWhenTheirMapCountJustFits() {
+    final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+      new MapLayout(0, 1, Integer.MAX_VALUE, 1, 1)
+    );
+
+    final String message = exception.getMessage();
+    assertEquals("Map grid of 1x2147483647 maps is too large!", message);
+  }
+
+  @Test
+  void shouldRejectEmptyRectanglesAsOutsideTheRegionOfTheMap() {
+    final MapLayout layout = new MapLayout(0, 1, 1, 100, 50);
+    final byte[] image = createImage(100, 50);
+    final IllegalArgumentException noWidth = assertThrows(IllegalArgumentException.class, () ->
+      layout.extractPatch(image, 0, 14, 39, 0, 1)
+    );
+    final IllegalArgumentException noHeight = assertThrows(IllegalArgumentException.class, () ->
+      layout.extractPatch(image, 0, 14, 39, 1, 0)
+    );
+
+    final String noWidthMessage = noWidth.getMessage();
+    final String noHeightMessage = noHeight.getMessage();
+    assertEquals("Rectangle of 0x1 pixels at (14, 39) in map 0 is outside its region!", noWidthMessage);
+    assertEquals("Rectangle of 1x0 pixels at (14, 39) in map 0 is outside its region!", noHeightMessage);
+  }
 }
