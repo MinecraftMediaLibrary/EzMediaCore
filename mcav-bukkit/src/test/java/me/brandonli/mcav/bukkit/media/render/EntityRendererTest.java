@@ -509,6 +509,23 @@ final class EntityRendererTest {
   }
 
   @Test
+  void shouldForgetWhoSawTheRemovedDisplayWhenShowingANewOne() {
+    final EntityConfiguration configuration = this.createConfiguration(this.position);
+    final EntityRenderer renderer = new EntityRenderer(configuration);
+    renderer.show();
+    this.viewers.remove(VIEWER);
+    renderer.hide();
+    renderer.show();
+    renderer.onTick();
+
+    final List<CraftTextDisplay> displays = this.world.getSpawnedDisplays();
+    final int displayCount = displays.size();
+    final Plugin plugin = this.server.getPlugin();
+    assertEquals(2, displayCount);
+    verify(this.viewer, never()).hideEntity(eq(plugin), any(Entity.class));
+  }
+
+  @Test
   void shouldNotLetAQueuedShowSpawnAnEntityAfterAMainThreadHide() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
