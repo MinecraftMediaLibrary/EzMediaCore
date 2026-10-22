@@ -62,6 +62,8 @@ final class LoaderUtilsTest {
   private static final String KNOT = "net.fabricmc.loader.impl.launch.knot.KnotClassLoader";
   private static final ClassDesc CLASS_LOADER_DESCRIPTOR = ClassDesc.of("java.lang.ClassLoader");
 
+  private static final int RECEIVER_SLOT = 0;
+
   @TempDir
   private Path directory;
 
@@ -184,7 +186,7 @@ final class LoaderUtilsTest {
   }
 
   private void callTheSuperConstructor(final CodeBuilder code) {
-    code.aload(0);
+    code.aload(RECEIVER_SLOT);
     code.invokespecial(CLASS_LOADER_DESCRIPTOR, ConstantDescs.INIT_NAME, ConstantDescs.MTD_void);
     code.return_();
   }

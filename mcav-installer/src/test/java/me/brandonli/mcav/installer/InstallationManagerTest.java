@@ -131,6 +131,8 @@ final class InstallationManagerTest {
     OPTIONAL_TRANSITIVE
   );
 
+  private static final long AWAIT_TIMEOUT_SECONDS = 10L;
+
   @TempDir
   private Path directory;
 
@@ -707,8 +709,8 @@ final class InstallationManagerTest {
     final CountDownLatch interrupted = new CountDownLatch(1);
     final Future<?> task = this.submitBlockingTask(executor, interrupted);
     InstallationManager.shutdown(executor, 50);
-    final boolean taskInterrupted = interrupted.await(10, TimeUnit.SECONDS);
-    final boolean terminated = executor.awaitTermination(10, TimeUnit.SECONDS);
+    final boolean taskInterrupted = interrupted.await(AWAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    final boolean terminated = executor.awaitTermination(AWAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final boolean done = task.isDone();
     assertTrue(taskInterrupted);
     assertTrue(terminated);
@@ -726,7 +728,7 @@ final class InstallationManagerTest {
   private Future<?> submitBlockingTask(final ExecutorService executor, final CountDownLatch interrupted) throws InterruptedException {
     final CountDownLatch started = new CountDownLatch(1);
     final Future<?> task = executor.submit(() -> this.blockUntilInterrupted(started, interrupted));
-    final boolean running = started.await(10, TimeUnit.SECONDS);
+    final boolean running = started.await(AWAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(running);
 
     return task;
@@ -752,8 +754,8 @@ final class InstallationManagerTest {
     current.interrupt();
     InstallationManager.shutdown(executor, 60_000);
     final boolean flagKept = Thread.interrupted();
-    final boolean taskInterrupted = interrupted.await(10, TimeUnit.SECONDS);
-    final boolean terminated = executor.awaitTermination(10, TimeUnit.SECONDS);
+    final boolean taskInterrupted = interrupted.await(AWAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    final boolean terminated = executor.awaitTermination(AWAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final boolean done = task.isDone();
     assertTrue(flagKept);
     assertTrue(taskInterrupted);
