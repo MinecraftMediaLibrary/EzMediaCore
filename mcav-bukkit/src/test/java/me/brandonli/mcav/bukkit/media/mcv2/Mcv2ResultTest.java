@@ -789,17 +789,23 @@ final class Mcv2ResultTest {
 
   @Test
   void shouldThinASourceFasterThanTheScreensRate() {
-    final Mcv2Result result = this.result(
-      Mcv2Configuration.builder()
-        .viewers(List.of(WITH_PACK))
-        .origin(new Location(mock(World.class), 0, 64, 0))
-        .facing(BlockFace.SOUTH)
-        .map(WALL_MAP)
-        .columns(1)
-        .rows(1)
-        .video(64, 32)
-        .pageMap(PAGE_MAP)
-        .build(),
+    final Mcv2Configuration thinnedConfiguration = Mcv2Configuration.builder()
+      .viewers(List.of(WITH_PACK))
+      .origin(new Location(mock(World.class), 0, 64, 0))
+      .facing(BlockFace.SOUTH)
+      .map(WALL_MAP)
+      .columns(1)
+      .rows(1)
+      .video(64, 32)
+      .pageMap(PAGE_MAP)
+      .build();
+    // frames handed to applyFilter read this clock, so no real time passes between two of them
+    final AtomicLong clock = new AtomicLong();
+    final Mcv2Result result = new Mcv2Result(
+      thinnedConfiguration,
+      new Mcv2Channel(thinnedConfiguration, this.viewers, this.screen),
+      null,
+      clock::get,
       null
     );
     final long millisecond = TimeUnit.MILLISECONDS.toNanos(1);
@@ -830,8 +836,11 @@ final class Mcv2ResultTest {
     assertFalse(burstTaken);
 
     // and a frame that is not the screen's goes nowhere: of two frames at once, the second
+    clock.set(now + 1000 * millisecond);
     final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
-    result.applyFilter(frame, this.metadata);
+    final boolean firstApplied = result.applyFilter(frame, this.metadata);
+    assertTrue(firstApplied);
+
     final boolean secondApplied = result.applyFilter(frame, this.metadata);
     assertFalse(secondApplied);
   }
