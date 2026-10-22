@@ -28,9 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Artifact}, {@link InstallationException} and {@link JarInjectorException}.
- */
 final class ArtifactTest {
 
   private static final String COPY_FAILURE_MESSAGE = "Jars cannot be copied!";

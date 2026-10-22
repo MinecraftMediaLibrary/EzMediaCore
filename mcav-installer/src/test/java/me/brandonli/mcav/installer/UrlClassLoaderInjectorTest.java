@@ -37,10 +37,6 @@ import me.brandonli.mcav.installer.testing.ResourceUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link UrlClassLoaderInjector} and {@link ReflectiveInjector}. The test JVM opens {@code java.net}, as the
- * injector tells users to do, so the reflective strategy is available.
- */
 final class UrlClassLoaderInjectorTest {
 
   private static final String LIBRARY_JAR = "library.jar";
@@ -155,13 +151,6 @@ final class UrlClassLoaderInjectorTest {
     }
   }
 
-  /**
-   * Creates a stand-in for the {@code addURL} handle that takes a class loader and a URL and throws a failure
-   * instead of adding the URL.
-   *
-   * @param failure the failure to throw
-   * @return the handle
-   */
   private MethodHandle failingHandle(final Throwable failure) {
     final MethodHandle thrower = MethodHandles.throwException(void.class, Throwable.class);
     final MethodHandle boundThrower = thrower.bindTo(failure);

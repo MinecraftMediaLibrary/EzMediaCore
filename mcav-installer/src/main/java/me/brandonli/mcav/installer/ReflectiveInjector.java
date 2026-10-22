@@ -24,27 +24,14 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Calls {@code URLClassLoader.addURL} through a private method handle. Works when {@code java.net} is open to the
- * installer, which is the case for most server launchers.
- */
 final class ReflectiveInjector extends UrlClassLoaderInjector {
 
   private static final String ADD_URL_METHOD = "addURL";
 
-  /**
-   * The {@code addURL} method of {@link URLClassLoader}, or null if {@code java.net} is not opened to this module.
-   */
   static final @Nullable MethodHandle ADD_URL = findAddUrl();
 
   private final MethodHandle addUrlHandle;
 
-  /**
-   * Creates an injector.
-   *
-   * @param classLoader  the class loader to add jars to
-   * @param addUrlHandle a handle that takes the class loader and the URL, normally {@link #ADD_URL}
-   */
   ReflectiveInjector(final URLClassLoader classLoader, final MethodHandle addUrlHandle) {
     super(classLoader);
     this.addUrlHandle = addUrlHandle;
@@ -55,12 +42,6 @@ final class ReflectiveInjector extends UrlClassLoaderInjector {
     return findAddUrl(lookup);
   }
 
-  /**
-   * Finds the {@code addURL} method of {@link URLClassLoader}. Visible for testing.
-   *
-   * @param lookup the lookup that needs private access to {@link URLClassLoader}
-   * @return the handle, or null if the lookup has no access
-   */
   static @Nullable MethodHandle findAddUrl(final MethodHandles.Lookup lookup) {
     try {
       final MethodHandles.Lookup privateLookup = MethodHandles.privateLookupIn(URLClassLoader.class, lookup);

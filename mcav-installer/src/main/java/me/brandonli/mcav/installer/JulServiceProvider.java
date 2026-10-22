@@ -31,10 +31,13 @@ import org.slf4j.spi.SLF4JServiceProvider;
  * and warn on the standard error that it found none.
  *
  * <p>SLF4J finds this class through the service file of the installer's jar; it is not meant to be used otherwise.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class JulServiceProvider implements SLF4JServiceProvider {
 
-  /** The version of the SLF4J API this provider is written against. */
   static final String API_VERSION = "2.0.99";
 
   private final ILoggerFactory loggers;
@@ -42,7 +45,9 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
   private final MDCAdapter context;
 
   /**
-   * Constructs the provider. SLF4J does, through the service file of the jar.
+   * Creates the provider; SLF4J calls this constructor through the service file of the jar.
+   *
+   * @since 1.0.0
    */
   public JulServiceProvider() {
     this.loggers = JulLogger::new;
@@ -52,6 +57,8 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
 
   /**
    * Prepares nothing: the factories are ready once the provider is constructed.
+   *
+   * @since 1.0.0
    */
   @Override
   public void initialize() {}
@@ -60,6 +67,7 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
    * Returns the factory of loggers, each of which writes to the {@code java.util.logging} logger of its name.
    *
    * @return the factory
+   * @since 1.0.0
    */
   @Override
   public ILoggerFactory getLoggerFactory() {
@@ -70,6 +78,7 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
    * Returns SLF4J's basic factory of markers; {@code java.util.logging} has no markers, so they are dropped.
    *
    * @return the factory
+   * @since 1.0.0
    */
   @Override
   public IMarkerFactory getMarkerFactory() {
@@ -80,6 +89,7 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
    * Returns an adapter that keeps no context, as {@code java.util.logging} has none.
    *
    * @return the adapter
+   * @since 1.0.0
    */
   @Override
   public MDCAdapter getMDCAdapter() {
@@ -90,6 +100,7 @@ public final class JulServiceProvider implements SLF4JServiceProvider {
    * Returns the version of the SLF4J API this provider is written against.
    *
    * @return {@value #API_VERSION}
+   * @since 1.0.0
    */
   @Override
   public String getRequestedApiVersion() {

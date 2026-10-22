@@ -34,15 +34,6 @@ import java.util.stream.Stream;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the paths the installer derives from coordinates, the root artifact id a plugin passes in and the group,
- * artifact and file names a POM may hold. The installer has no archive extraction; it resolves jars and copies them, so
- * the question is only where it writes. An artifact id is refused before anything is created, or gets a folder of
- * exactly its name right below the installation folder and nothing else outside the local repository; a jar goes
- * strictly below the folder of its artifact under its own file name, or the coordinates are refused. The artifact ids
- * run against an empty repository on the file system, so nothing is downloaded. The property tests of this module
- * cover the same ground with generated coordinates; this reaches the ones a generator would not think of.
- */
 @Tag("fuzz")
 final class InstallationPathsFuzzTest {
 
@@ -118,9 +109,6 @@ final class InstallationPathsFuzzTest {
     );
   }
 
-  /**
-   * One installation folder, local repository and empty remote repository for the whole run of the fuzzer.
-   */
   private static final class Workspace {
 
     private final Path root;

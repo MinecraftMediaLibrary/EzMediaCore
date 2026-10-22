@@ -41,13 +41,6 @@ import net.jqwik.api.lifecycle.AfterProperty;
 import net.jqwik.api.lifecycle.BeforeProperty;
 import org.eclipse.aether.repository.RemoteRepository;
 
-/**
- * Properties of the paths the installer writes to, for every artifact id and every coordinate a POM could hold, however
- * hostile. Pass 1 found that an artifact id of {@code ..} escaped the installation folder and that the test of the
- * escape anchored on an already escaped path; pass 2 added the check. These drive the real
- * {@link InstallationManager#downloadDependencies(String, String, String)} against an empty repository on the file
- * system, so the directories it really creates are what is checked, and nothing is downloaded.
- */
 final class InstallationPathsPropertyTest {
 
   private static final String TEMPORARY_PREFIX = "mcav-installer-paths";
@@ -164,11 +157,6 @@ final class InstallationPathsPropertyTest {
     return Arbitraries.oneOf(shortCoordinates, classics);
   }
 
-  /**
-   * A malicious POM can name any group, artifact and file. Wherever the jar would be copied, it must be strictly below
-   * the folder of the installed artifact, not outside of it and not the folder itself, and it must be a file of its own
-   * name rather than a folder the name climbs to.
-   */
   @Property(seed = SEED)
   void shouldPlaceEveryJarDestinationStrictlyInsideTheArtifactFolder(
     @ForAll("coordinates") final String groupId,

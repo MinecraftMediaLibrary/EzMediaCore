@@ -56,31 +56,10 @@ import org.eclipse.aether.util.filter.ScopeDependencyFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Resolves an artifact and its runtime dependencies from Maven repositories and copies the jars into a folder.
- *
- * <p>Resolution uses the local Maven repository of the user as a cache, so artifacts already downloaded by Maven
- * or a previous run are not downloaded again. A downloaded file whose checksum is missing or does not match the
- * one published by the repository fails the installation instead of being used.
- *
- * <p>The jars of an artifact are copied to {@code <folder>/<artifactId>/<groupId>/<artifactId>/<file name>}, where
- * the file name is the one of the local Maven repository, {@code artifactId-version[-classifier].extension}. The
- * group and artifact folders keep equal artifact ids of different groups apart. The resolver selects a single
- * version of every {@code groupId:artifactId}, so the file names in one folder only differ by classifier, as with
- * {@code javacpp-1.5.14.jar} and its native jar {@code javacpp-1.5.14-linux-x86_64.jar}. A jar that is already
- * present with the content of its source is kept, so jars a running server has loaded are not rewritten; any
- * other jar is copied again.
- */
 final class InstallationManager implements AutoCloseable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstallationManager.class);
-  /**
-   * The repositories artifacts are downloaded from.
-   */
   static final List<RemoteRepository> REPOSITORIES = createDefaultRepositories();
-  /**
-   * The checksum files earlier versions wrote into the folder. Nothing reads them, so they are deleted.
-   */
   static final List<String> OBSOLETE_FILE_NAMES = List.of("hash.properties", "hashes.properties");
 
   private static final String COMPILE_SCOPE = "compile";
@@ -125,25 +104,11 @@ final class InstallationManager implements AutoCloseable {
   private final List<RemoteRepository> repositories;
   private final ExecutorService executor;
 
-  /**
-   * Creates a manager that downloads from the {@link #REPOSITORIES} of the library into the local Maven repository
-   * of the user.
-   *
-   * @param folder the folder the jars are copied into
-   */
   InstallationManager(final Path folder) {
     final Path localRepository = defaultLocalRepository();
     this(folder, REPOSITORIES, localRepository);
   }
 
-  /**
-   * Creates a manager that downloads from other repositories into another local repository, for example a
-   * repository on the file system in tests.
-   *
-   * @param folder          the folder the jars are copied into
-   * @param repositories    the remote repositories
-   * @param localRepository the local repository that caches downloads
-   */
   InstallationManager(final Path folder, final List<RemoteRepository> repositories, final Path localRepository) {
     final RepositorySystemSupplier supplier = new RepositorySystemSupplier();
     this.folder = folder;
@@ -183,12 +148,6 @@ final class InstallationManager implements AutoCloseable {
     return builder.build();
   }
 
-  /**
-   * Copies the system properties of the JVM for the resolver session, which uses them like Maven does, for example to
-   * activate profiles that depend on the Java version. Visible for testing.
-   *
-   * @return the system properties by name
-   */
   static Map<String, String> copySystemProperties() {
     final Map<String, String> systemProperties = new HashMap<>();
     final Properties jvmProperties = System.getProperties();
@@ -201,12 +160,6 @@ final class InstallationManager implements AutoCloseable {
     return systemProperties;
   }
 
-  /**
-   * Creates a copy thread. Copy threads are daemon threads, so a copy never keeps the JVM alive. Visible for testing.
-   *
-   * @param runnable the work of the thread
-   * @return the unstarted thread, named {@code mcav-installer}
-   */
   static Thread createCopyThread(final Runnable runnable) {
     final Thread thread = new Thread(runnable, COPY_THREAD_NAME);
     thread.setDaemon(true);
@@ -222,14 +175,6 @@ final class InstallationManager implements AutoCloseable {
     return List.of(central, snapshots, paper, google, codemc);
   }
 
-  /**
-   * Creates a repository with the default Maven layout whose releases and snapshots are checked for updates daily
-   * and whose downloads fail when their checksum is missing or wrong.
-   *
-   * @param id  the repository id
-   * @param url the base URL, such as {@code https://repo.maven.apache.org/maven2/} or a {@code file:} URL
-   * @return the repository
-   */
   static RemoteRepository createRepository(final String id, final String url) {
     final RemoteRepository.Builder builder = new RemoteRepository.Builder(id, REPOSITORY_LAYOUT, url);
     final RepositoryPolicy policy = new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_DAILY, RepositoryPolicy.CHECKSUM_POLICY_FAIL);
@@ -237,10 +182,6 @@ final class InstallationManager implements AutoCloseable {
     return builder.build();
   }
 
-  /**
-   * Stops the copy threads, waiting up to ten seconds for running copies before interrupting them, and then closes
-   * the resolver session and shuts the repository system down. The manager cannot be used afterwards.
-   */
   @Override
   public void close() {
     shutdown(this.executor, SHUTDOWN_TIMEOUT_MILLISECONDS);
@@ -248,12 +189,6 @@ final class InstallationManager implements AutoCloseable {
     this.system.shutdown();
   }
 
-  /**
-   * Shuts an executor down, waiting for running tasks and interrupting them after a timeout. Visible for testing.
-   *
-   * @param executor            the executor
-   * @param timeoutMilliseconds how long to wait for running tasks
-   */
   static void shutdown(final ExecutorService executor, final long timeoutMilliseconds) {
     executor.shutdown();
 
@@ -270,16 +205,6 @@ final class InstallationManager implements AutoCloseable {
     }
   }
 
-  /**
-   * Resolves an artifact with its compile and runtime dependencies and copies them into a subfolder named after
-   * the artifact.
-   *
-   * @param groupId    the group id
-   * @param artifactId the artifact id
-   * @param version    the version
-   * @return the copied jars
-   * @throws InstallationException if the artifact id is not a plain Maven id, or resolution or copying fails
-   */
   List<Path> downloadDependencies(final String groupId, final String artifactId, final String version) {
     final Matcher matcher = ARTIFACT_ID.matcher(artifactId);
     final boolean validId = matcher.matches();
@@ -346,13 +271,6 @@ final class InstallationManager implements AutoCloseable {
     return awaitAll(futures);
   }
 
-  /**
-   * Waits for every copy task in order. Visible for testing.
-   *
-   * @param futures the copy tasks
-   * @return the copied jars in the order of the tasks
-   * @throws IOException if a task failed or the thread was interrupted while waiting
-   */
   static List<Path> awaitAll(final List<Future<Path>> futures) throws IOException {
     final List<Path> jars = new ArrayList<>();
     for (final Future<Path> future : futures) {
@@ -390,6 +308,7 @@ final class InstallationManager implements AutoCloseable {
     final String fileName = IoUtils.getFileName(source);
     final Path destination = destinationOf(target, groupId, artifactId, fileName);
 
+    // a jar that a running server has loaded must not be rewritten
     final boolean upToDate = this.hasSameContent(source, destination);
     if (upToDate) {
       return destination;
@@ -406,18 +325,6 @@ final class InstallationManager implements AutoCloseable {
     return destination;
   }
 
-  /**
-   * Returns the path a jar is copied to: {@code <target>/<groupId>/<artifactId>/<fileName>}. Visible for testing.
-   *
-   * @param target     the folder of the installed artifact
-   * @param groupId    the group id of the jar
-   * @param artifactId the artifact id of the jar
-   * @param fileName   the file name of the jar in the local Maven repository
-   * @return the destination inside the target folder, whose last element is the file name
-   * @throws IOException if the coordinates would place the jar outside the target folder, such as a group id of
-   *                     {@code ..} in a malicious POM, or not under its own file name, such as a file name of
-   *                     {@code ..}, which would name a folder instead
-   */
   static Path destinationOf(final Path target, final String groupId, final String artifactId, final String fileName) throws IOException {
     final Path groupFolder = target.resolve(groupId);
     final Path artifactFolder = groupFolder.resolve(artifactId);
@@ -463,21 +370,11 @@ final class InstallationManager implements AutoCloseable {
     return mismatch == -1L;
   }
 
-  /**
-   * Copies a file next to its destination first and then moves it into place, so a crash never leaves a
-   * half-written jar behind.
-   */
   private void copyAtomically(final Path source, final Path partial, final Path destination) throws IOException {
     Files.copy(source, partial, StandardCopyOption.REPLACE_EXISTING);
     Files.move(partial, destination, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
   }
 
-  /**
-   * Deletes the checksum files of earlier versions. A file that cannot be deleted is only reported, because it
-   * does not affect the installation.
-   *
-   * @param folder the folder the jars are copied into
-   */
   private void deleteObsoleteFiles(final Path folder) {
     for (final String name : OBSOLETE_FILE_NAMES) {
       final Path file = folder.resolve(name);
@@ -489,11 +386,6 @@ final class InstallationManager implements AutoCloseable {
     }
   }
 
-  /**
-   * Checks whether the copy threads have stopped, which {@link #close()} waits for. Visible for testing.
-   *
-   * @return true once the copy threads have stopped
-   */
   boolean isStopped() {
     return this.executor.isTerminated();
   }

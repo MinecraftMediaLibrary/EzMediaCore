@@ -40,9 +40,6 @@ import me.brandonli.mcav.installer.testing.ResourceUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link UnsafeInjector} and its {@link UnsafeInjector.UnsafeAccess}.
- */
 final class UnsafeInjectorTest {
 
   private static final String TEXT_FIELD = "text";
@@ -202,9 +199,6 @@ final class UnsafeInjectorTest {
     assertInstanceOf(LinkageError.class, linkageCause);
   }
 
-  /**
-   * An Unsafe look-alike whose instance is missing.
-   */
   static final class UnsafeWithoutInstance {
 
     private static final Object theUnsafe = null;
@@ -212,9 +206,6 @@ final class UnsafeInjectorTest {
     private UnsafeWithoutInstance() {}
   }
 
-  /**
-   * An Unsafe look-alike without the needed methods.
-   */
   static final class UnsafeWithoutMethods {
 
     private static final Object theUnsafe = new Object();
@@ -222,10 +213,6 @@ final class UnsafeInjectorTest {
     private UnsafeWithoutMethods() {}
   }
 
-  /**
-   * An Unsafe look-alike whose reads fail: the field {@code text} with an error of the virtual machine, the field
-   * {@code urls} with a {@link LinkageError}, and every other field is read as the owner itself.
-   */
   static final class UnsafeWithFailingReads {
 
     private static final UnsafeWithFailingReads theUnsafe = new UnsafeWithFailingReads();
@@ -259,9 +246,6 @@ final class UnsafeInjectorTest {
     }
   }
 
-  /**
-   * Holds the fields read in the tests.
-   */
   static final class Holder {
 
     private static final Object SHARED = "shared";

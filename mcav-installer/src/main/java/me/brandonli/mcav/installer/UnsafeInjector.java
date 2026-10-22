@@ -27,11 +27,6 @@ import java.net.URLClassLoader;
 import java.util.Collection;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Appends to the internal URL lists of a {@link URLClassLoader} through {@code sun.misc.Unsafe}. Used only when
- * the reflective injector is denied. Unsafe is looked up by name, so the installer compiles without referencing
- * the unsupported API; newer Java versions print a warning the first time it is used.
- */
 final class UnsafeInjector extends UrlClassLoaderInjector {
 
   private static final String UNSAFE_CLASS = "sun.misc.Unsafe";
@@ -40,9 +35,7 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
   private static final String UNOPENED_URLS_FIELD = "unopenedUrls";
   private static final String PATH_FIELD = "path";
 
-  /**
-   * The Unsafe access of this runtime, or null if {@code sun.misc.Unsafe} is not usable.
-   */
+  // found by name, so the code compiles without referencing the unsupported API
   static final @Nullable UnsafeAccess UNSAFE = UnsafeAccess.find(UNSAFE_CLASS);
 
   private final Collection<?> unopenedUrls;
@@ -50,13 +43,6 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
   private final UrlSink unopenedUrlsSink;
   private final UrlSink pathSink;
 
-  /**
-   * Creates an injector.
-   *
-   * @param classLoader the class loader to add jars to
-   * @param unsafe      the Unsafe access, normally {@link #UNSAFE}
-   * @throws JarInjectorException if the class path fields of this Java version are unknown
-   */
   UnsafeInjector(final URLClassLoader classLoader, final UnsafeAccess unsafe) {
     super(classLoader);
     final Object classPath = unsafe.readField(URLClassLoader.class, classLoader, CLASS_PATH_FIELD);
@@ -67,16 +53,6 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
     this.pathSink = unsafe.createSink(this.path);
   }
 
-  /**
-   * Reads a collection field. Visible for testing.
-   *
-   * @param unsafe the Unsafe access
-   * @param type   the class that declares the field
-   * @param owner  the object that holds the field
-   * @param name   the name of the field
-   * @return the collection
-   * @throws JarInjectorException if the field is missing, null, or not a collection
-   */
   static Collection<?> readCollection(final UnsafeAccess unsafe, final Class<?> type, final Object owner, final String name) {
     final Object value = unsafe.readField(type, owner, name);
     if (!(value instanceof final Collection<?> collection)) {
@@ -102,25 +78,11 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
     }
   }
 
-  /**
-   * Adds URLs to one of the internal collections. The JDK declares both collections with URL elements, which a
-   * runtime check cannot confirm, so the URLs are added through {@link Collection#add(Object)} instead of through
-   * a collection of URLs. Public because {@link MethodHandleProxies} only implements public interfaces.
-   */
+  // public, because MethodHandleProxies only implements public interfaces
   public interface UrlSink {
-    /**
-     * Adds a URL to the collection.
-     *
-     * @param url the URL to add
-     * @return true if the collection changed
-     */
     boolean add(URL url);
   }
 
-  /**
-   * The two Unsafe methods the injector needs, bound to the Unsafe instance, and the method that adds to a
-   * collection.
-   */
   static final class UnsafeAccess {
 
     private static final String INSTANCE_FIELD = "theUnsafe";
@@ -139,12 +101,6 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
       this.collectionAdd = collectionAdd;
     }
 
-    /**
-     * Looks up an Unsafe class with a static {@code theUnsafe} instance.
-     *
-     * @param className the name of the class, normally {@code sun.misc.Unsafe}
-     * @return the access, or null if the class, its instance, or one of the methods is missing
-     */
     static @Nullable UnsafeAccess find(final String className) {
       try {
         final Class<?> unsafeType = Class.forName(className);
@@ -175,27 +131,11 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
       return new UnsafeAccess(boundOffset, boundGetObject, add);
     }
 
-    /**
-     * Creates a sink that adds URLs to a collection. Exceptions thrown by the collection reach the caller
-     * unchanged.
-     *
-     * @param collection the collection to add to
-     * @return the sink
-     */
     private UrlSink createSink(final Collection<?> collection) {
       final MethodHandle boundAdd = this.collectionAdd.bindTo(collection);
       return MethodHandleProxies.asInterfaceInstance(UrlSink.class, boundAdd);
     }
 
-    /**
-     * Reads an instance field, ignoring access checks.
-     *
-     * @param type  the class that declares the field
-     * @param owner the object that holds the field
-     * @param name  the name of the field
-     * @return the value of the field
-     * @throws JarInjectorException if the field is missing, static, or null
-     */
     Object readField(final Class<?> type, final Object owner, final String name) {
       final @Nullable Object value = this.readValue(type, owner, name);
       if (value == null) {

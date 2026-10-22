@@ -24,11 +24,6 @@ import org.slf4j.Marker;
 import org.slf4j.helpers.LegacyAbstractLogger;
 import org.slf4j.helpers.MessageFormatter;
 
-/**
- * An SLF4J logger that writes to the {@code java.util.logging} logger of its name: trace as {@code FINEST}, debug as
- * {@code FINE}, info as {@code INFO}, warn as {@code WARNING} and error as {@code SEVERE}, its arguments formatted the
- * way SLF4J formats them.
- */
 final class JulLogger extends LegacyAbstractLogger {
 
   @Serial
@@ -36,11 +31,6 @@ final class JulLogger extends LegacyAbstractLogger {
 
   private final transient Logger logger;
 
-  /**
-   * Creates the logger of a name.
-   *
-   * @param name the name, which is also the name of the {@code java.util.logging} logger written to
-   */
   JulLogger(final String name) {
     this.name = name;
     this.logger = Logger.getLogger(name);

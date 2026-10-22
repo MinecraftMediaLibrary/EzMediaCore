@@ -22,10 +22,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Calls the protected {@code addURL} method of a {@link URLClassLoader}. Two strategies exist because the
- * runtime may deny the reflective access the first one needs.
- */
 abstract class UrlClassLoaderInjector {
 
   private final URLClassLoader classLoader;
@@ -34,26 +30,10 @@ abstract class UrlClassLoaderInjector {
     this.classLoader = classLoader;
   }
 
-  /**
-   * Creates the best injector the runtime allows.
-   *
-   * @param classLoader the class loader to add jars to
-   * @return the injector
-   * @throws JarInjectorException if no strategy works on this runtime
-   */
   static UrlClassLoaderInjector create(final URLClassLoader classLoader) {
     return create(classLoader, ReflectiveInjector.ADD_URL, UnsafeInjector.UNSAFE);
   }
 
-  /**
-   * Creates the first injector whose strategy is available. Visible for testing.
-   *
-   * @param classLoader  the class loader to add jars to
-   * @param addUrlHandle the {@code addURL} handle of the reflective strategy, or null if it is not available
-   * @param unsafe       the access of the Unsafe strategy, or null if it is not available
-   * @return the injector
-   * @throws JarInjectorException if neither strategy is available
-   */
   static UrlClassLoaderInjector create(
     final URLClassLoader classLoader,
     final @Nullable MethodHandle addUrlHandle,
@@ -72,18 +52,8 @@ abstract class UrlClassLoaderInjector {
     throw new JarInjectorException(message);
   }
 
-  /**
-   * Appends a jar to the class loader.
-   *
-   * @param url the URL of the jar
-   */
   abstract void addUrl(final URL url);
 
-  /**
-   * Returns the class loader jars are added to.
-   *
-   * @return the class loader
-   */
   URLClassLoader getClassLoader() {
     return this.classLoader;
   }

@@ -39,10 +39,6 @@ import org.slf4j.Marker;
 import org.slf4j.helpers.NOPMDCAdapter;
 import org.slf4j.spi.MDCAdapter;
 
-/**
- * Tests {@link JulServiceProvider}: the installer's messages reach {@code java.util.logging}, from its classes and from
- * the jar the build makes, whose bundled SLF4J would drop them otherwise.
- */
 final class JulServiceProviderTest {
 
   private static final String NAME = "me.brandonli.mcav.installer.JulServiceProviderTest";

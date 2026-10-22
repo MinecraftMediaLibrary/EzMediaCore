@@ -25,9 +25,6 @@ import me.brandonli.mcav.installer.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link IoUtils}.
- */
 final class IoUtilsTest {
 
   private static final String JAR_NAME = "library-1.0.jar";

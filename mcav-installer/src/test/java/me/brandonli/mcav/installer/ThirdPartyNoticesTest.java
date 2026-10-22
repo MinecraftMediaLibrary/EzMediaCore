@@ -34,10 +34,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the notices of the built installer jar, which bundles the Maven resolver: Apache-2.0 asks that a redistribution
- * keeps the NOTICE file of every component, and the jar names everything it bundles with its licence.
- */
 final class ThirdPartyNoticesTest {
 
   private static final String INSTALLER_JAR_PROPERTY = "mcav.installer.jar";

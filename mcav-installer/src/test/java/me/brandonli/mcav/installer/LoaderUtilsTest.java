@@ -44,9 +44,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link LoaderUtils} and {@link JarLoader#DEFAULT_URL_LOADER}.
- */
 final class LoaderUtilsTest {
 
   private static final String FIRST_JAR = "first.jar";
@@ -167,12 +164,6 @@ final class LoaderUtilsTest {
     assertInstanceOf(NoSuchFieldException.class, cause);
   }
 
-  /**
-   * Builds a public class named like the Fabric class loader that extends {@link ClassLoader} but lacks the
-   * {@code urlLoader} field, as an unknown version of Fabric would.
-   *
-   * @return the bytes of the class file
-   */
   private byte[] knotClassWithoutField() {
     final ClassDesc knotDescriptor = ClassDesc.of(KNOT);
     final ClassFile classFile = ClassFile.of();
@@ -231,9 +222,6 @@ final class LoaderUtilsTest {
     UtilityClassAssertions.assertNotInstantiable(LoaderUtils.class);
   }
 
-  /**
-   * A class loader that is neither a URL class loader nor the Fabric one.
-   */
   private static final class PlainClassLoader extends ClassLoader {
 
     PlainClassLoader() {
@@ -241,9 +229,6 @@ final class LoaderUtilsTest {
     }
   }
 
-  /**
-   * A class loader that extends the Fabric one, as modded launchers do.
-   */
   private static final class DerivedKnotClassLoader extends KnotClassLoader {
 
     DerivedKnotClassLoader(final Object urlLoader) {
@@ -251,9 +236,6 @@ final class LoaderUtilsTest {
     }
   }
 
-  /**
-   * Defines a Fabric class loader from bytes, isolated from the class path of the tests.
-   */
   private static final class KnotDefiningClassLoader extends ClassLoader {
 
     KnotDefiningClassLoader() {

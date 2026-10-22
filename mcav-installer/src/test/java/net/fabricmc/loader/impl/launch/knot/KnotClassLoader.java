@@ -17,19 +17,10 @@
  */
 package net.fabricmc.loader.impl.launch.knot;
 
-/**
- * Stands in for the class loader of Fabric in tests. Like the real one, it is no {@link java.net.URLClassLoader}
- * but keeps the class path in a private {@code urlLoader} field.
- */
 public class KnotClassLoader extends ClassLoader {
 
   private final Object urlLoader;
 
-  /**
-   * Creates the class loader.
-   *
-   * @param urlLoader the value of the {@code urlLoader} field, normally a {@link java.net.URLClassLoader}
-   */
   public KnotClassLoader(final Object urlLoader) {
     super(null);
     this.urlLoader = urlLoader;

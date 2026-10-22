@@ -46,9 +46,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link MCAVInstaller} against a Maven repository on the file system.
- */
 final class MCAVInstallerTest {
 
   private static final String GROUP = "me.test";
@@ -246,9 +243,6 @@ final class MCAVInstallerTest {
     assertTrue(nothingLoaded);
   }
 
-  /**
-   * A jar loader that remembers what it was asked to load.
-   */
   private static final class RecordingLoader implements JarLoader {
 
     private final List<Path> jars;

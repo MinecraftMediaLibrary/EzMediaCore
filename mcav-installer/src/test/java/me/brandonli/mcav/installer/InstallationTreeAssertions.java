@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 import org.eclipse.aether.repository.RemoteRepository;
 
-/** Checks installation writes in a filesystem whose entire root is observable. */
 final class InstallationTreeAssertions implements AutoCloseable {
 
   private static final String ROOT = "/";

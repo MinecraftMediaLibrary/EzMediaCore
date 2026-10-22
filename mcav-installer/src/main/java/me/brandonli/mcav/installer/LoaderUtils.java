@@ -28,9 +28,6 @@ import java.nio.file.Path;
 import java.util.Collection;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Appends jars to class loaders.
- */
 final class LoaderUtils {
 
   private static final String KNOT_CLASS_LOADER = "net.fabricmc.loader.impl.launch.knot.KnotClassLoader";
@@ -40,12 +37,6 @@ final class LoaderUtils {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Appends jars to a class loader.
-   *
-   * @param jars   the jar files
-   * @param loader the class loader
-   */
   static void loadJarPaths(final Collection<Path> jars, final ClassLoader loader) {
     final URLClassLoader target = resolveUrlClassLoader(loader);
     final UrlClassLoaderInjector injector = UrlClassLoaderInjector.create(target);

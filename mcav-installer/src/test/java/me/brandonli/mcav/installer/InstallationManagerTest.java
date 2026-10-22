@@ -63,9 +63,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 
-/**
- * Tests {@link InstallationManager} against a Maven repository on the file system.
- */
 final class InstallationManagerTest {
 
   private static final String APPLICATION = "app";
@@ -447,13 +444,6 @@ final class InstallationManagerTest {
     assertEquals(5, fileCount, "no jar was overwritten and no partial file is left");
   }
 
-  /**
-   * Publishes a {@code platform} artifact that depends on a jar, two classifier jars of it, and a jar with the same
-   * artifact id in another group.
-   *
-   * @return the published jars by the path their copies are expected at, relative to the artifact folder
-   * @throws IOException if the files cannot be written
-   */
   private Map<String, Path> publishPlatform() throws IOException {
     final Path natives = this.repository.publish(GROUP, NATIVES, VERSION, NO_DEPENDENCIES);
     final Path linux = this.repository.publishClassified(GROUP, NATIVES, VERSION, LINUX_CLASSIFIER);
@@ -657,11 +647,7 @@ final class InstallationManagerTest {
     assertEquals(expected, message);
   }
 
-  /**
-   * Found by {@code InstallationPathsPropertyTest}: coordinates that stay inside the target folder could still name
-   * the folder itself, or a folder in it, as the place of the jar, because a path starts with itself. The smallest
-   * case the property shrank to is the empty group, artifact and file name.
-   */
+  // found by InstallationPathsPropertyTest: a path starts with itself
   @ParameterizedTest
   @CsvSource({ "'', '', ''", "., ., .", "group, artifact, ..", "group, artifact, ''", "group, artifact, nested/inner.jar" })
   void shouldRefuseCoordinatesThatWouldNotPutTheJarUnderItsOwnName(final String groupId, final String artifactId, final String fileName) {
@@ -742,14 +728,6 @@ final class InstallationManagerTest {
     assertTrue(done);
   }
 
-  /**
-   * Submits a task that blocks until it is interrupted.
-   *
-   * @param executor    the executor that runs the task
-   * @param interrupted counted down when the task is interrupted
-   * @return the future of the task, which completes once the task has been interrupted
-   * @throws InterruptedException if the test is interrupted before the task starts
-   */
   private Future<?> submitBlockingTask(final ExecutorService executor, final CountDownLatch interrupted) throws InterruptedException {
     final CountDownLatch started = new CountDownLatch(1);
     final Future<?> task = executor.submit(() -> this.blockUntilInterrupted(started, interrupted));
