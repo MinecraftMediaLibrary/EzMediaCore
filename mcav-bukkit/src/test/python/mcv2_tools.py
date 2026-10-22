@@ -593,63 +593,6 @@ CHARTS_DEFAULT_LABEL_PLACEMENT = ((-7, -1), "right")
 
 WALK_CURSOR_MASK = (1 << WALK_CURSOR_BITS) - 1
 
-
-def bd_rate(reference_points, test):
-    reference_rates = numpy.log([point[0] for point in reference_points])
-    reference_qualities = numpy.array([point[1] for point in reference_points])
-    test_rates = numpy.log([point[0] for point in test])
-    test_qualities = numpy.array([point[1] for point in test])
-    low = max(reference_qualities.min(), test_qualities.min())
-    high = min(reference_qualities.max(), test_qualities.max())
-    if high <= low:
-        message: str = "The curves share no quality range!"
-        raise ValueError(message)
-    reference_fit = numpy.polyfit(reference_qualities, reference_rates, BD_RATE_FIT_DEGREE)
-    test_fit = numpy.polyfit(test_qualities, test_rates, BD_RATE_FIT_DEGREE)
-    reference_area = numpy.polyval(numpy.polyint(reference_fit), high) - numpy.polyval(
-        numpy.polyint(reference_fit), low
-    )
-    test_area = numpy.polyval(numpy.polyint(test_fit), high) - numpy.polyval(numpy.polyint(test_fit), low)
-    return ((math.exp((test_area - reference_area) / (high - low)) - 1) * PERCENT, low, high)
-
-
-def bd_rate_points(path, rate, metric):
-    data = json.loads(Path(path).read_text())
-    return sorted((float(point[rate]), float(point[metric])) for point in data)
-
-
-def bd_rate_main():
-    parser = argparse.ArgumentParser(
-        description=(
-            "Compare cubic log-rate/quality fits over their shared quality range; positive BD-rate means the test "
-            "needs more rate. Each JSON curve needs at least four points. Exit 1 on invalid curve data; 2 on "
-            "invalid options."
-        ),
-    )
-    parser.add_argument("reference")
-    parser.add_argument("test")
-    parser.add_argument("--metric", default=VMAF_MEAN_KEY)
-    parser.add_argument("--rate", default="map_mbps")
-    arguments = parser.parse_args()
-    reference_points = bd_rate_points(arguments.reference, arguments.rate, arguments.metric)
-    test = bd_rate_points(arguments.test, arguments.rate, arguments.metric)
-    if len(reference_points) < BD_RATE_MINIMUM_POINTS or len(test) < BD_RATE_MINIMUM_POINTS:
-        message: str = "Each curve needs at least four points!"
-        sys.exit(message)
-    delta, low, high = bd_rate(reference_points, test)
-    print(
-        json.dumps(
-            {
-                "bd_rate_percent": round(delta, BD_RATE_DECIMALS),
-                "metric": arguments.metric,
-                "rate": arguments.rate,
-                "quality_low": round(low, QUALITY_DECIMALS),
-                "quality_high": round(high, QUALITY_DECIMALS),
-            }
-        )
-    )
-
-
 CODEC_CURVES_CODECS = {
     "x264": {
         "container": "mkv",
@@ -693,19 +636,231 @@ CODEC_CURVES_CODECS = {
     },
 }
 
-
-def vmaf_filter(log, threads=VMAF_THREADS):
-    return (
-        "[0:v]format=yuv420p[ref];[1:v]format=yuv420p[dis];"
-        f"[dis][ref]libvmaf=n_threads={threads}:log_fmt=json:log_path={log}"
-    )
-
-
 CODEC_CURVES_VERSION_PATTERNS = {
     "x264": re.compile(rb"x264 - core \d+ r\d+ \w+"),
     "vp9": re.compile(r"\[libvpx-vp9 @ [^\]]+\] (v\d[^\s]*)"),
     "av1": re.compile(r"\[libaom-av1 @ [^\]]+\] (\d+\.\d+\.\d+[^\s]*)"),
 }
+
+COUNTER_VIDEO_BITS = 20
+COUNTER_VIDEO_BLOCK = 32
+COUNTER_VIDEO_SYNCHRONIZATION_BITS = (1, 0, 1, 0)
+
+EDGE_STREAMS_DEFAULT_SEED = 20261008
+
+FIXTURES_PREFIX_LIMIT = 1_000_000
+
+DIFFERENTIAL_DEFAULT_CORPUS = (
+    REPOSITORY_ROOT / CONFORMANCE_RESOURCES_PATH
+)
+
+SPIRV_HELP = (
+    "run compiled Mcv2Tools shader-compile; use the test runtime classpath from "
+    "mcav-bukkit/build/mcv2-tools-classpath.txt"
+)
+shader_check_pack = REPOSITORY_ROOT / "mcav-bukkit/src/main/resources/mcav/mcv2/pack"
+shader_check_screen = (DEFAULT_WIDTH, DEFAULT_HEIGHT)
+SHADER_CHECK_STREAM_ID = 7
+shader_check_screen_index = 0
+shader_check_first_slot = 0
+SHADER_CHECK_IDLE_SLOTS = 8
+SHADER_CHECK_VERTEX = """#version 330
+#extension GL_ARB_separate_shader_objects : require
+layout(location = 0) out vec2 texCoord;
+void main() {
+    vec2 uv = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
+    gl_Position = vec4(uv * vec2(2, 2) + vec2(-1, -1), 0, 1);
+    texCoord = uv;
+}
+"""
+
+SHADER_CHECK_BLIT = """#version 330
+#extension GL_ARB_separate_shader_objects : require
+uniform sampler2D InSampler;
+layout(location = 0) out vec4 fragColor;
+void main() {
+    fragColor = texelFetch(InSampler, ivec2(gl_FragCoord.xy), 0);
+}
+"""
+
+STRIP_CHECK_HEADER_SYMBOLS = (PAGE_HEADER.size * BITS_PER_BYTE + SYMBOL_BITS - 1) // SYMBOL_BITS
+STRIP_CHECK_SQUARE = 20
+STRIP_CHECK_STEP = 24
+STRIP_CHECK_GREEN, STRIP_CHECK_RED, STRIP_CHECK_BLUE = ((0, 255, 0), (255, 0, 0), (0, 0, 255))
+STRIP_CHECK_DESCRIPTOR = [tuple(STRIP_MAGIC), (0xA1, 0, 0)]
+
+STRIP_FIT_CHECK_VIDEO = (64, 64)
+STRIP_FIT_CHECK_SLOTS = 8
+
+LATENCY_SAMPLES = COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS)
+LATENCY_SAMPLE_OFFSET = COUNTER_VIDEO_BLOCK // 2
+
+CHARTS_DATA = Path(__file__).resolve().parents[1] / "resources/mcv2/data"
+IMAGES = REPOSITORY_ROOT / DOCUMENTATION_IMAGES_PATH
+CHARTS_SURFACE = "#ffffff"
+CHARTS_INK = "#0b0b0b"
+CHARTS_SECONDARY = "#52514e"
+CHARTS_GRID = "#e4e3df"
+CHARTS_FONT = ["Liberation Sans", "Arial", "Helvetica", "DejaVu Sans"]
+CHARTS_CODECS = [
+    ("mcv2", "MCV2", "#2a78d6", "o"),
+    ("x264", "H.264", "#eb6834", "s"),
+    ("vp9", "VP9", "#1baf7a", "^"),
+    ("av1", "AV1", "#eda100", "D"),
+]
+CHARTS_SOURCES = [(PROXY_SOURCE, "Minecraft proxy, 1080p30"), (GAMEPLAY_SOURCE, "Minecraft gameplay, 1080p30")]
+CHARTS_SOURCE_COLOURS = {PROXY_SOURCE: "#2a78d6", GAMEPLAY_SOURCE: "#eb6834"}
+CHARTS_LEVELS = (70, 75, 80, 85, 90)
+CHARTS_TICKS = (0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50)
+
+SAMPLES_MODES = [
+    (mcv2_reference.SKIP, "SKIP", "#e4e3df"),
+    (mcv2_reference.MOTION, "MOTION", "#2a78d6"),
+    (mcv2_reference.SOLID, "SOLID", "#1baf7a"),
+    (mcv2_reference.PALETTE, "PALETTE", "#eb6834"),
+    (mcv2_reference.PATTERN, "PATTERN", "#eda100"),
+    (mcv2_reference.COMPACT, "COMPACT", "#8f5bd6"),
+]
+
+
+def main():
+    commands = {
+        "bd_rate": bd_rate_main,
+        "codec_curves": codec_curves_main,
+        "counter_video": counter_video_main,
+        "capture_check": capture_check_main,
+        "edge_streams": edge_streams_main,
+        "fixtures": fixtures_main,
+        "differential": differential_main,
+        "rate_quality": rate_quality_main,
+        "shader_check": shader_check_main,
+        "shader_timing": shader_timing_main,
+        "strip_check": strip_check_main,
+        "strip_fit_check": strip_fit_check_main,
+        "latency": latency_main,
+        "charts": charts_main,
+        "samples": samples_main,
+    }
+    if len(sys.argv) <= 1 or sys.argv[1] not in commands:
+        raise SystemExit("Usage: mcv2_tools.py <" + "|".join(commands) + "> [arguments]")
+    command = sys.argv.pop(1)
+    sys.argv[0] = f"{sys.argv[0]} {command}"
+    return commands[command]()
+
+
+def bd_rate_main():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Compare cubic log-rate/quality fits over their shared quality range; positive BD-rate means the test "
+            "needs more rate. Each JSON curve needs at least four points. Exit 1 on invalid curve data; 2 on "
+            "invalid options."
+        ),
+    )
+    parser.add_argument("reference")
+    parser.add_argument("test")
+    parser.add_argument("--metric", default=VMAF_MEAN_KEY)
+    parser.add_argument("--rate", default="map_mbps")
+    arguments = parser.parse_args()
+    reference_points = bd_rate_points(arguments.reference, arguments.rate, arguments.metric)
+    test = bd_rate_points(arguments.test, arguments.rate, arguments.metric)
+    if len(reference_points) < BD_RATE_MINIMUM_POINTS or len(test) < BD_RATE_MINIMUM_POINTS:
+        message: str = "Each curve needs at least four points!"
+        sys.exit(message)
+    delta, low, high = bd_rate(reference_points, test)
+    print(
+        json.dumps(
+            {
+                "bd_rate_percent": round(delta, BD_RATE_DECIMALS),
+                "metric": arguments.metric,
+                "rate": arguments.rate,
+                "quality_low": round(low, QUALITY_DECIMALS),
+                "quality_high": round(high, QUALITY_DECIMALS),
+            }
+        )
+    )
+
+
+def bd_rate_points(path, rate, metric):
+    data = json.loads(Path(path).read_text())
+    return sorted((float(point[rate]), float(point[metric])) for point in data)
+
+
+def bd_rate(reference_points, test):
+    reference_rates = numpy.log([point[0] for point in reference_points])
+    reference_qualities = numpy.array([point[1] for point in reference_points])
+    test_rates = numpy.log([point[0] for point in test])
+    test_qualities = numpy.array([point[1] for point in test])
+    low = max(reference_qualities.min(), test_qualities.min())
+    high = min(reference_qualities.max(), test_qualities.max())
+    if high <= low:
+        message: str = "The curves share no quality range!"
+        raise ValueError(message)
+    reference_fit = numpy.polyfit(reference_qualities, reference_rates, BD_RATE_FIT_DEGREE)
+    test_fit = numpy.polyfit(test_qualities, test_rates, BD_RATE_FIT_DEGREE)
+    reference_area = numpy.polyval(numpy.polyint(reference_fit), high) - numpy.polyval(
+        numpy.polyint(reference_fit), low
+    )
+    test_area = numpy.polyval(numpy.polyint(test_fit), high) - numpy.polyval(numpy.polyint(test_fit), low)
+    return ((math.exp((test_area - reference_area) / (high - low)) - 1) * PERCENT, low, high)
+
+
+def codec_curves_main():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Encode raw RGB24 at H.264, VP9 and AV1 CRFs, decode to RGB24, then score RGB PSNR and libvmaf after "
+            "yuv420p conversion. Rates include container bytes only. Resume existing points; refuse a source name "
+            "with different content. Exit 1 on an encode/score failure; 2 on conflicting source identity or "
+            "invalid options."
+        ),
+    )
+    parser.add_argument(FFMPEG_OPTION, required=True)
+    parser.add_argument(SOURCE_OPTION, required=True)
+    parser.add_argument("--name", required=True)
+    parser.add_argument(WIDTH_OPTION, type=int, required=True)
+    parser.add_argument(HEIGHT_OPTION, type=int, required=True)
+    parser.add_argument(FRAMES_OPTION, type=int, required=True)
+    parser.add_argument(FRAMES_PER_SECOND_OPTION, dest="frames_per_second", type=float, required=True)
+    parser.add_argument(
+        "--codecs", nargs="+", choices=sorted(CODEC_CURVES_CODECS), default=sorted(CODEC_CURVES_CODECS)
+    )
+    parser.add_argument("--qualities", nargs="+", type=int, required=True, help="the CRF values to encode at")
+    parser.add_argument(OUT_OPTION, required=True)
+    arguments = parser.parse_args()
+    identity = {
+        "width": arguments.width,
+        "height": arguments.height,
+        "frames": arguments.frames,
+        "fps": arguments.frames_per_second,
+        "sha256": codec_curves_sha256(arguments.source),
+    }
+    try:
+        measured = codec_curves_resume(arguments.out, arguments.name, identity)
+    except ValueError as exception:
+        parser.error(str(exception))
+    done = {(point[SOURCE_KEY], point[CODEC_KEY], point[QUALITY_KEY]) for point in measured[CODECS_KEY]}
+    version = subprocess.run(
+        [arguments.ffmpeg, VERSION_FLAG], capture_output=True, text=True
+    ).stdout.splitlines()[0]
+    measured["ffmpeg"] = version
+    with tempfile.TemporaryDirectory() as folder:
+        for codec in arguments.codecs:
+            for quality in arguments.qualities:
+                if (arguments.name, codec, quality) in done:
+                    continue
+                measured[CODECS_KEY].append(codec_curves_point(arguments, codec, quality, folder))
+                print(
+                    json.dumps(measured[CODECS_KEY][-1][CODEC_KEY]),
+                    quality,
+                    measured[CODECS_KEY][-1][CONTAINER_RATE_KEY],
+                    measured[CODECS_KEY][-1][VMAF_MEAN_KEY],
+                    flush=True,
+                )
+                measured[CODECS_KEY].sort(key=lambda point: (point[SOURCE_KEY], point[CODEC_KEY], point[QUALITY_KEY]))
+                temporary = arguments.out + PARTIAL_SUFFIX
+                with open(temporary, "w") as out:
+                    json.dump(measured, out, indent=JSON_INDENT)
+                    out.write(LINE_SEPARATOR)
+                os.replace(temporary, arguments.out)
 
 
 def codec_curves_sha256(path):
@@ -716,49 +871,24 @@ def codec_curves_sha256(path):
     return digest.hexdigest()
 
 
-def codec_curves_raw(path, width, height, frame_rate):
-    return [
-        FORMAT_FLAG,
-        RAW_VIDEO_FORMAT,
-        RAW_PIXEL_FORMAT_FLAG,
-        RGB_PIXEL_FORMAT,
-        VIDEO_SIZE_FLAG,
-        f"{width}x{height}",
-        FRAME_RATE_FLAG,
-        str(frame_rate),
-        INPUT_FLAG,
-        path,
-    ]
+def codec_curves_resume(out, name, identity):
+    """The measurements already in the output, with the identity of this run's source recorded under its name.
 
-
-def codec_curves_placeholders(command, replacements):
-    text = []
-    for part in command:
-        for local, name in replacements.items():
-            part = part.replace(local, name)
-        text.append(part)
-    return text
-
-
-def codec_curves_run(command):
-    started = time.perf_counter()
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        message: str = f"Command {command[0]} failed!\n{result.stderr[-STDERR_TAIL_CHARACTERS:]}"
-        raise RuntimeError(message)
-    return (result, time.perf_counter() - started)
-
-
-def codec_curves_rgb_psnr(source, decoded, frames, width, height):
-    shape = (frames, height, width, CHANNELS)
-    reference_frames = numpy.memmap(source, dtype=numpy.uint8, mode="r", shape=shape)
-    picture = numpy.memmap(decoded, dtype=numpy.uint8, mode="r", shape=shape)
-    errors = []
-    for first, second in zip(reference_frames, picture, strict=True):
-        difference = first.astype(numpy.float64) - second.astype(numpy.float64)
-        errors.append(float(numpy.mean(difference * difference)))
-    mean_squared_error = float(numpy.mean(errors))
-    return IDENTICAL_PSNR if mean_squared_error == 0 else float(DECIBELS_PER_BEL * numpy.log10(MAXIMUM_CHANNEL**2 / mean_squared_error))
+    The curves are kept under "codecs", as in mcav-bukkit/src/test/resources/mcv2/data/codec_curves.json; the first runs wrote them under "points",
+    which is read too. A name whose recorded source is other content is refused: its points would mix with this run's.
+    """
+    measured = json.loads(Path(out).read_text()) if os.path.exists(out) else {SOURCES_KEY: {}, CODECS_KEY: []}
+    if LEGACY_CODECS_KEY in measured:
+        if CODECS_KEY in measured:
+            message: str = f"Dataset {out} holds both points and codecs; resolve the two datasets first!"
+            raise ValueError(message)
+        measured[CODECS_KEY] = measured.pop(LEGACY_CODECS_KEY)
+    previous = measured[SOURCES_KEY].get(name)
+    if previous is not None and any(previous.get(key) != value for key, value in identity.items()):
+        message: str = f"Name {name} already has measurements of other content; use another --name!"
+        raise ValueError(message)
+    measured[SOURCES_KEY][name] = identity
+    return measured
 
 
 def codec_curves_point(arguments, codec, quality, folder):
@@ -866,107 +996,56 @@ def codec_curves_point(arguments, codec, quality, folder):
     }
 
 
-def codec_curves_resume(out, name, identity):
-    """The measurements already in the output, with the identity of this run's source recorded under its name.
-
-    The curves are kept under "codecs", as in mcav-bukkit/src/test/resources/mcv2/data/codec_curves.json; the first runs wrote them under "points",
-    which is read too. A name whose recorded source is other content is refused: its points would mix with this run's.
-    """
-    measured = json.loads(Path(out).read_text()) if os.path.exists(out) else {SOURCES_KEY: {}, CODECS_KEY: []}
-    if LEGACY_CODECS_KEY in measured:
-        if CODECS_KEY in measured:
-            message: str = f"Dataset {out} holds both points and codecs; resolve the two datasets first!"
-            raise ValueError(message)
-        measured[CODECS_KEY] = measured.pop(LEGACY_CODECS_KEY)
-    previous = measured[SOURCES_KEY].get(name)
-    if previous is not None and any(previous.get(key) != value for key, value in identity.items()):
-        message: str = f"Name {name} already has measurements of other content; use another --name!"
-        raise ValueError(message)
-    measured[SOURCES_KEY][name] = identity
-    return measured
+def codec_curves_raw(path, width, height, frame_rate):
+    return [
+        FORMAT_FLAG,
+        RAW_VIDEO_FORMAT,
+        RAW_PIXEL_FORMAT_FLAG,
+        RGB_PIXEL_FORMAT,
+        VIDEO_SIZE_FLAG,
+        f"{width}x{height}",
+        FRAME_RATE_FLAG,
+        str(frame_rate),
+        INPUT_FLAG,
+        path,
+    ]
 
 
-def codec_curves_main():
-    parser = argparse.ArgumentParser(
-        description=(
-            "Encode raw RGB24 at H.264, VP9 and AV1 CRFs, decode to RGB24, then score RGB PSNR and libvmaf after "
-            "yuv420p conversion. Rates include container bytes only. Resume existing points; refuse a source name "
-            "with different content. Exit 1 on an encode/score failure; 2 on conflicting source identity or "
-            "invalid options."
-        ),
+def codec_curves_run(command):
+    started = time.perf_counter()
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        message: str = f"Command {command[0]} failed!\n{result.stderr[-STDERR_TAIL_CHARACTERS:]}"
+        raise RuntimeError(message)
+    return (result, time.perf_counter() - started)
+
+
+def vmaf_filter(log, threads=VMAF_THREADS):
+    return (
+        "[0:v]format=yuv420p[ref];[1:v]format=yuv420p[dis];"
+        f"[dis][ref]libvmaf=n_threads={threads}:log_fmt=json:log_path={log}"
     )
-    parser.add_argument(FFMPEG_OPTION, required=True)
-    parser.add_argument(SOURCE_OPTION, required=True)
-    parser.add_argument("--name", required=True)
-    parser.add_argument(WIDTH_OPTION, type=int, required=True)
-    parser.add_argument(HEIGHT_OPTION, type=int, required=True)
-    parser.add_argument(FRAMES_OPTION, type=int, required=True)
-    parser.add_argument(FRAMES_PER_SECOND_OPTION, dest="frames_per_second", type=float, required=True)
-    parser.add_argument(
-        "--codecs", nargs="+", choices=sorted(CODEC_CURVES_CODECS), default=sorted(CODEC_CURVES_CODECS)
-    )
-    parser.add_argument("--qualities", nargs="+", type=int, required=True, help="the CRF values to encode at")
-    parser.add_argument(OUT_OPTION, required=True)
-    arguments = parser.parse_args()
-    identity = {
-        "width": arguments.width,
-        "height": arguments.height,
-        "frames": arguments.frames,
-        "fps": arguments.frames_per_second,
-        "sha256": codec_curves_sha256(arguments.source),
-    }
-    try:
-        measured = codec_curves_resume(arguments.out, arguments.name, identity)
-    except ValueError as exception:
-        parser.error(str(exception))
-    done = {(point[SOURCE_KEY], point[CODEC_KEY], point[QUALITY_KEY]) for point in measured[CODECS_KEY]}
-    version = subprocess.run(
-        [arguments.ffmpeg, VERSION_FLAG], capture_output=True, text=True
-    ).stdout.splitlines()[0]
-    measured["ffmpeg"] = version
-    with tempfile.TemporaryDirectory() as folder:
-        for codec in arguments.codecs:
-            for quality in arguments.qualities:
-                if (arguments.name, codec, quality) in done:
-                    continue
-                measured[CODECS_KEY].append(codec_curves_point(arguments, codec, quality, folder))
-                print(
-                    json.dumps(measured[CODECS_KEY][-1][CODEC_KEY]),
-                    quality,
-                    measured[CODECS_KEY][-1][CONTAINER_RATE_KEY],
-                    measured[CODECS_KEY][-1][VMAF_MEAN_KEY],
-                    flush=True,
-                )
-                measured[CODECS_KEY].sort(key=lambda point: (point[SOURCE_KEY], point[CODEC_KEY], point[QUALITY_KEY]))
-                temporary = arguments.out + PARTIAL_SUFFIX
-                with open(temporary, "w") as out:
-                    json.dump(measured, out, indent=JSON_INDENT)
-                    out.write(LINE_SEPARATOR)
-                os.replace(temporary, arguments.out)
 
 
-COUNTER_VIDEO_BITS = 20
-COUNTER_VIDEO_BLOCK = 32
-COUNTER_VIDEO_SYNCHRONIZATION_BITS = (1, 0, 1, 0)
+def codec_curves_rgb_psnr(source, decoded, frames, width, height):
+    shape = (frames, height, width, CHANNELS)
+    reference_frames = numpy.memmap(source, dtype=numpy.uint8, mode="r", shape=shape)
+    picture = numpy.memmap(decoded, dtype=numpy.uint8, mode="r", shape=shape)
+    errors = []
+    for first, second in zip(reference_frames, picture, strict=True):
+        difference = first.astype(numpy.float64) - second.astype(numpy.float64)
+        errors.append(float(numpy.mean(difference * difference)))
+    mean_squared_error = float(numpy.mean(errors))
+    return IDENTICAL_PSNR if mean_squared_error == 0 else float(DECIBELS_PER_BEL * numpy.log10(MAXIMUM_CHANNEL**2 / mean_squared_error))
 
 
-def counter_video_stamp(frame, number):
-    values = [number >> bit & 1 for bit in range(COUNTER_VIDEO_BITS)] + list(COUNTER_VIDEO_SYNCHRONIZATION_BITS)
-    for position, value in enumerate(values):
-        frame[
-            0:COUNTER_VIDEO_BLOCK, position * COUNTER_VIDEO_BLOCK : (position + 1) * COUNTER_VIDEO_BLOCK
-        ] = MAXIMUM_CHANNEL if value else 0
-
-
-def counter_video_read(luma):
-    bits = [1 if value >= COUNTER_VIDEO_THRESHOLD else 0 for value in luma]
-    if (
-        len(bits) < COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS)
-        or tuple(bits[COUNTER_VIDEO_BITS : COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS)])
-        != COUNTER_VIDEO_SYNCHRONIZATION_BITS
-    ):
-        return None
-    return sum(bit << position for position, bit in enumerate(bits[:COUNTER_VIDEO_BITS]))
+def codec_curves_placeholders(command, replacements):
+    text = []
+    for part in command:
+        for local, name in replacements.items():
+            part = part.replace(local, name)
+        text.append(part)
+    return text
 
 
 def counter_video_main():
@@ -1046,69 +1125,12 @@ def counter_video_main():
     sys.exit(SUCCESS_EXIT_CODE if raw else encoder.wait())
 
 
-def capture_check_psnr(captured, expected):
-    mean_squared_error = numpy.mean((captured.astype(numpy.float64) - expected.astype(numpy.float64)) ** 2)
-    return math.inf if mean_squared_error == 0 else float(DECIBELS_PER_BEL * numpy.log10(MAXIMUM_CHANNEL**2 / mean_squared_error))
-
-
-def capture_check_ssim(captured, expected):
-
-    def luma(picture):
-        picture = picture.astype(numpy.float64)
-        return LUMA_RED_WEIGHT * picture[..., 0] + LUMA_GREEN_WEIGHT * picture[..., 1] + LUMA_BLUE_WEIGHT * picture[..., 2]
-
-    captured_luma, expected_luma = (luma(captured), luma(expected))
-    height, width = (captured_luma.shape[0] // SSIM_BLOCK * SSIM_BLOCK, captured_luma.shape[1] // SSIM_BLOCK * SSIM_BLOCK)
-    captured_luma = captured_luma[:height, :width].reshape(height // SSIM_BLOCK, SSIM_BLOCK, width // SSIM_BLOCK, SSIM_BLOCK).swapaxes(1, 2)
-    expected_luma = expected_luma[:height, :width].reshape(height // SSIM_BLOCK, SSIM_BLOCK, width // SSIM_BLOCK, SSIM_BLOCK).swapaxes(1, 2)
-    captured_mean, expected_mean = (captured_luma.mean(axis=(2, 3)), expected_luma.mean(axis=(2, 3)))
-    captured_variance, expected_variance = (captured_luma.var(axis=(2, 3)), expected_luma.var(axis=(2, 3)))
-    covariance = (
-        (captured_luma - captured_mean[..., None, None]) * (expected_luma - expected_mean[..., None, None])
-    ).mean(axis=(2, 3))
-    luminance_constant, contrast_constant = ((SSIM_LUMINANCE_FACTOR * MAXIMUM_CHANNEL) ** 2, (SSIM_CONTRAST_FACTOR * MAXIMUM_CHANNEL) ** 2)
-    return float(
-        numpy.mean(
-            (2 * captured_mean * expected_mean + luminance_constant)
-            * (2 * covariance + contrast_constant)
-            / (
-                (captured_mean**2 + expected_mean**2 + luminance_constant)
-                * (captured_variance + expected_variance + contrast_constant)
-            )
-        )
-    )
-
-
-def capture_check_vmaf(ffmpeg, reference_frames, captured, width, height):
-    with tempfile.TemporaryDirectory() as folder:
-        reference_picture, distorted_picture, log = (
-            Path(folder, REFERENCE_PICTURES_NAME),
-            Path(folder, DISTORTED_PICTURES_NAME),
-            Path(folder, VMAF_LOG_NAME),
-        )
-        reference_picture.write_bytes(b"".join(frame.tobytes() for frame in reference_frames))
-        distorted_picture.write_bytes(b"".join(frame.tobytes() for frame in captured))
-        graph = vmaf_filter(log)
-        subprocess.run(
-            [
-                ffmpeg,
-                NO_STANDARD_INPUT_FLAG,
-                VERBOSITY_FLAG,
-                ERROR_LOG_LEVEL,
-                OVERWRITE_FLAG,
-                *codec_curves_raw(reference_picture, width, height, CAPTURE_CHECK_FRAME_RATE),
-                *codec_curves_raw(distorted_picture, width, height, CAPTURE_CHECK_FRAME_RATE),
-                FILTER_GRAPH_FLAG,
-                graph,
-                FORMAT_FLAG,
-                NULL_FORMAT,
-                STANDARD_STREAM,
-            ],
-            check=True,
-        )
-        frames = json.loads(log.read_text())[VMAF_FRAMES_KEY]
-        scores = [frame[VMAF_METRICS_KEY][VMAF_SCORE_KEY] for frame in frames]
-        return (float(numpy.mean(scores)), float(numpy.min(scores)))
+def counter_video_stamp(frame, number):
+    values = [number >> bit & 1 for bit in range(COUNTER_VIDEO_BITS)] + list(COUNTER_VIDEO_SYNCHRONIZATION_BITS)
+    for position, value in enumerate(values):
+        frame[
+            0:COUNTER_VIDEO_BLOCK, position * COUNTER_VIDEO_BLOCK : (position + 1) * COUNTER_VIDEO_BLOCK
+        ] = MAXIMUM_CHANNEL if value else 0
 
 
 def capture_check_main():
@@ -1200,149 +1222,115 @@ def capture_check_main():
     sys.exit(SUCCESS_EXIT_CODE if not near and (not missing) else FAILURE_EXIT_CODE)
 
 
-EDGE_STREAMS_DEFAULT_SEED = 20261008
+def capture_check_psnr(captured, expected):
+    mean_squared_error = numpy.mean((captured.astype(numpy.float64) - expected.astype(numpy.float64)) ** 2)
+    return math.inf if mean_squared_error == 0 else float(DECIBELS_PER_BEL * numpy.log10(MAXIMUM_CHANNEL**2 / mean_squared_error))
 
 
-def edge_streams_random_bytes(randomizer, count):
-    return bytes(randomizer.randrange(BYTE_VALUES) for _ in range(count))
+def capture_check_ssim(captured, expected):
 
+    def luma(picture):
+        picture = picture.astype(numpy.float64)
+        return LUMA_RED_WEIGHT * picture[..., 0] + LUMA_GREEN_WEIGHT * picture[..., 1] + LUMA_BLUE_WEIGHT * picture[..., 2]
 
-def edge_streams_compact_record(randomizer):
-    return edge_streams_random_bytes(randomizer, mcv2_reference.COMPACT_BYTES)
-
-
-def edge_streams_pattern_record(randomizer, size):
-    return (
-        edge_streams_random_bytes(randomizer, COLORS_BYTES)
-        + bytes([randomizer.randrange(PATTERN_ORIENTATIONS)])
-        + edge_streams_random_bytes(randomizer, size // BITS_PER_BYTE)
-    )
-
-
-def edge_streams_leaf(randomizer, size, keyframe, mode=None):
-    modes = (
-        (mcv2_reference.SKIP, mcv2_reference.SOLID, mcv2_reference.PALETTE, mcv2_reference.PATTERN)
-        if keyframe
-        else tuple(range(mcv2_reference.SPLIT))
-    )
-    mode = randomizer.choice(modes) if mode is None else mode
-    if mode == mcv2_reference.SKIP:
-        return Node(mode)
-    if mode == mcv2_reference.MOTION:
-        return Node(mode, record=edge_streams_random_bytes(randomizer, MOTION_BYTES))
-    if mode == mcv2_reference.SOLID:
-        return Node(mode, record=edge_streams_random_bytes(randomizer, SOLID_BYTES))
-    if mode == mcv2_reference.PALETTE:
-        return Node(mode, record=edge_streams_random_bytes(randomizer, COLORS_BYTES + size * size // BITS_PER_BYTE))
-    if mode == mcv2_reference.PATTERN:
-        return Node(mode, record=edge_streams_pattern_record(randomizer, size))
-    return Node(
-        mcv2_reference.COMPACT,
-        randomizer.randrange(mcv2_reference.MAXIMUM_QUANTIZER + 1),
-        edge_streams_compact_record(randomizer),
-    )
-
-
-def edge_streams_tree(randomizer, size, keyframe, split_chance=EDGE_STREAMS_SPLIT_CHANCE):
-    if size > SMALLEST_LEAF_SIZE and randomizer.random() < split_chance:
-        return Node(
-            mcv2_reference.SPLIT,
-            children=tuple(
-                edge_streams_tree(randomizer, size // QUADRANTS_PER_SIDE, keyframe, split_chance) for _ in range(SPLIT_CHILDREN)
-            ),
-        )
-    return edge_streams_leaf(randomizer, size, keyframe)
-
-
-def edge_streams_random_stream(randomizer, width=None, height=None, frame_count=EDGE_STREAMS_FRAMES):
-    width = randomizer.randint(MINIMUM_DIMENSION, EDGE_STREAMS_MAXIMUM_WIDTH) if width is None else width
-    height = randomizer.randint(MINIMUM_DIMENSION, EDGE_STREAMS_MAXIMUM_HEIGHT) if height is None else height
-    count = (width + SUPERBLOCK_SIZE - 1) // SUPERBLOCK_SIZE * ((height + SUPERBLOCK_SIZE - 1) // SUPERBLOCK_SIZE)
-    stream = []
-    for frame_id in range(frame_count):
-        keyframe = frame_id == 0 or randomizer.random() < EDGE_STREAMS_KEYFRAME_CHANCE
-        roots = {
-            index: edge_streams_tree(randomizer, SUPERBLOCK_SIZE, keyframe)
-            for index in range(count)
-            if randomizer.random() > EDGE_STREAMS_ABSENT_CHANCE
-        }
-        stream.append(pack_frame(width, height, frame_id, frame_id if keyframe else frame_id - 1, roots))
-    return stream
-
-
-def edge_streams_repeated(node, size):
-    while size < SUPERBLOCK_SIZE:
-        node = Node(mcv2_reference.SPLIT, children=(node,) * SPLIT_CHILDREN)
-        size *= QUADRANTS_PER_SIDE
-    return node
-
-
-def edge_streams_mode_stream(randomizer):
-    nodes = []
-    for size in ASCENDING_LEAF_SIZES:
-        nodes.extend(
-            edge_streams_repeated(edge_streams_leaf(randomizer, size, False, mode), size)
-            for mode in range(mcv2_reference.COMPACT)
-        )
-        for quantizer in range(mcv2_reference.MAXIMUM_QUANTIZER + 1):
-            for vector, luma in (
-                (b"\x00\x00", edge_streams_random_bytes(randomizer, GRID_BYTES)),
-                (MOTION_MINIMUM_X_MAXIMUM_Y, bytes([MAXIMUM_NIBBLE_PAIR]) * GRID_BYTES),
-                (MOTION_MAXIMUM_X_MINIMUM_Y, bytes([MINIMUM_NIBBLE_PAIR]) * GRID_BYTES),
-                (edge_streams_random_bytes(randomizer, MOTION_BYTES), edge_streams_random_bytes(randomizer, GRID_BYTES)),
-            ):
-                nodes.append(
-                    edge_streams_repeated(Node(mcv2_reference.COMPACT, quantizer, vector + luma), size)
-                )
-    superblocks_per_row = EDGE_STREAMS_MODES_WIDTH // SUPERBLOCK_SIZE
-    height = (len(nodes) + superblocks_per_row - 1) // superblocks_per_row * SUPERBLOCK_SIZE
-    key_roots = {
-        index: edge_streams_repeated(edge_streams_leaf(randomizer, size, True, mode), size)
-        for index, (size, mode) in enumerate(
-            (size, mode)
-            for size in ASCENDING_LEAF_SIZES
-            for mode in (
-                mcv2_reference.SKIP,
-                mcv2_reference.SOLID,
-                mcv2_reference.PALETTE,
-                mcv2_reference.PATTERN,
+    captured_luma, expected_luma = (luma(captured), luma(expected))
+    height, width = (captured_luma.shape[0] // SSIM_BLOCK * SSIM_BLOCK, captured_luma.shape[1] // SSIM_BLOCK * SSIM_BLOCK)
+    captured_luma = captured_luma[:height, :width].reshape(height // SSIM_BLOCK, SSIM_BLOCK, width // SSIM_BLOCK, SSIM_BLOCK).swapaxes(1, 2)
+    expected_luma = expected_luma[:height, :width].reshape(height // SSIM_BLOCK, SSIM_BLOCK, width // SSIM_BLOCK, SSIM_BLOCK).swapaxes(1, 2)
+    captured_mean, expected_mean = (captured_luma.mean(axis=(2, 3)), expected_luma.mean(axis=(2, 3)))
+    captured_variance, expected_variance = (captured_luma.var(axis=(2, 3)), expected_luma.var(axis=(2, 3)))
+    covariance = (
+        (captured_luma - captured_mean[..., None, None]) * (expected_luma - expected_mean[..., None, None])
+    ).mean(axis=(2, 3))
+    luminance_constant, contrast_constant = ((SSIM_LUMINANCE_FACTOR * MAXIMUM_CHANNEL) ** 2, (SSIM_CONTRAST_FACTOR * MAXIMUM_CHANNEL) ** 2)
+    return float(
+        numpy.mean(
+            (2 * captured_mean * expected_mean + luminance_constant)
+            * (2 * covariance + contrast_constant)
+            / (
+                (captured_mean**2 + expected_mean**2 + luminance_constant)
+                * (captured_variance + expected_variance + contrast_constant)
             )
         )
-    }
-    return [
-        pack_frame(EDGE_STREAMS_MODES_WIDTH, height, 0, 0, key_roots),
-        pack_frame(EDGE_STREAMS_MODES_WIDTH, height, 1, 0, dict(enumerate(nodes))),
-    ]
+    )
 
 
-def edge_streams_pattern_stream(randomizer):
-    roots, index = ({}, 0)
-    for size in ASCENDING_LEAF_SIZES:
-        for orientation in (0, 1):
-            for axis in (
-                bytes(size // BITS_PER_BYTE),
-                bytes([EDGE_STREAMS_FULL_AXIS]) * (size // BITS_PER_BYTE),
-                bytes([EDGE_STREAMS_MIXED_AXIS]) * (size // BITS_PER_BYTE),
-                edge_streams_random_bytes(randomizer, size // BITS_PER_BYTE),
-            ):
-                endpoints = EDGE_STREAMS_PATTERN_ENDPOINTS[index % len(EDGE_STREAMS_PATTERN_ENDPOINTS)]
-                roots[index] = edge_streams_repeated(
-                    Node(mcv2_reference.PATTERN, record=endpoints + bytes([orientation]) + axis),
-                    size,
-                )
-                index += 1
-    swapped = {
-        index: Node(mcv2_reference.SKIP)
-        if index % EDGE_STREAMS_SKIP_PERIOD == 0
-        else edge_streams_repeated(
-            Node(mcv2_reference.PATTERN, record=edge_streams_pattern_record(randomizer, SMALLEST_LEAF_SIZE)), SMALLEST_LEAF_SIZE
+def capture_check_vmaf(ffmpeg, reference_frames, captured, width, height):
+    with tempfile.TemporaryDirectory() as folder:
+        reference_picture, distorted_picture, log = (
+            Path(folder, REFERENCE_PICTURES_NAME),
+            Path(folder, DISTORTED_PICTURES_NAME),
+            Path(folder, VMAF_LOG_NAME),
         )
-        for index in roots
-    }
-    return [
-        pack_frame(EDGE_STREAMS_PATTERN_WIDTH, EDGE_STREAMS_PATTERN_HEIGHT, 0, 0, roots),
-        pack_frame(EDGE_STREAMS_PATTERN_WIDTH, EDGE_STREAMS_PATTERN_HEIGHT, 1, 0, swapped),
-    ]
+        reference_picture.write_bytes(b"".join(frame.tobytes() for frame in reference_frames))
+        distorted_picture.write_bytes(b"".join(frame.tobytes() for frame in captured))
+        graph = vmaf_filter(log)
+        subprocess.run(
+            [
+                ffmpeg,
+                NO_STANDARD_INPUT_FLAG,
+                VERBOSITY_FLAG,
+                ERROR_LOG_LEVEL,
+                OVERWRITE_FLAG,
+                *codec_curves_raw(reference_picture, width, height, CAPTURE_CHECK_FRAME_RATE),
+                *codec_curves_raw(distorted_picture, width, height, CAPTURE_CHECK_FRAME_RATE),
+                FILTER_GRAPH_FLAG,
+                graph,
+                FORMAT_FLAG,
+                NULL_FORMAT,
+                STANDARD_STREAM,
+            ],
+            check=True,
+        )
+        frames = json.loads(log.read_text())[VMAF_FRAMES_KEY]
+        scores = [frame[VMAF_METRICS_KEY][VMAF_SCORE_KEY] for frame in frames]
+        return (float(numpy.mean(scores)), float(numpy.min(scores)))
+
+
+def edge_streams_main():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Build deterministic v3 block-tree archives, RGB digests and a spec section 9 rejection catalog using "
+            "the independent serializer. Exit 1 if a generated fixture fails validation; 2 on invalid options."
+        ),
+    )
+    parser.add_argument("output", type=Path)
+    parser.add_argument("seed", nargs="?", type=int, default=EDGE_STREAMS_DEFAULT_SEED)
+    arguments = parser.parse_args()
+    edge_streams_generate(arguments.output, arguments.seed)
+
+
+def edge_streams_generate(output, seed=EDGE_STREAMS_DEFAULT_SEED):
+    output.mkdir(parents=True, exist_ok=True)
+    streams = edge_streams_build_streams(seed)
+    for old in output.glob(EDGE_STREAM_GLOB):
+        if old.name not in streams:
+            old.unlink()
+    digests = {}
+    for name, frames in streams.items():
+        decoder = Decoder()
+        digests[name] = [hashlib.sha256(decoder.accept(data).tobytes()).hexdigest() for data in frames]
+        output.joinpath(name).write_bytes(archive_bytes(frames))
+    output.joinpath(DIGESTS_NAME).write_text(json.dumps(digests, indent=JSON_INDENT) + LINE_SEPARATOR)
+    from rejection_cases import rejected_frames
+
+    rejected = rejected_frames()
+    for name, case in rejected.items():
+        try:
+            parse_frame(bytes.fromhex(case["frame"]))
+        except ValueError as exception:
+            if case["reason"] not in str(exception):
+                message: str = f"Fixture {name} must be rejected for {case['reason']!r}, but it was rejected for {str(exception)!r} instead!"
+                raise ValueError(message) from exception
+        else:
+            message: str = f"Rejected fixture {name} was accepted!"
+            raise ValueError(message)
+    output.joinpath(REJECTED_NAME).write_text(json.dumps(rejected, indent=JSON_INDENT) + LINE_SEPARATOR)
+    print(
+        json.dumps(
+            {"streams": len(streams), "frames": sum(map(len, streams.values())), "rejected": len(rejected)}
+        )
+    )
 
 
 def edge_streams_build_streams(seed=EDGE_STREAMS_DEFAULT_SEED):
@@ -1441,98 +1429,171 @@ def edge_streams_build_streams(seed=EDGE_STREAMS_DEFAULT_SEED):
     return streams
 
 
-def edge_streams_generate(output, seed=EDGE_STREAMS_DEFAULT_SEED):
-    output.mkdir(parents=True, exist_ok=True)
-    streams = edge_streams_build_streams(seed)
-    for old in output.glob(EDGE_STREAM_GLOB):
-        if old.name not in streams:
-            old.unlink()
-    digests = {}
-    for name, frames in streams.items():
-        decoder = Decoder()
-        digests[name] = [hashlib.sha256(decoder.accept(data).tobytes()).hexdigest() for data in frames]
-        output.joinpath(name).write_bytes(archive_bytes(frames))
-    output.joinpath(DIGESTS_NAME).write_text(json.dumps(digests, indent=JSON_INDENT) + LINE_SEPARATOR)
-    from rejection_cases import rejected_frames
-
-    rejected = rejected_frames()
-    for name, case in rejected.items():
-        try:
-            parse_frame(bytes.fromhex(case["frame"]))
-        except ValueError as exception:
-            if case["reason"] not in str(exception):
-                message: str = f"Fixture {name} must be rejected for {case['reason']!r}, but it was rejected for {str(exception)!r} instead!"
-                raise ValueError(message) from exception
-        else:
-            message: str = f"Rejected fixture {name} was accepted!"
-            raise ValueError(message)
-    output.joinpath(REJECTED_NAME).write_text(json.dumps(rejected, indent=JSON_INDENT) + LINE_SEPARATOR)
-    print(
-        json.dumps(
-            {"streams": len(streams), "frames": sum(map(len, streams.values())), "rejected": len(rejected)}
+def edge_streams_mode_stream(randomizer):
+    nodes = []
+    for size in ASCENDING_LEAF_SIZES:
+        nodes.extend(
+            edge_streams_repeated(edge_streams_leaf(randomizer, size, False, mode), size)
+            for mode in range(mcv2_reference.COMPACT)
         )
+        for quantizer in range(mcv2_reference.MAXIMUM_QUANTIZER + 1):
+            for vector, luma in (
+                (b"\x00\x00", edge_streams_random_bytes(randomizer, GRID_BYTES)),
+                (MOTION_MINIMUM_X_MAXIMUM_Y, bytes([MAXIMUM_NIBBLE_PAIR]) * GRID_BYTES),
+                (MOTION_MAXIMUM_X_MINIMUM_Y, bytes([MINIMUM_NIBBLE_PAIR]) * GRID_BYTES),
+                (edge_streams_random_bytes(randomizer, MOTION_BYTES), edge_streams_random_bytes(randomizer, GRID_BYTES)),
+            ):
+                nodes.append(
+                    edge_streams_repeated(Node(mcv2_reference.COMPACT, quantizer, vector + luma), size)
+                )
+    superblocks_per_row = EDGE_STREAMS_MODES_WIDTH // SUPERBLOCK_SIZE
+    height = (len(nodes) + superblocks_per_row - 1) // superblocks_per_row * SUPERBLOCK_SIZE
+    key_roots = {
+        index: edge_streams_repeated(edge_streams_leaf(randomizer, size, True, mode), size)
+        for index, (size, mode) in enumerate(
+            (size, mode)
+            for size in ASCENDING_LEAF_SIZES
+            for mode in (
+                mcv2_reference.SKIP,
+                mcv2_reference.SOLID,
+                mcv2_reference.PALETTE,
+                mcv2_reference.PATTERN,
+            )
+        )
+    }
+    return [
+        pack_frame(EDGE_STREAMS_MODES_WIDTH, height, 0, 0, key_roots),
+        pack_frame(EDGE_STREAMS_MODES_WIDTH, height, 1, 0, dict(enumerate(nodes))),
+    ]
+
+
+def edge_streams_repeated(node, size):
+    while size < SUPERBLOCK_SIZE:
+        node = Node(mcv2_reference.SPLIT, children=(node,) * SPLIT_CHILDREN)
+        size *= QUADRANTS_PER_SIDE
+    return node
+
+
+def edge_streams_leaf(randomizer, size, keyframe, mode=None):
+    modes = (
+        (mcv2_reference.SKIP, mcv2_reference.SOLID, mcv2_reference.PALETTE, mcv2_reference.PATTERN)
+        if keyframe
+        else tuple(range(mcv2_reference.SPLIT))
+    )
+    mode = randomizer.choice(modes) if mode is None else mode
+    if mode == mcv2_reference.SKIP:
+        return Node(mode)
+    if mode == mcv2_reference.MOTION:
+        return Node(mode, record=edge_streams_random_bytes(randomizer, MOTION_BYTES))
+    if mode == mcv2_reference.SOLID:
+        return Node(mode, record=edge_streams_random_bytes(randomizer, SOLID_BYTES))
+    if mode == mcv2_reference.PALETTE:
+        return Node(mode, record=edge_streams_random_bytes(randomizer, COLORS_BYTES + size * size // BITS_PER_BYTE))
+    if mode == mcv2_reference.PATTERN:
+        return Node(mode, record=edge_streams_pattern_record(randomizer, size))
+    return Node(
+        mcv2_reference.COMPACT,
+        randomizer.randrange(mcv2_reference.MAXIMUM_QUANTIZER + 1),
+        edge_streams_compact_record(randomizer),
     )
 
 
-def edge_streams_main():
-    parser = argparse.ArgumentParser(
-        description=(
-            "Build deterministic v3 block-tree archives, RGB digests and a spec section 9 rejection catalog using "
-            "the independent serializer. Exit 1 if a generated fixture fails validation; 2 on invalid options."
-        ),
+def edge_streams_random_bytes(randomizer, count):
+    return bytes(randomizer.randrange(BYTE_VALUES) for _ in range(count))
+
+
+def edge_streams_pattern_record(randomizer, size):
+    return (
+        edge_streams_random_bytes(randomizer, COLORS_BYTES)
+        + bytes([randomizer.randrange(PATTERN_ORIENTATIONS)])
+        + edge_streams_random_bytes(randomizer, size // BITS_PER_BYTE)
     )
-    parser.add_argument("output", type=Path)
-    parser.add_argument("seed", nargs="?", type=int, default=EDGE_STREAMS_DEFAULT_SEED)
-    arguments = parser.parse_args()
-    edge_streams_generate(arguments.output, arguments.seed)
 
 
-FIXTURES_PREFIX_LIMIT = 1_000_000
+def edge_streams_compact_record(randomizer):
+    return edge_streams_random_bytes(randomizer, mcv2_reference.COMPACT_BYTES)
 
 
-def archive_frames(data):
-    offset = 0
-    while offset < len(data):
-        if offset + LENGTH_BYTES > len(data):
-            message: str = "The archive has a truncated frame length!"
-            raise ValueError(message)
-        length = struct.unpack_from(LENGTH_FORMAT, data, offset)[0]
-        offset += LENGTH_BYTES
-        if offset + length > len(data):
-            message: str = "The archive has a truncated frame!"
-            raise ValueError(message)
-        yield data[offset : offset + length]
-        offset += length
+def edge_streams_pattern_stream(randomizer):
+    roots, index = ({}, 0)
+    for size in ASCENDING_LEAF_SIZES:
+        for orientation in (0, 1):
+            for axis in (
+                bytes(size // BITS_PER_BYTE),
+                bytes([EDGE_STREAMS_FULL_AXIS]) * (size // BITS_PER_BYTE),
+                bytes([EDGE_STREAMS_MIXED_AXIS]) * (size // BITS_PER_BYTE),
+                edge_streams_random_bytes(randomizer, size // BITS_PER_BYTE),
+            ):
+                endpoints = EDGE_STREAMS_PATTERN_ENDPOINTS[index % len(EDGE_STREAMS_PATTERN_ENDPOINTS)]
+                roots[index] = edge_streams_repeated(
+                    Node(mcv2_reference.PATTERN, record=endpoints + bytes([orientation]) + axis),
+                    size,
+                )
+                index += 1
+    swapped = {
+        index: Node(mcv2_reference.SKIP)
+        if index % EDGE_STREAMS_SKIP_PERIOD == 0
+        else edge_streams_repeated(
+            Node(mcv2_reference.PATTERN, record=edge_streams_pattern_record(randomizer, SMALLEST_LEAF_SIZE)), SMALLEST_LEAF_SIZE
+        )
+        for index in roots
+    }
+    return [
+        pack_frame(EDGE_STREAMS_PATTERN_WIDTH, EDGE_STREAMS_PATTERN_HEIGHT, 0, 0, roots),
+        pack_frame(EDGE_STREAMS_PATTERN_WIDTH, EDGE_STREAMS_PATTERN_HEIGHT, 1, 0, swapped),
+    ]
+
+
+def edge_streams_random_stream(randomizer, width=None, height=None, frame_count=EDGE_STREAMS_FRAMES):
+    width = randomizer.randint(MINIMUM_DIMENSION, EDGE_STREAMS_MAXIMUM_WIDTH) if width is None else width
+    height = randomizer.randint(MINIMUM_DIMENSION, EDGE_STREAMS_MAXIMUM_HEIGHT) if height is None else height
+    count = (width + SUPERBLOCK_SIZE - 1) // SUPERBLOCK_SIZE * ((height + SUPERBLOCK_SIZE - 1) // SUPERBLOCK_SIZE)
+    stream = []
+    for frame_id in range(frame_count):
+        keyframe = frame_id == 0 or randomizer.random() < EDGE_STREAMS_KEYFRAME_CHANCE
+        roots = {
+            index: edge_streams_tree(randomizer, SUPERBLOCK_SIZE, keyframe)
+            for index in range(count)
+            if randomizer.random() > EDGE_STREAMS_ABSENT_CHANCE
+        }
+        stream.append(pack_frame(width, height, frame_id, frame_id if keyframe else frame_id - 1, roots))
+    return stream
+
+
+def edge_streams_tree(randomizer, size, keyframe, split_chance=EDGE_STREAMS_SPLIT_CHANCE):
+    if size > SMALLEST_LEAF_SIZE and randomizer.random() < split_chance:
+        return Node(
+            mcv2_reference.SPLIT,
+            children=tuple(
+                edge_streams_tree(randomizer, size // QUADRANTS_PER_SIDE, keyframe, split_chance) for _ in range(SPLIT_CHILDREN)
+            ),
+        )
+    return edge_streams_leaf(randomizer, size, keyframe)
 
 
 def archive_bytes(chunks):
     return b"".join(struct.pack(LENGTH_FORMAT, len(chunk)) + chunk for chunk in chunks)
 
 
-def read_archive(path):
-    return archive_frames(Path(path).read_bytes())
-
-
-def fixtures_digests(data):
-    decoder = Decoder()
-    return [hashlib.sha256(decoder.accept(frame).tobytes()).hexdigest() for frame in archive_frames(data)]
-
-
-def fixtures_write_json(path, value):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=JSON_INDENT) + LINE_SEPARATOR)
-
-
-def fixtures_version_3_stream(path):
-    data = path.read_bytes()
-    kept = list(archive_frames(data))
-    if not kept:
-        message: str = f"Archive {path} is empty!"
-        raise ValueError(message)
-    if not kept[0].startswith(VERSION_3_PREFIX):
-        print(f"Skipping stream {path}, which is not MCV2 version 3.", file=sys.stderr)
-        return None
-    return (data, kept)
+def fixtures_main():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Regenerate independent v3 RGB digests, transport pages and edge streams. Validate Java "
+            "conformance/golden archives without rewriting them; leave non-v3 streams untouched. Archives repeat "
+            "a little-endian u32 length and that many frame bytes. Exit 1 on validation failure; 2 on invalid "
+            "options."
+        ),
+    )
+    parser.add_argument("root", type=Path)
+    parser.add_argument(
+        "what", nargs="?", default=ALL_FIXTURES, choices=("conformance", "edge", "pages", "encoder", ALL_FIXTURES)
+    )
+    arguments = parser.parse_args()
+    steps = dict(
+        conformance=fixtures_conformance, edge=fixtures_edge, pages=fixtures_pages, encoder=fixtures_encoder
+    )
+    for step in steps if arguments.what == ALL_FIXTURES else [arguments.what]:
+        steps[step](arguments.root)
 
 
 def fixtures_conformance(root):
@@ -1553,6 +1614,43 @@ def fixtures_conformance(root):
         print(f"Checked {len(kept)} v3 frames of {stream.name}.", file=sys.stderr)
     if updated:
         fixtures_write_json(path, table)
+
+
+def fixtures_version_3_stream(path):
+    data = path.read_bytes()
+    kept = list(archive_frames(data))
+    if not kept:
+        message: str = f"Archive {path} is empty!"
+        raise ValueError(message)
+    if not kept[0].startswith(VERSION_3_PREFIX):
+        print(f"Skipping stream {path}, which is not MCV2 version 3.", file=sys.stderr)
+        return None
+    return (data, kept)
+
+
+def archive_frames(data):
+    offset = 0
+    while offset < len(data):
+        if offset + LENGTH_BYTES > len(data):
+            message: str = "The archive has a truncated frame length!"
+            raise ValueError(message)
+        length = struct.unpack_from(LENGTH_FORMAT, data, offset)[0]
+        offset += LENGTH_BYTES
+        if offset + length > len(data):
+            message: str = "The archive has a truncated frame!"
+            raise ValueError(message)
+        yield data[offset : offset + length]
+        offset += length
+
+
+def fixtures_digests(data):
+    decoder = Decoder()
+    return [hashlib.sha256(decoder.accept(frame).tobytes()).hexdigest() for frame in archive_frames(data)]
+
+
+def fixtures_write_json(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, indent=JSON_INDENT) + LINE_SEPARATOR)
 
 
 def fixtures_edge(root):
@@ -1604,6 +1702,10 @@ def fixtures_pages(root):
     )
 
 
+def read_archive(path):
+    return archive_frames(Path(path).read_bytes())
+
+
 def fixtures_encoder(root):
     checked = 0
     for stream in sorted((root / ENCODER_DIRECTORY).glob(STREAM_GLOB)):
@@ -1616,104 +1718,32 @@ def fixtures_encoder(root):
     print(f"Checked {checked} committed v3 golden encoder streams; the files are unchanged.", file=sys.stderr)
 
 
-def fixtures_main():
+def differential_main():
     parser = argparse.ArgumentParser(
         description=(
-            "Regenerate independent v3 RGB digests, transport pages and edge streams. Validate Java "
-            "conformance/golden archives without rewriting them; leave non-v3 streams untouched. Archives repeat "
-            "a little-endian u32 length and that many frame bytes. Exit 1 on validation failure; 2 on invalid "
-            "options."
+            "Require identical Python/Java v3 acceptance and RGB digests for random trees, conformance streams "
+            "and mutations. Only ValueError counts as a reference rejection. Exit 1 on disagreement or another "
+            "reference exception; 2 on a failed Java process or invalid options."
         ),
     )
-    parser.add_argument("root", type=Path)
+    parser.add_argument("classpath")
+    parser.add_argument("--streams", type=int, default=DIFFERENTIAL_DEFAULT_STREAMS, help="random-tree archives")
     parser.add_argument(
-        "what", nargs="?", default=ALL_FIXTURES, choices=("conformance", "edge", "pages", "encoder", ALL_FIXTURES)
+        "--conformance", type=int, default=DIFFERENTIAL_DEFAULT_CONFORMANCE, help="committed archives, cycling when necessary"
     )
+    parser.add_argument("--corpus", type=Path, default=DIFFERENTIAL_DEFAULT_CORPUS)
+    parser.add_argument("--mutants", type=int, default=1, help="mutated copies of every archive")
+    parser.add_argument("--seed", type=int, default=DIFFERENTIAL_DEFAULT_SEED)
+    parser.add_argument(OUT_OPTION, type=Path, default=Path(DIFFERENTIAL_OUTPUT_PATH))
+    parser.add_argument(JAVA_OPTION, default=JAVA_COMMAND)
     arguments = parser.parse_args()
-    steps = dict(
-        conformance=fixtures_conformance, edge=fixtures_edge, pages=fixtures_pages, encoder=fixtures_encoder
-    )
-    for step in steps if arguments.what == ALL_FIXTURES else [arguments.what]:
-        steps[step](arguments.root)
-
-
-DIFFERENTIAL_DEFAULT_CORPUS = (
-    REPOSITORY_ROOT / CONFORMANCE_RESOURCES_PATH
-)
-
-
-def differential_mutant(original, randomizer):
-    mutated = [bytearray(frame) for frame in original]
-    nonempty = [index for index, frame in enumerate(mutated) if frame]
-    if not nonempty:
-        message: str = "A mutation needs a nonempty frame!"
-        raise ValueError(message)
-    if randomizer.random() < DIFFERENTIAL_MUTATION_CHANCE:
-        victim = randomizer.choice(nonempty)
-        mutated[victim] = mutated[victim][: randomizer.randrange(len(mutated[victim]))]
-    else:
-        for _ in range(randomizer.randint(1, DIFFERENTIAL_MAXIMUM_FLIPS)):
-            victim = mutated[randomizer.choice(nonempty)]
-            limit = min(len(victim), DIFFERENTIAL_HEAD_BYTES) if randomizer.random() < DIFFERENTIAL_HEAD_CHANCE else len(victim)
-            victim[randomizer.randrange(limit)] ^= randomizer.randint(1, BYTE_VALUES - 1)
-    if mutated == original:
-        mutated[nonempty[0]][0] ^= 1
-    return [bytes(frame) for frame in mutated]
-
-
-def differential_reference_tokens(chunks):
-    """Only ValueError is a rejection; unexpected reference exceptions must fail the comparison."""
-    decoder, tokens = (Decoder(), [])
-    for frame in chunks:
-        try:
-            tokens.append(hashlib.sha256(decoder.accept(frame).tobytes()).hexdigest())
-        except ValueError:
-            tokens.append(REJECT_TOKEN)
-    return tokens
-
-
-def differential_build_archives(arguments):
-    randomizer = random.Random(arguments.seed)
-    archives = {
-        f"tree-{index:04d}": edge_streams_random_stream(randomizer) for index in range(arguments.streams)
-    }
-    corpus = sorted(arguments.corpus.glob(STREAM_GLOB))
-    if arguments.conformance and (not corpus):
-        message: str = f"Corpus {arguments.corpus} has no committed conformance archives!"
-        raise ValueError(message)
-    for index in range(arguments.conformance):
-        path = corpus[index % len(corpus)]
-        chunks = list(read_archive(path))
-        if not chunks:
-            message: str = f"Conformance archive {path} is empty!"
-            raise ValueError(message)
-        archives[f"conformance-{index:04d}-{path.stem}"] = chunks
-    for name, chunks in list(archives.items()):
-        for index in range(arguments.mutants):
-            archives[f"{name}-mutant-{index}"] = differential_mutant(chunks, randomizer)
-    return archives
-
-
-def differential_compare(expected, actual):
-    counts = dict(archives=len(expected), frames=0, decoded=0, refused=0, disagreements=0)
-    disagreements = []
-    for name, expected_tokens in expected.items():
-        java = actual.get(name, [])
-        if len(java) != len(expected_tokens):
-            disagreements.append(
-                dict(archive=name, reason="frame count", mcav=len(java), reference=len(expected_tokens))
-            )
-        for index, token in enumerate(expected_tokens):
-            counts["frames"] += 1
-            other = java[index] if index < len(java) else None
-            if other != token:
-                disagreements.append(dict(archive=name, frame=index, mcav=other, reference=token))
-            else:
-                counts["refused" if token == REJECT_TOKEN else "decoded"] += 1
-    for name in actual.keys() - expected.keys():
-        disagreements.append(dict(archive=name, reason="unexpected archive from Java"))
-    counts["disagreements"] = len(disagreements)
-    return (counts, disagreements)
+    if (
+        min(arguments.streams, arguments.conformance, arguments.mutants) < 0
+        or arguments.streams + arguments.conformance == 0
+    ):
+        message: str = "Archive counts must be nonnegative, and at least one archive is required!"
+        parser.error(message)
+    sys.exit(differential_run(arguments))
 
 
 def differential_run(arguments):
@@ -1755,59 +1785,78 @@ def differential_run(arguments):
     return FAILURE_EXIT_CODE if disagreements else SUCCESS_EXIT_CODE
 
 
-def differential_main():
-    parser = argparse.ArgumentParser(
-        description=(
-            "Require identical Python/Java v3 acceptance and RGB digests for random trees, conformance streams "
-            "and mutations. Only ValueError counts as a reference rejection. Exit 1 on disagreement or another "
-            "reference exception; 2 on a failed Java process or invalid options."
-        ),
-    )
-    parser.add_argument("classpath")
-    parser.add_argument("--streams", type=int, default=DIFFERENTIAL_DEFAULT_STREAMS, help="random-tree archives")
-    parser.add_argument(
-        "--conformance", type=int, default=DIFFERENTIAL_DEFAULT_CONFORMANCE, help="committed archives, cycling when necessary"
-    )
-    parser.add_argument("--corpus", type=Path, default=DIFFERENTIAL_DEFAULT_CORPUS)
-    parser.add_argument("--mutants", type=int, default=1, help="mutated copies of every archive")
-    parser.add_argument("--seed", type=int, default=DIFFERENTIAL_DEFAULT_SEED)
-    parser.add_argument(OUT_OPTION, type=Path, default=Path(DIFFERENTIAL_OUTPUT_PATH))
-    parser.add_argument(JAVA_OPTION, default=JAVA_COMMAND)
-    arguments = parser.parse_args()
-    if (
-        min(arguments.streams, arguments.conformance, arguments.mutants) < 0
-        or arguments.streams + arguments.conformance == 0
-    ):
-        message: str = "Archive counts must be nonnegative, and at least one archive is required!"
-        parser.error(message)
-    sys.exit(differential_run(arguments))
+def differential_build_archives(arguments):
+    randomizer = random.Random(arguments.seed)
+    archives = {
+        f"tree-{index:04d}": edge_streams_random_stream(randomizer) for index in range(arguments.streams)
+    }
+    corpus = sorted(arguments.corpus.glob(STREAM_GLOB))
+    if arguments.conformance and (not corpus):
+        message: str = f"Corpus {arguments.corpus} has no committed conformance archives!"
+        raise ValueError(message)
+    for index in range(arguments.conformance):
+        path = corpus[index % len(corpus)]
+        chunks = list(read_archive(path))
+        if not chunks:
+            message: str = f"Conformance archive {path} is empty!"
+            raise ValueError(message)
+        archives[f"conformance-{index:04d}-{path.stem}"] = chunks
+    for name, chunks in list(archives.items()):
+        for index in range(arguments.mutants):
+            archives[f"{name}-mutant-{index}"] = differential_mutant(chunks, randomizer)
+    return archives
 
 
-def rate_quality_vmaf(ffmpeg, source, decoded, width, height, frames, frame_rate):
-    with tempfile.TemporaryDirectory() as folder:
-        log = os.path.join(folder, VMAF_LOG_NAME)
-        graph = vmaf_filter(log, os.cpu_count())
-        subprocess.run(
-            [
-                ffmpeg,
-                NO_STANDARD_INPUT_FLAG,
-                VERBOSITY_FLAG,
-                ERROR_LOG_LEVEL,
-                OVERWRITE_FLAG,
-                *codec_curves_raw(source, width, height, frame_rate),
-                *codec_curves_raw(decoded, width, height, frame_rate),
-                FRAME_COUNT_FLAG,
-                str(frames),
-                FILTER_GRAPH_FLAG,
-                graph,
-                FORMAT_FLAG,
-                NULL_FORMAT,
-                STANDARD_STREAM,
-            ],
-            check=True,
-        )
-        scores = [frame[VMAF_METRICS_KEY][VMAF_SCORE_KEY] for frame in json.loads(Path(log).read_text())[VMAF_FRAMES_KEY]]
-        return (sum(scores) / len(scores), min(scores))
+def differential_mutant(original, randomizer):
+    mutated = [bytearray(frame) for frame in original]
+    nonempty = [index for index, frame in enumerate(mutated) if frame]
+    if not nonempty:
+        message: str = "A mutation needs a nonempty frame!"
+        raise ValueError(message)
+    if randomizer.random() < DIFFERENTIAL_MUTATION_CHANCE:
+        victim = randomizer.choice(nonempty)
+        mutated[victim] = mutated[victim][: randomizer.randrange(len(mutated[victim]))]
+    else:
+        for _ in range(randomizer.randint(1, DIFFERENTIAL_MAXIMUM_FLIPS)):
+            victim = mutated[randomizer.choice(nonempty)]
+            limit = min(len(victim), DIFFERENTIAL_HEAD_BYTES) if randomizer.random() < DIFFERENTIAL_HEAD_CHANCE else len(victim)
+            victim[randomizer.randrange(limit)] ^= randomizer.randint(1, BYTE_VALUES - 1)
+    if mutated == original:
+        mutated[nonempty[0]][0] ^= 1
+    return [bytes(frame) for frame in mutated]
+
+
+def differential_reference_tokens(chunks):
+    """Only ValueError is a rejection; unexpected reference exceptions must fail the comparison."""
+    decoder, tokens = (Decoder(), [])
+    for frame in chunks:
+        try:
+            tokens.append(hashlib.sha256(decoder.accept(frame).tobytes()).hexdigest())
+        except ValueError:
+            tokens.append(REJECT_TOKEN)
+    return tokens
+
+
+def differential_compare(expected, actual):
+    counts = dict(archives=len(expected), frames=0, decoded=0, refused=0, disagreements=0)
+    disagreements = []
+    for name, expected_tokens in expected.items():
+        java = actual.get(name, [])
+        if len(java) != len(expected_tokens):
+            disagreements.append(
+                dict(archive=name, reason="frame count", mcav=len(java), reference=len(expected_tokens))
+            )
+        for index, token in enumerate(expected_tokens):
+            counts["frames"] += 1
+            other = java[index] if index < len(java) else None
+            if other != token:
+                disagreements.append(dict(archive=name, frame=index, mcav=other, reference=token))
+            else:
+                counts["refused" if token == REJECT_TOKEN else "decoded"] += 1
+    for name in actual.keys() - expected.keys():
+        disagreements.append(dict(archive=name, reason="unexpected archive from Java"))
+    counts["disagreements"] = len(disagreements)
+    return (counts, disagreements)
 
 
 def rate_quality_main():
@@ -1872,137 +1921,124 @@ def rate_quality_main():
         out.write(LINE_SEPARATOR)
 
 
-SPIRV_HELP = (
-    "run compiled Mcv2Tools shader-compile; use the test runtime classpath from "
-    "mcav-bukkit/build/mcv2-tools-classpath.txt"
-)
-
-
-shader_check_pack = REPOSITORY_ROOT / "mcav-bukkit/src/main/resources/mcav/mcv2/pack"
-shader_check_screen = (DEFAULT_WIDTH, DEFAULT_HEIGHT)
-SHADER_CHECK_STREAM_ID = 7
-shader_check_screen_index = 0
-shader_check_first_slot = 0
-SHADER_CHECK_IDLE_SLOTS = 8
-SHADER_CHECK_VERTEX = """#version 330
-#extension GL_ARB_separate_shader_objects : require
-layout(location = 0) out vec2 texCoord;
-void main() {
-    vec2 uv = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
-    gl_Position = vec4(uv * vec2(2, 2) + vec2(-1, -1), 0, 1);
-    texCoord = uv;
-}
-"""
-
-
-def shader_check_cells_width(width):
-    return (width + SHADER_CHECK_CELL_SIZE - 1) // SHADER_CHECK_CELL_SIZE
-
-
-def shader_check_cells_height(height):
-    return (height + SHADER_CHECK_CELL_SIZE - 1) // SHADER_CHECK_CELL_SIZE
-
-
-def shader_check_placeholders(width, height, slots):
-    return {
-        "VIDEO_WIDTH": width,
-        "VIDEO_HEIGHT": height,
-        "BYTES_WIDTH": SHADER_CHECK_BYTES_WIDTH,
-        BYTES_HEIGHT_PLACEHOLDER: (slots * PAGE_CAPACITY // RGBA_CHANNELS + SHADER_CHECK_BYTES_WIDTH - 1) // SHADER_CHECK_BYTES_WIDTH,
-        "PAGES_WIDTH": SHADER_CHECK_PAGE_TEXELS * slots,
-        "CRC_WIDTH": SHADER_CHECK_CRC_TEXELS * slots,
-        "CELLS_WIDTH": shader_check_cells_width(width),
-        "CELLS_HEIGHT": shader_check_cells_height(height) + 1,
-    }
-
-
-def shader_check_post_chain(width, height, slots):
-    template_path = shader_check_pack.parent / CHAIN_NAME
-    text = template_path.read_text().replace("@S@", str(shader_check_screen_index))
-    for name, value in shader_check_placeholders(width, height, slots).items():
-        text = text.replace("@%s@" % name, str(value))
-    template = json.loads(text)
-    targets = dict(template["screen_targets"])
-    targets.update(template[TARGETS_KEY])
-    return {TARGETS_KEY: targets, PASSES_KEY: template["decode"] + template["draw"] + template["tail"]}
-
-
-SHADER_CHECK_BLIT = """#version 330
-#extension GL_ARB_separate_shader_objects : require
-uniform sampler2D InSampler;
-layout(location = 0) out vec4 fragColor;
-void main() {
-    fragColor = texelFetch(InSampler, ivec2(gl_FragCoord.xy), 0);
-}
-"""
-
-
-def shader_check_screens_configuration(slots):
-    if shader_check_screen_index == 0:
-        return [
-            "const int MCV2_SCREENS = 1;",
-            TOTAL_SLOTS_DECLARATION % slots,
-            "const uint MCV2_SCREEN_STREAMS[1] = uint[1](%du);" % SHADER_CHECK_STREAM_ID,
-            "const int MCV2_SCREEN_SLOTS[1] = int[1](%d);" % slots,
-            "const int MCV2_SCREEN_FIRST_SLOTS[1] = int[1](0);",
-        ]
-    return [
-        "const int MCV2_SCREENS = 2;",
-        TOTAL_SLOTS_DECLARATION % (SHADER_CHECK_IDLE_SLOTS + slots),
-        "const uint MCV2_SCREEN_STREAMS[2] = uint[2](1u, %du);" % SHADER_CHECK_STREAM_ID,
-        "const int MCV2_SCREEN_SLOTS[2] = int[2](%d, %d);" % (SHADER_CHECK_IDLE_SLOTS, slots),
-        "const int MCV2_SCREEN_FIRST_SLOTS[2] = int[2](0, %d);" % SHADER_CHECK_IDLE_SLOTS,
-    ]
-
-
-def shader_check_generated(width, height, slots):
-    return {
-        "mcav:mcv2_config.glsl": LINE_SEPARATOR.join(
-            shader_check_screens_configuration(slots)
-            + ["const bool MCV2_DEBUG_VIEW = false;", "const ivec3 MCV2_OUTLINE_COLOR = ivec3(0, 0, 0);", ""]
-        ),
-        "mcav:mcv2_screen.glsl": LINE_SEPARATOR.join(
+def rate_quality_vmaf(ffmpeg, source, decoded, width, height, frames, frame_rate):
+    with tempfile.TemporaryDirectory() as folder:
+        log = os.path.join(folder, VMAF_LOG_NAME)
+        graph = vmaf_filter(log, os.cpu_count())
+        subprocess.run(
             [
-                "const int MCV2_SCREEN_INDEX = %d;" % shader_check_screen_index,
-                "const int MCV2_PAGE_SLOTS = %d;" % slots,
-                "const int MCV2_FIRST_SLOT = %d;" % shader_check_first_slot,
-                "const uint MCV2_STREAM_ID = %du;" % SHADER_CHECK_STREAM_ID,
-                "const int MCV2_VIDEO_WIDTH = %d;" % width,
-                "const int MCV2_VIDEO_HEIGHT = %d;" % height,
-                "const int MCV2_BYTES_WIDTH = 128;",
-                "const int MCV2_BYTES_HEIGHT = %d;"
-                % shader_check_placeholders(width, height, slots)[BYTES_HEIGHT_PLACEHOLDER],
-                "const int MCV2_CELLS_WIDTH = %d;" % shader_check_cells_width(width),
-                "const int MCV2_CELLS_HEIGHT = %d;" % shader_check_cells_height(height),
-                "const int MCV2_DEBUG_TOP = 0;",
-                "",
-            ]
+                ffmpeg,
+                NO_STANDARD_INPUT_FLAG,
+                VERBOSITY_FLAG,
+                ERROR_LOG_LEVEL,
+                OVERWRITE_FLAG,
+                *codec_curves_raw(source, width, height, frame_rate),
+                *codec_curves_raw(decoded, width, height, frame_rate),
+                FRAME_COUNT_FLAG,
+                str(frames),
+                FILTER_GRAPH_FLAG,
+                graph,
+                FORMAT_FLAG,
+                NULL_FORMAT,
+                STANDARD_STREAM,
+            ],
+            check=True,
+        )
+        scores = [frame[VMAF_METRICS_KEY][VMAF_SCORE_KEY] for frame in json.loads(Path(log).read_text())[VMAF_FRAMES_KEY]]
+        return (sum(scores) / len(scores), min(scores))
+
+
+def shader_check_main():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Run the pack post chain outside Minecraft and require byte-exact reference pictures and decode "
+            "decisions. --drop exercises missing frames; --restart-check exercises keyframe restart ordering. "
+            "Frames with more pages than slots cannot be decoded, as Mcv2Channel.send refuses them. Exit 1 on a "
+            "failed check; 2 on invalid options."
         ),
-    }
+    )
+    parser.add_argument("streams", nargs="+")
+    parser.add_argument(SLOTS_OPTION, type=int, default=DEFAULT_SLOTS)
+    parser.add_argument("--drop", type=int, default=0)
+    parser.add_argument(BACKEND_OPTION, choices=(EGL_BACKEND, GLX_BACKEND), default=None)
+    parser.add_argument(PACK_OPTION, type=Path, help="another pack source folder with its sibling chain.json")
+    parser.add_argument(SPIRV_OPTION, metavar=SPIRV_METAVAR, help=SPIRV_HELP)
+    parser.add_argument(
+        "--second-screen", action="store_true", help="play on the second screen of a two-screen pack"
+    )
+    parser.add_argument(
+        "--restart-check", action="store_true", help="also check keyframe restart and P-frame ordering"
+    )
+    arguments = parser.parse_args()
+    if arguments.second_screen:
+        global shader_check_screen_index, shader_check_first_slot
+        shader_check_screen_index, shader_check_first_slot = (1, SHADER_CHECK_IDLE_SLOTS)
+    if arguments.pack:
+        global shader_check_pack
+        shader_check_pack = arguments.pack
+    import moderngl
 
-
-def shader_check_resolve(source, includes, seen=None):
-    seen = set() if seen is None else seen
-
-    def include(match):
-        name = match.group(1)
-        if name in seen:
-            return ""
-        seen.add(name)
-        if name in includes:
-            text = includes[name]
-        else:
-            namespace, path = name.split(RESOURCE_NAMESPACE_SEPARATOR)
-            text = (shader_check_pack / ASSETS_NAME / namespace / SHADER_INCLUDE_PATH / path).read_text()
-        return shader_check_resolve(text, includes, seen)
-
-    return re.sub("^#include <([^>]+)>", include, source, flags=re.M)
-
-
-def shader_check_desktop(source):
-    """The pack's GLSL for a desktop OpenGL 3.3 compiler: Minecraft 26.3 compiles it for Vulkan, whose vertex index is
-    gl_VertexIndex."""
-    return source.replace("gl_VertexIndex", "gl_VertexID")
+    context = moderngl.create_standalone_context(
+        require=GL_VERSION, **{"backend": EGL_BACKEND} if arguments.backend == EGL_BACKEND else {}
+    )
+    print(context.info[GL_RENDERER_KEY])
+    failures = 0
+    for stream in arguments.streams:
+        chain = None
+        last_id = None
+        shown = None
+        decoded = skipped = wrong = 0
+        for index, frame in enumerate(read_archive(stream)):
+            width, height = struct.unpack_from(DIMENSIONS_FORMAT, frame, WIDTH_OFFSET)
+            frame_id, reference_id = struct.unpack_from(FRAME_IDS_FORMAT, frame, FRAME_ID_OFFSET)
+            keyframe = frame_id == reference_id
+            if chain is None:
+                chain = ShaderChain(context, width, height, arguments.slots)
+                if arguments.spirv:
+                    chain.compiled = shader_check_compile_via_spirv(chain.includes, arguments.spirv)
+            if arguments.drop and index % arguments.drop == arguments.drop - 1:
+                continue
+            pages = make_pages(frame, SHADER_CHECK_STREAM_ID, SYMBOL_BITS)
+            # Mcv2Channel.send refuses a frame with more pages than slots, so the client never receives it.
+            delta = None if last_id is None else (frame_id - last_id) & ID_MASK
+            newer = delta is None or (delta > 0 and (keyframe or delta < ID_HALF_RANGE))
+            decodable = (
+                newer
+                and (keyframe or reference_id == last_id)
+                and ((width, height) == (chain.width, chain.height))
+                and (len(pages) <= arguments.slots)
+            )
+            chain.show(pages[: arguments.slots])
+            chain_decoded, picture = chain.frame()
+            if chain_decoded != decodable:
+                wrong += 1
+                print(
+                    "  frame %d: the chain %s it, the client model %s"
+                    % (index, "decoded" if chain_decoded else "skipped", "can" if decodable else "cannot")
+                )
+                continue
+            if chain_decoded:
+                decoded += 1
+                expected = decode(frame, None if keyframe else shown, last_id)
+                shown = expected
+                last_id = frame_id
+                if not numpy.array_equal(picture, expected):
+                    wrong += 1
+                    difference = numpy.abs(picture.astype(int) - expected.astype(int))
+                    print(
+                        "  frame %d differs: %d pixels, max %d"
+                        % (index, int((difference.max(axis=2) > 0).sum()), difference.max())
+                    )
+            else:
+                skipped += 1
+                if shown is not None and (not numpy.array_equal(picture, shown)):
+                    wrong += 1
+                    print("  frame %d was skipped but the picture changed" % index)
+        print("%s: %d frames decoded, %d skipped, %d wrong" % (Path(stream).name, decoded, skipped, wrong))
+        failures += wrong
+    if arguments.restart_check:
+        failures += shader_check_check_restart(context, arguments.slots, arguments.spirv)
+    sys.exit(FAILURE_EXIT_CODE if failures else SUCCESS_EXIT_CODE)
 
 
 class ShaderChain:
@@ -2145,6 +2181,114 @@ class ShaderChain:
         return (bool(status[0]), picture)
 
 
+def shader_check_generated(width, height, slots):
+    return {
+        "mcav:mcv2_config.glsl": LINE_SEPARATOR.join(
+            shader_check_screens_configuration(slots)
+            + ["const bool MCV2_DEBUG_VIEW = false;", "const ivec3 MCV2_OUTLINE_COLOR = ivec3(0, 0, 0);", ""]
+        ),
+        "mcav:mcv2_screen.glsl": LINE_SEPARATOR.join(
+            [
+                "const int MCV2_SCREEN_INDEX = %d;" % shader_check_screen_index,
+                "const int MCV2_PAGE_SLOTS = %d;" % slots,
+                "const int MCV2_FIRST_SLOT = %d;" % shader_check_first_slot,
+                "const uint MCV2_STREAM_ID = %du;" % SHADER_CHECK_STREAM_ID,
+                "const int MCV2_VIDEO_WIDTH = %d;" % width,
+                "const int MCV2_VIDEO_HEIGHT = %d;" % height,
+                "const int MCV2_BYTES_WIDTH = 128;",
+                "const int MCV2_BYTES_HEIGHT = %d;"
+                % shader_check_placeholders(width, height, slots)[BYTES_HEIGHT_PLACEHOLDER],
+                "const int MCV2_CELLS_WIDTH = %d;" % shader_check_cells_width(width),
+                "const int MCV2_CELLS_HEIGHT = %d;" % shader_check_cells_height(height),
+                "const int MCV2_DEBUG_TOP = 0;",
+                "",
+            ]
+        ),
+    }
+
+
+def shader_check_screens_configuration(slots):
+    if shader_check_screen_index == 0:
+        return [
+            "const int MCV2_SCREENS = 1;",
+            TOTAL_SLOTS_DECLARATION % slots,
+            "const uint MCV2_SCREEN_STREAMS[1] = uint[1](%du);" % SHADER_CHECK_STREAM_ID,
+            "const int MCV2_SCREEN_SLOTS[1] = int[1](%d);" % slots,
+            "const int MCV2_SCREEN_FIRST_SLOTS[1] = int[1](0);",
+        ]
+    return [
+        "const int MCV2_SCREENS = 2;",
+        TOTAL_SLOTS_DECLARATION % (SHADER_CHECK_IDLE_SLOTS + slots),
+        "const uint MCV2_SCREEN_STREAMS[2] = uint[2](1u, %du);" % SHADER_CHECK_STREAM_ID,
+        "const int MCV2_SCREEN_SLOTS[2] = int[2](%d, %d);" % (SHADER_CHECK_IDLE_SLOTS, slots),
+        "const int MCV2_SCREEN_FIRST_SLOTS[2] = int[2](0, %d);" % SHADER_CHECK_IDLE_SLOTS,
+    ]
+
+
+def shader_check_placeholders(width, height, slots):
+    return {
+        "VIDEO_WIDTH": width,
+        "VIDEO_HEIGHT": height,
+        "BYTES_WIDTH": SHADER_CHECK_BYTES_WIDTH,
+        BYTES_HEIGHT_PLACEHOLDER: (slots * PAGE_CAPACITY // RGBA_CHANNELS + SHADER_CHECK_BYTES_WIDTH - 1) // SHADER_CHECK_BYTES_WIDTH,
+        "PAGES_WIDTH": SHADER_CHECK_PAGE_TEXELS * slots,
+        "CRC_WIDTH": SHADER_CHECK_CRC_TEXELS * slots,
+        "CELLS_WIDTH": shader_check_cells_width(width),
+        "CELLS_HEIGHT": shader_check_cells_height(height) + 1,
+    }
+
+
+def shader_check_cells_width(width):
+    return (width + SHADER_CHECK_CELL_SIZE - 1) // SHADER_CHECK_CELL_SIZE
+
+
+def shader_check_cells_height(height):
+    return (height + SHADER_CHECK_CELL_SIZE - 1) // SHADER_CHECK_CELL_SIZE
+
+
+def shader_check_post_chain(width, height, slots):
+    template_path = shader_check_pack.parent / CHAIN_NAME
+    text = template_path.read_text().replace("@S@", str(shader_check_screen_index))
+    for name, value in shader_check_placeholders(width, height, slots).items():
+        text = text.replace("@%s@" % name, str(value))
+    template = json.loads(text)
+    targets = dict(template["screen_targets"])
+    targets.update(template[TARGETS_KEY])
+    return {TARGETS_KEY: targets, PASSES_KEY: template["decode"] + template["draw"] + template["tail"]}
+
+
+def shader_check_desktop(source):
+    """The pack's GLSL for a desktop OpenGL 3.3 compiler: Minecraft 26.3 compiles it for Vulkan, whose vertex index is
+    gl_VertexIndex."""
+    return source.replace("gl_VertexIndex", "gl_VertexID")
+
+
+def shader_check_resolve(source, includes, seen=None):
+    seen = set() if seen is None else seen
+
+    def include(match):
+        name = match.group(1)
+        if name in seen:
+            return ""
+        seen.add(name)
+        if name in includes:
+            text = includes[name]
+        else:
+            namespace, path = name.split(RESOURCE_NAMESPACE_SEPARATOR)
+            text = (shader_check_pack / ASSETS_NAME / namespace / SHADER_INCLUDE_PATH / path).read_text()
+        return shader_check_resolve(text, includes, seen)
+
+    return re.sub("^#include <([^>]+)>", include, source, flags=re.M)
+
+
+def shader_check_page_number(page):
+    value = 0
+    for bit in range(SHADER_CHECK_PAGE_NUMBER_BITS):
+        symbol_bit = SHADER_CHECK_PAGE_NUMBER_FIRST_BIT + bit
+        value |= (page[symbol_bit // SYMBOL_BITS] >> symbol_bit % SYMBOL_BITS & 1) << bit
+    return value
+
+
 def shader_check_compile_via_spirv(includes, classpath):
     work = Path(tempfile.mkdtemp(prefix=SPIRV_DIRECTORY_PREFIX))
     generated = work / "generated"
@@ -2166,14 +2310,6 @@ def shader_check_compile_via_spirv(includes, classpath):
     ]
     subprocess.run(command, check=True, stdout=subprocess.DEVNULL)
     return work / COMPILED_SHADERS_NAME
-
-
-def shader_check_page_number(page):
-    value = 0
-    for bit in range(SHADER_CHECK_PAGE_NUMBER_BITS):
-        symbol_bit = SHADER_CHECK_PAGE_NUMBER_FIRST_BIT + bit
-        value |= (page[symbol_bit // SYMBOL_BITS] >> symbol_bit % SYMBOL_BITS & 1) << bit
-    return value
 
 
 def shader_check_check_restart(context, slots, classpath=None):
@@ -2206,183 +2342,6 @@ def shader_check_check_restart(context, slots, classpath=None):
             )
     print("keyframe restart: %d checks, %d wrong" % (len(SHADER_CHECK_RESTART_CASES), failures))
     return failures
-
-
-def shader_check_main():
-    parser = argparse.ArgumentParser(
-        description=(
-            "Run the pack post chain outside Minecraft and require byte-exact reference pictures and decode "
-            "decisions. --drop exercises missing frames; --restart-check exercises keyframe restart ordering. "
-            "Frames with more pages than slots cannot be decoded, as Mcv2Channel.send refuses them. Exit 1 on a "
-            "failed check; 2 on invalid options."
-        ),
-    )
-    parser.add_argument("streams", nargs="+")
-    parser.add_argument(SLOTS_OPTION, type=int, default=DEFAULT_SLOTS)
-    parser.add_argument("--drop", type=int, default=0)
-    parser.add_argument(BACKEND_OPTION, choices=(EGL_BACKEND, GLX_BACKEND), default=None)
-    parser.add_argument(PACK_OPTION, type=Path, help="another pack source folder with its sibling chain.json")
-    parser.add_argument(SPIRV_OPTION, metavar=SPIRV_METAVAR, help=SPIRV_HELP)
-    parser.add_argument(
-        "--second-screen", action="store_true", help="play on the second screen of a two-screen pack"
-    )
-    parser.add_argument(
-        "--restart-check", action="store_true", help="also check keyframe restart and P-frame ordering"
-    )
-    arguments = parser.parse_args()
-    if arguments.second_screen:
-        global shader_check_screen_index, shader_check_first_slot
-        shader_check_screen_index, shader_check_first_slot = (1, SHADER_CHECK_IDLE_SLOTS)
-    if arguments.pack:
-        global shader_check_pack
-        shader_check_pack = arguments.pack
-    import moderngl
-
-    context = moderngl.create_standalone_context(
-        require=GL_VERSION, **{"backend": EGL_BACKEND} if arguments.backend == EGL_BACKEND else {}
-    )
-    print(context.info[GL_RENDERER_KEY])
-    failures = 0
-    for stream in arguments.streams:
-        chain = None
-        last_id = None
-        shown = None
-        decoded = skipped = wrong = 0
-        for index, frame in enumerate(read_archive(stream)):
-            width, height = struct.unpack_from(DIMENSIONS_FORMAT, frame, WIDTH_OFFSET)
-            frame_id, reference_id = struct.unpack_from(FRAME_IDS_FORMAT, frame, FRAME_ID_OFFSET)
-            keyframe = frame_id == reference_id
-            if chain is None:
-                chain = ShaderChain(context, width, height, arguments.slots)
-                if arguments.spirv:
-                    chain.compiled = shader_check_compile_via_spirv(chain.includes, arguments.spirv)
-            if arguments.drop and index % arguments.drop == arguments.drop - 1:
-                continue
-            pages = make_pages(frame, SHADER_CHECK_STREAM_ID, SYMBOL_BITS)
-            # Mcv2Channel.send refuses a frame with more pages than slots, so the client never receives it.
-            delta = None if last_id is None else (frame_id - last_id) & ID_MASK
-            newer = delta is None or (delta > 0 and (keyframe or delta < ID_HALF_RANGE))
-            decodable = (
-                newer
-                and (keyframe or reference_id == last_id)
-                and ((width, height) == (chain.width, chain.height))
-                and (len(pages) <= arguments.slots)
-            )
-            chain.show(pages[: arguments.slots])
-            chain_decoded, picture = chain.frame()
-            if chain_decoded != decodable:
-                wrong += 1
-                print(
-                    "  frame %d: the chain %s it, the client model %s"
-                    % (index, "decoded" if chain_decoded else "skipped", "can" if decodable else "cannot")
-                )
-                continue
-            if chain_decoded:
-                decoded += 1
-                expected = decode(frame, None if keyframe else shown, last_id)
-                shown = expected
-                last_id = frame_id
-                if not numpy.array_equal(picture, expected):
-                    wrong += 1
-                    difference = numpy.abs(picture.astype(int) - expected.astype(int))
-                    print(
-                        "  frame %d differs: %d pixels, max %d"
-                        % (index, int((difference.max(axis=2) > 0).sum()), difference.max())
-                    )
-            else:
-                skipped += 1
-                if shown is not None and (not numpy.array_equal(picture, shown)):
-                    wrong += 1
-                    print("  frame %d was skipped but the picture changed" % index)
-        print("%s: %d frames decoded, %d skipped, %d wrong" % (Path(stream).name, decoded, skipped, wrong))
-        failures += wrong
-    if arguments.restart_check:
-        failures += shader_check_check_restart(context, arguments.slots, arguments.spirv)
-    sys.exit(FAILURE_EXIT_CODE if failures else SUCCESS_EXIT_CODE)
-
-
-def shader_timing_perspective(field_of_view_y, aspect, near, far):
-    """An OpenGL projection matrix, column-major like GLSL's mat4 constructor order."""
-    focal_length = 1.0 / numpy.tan(numpy.radians(field_of_view_y) / 2)
-    matrix = numpy.zeros((4, 4), numpy.float32)
-    matrix[0, 0] = focal_length / aspect
-    matrix[1, 1] = focal_length
-    matrix[2, 2] = (far + near) / (near - far)
-    matrix[2, 3] = -1.0
-    matrix[3, 2] = 2 * far * near / (near - far)
-    return matrix
-
-
-def shader_timing_descriptor_row(width):
-    floats = [*SHADER_TIMING_TOP_LEFT, SHADER_TIMING_CELLS[0], *SHADER_TIMING_RIGHT, SHADER_TIMING_CELLS[1], *SHADER_TIMING_DOWN, 0.0]
-    perspective = shader_timing_perspective(
-        SHADER_TIMING_FIELD_OF_VIEW, SHADER_TIMING_ASPECT_RATIO, SHADER_TIMING_NEAR, SHADER_TIMING_FAR
-    )
-    floats += list(perspective.reshape(-1))
-    row = numpy.zeros((width, RGBA_CHANNELS), numpy.uint8)
-    row[:, ALPHA_CHANNEL] = MAXIMUM_CHANNEL
-    row[0, :CHANNELS] = tuple(STRIP_MAGIC)
-    row[1, 0] = SHADER_TIMING_DESCRIPTOR_MARKER
-    for index, value in enumerate(floats):
-        packed = struct.pack(FLOAT_FORMAT, value)
-        pixel = SHADER_TIMING_FIRST_FLOAT_PIXEL + index * SHADER_TIMING_PIXELS_PER_FLOAT
-        row[pixel, :CHANNELS] = tuple(packed[:CHANNELS])
-        row[pixel + 1, 0] = packed[CHANNELS]
-    return row
-
-
-class TimedShaderChain(ShaderChain):
-    def __init__(self, context, width, height, slots):
-        super().__init__(context, width, height, slots)
-        self.queries = {}
-
-    def show(self, pages):
-        super().show(pages)
-        rows = (PAGE_PIXELS + shader_check_screen[0] - 1) // shader_check_screen[0]
-        row = (
-            shader_check_screen[1]
-            - 1
-            - (shader_check_first_slot + self.slots) * rows
-            - shader_check_screen_index
-        )
-        self.main.write(
-            shader_timing_descriptor_row(shader_check_screen[0]).tobytes(),
-            viewport=(0, row, shader_check_screen[0], 1),
-        )
-
-    def warm(self):
-        """Keeps the GPU busy for a few milliseconds, untimed, as a client drawing its world would: after the harness's
-        own uploads and read-backs the GPU would otherwise start the chain at an idle clock."""
-        for _ in range(SHADER_TIMING_WARM_UP_FRAMES):
-            self.draw(self.blit, {"In": self.main}, "mcav:mcv2_screen")
-
-    def timed_frame(self, repeats):
-        self.warm()
-        times = {}
-        for name, program, inputs, output in self.steps():
-            if name.startswith("blit "):
-                self.draw(program, inputs, output)
-                continue
-            if name == "mcv2_copy":
-                name += " -> " + output.split(RESOURCE_NAMESPACE_SEPARATOR)[-1].removeprefix("mcv2_")
-            if name not in self.queries:
-                self.queries[name] = self.context.query(time=True)
-            query = self.queries[name]
-            count = repeats if name == "mcv2_decode" else 1
-            with query:
-                for _ in range(count):
-                    self.draw(program, inputs, output)
-            times[name] = query.elapsed / count / NANOSECONDS_PER_MILLISECOND
-        status = numpy.frombuffer(self.target(STATUS_TARGET).read(), numpy.uint8)
-        return (bool(status[0]), times)
-
-
-def shader_timing_summarize(samples, names):
-    out = {}
-    for name in names + (TOTAL_TIMING_NAME,):
-        values = numpy.array([sample[name] for sample in samples]) if samples else numpy.zeros(1)
-        out[name] = dict(mean=float(values.mean()), p95=float(numpy.percentile(values, TAIL_PERCENTILE)), n=len(samples))
-    return out
 
 
 def shader_timing_main():
@@ -2498,35 +2457,88 @@ def shader_timing_main():
     sys.exit(FAILURE_EXIT_CODE if failures else SUCCESS_EXIT_CODE)
 
 
-STRIP_CHECK_HEADER_SYMBOLS = (PAGE_HEADER.size * BITS_PER_BYTE + SYMBOL_BITS - 1) // SYMBOL_BITS
-STRIP_CHECK_SQUARE = 20
-STRIP_CHECK_STEP = 24
-STRIP_CHECK_GREEN, STRIP_CHECK_RED, STRIP_CHECK_BLUE = ((0, 255, 0), (255, 0, 0), (0, 0, 255))
-STRIP_CHECK_DESCRIPTOR = [tuple(STRIP_MAGIC), (0xA1, 0, 0)]
+class TimedShaderChain(ShaderChain):
+    def __init__(self, context, width, height, slots):
+        super().__init__(context, width, height, slots)
+        self.queries = {}
+
+    def show(self, pages):
+        super().show(pages)
+        rows = (PAGE_PIXELS + shader_check_screen[0] - 1) // shader_check_screen[0]
+        row = (
+            shader_check_screen[1]
+            - 1
+            - (shader_check_first_slot + self.slots) * rows
+            - shader_check_screen_index
+        )
+        self.main.write(
+            shader_timing_descriptor_row(shader_check_screen[0]).tobytes(),
+            viewport=(0, row, shader_check_screen[0], 1),
+        )
+
+    def warm(self):
+        """Keeps the GPU busy for a few milliseconds, untimed, as a client drawing its world would: after the harness's
+        own uploads and read-backs the GPU would otherwise start the chain at an idle clock."""
+        for _ in range(SHADER_TIMING_WARM_UP_FRAMES):
+            self.draw(self.blit, {"In": self.main}, "mcav:mcv2_screen")
+
+    def timed_frame(self, repeats):
+        self.warm()
+        times = {}
+        for name, program, inputs, output in self.steps():
+            if name.startswith("blit "):
+                self.draw(program, inputs, output)
+                continue
+            if name == "mcv2_copy":
+                name += " -> " + output.split(RESOURCE_NAMESPACE_SEPARATOR)[-1].removeprefix("mcv2_")
+            if name not in self.queries:
+                self.queries[name] = self.context.query(time=True)
+            query = self.queries[name]
+            count = repeats if name == "mcv2_decode" else 1
+            with query:
+                for _ in range(count):
+                    self.draw(program, inputs, output)
+            times[name] = query.elapsed / count / NANOSECONDS_PER_MILLISECOND
+        status = numpy.frombuffer(self.target(STATUS_TARGET).read(), numpy.uint8)
+        return (bool(status[0]), times)
 
 
-def strip_check_page_symbols(screen, slot, rows):
-    pixels = (
-        screen[slot * rows : (slot + 1) * rows].reshape(-1, CHANNELS)[:PAGE_PIXELS].astype(numpy.uint32)
+def shader_timing_descriptor_row(width):
+    floats = [*SHADER_TIMING_TOP_LEFT, SHADER_TIMING_CELLS[0], *SHADER_TIMING_RIGHT, SHADER_TIMING_CELLS[1], *SHADER_TIMING_DOWN, 0.0]
+    perspective = shader_timing_perspective(
+        SHADER_TIMING_FIELD_OF_VIEW, SHADER_TIMING_ASPECT_RATIO, SHADER_TIMING_NEAR, SHADER_TIMING_FAR
     )
-    bits = pixels[:, 0] | pixels[:, 1] << BITS_PER_BYTE | pixels[:, 2] << 2 * BITS_PER_BYTE
-    return numpy.stack([bits >> shift & SYMBOL_MASK for shift in SYMBOL_SHIFTS], axis=1).astype(numpy.uint8).ravel()
+    floats += list(perspective.reshape(-1))
+    row = numpy.zeros((width, RGBA_CHANNELS), numpy.uint8)
+    row[:, ALPHA_CHANNEL] = MAXIMUM_CHANNEL
+    row[0, :CHANNELS] = tuple(STRIP_MAGIC)
+    row[1, 0] = SHADER_TIMING_DESCRIPTOR_MARKER
+    for index, value in enumerate(floats):
+        packed = struct.pack(FLOAT_FORMAT, value)
+        pixel = SHADER_TIMING_FIRST_FLOAT_PIXEL + index * SHADER_TIMING_PIXELS_PER_FLOAT
+        row[pixel, :CHANNELS] = tuple(packed[:CHANNELS])
+        row[pixel + 1, 0] = packed[CHANNELS]
+    return row
 
 
-def strip_check_read_strip_page(symbols):
-    if len(symbols) < STRIP_CHECK_HEADER_SYMBOLS:
-        message: str = "The strip page header is truncated!"
-        raise ValueError(message)
-    bits = (
-        (symbols[:STRIP_CHECK_HEADER_SYMBOLS, None] >> numpy.arange(SYMBOL_BITS) & 1)
-        .astype(numpy.uint8)
-        .ravel()
-    )
-    fields = PAGE_HEADER.unpack(numpy.packbits(bits[: PAGE_HEADER.size * BITS_PER_BYTE], bitorder=BIT_ORDER).tobytes())
-    number, total = (fields[PAGE_NUMBER_FIELD], fields[PAGE_TOTAL_FIELD])
-    size = min(page_capacity(), max(total - number * page_capacity(), 0))
-    length = ((PAGE_HEADER.size + size) * BITS_PER_BYTE + SYMBOL_BITS - 1) // SYMBOL_BITS
-    return read_page(symbols[:length].tobytes())
+def shader_timing_perspective(field_of_view_y, aspect, near, far):
+    """An OpenGL projection matrix, column-major like GLSL's mat4 constructor order."""
+    focal_length = 1.0 / numpy.tan(numpy.radians(field_of_view_y) / 2)
+    matrix = numpy.zeros((4, 4), numpy.float32)
+    matrix[0, 0] = focal_length / aspect
+    matrix[1, 1] = focal_length
+    matrix[2, 2] = (far + near) / (near - far)
+    matrix[2, 3] = -1.0
+    matrix[3, 2] = 2 * far * near / (near - far)
+    return matrix
+
+
+def shader_timing_summarize(samples, names):
+    out = {}
+    for name in names + (TOTAL_TIMING_NAME,):
+        values = numpy.array([sample[name] for sample in samples]) if samples else numpy.zeros(1)
+        out[name] = dict(mean=float(values.mean()), p95=float(numpy.percentile(values, TAIL_PERCENTILE)), n=len(samples))
+    return out
 
 
 def strip_check_main():
@@ -2640,31 +2652,28 @@ def strip_check_main():
     sys.exit(FAILURE_EXIT_CODE if failures else SUCCESS_EXIT_CODE)
 
 
-STRIP_FIT_CHECK_VIDEO = (64, 64)
-STRIP_FIT_CHECK_SLOTS = 8
-
-
-def strip_fit_check_frame(context, screen, spirv=None, screen_index=0):
-    """Use the same random scene for every size, so strip coverage can be compared exactly."""
-    global shader_check_screen, shader_check_screen_index, shader_check_first_slot
-    shader_check_screen = screen
-    shader_check_screen_index = screen_index
-    shader_check_first_slot = SHADER_CHECK_IDLE_SLOTS if screen_index else 0
-    chain = ShaderChain(context, STRIP_FIT_CHECK_VIDEO[0], STRIP_FIT_CHECK_VIDEO[1], STRIP_FIT_CHECK_SLOTS)
-    if spirv:
-        chain.compiled = shader_check_compile_via_spirv(chain.includes, spirv)
-    scene = numpy.random.default_rng(STRIP_FIT_CHECK_SEED).integers(
-        0, BYTE_VALUES, (screen[1], screen[0], RGBA_CHANNELS), dtype=numpy.uint8
+def strip_check_read_strip_page(symbols):
+    if len(symbols) < STRIP_CHECK_HEADER_SYMBOLS:
+        message: str = "The strip page header is truncated!"
+        raise ValueError(message)
+    bits = (
+        (symbols[:STRIP_CHECK_HEADER_SYMBOLS, None] >> numpy.arange(SYMBOL_BITS) & 1)
+        .astype(numpy.uint8)
+        .ravel()
     )
-    scene[..., ALPHA_CHANNEL] = MAXIMUM_CHANNEL
-    chain.main.write(scene.tobytes())
-    decoded, _ = chain.frame()
-    after = numpy.frombuffer(chain.main.read(), numpy.uint8).reshape(screen[1], screen[0], RGBA_CHANNELS)
-    return (scene, after, decoded)
+    fields = PAGE_HEADER.unpack(numpy.packbits(bits[: PAGE_HEADER.size * BITS_PER_BYTE], bitorder=BIT_ORDER).tobytes())
+    number, total = (fields[PAGE_NUMBER_FIELD], fields[PAGE_TOTAL_FIELD])
+    size = min(page_capacity(), max(total - number * page_capacity(), 0))
+    length = ((PAGE_HEADER.size + size) * BITS_PER_BYTE + SYMBOL_BITS - 1) // SYMBOL_BITS
+    return read_page(symbols[:length].tobytes())
 
 
-def strip_fit_check_strip_rows(width):
-    return STRIP_FIT_CHECK_SLOTS * ((PAGE_PIXELS + width - 1) // width) + 1
+def strip_check_page_symbols(screen, slot, rows):
+    pixels = (
+        screen[slot * rows : (slot + 1) * rows].reshape(-1, CHANNELS)[:PAGE_PIXELS].astype(numpy.uint32)
+    )
+    bits = pixels[:, 0] | pixels[:, 1] << BITS_PER_BYTE | pixels[:, 2] << 2 * BITS_PER_BYTE
+    return numpy.stack([bits >> shift & SYMBOL_MASK for shift in SYMBOL_SHIFTS], axis=1).astype(numpy.uint8).ravel()
 
 
 def strip_fit_check_main():
@@ -2716,136 +2725,27 @@ def strip_fit_check_main():
     return FAILURE_EXIT_CODE if failures else SUCCESS_EXIT_CODE
 
 
-LATENCY_SAMPLES = COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS)
-LATENCY_SAMPLE_OFFSET = COUNTER_VIDEO_BLOCK // 2
+def strip_fit_check_strip_rows(width):
+    return STRIP_FIT_CHECK_SLOTS * ((PAGE_PIXELS + width - 1) // width) + 1
 
 
-def latency_milliseconds(value):
-    if isinstance(value, (int, float)):
-        return float(value)
-    return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp() * MILLISECONDS_PER_SECOND
-
-
-def latency_sends(path, jfr, span):
-    output = subprocess.run(
-        [jfr, JFR_PRINT_COMMAND, JFR_JSON_FLAG, JFR_EVENTS_FLAG, SEND_EVENT, str(path)],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
-    found = []
-    for event in json.loads(output)[JFR_RECORDING_KEY][JFR_EVENTS_KEY]:
-        values = event[JFR_VALUES_KEY]
-        sent = latency_milliseconds(values[SENT_FIELD]) if values[COLORS_FIELD] >= 0 else math.nan
-        found.append(
-            dict(
-                frame=values[FRAME_ID_FIELD],
-                keyframe=values[KEYFRAME_FIELD],
-                bytes=values[BYTES_FIELD],
-                colors=values[COLORS_FIELD],
-                arrived=sent,
-                sent=sent,
-                sent_to=values[SENT_TO_FIELD],
-                behind=values[BEHIND_FIELD],
-                waiting=values[WAITING_FIELD],
-                backlog=values[BACKLOG_FIELD],
-                number=values[FRAME_ID_FIELD] % span,
-            )
-        )
-    return sorted(found, key=lambda event: event["frame"])
-
-
-def latency_events(path, jfr):
-    output = subprocess.run(
-        [jfr, JFR_PRINT_COMMAND, JFR_JSON_FLAG, JFR_EVENTS_FLAG, FRAME_EVENT, str(path)],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
-    found = []
-    for event in json.loads(output)[JFR_RECORDING_KEY][JFR_EVENTS_KEY]:
-        values = event[JFR_VALUES_KEY]
-        fingerprint = values.get(FINGERPRINT_FIELD) or ""
-        luma = list(bytes.fromhex(fingerprint))
-        found.append(
-            dict(
-                frame=values[FRAME_ID_FIELD],
-                keyframe=values[KEYFRAME_FIELD],
-                bytes=values[BYTES_FIELD],
-                colors=values[COLORS_FIELD],
-                arrived=latency_milliseconds(values[ARRIVED_FIELD]),
-                sent=latency_milliseconds(values[SENT_FIELD]),
-                sent_to=values[SENT_TO_FIELD],
-                behind=values[BEHIND_FIELD],
-                waiting=values[WAITING_FIELD],
-                backlog=values[BACKLOG_FIELD],
-                number=counter_video_read(luma),
-            )
-        )
-    return sorted(found, key=lambda event: event["frame"])
-
-
-def latency_captures(path):
-    """(wall-clock ms, number or None) for every captured frame, decoded one frame at a time: a 10-minute capture is
-    2.6 GB of pixels."""
-    probe = subprocess.run(
-        [
-            FFPROBE_COMMAND,
-            VERBOSITY_FLAG,
-            ERROR_LOG_LEVEL,
-            SELECT_STREAMS_FLAG,
-            FIRST_VIDEO_STREAM,
-            SHOW_ENTRIES_FLAG,
-            LATENCY_PROBE_ENTRIES,
-            OUTPUT_FORMAT_FLAG,
-            JSON_FORMAT,
-            str(path),
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
-    metadata = json.loads(probe)
-    width, height = (metadata[FFPROBE_STREAMS_KEY][0]["width"], metadata[FFPROBE_STREAMS_KEY][0]["height"])
-    times = [float(frame["pts_time"]) * MILLISECONDS_PER_SECOND for frame in metadata["frames"]]
-    row = min(LATENCY_SAMPLE_OFFSET, height - 1)
-    columns = [
-        LATENCY_SAMPLE_OFFSET + COUNTER_VIDEO_BLOCK * block
-        for block in range(LATENCY_SAMPLES)
-        if LATENCY_SAMPLE_OFFSET + COUNTER_VIDEO_BLOCK * block < width
-    ]
-    size = width * height * CHANNELS
-    result = []
-    with subprocess.Popen(
-        [
-            FFMPEG_COMMAND,
-            NO_STANDARD_INPUT_FLAG,
-            VERBOSITY_FLAG,
-            ERROR_LOG_LEVEL,
-            INPUT_FLAG,
-            str(path),
-            FORMAT_FLAG,
-            RAW_VIDEO_FORMAT,
-            PIXEL_FORMAT_FLAG,
-            RGB_PIXEL_FORMAT,
-            STANDARD_STREAM,
-        ],
-        stdout=subprocess.PIPE,
-    ) as decoder:
-        # Drain every frame so ffmpeg cannot block on a full pipe when timestamps run out.
-        for index, raw in enumerate(iter(lambda: decoder.stdout.read(size), b"")):
-            if index >= len(times) or len(raw) < size:
-                continue
-            pixels = numpy.frombuffer(raw, numpy.uint8).reshape(height, width, CHANNELS)[row, columns].astype(int)
-            luma = ((pixels[:, 0] + LATENCY_LUMA_GREEN_WEIGHT * pixels[:, 1] + pixels[:, 2]) // LATENCY_LUMA_WEIGHT_TOTAL).tolist()
-            result.append((times[index], counter_video_read(luma)))
-    if decoder.returncode != 0:
-        raise subprocess.CalledProcessError(decoder.returncode, decoder.args)
-    return result
-
-
-def latency_percentile(values, percent):
-    return float(numpy.percentile(values, percent)) if values else math.nan
+def strip_fit_check_frame(context, screen, spirv=None, screen_index=0):
+    """Use the same random scene for every size, so strip coverage can be compared exactly."""
+    global shader_check_screen, shader_check_screen_index, shader_check_first_slot
+    shader_check_screen = screen
+    shader_check_screen_index = screen_index
+    shader_check_first_slot = SHADER_CHECK_IDLE_SLOTS if screen_index else 0
+    chain = ShaderChain(context, STRIP_FIT_CHECK_VIDEO[0], STRIP_FIT_CHECK_VIDEO[1], STRIP_FIT_CHECK_SLOTS)
+    if spirv:
+        chain.compiled = shader_check_compile_via_spirv(chain.includes, spirv)
+    scene = numpy.random.default_rng(STRIP_FIT_CHECK_SEED).integers(
+        0, BYTE_VALUES, (screen[1], screen[0], RGBA_CHANNELS), dtype=numpy.uint8
+    )
+    scene[..., ALPHA_CHANNEL] = MAXIMUM_CHANNEL
+    chain.main.write(scene.tobytes())
+    decoded, _ = chain.frame()
+    after = numpy.frombuffer(chain.main.read(), numpy.uint8).reshape(screen[1], screen[0], RGBA_CHANNELS)
+    return (scene, after, decoded)
 
 
 def latency_main():
@@ -2926,32 +2826,167 @@ def latency_main():
         arguments.json.write_text(json.dumps(report, indent=REPORT_INDENT))
 
 
-CHARTS_DATA = Path(__file__).resolve().parents[1] / "resources/mcv2/data"
-IMAGES = REPOSITORY_ROOT / DOCUMENTATION_IMAGES_PATH
-CHARTS_SURFACE = "#ffffff"
-CHARTS_INK = "#0b0b0b"
-CHARTS_SECONDARY = "#52514e"
-CHARTS_GRID = "#e4e3df"
-CHARTS_FONT = ["Liberation Sans", "Arial", "Helvetica", "DejaVu Sans"]
-CHARTS_CODECS = [
-    ("mcv2", "MCV2", "#2a78d6", "o"),
-    ("x264", "H.264", "#eb6834", "s"),
-    ("vp9", "VP9", "#1baf7a", "^"),
-    ("av1", "AV1", "#eda100", "D"),
-]
-CHARTS_SOURCES = [(PROXY_SOURCE, "Minecraft proxy, 1080p30"), (GAMEPLAY_SOURCE, "Minecraft gameplay, 1080p30")]
-CHARTS_SOURCE_COLOURS = {PROXY_SOURCE: "#2a78d6", GAMEPLAY_SOURCE: "#eb6834"}
-CHARTS_LEVELS = (70, 75, 80, 85, 90)
-CHARTS_TICKS = (0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50)
+def latency_sends(path, jfr, span):
+    output = subprocess.run(
+        [jfr, JFR_PRINT_COMMAND, JFR_JSON_FLAG, JFR_EVENTS_FLAG, SEND_EVENT, str(path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    found = []
+    for event in json.loads(output)[JFR_RECORDING_KEY][JFR_EVENTS_KEY]:
+        values = event[JFR_VALUES_KEY]
+        sent = latency_milliseconds(values[SENT_FIELD]) if values[COLORS_FIELD] >= 0 else math.nan
+        found.append(
+            dict(
+                frame=values[FRAME_ID_FIELD],
+                keyframe=values[KEYFRAME_FIELD],
+                bytes=values[BYTES_FIELD],
+                colors=values[COLORS_FIELD],
+                arrived=sent,
+                sent=sent,
+                sent_to=values[SENT_TO_FIELD],
+                behind=values[BEHIND_FIELD],
+                waiting=values[WAITING_FIELD],
+                backlog=values[BACKLOG_FIELD],
+                number=values[FRAME_ID_FIELD] % span,
+            )
+        )
+    return sorted(found, key=lambda event: event["frame"])
 
 
-def figure_pyplot():
-    import matplotlib
+def latency_milliseconds(value):
+    if isinstance(value, (int, float)):
+        return float(value)
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp() * MILLISECONDS_PER_SECOND
 
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as pyplot
 
-    return pyplot
+def latency_events(path, jfr):
+    output = subprocess.run(
+        [jfr, JFR_PRINT_COMMAND, JFR_JSON_FLAG, JFR_EVENTS_FLAG, FRAME_EVENT, str(path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    found = []
+    for event in json.loads(output)[JFR_RECORDING_KEY][JFR_EVENTS_KEY]:
+        values = event[JFR_VALUES_KEY]
+        fingerprint = values.get(FINGERPRINT_FIELD) or ""
+        luma = list(bytes.fromhex(fingerprint))
+        found.append(
+            dict(
+                frame=values[FRAME_ID_FIELD],
+                keyframe=values[KEYFRAME_FIELD],
+                bytes=values[BYTES_FIELD],
+                colors=values[COLORS_FIELD],
+                arrived=latency_milliseconds(values[ARRIVED_FIELD]),
+                sent=latency_milliseconds(values[SENT_FIELD]),
+                sent_to=values[SENT_TO_FIELD],
+                behind=values[BEHIND_FIELD],
+                waiting=values[WAITING_FIELD],
+                backlog=values[BACKLOG_FIELD],
+                number=counter_video_read(luma),
+            )
+        )
+    return sorted(found, key=lambda event: event["frame"])
+
+
+def counter_video_read(luma):
+    bits = [1 if value >= COUNTER_VIDEO_THRESHOLD else 0 for value in luma]
+    if (
+        len(bits) < COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS)
+        or tuple(bits[COUNTER_VIDEO_BITS : COUNTER_VIDEO_BITS + len(COUNTER_VIDEO_SYNCHRONIZATION_BITS)])
+        != COUNTER_VIDEO_SYNCHRONIZATION_BITS
+    ):
+        return None
+    return sum(bit << position for position, bit in enumerate(bits[:COUNTER_VIDEO_BITS]))
+
+
+def latency_captures(path):
+    """(wall-clock ms, number or None) for every captured frame, decoded one frame at a time: a 10-minute capture is
+    2.6 GB of pixels."""
+    probe = subprocess.run(
+        [
+            FFPROBE_COMMAND,
+            VERBOSITY_FLAG,
+            ERROR_LOG_LEVEL,
+            SELECT_STREAMS_FLAG,
+            FIRST_VIDEO_STREAM,
+            SHOW_ENTRIES_FLAG,
+            LATENCY_PROBE_ENTRIES,
+            OUTPUT_FORMAT_FLAG,
+            JSON_FORMAT,
+            str(path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    metadata = json.loads(probe)
+    width, height = (metadata[FFPROBE_STREAMS_KEY][0]["width"], metadata[FFPROBE_STREAMS_KEY][0]["height"])
+    times = [float(frame["pts_time"]) * MILLISECONDS_PER_SECOND for frame in metadata["frames"]]
+    row = min(LATENCY_SAMPLE_OFFSET, height - 1)
+    columns = [
+        LATENCY_SAMPLE_OFFSET + COUNTER_VIDEO_BLOCK * block
+        for block in range(LATENCY_SAMPLES)
+        if LATENCY_SAMPLE_OFFSET + COUNTER_VIDEO_BLOCK * block < width
+    ]
+    size = width * height * CHANNELS
+    result = []
+    with subprocess.Popen(
+        [
+            FFMPEG_COMMAND,
+            NO_STANDARD_INPUT_FLAG,
+            VERBOSITY_FLAG,
+            ERROR_LOG_LEVEL,
+            INPUT_FLAG,
+            str(path),
+            FORMAT_FLAG,
+            RAW_VIDEO_FORMAT,
+            PIXEL_FORMAT_FLAG,
+            RGB_PIXEL_FORMAT,
+            STANDARD_STREAM,
+        ],
+        stdout=subprocess.PIPE,
+    ) as decoder:
+        # Drain every frame so ffmpeg cannot block on a full pipe when timestamps run out.
+        for index, raw in enumerate(iter(lambda: decoder.stdout.read(size), b"")):
+            if index >= len(times) or len(raw) < size:
+                continue
+            pixels = numpy.frombuffer(raw, numpy.uint8).reshape(height, width, CHANNELS)[row, columns].astype(int)
+            luma = ((pixels[:, 0] + LATENCY_LUMA_GREEN_WEIGHT * pixels[:, 1] + pixels[:, 2]) // LATENCY_LUMA_WEIGHT_TOTAL).tolist()
+            result.append((times[index], counter_video_read(luma)))
+    if decoder.returncode != 0:
+        raise subprocess.CalledProcessError(decoder.returncode, decoder.args)
+    return result
+
+
+def latency_percentile(values, percent):
+    return float(numpy.percentile(values, percent)) if values else math.nan
+
+
+def charts_main():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Render the codec and ablation charts from committed measurements; --tables also prints the article "
+            "tables. Exact pixels require the documented matplotlib/font versions. Exit 1 on data/render failure; "
+            "2 on invalid options."
+        ),
+    )
+    parser.add_argument("--tables", action="store_true", help="print the tables of mcav-docs/mcv2.md")
+    arguments = parser.parse_args()
+    logging.getLogger(FONT_MANAGER_LOGGER).setLevel(logging.ERROR)
+    charts_style()
+    IMAGES.mkdir(parents=True, exist_ok=True)
+    data = json.loads((CHARTS_DATA / CODEC_CURVES_DATA_NAME).read_text())
+    charts_draw_codecs(data)
+    ablation_file = CHARTS_DATA / ABLATION_DATA_NAME
+    ablation = json.loads(ablation_file.read_text()) if ablation_file.exists() else {}
+    rows = charts_ablation_rates(ablation)
+    if rows:
+        charts_draw_features(rows)
+    if arguments.tables:
+        charts_print_tables(data, rows, ablation.get("removed", []))
 
 
 def charts_style():
@@ -2971,27 +3006,13 @@ def charts_style():
     )
 
 
-def charts_curve(data, source, codec):
-    if codec == MCV2_CODEC:
-        points = [
-            (point[ZLIB_RATE_KEY], point[VMAF_MEAN_KEY]) for point in data[MCV2_CODEC] if point[SOURCE_KEY] == source
-        ]
-    else:
-        points = [
-            (point[CONTAINER_RATE_KEY], point[VMAF_MEAN_KEY])
-            for point in data[CODECS_KEY]
-            if point[SOURCE_KEY] == source and point[CODEC_KEY] == codec
-        ]
-    return sorted(points)
+def figure_pyplot():
+    import matplotlib
 
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as pyplot
 
-def charts_rate_at(points, level):
-    by_quality = sorted(points, key=lambda point: point[1])
-    for (low_rate, low), (high_rate, high) in zip(by_quality, by_quality[1:]):
-        if low <= level <= high and high > low:
-            share = (level - low) / (high - low)
-            return math.exp(math.log(low_rate) + share * (math.log(high_rate) - math.log(low_rate)))
-    return None
+    return pyplot
 
 
 def charts_draw_codecs(data):
@@ -3044,6 +3065,20 @@ def charts_draw_codecs(data):
     figure.tight_layout(rect=(0, CHARTS_LEGEND_HEIGHT, 1, 1))
     figure.savefig(IMAGES / CODECS_FIGURE_NAME, dpi=CHARTS_DOTS_PER_INCH, facecolor=CHARTS_SURFACE)
     pyplot.close(figure)
+
+
+def charts_curve(data, source, codec):
+    if codec == MCV2_CODEC:
+        points = [
+            (point[ZLIB_RATE_KEY], point[VMAF_MEAN_KEY]) for point in data[MCV2_CODEC] if point[SOURCE_KEY] == source
+        ]
+    else:
+        points = [
+            (point[CONTAINER_RATE_KEY], point[VMAF_MEAN_KEY])
+            for point in data[CODECS_KEY]
+            if point[SOURCE_KEY] == source and point[CODEC_KEY] == codec
+        ]
+    return sorted(points)
 
 
 def charts_ablation_rates(ablation):
@@ -3102,11 +3137,6 @@ def charts_draw_features(rows):
     pyplot.close(figure)
 
 
-def charts_signed(value):
-    text = f"{value:+.1f}%"
-    return "0.0%" if text in ("+0.0%", "-0.0%") else text
-
-
 def charts_print_tables(data, rows, removed):
     print("Rate on the wire (Mbit/s) for the same VMAF mean, log-linear between measured points:\n")
     print("| VMAF mean | " + MARKDOWN_CELL_SEPARATOR.join(name for _, name, _, _ in CHARTS_CODECS) + MARKDOWN_ROW_END)
@@ -3148,77 +3178,53 @@ def charts_print_tables(data, rows, removed):
             print(f"| {row[FEATURE_NAME_KEY]} | " + MARKDOWN_CELL_SEPARATOR.join(cells) + f" | {charts_signed(row['bd_rate']['mean'])} |")
 
 
-def charts_main():
+def charts_rate_at(points, level):
+    by_quality = sorted(points, key=lambda point: point[1])
+    for (low_rate, low), (high_rate, high) in zip(by_quality, by_quality[1:]):
+        if low <= level <= high and high > low:
+            share = (level - low) / (high - low)
+            return math.exp(math.log(low_rate) + share * (math.log(high_rate) - math.log(low_rate)))
+    return None
+
+
+def charts_signed(value):
+    text = f"{value:+.1f}%"
+    return "0.0%" if text in ("+0.0%", "-0.0%") else text
+
+
+def samples_main():
     parser = argparse.ArgumentParser(
         description=(
-            "Render the codec and ablation charts from committed measurements; --tables also prints the article "
-            "tables. Exact pixels require the documented matplotlib/font versions. Exit 1 on data/render failure; "
-            "2 on invalid options."
+            "Decode archives independently to draw cropped leaf trees and source/decoded palette or pattern "
+            "leaves, or print frame bytes. --size describes the raw source dimensions. Exit 1 on input/render "
+            "failure; 2 on invalid options."
         ),
     )
-    parser.add_argument("--tables", action="store_true", help="print the tables of mcav-docs/mcv2.md")
-    arguments = parser.parse_args()
-    logging.getLogger(FONT_MANAGER_LOGGER).setLevel(logging.ERROR)
-    charts_style()
-    IMAGES.mkdir(parents=True, exist_ok=True)
-    data = json.loads((CHARTS_DATA / CODEC_CURVES_DATA_NAME).read_text())
-    charts_draw_codecs(data)
-    ablation_file = CHARTS_DATA / ABLATION_DATA_NAME
-    ablation = json.loads(ablation_file.read_text()) if ablation_file.exists() else {}
-    rows = charts_ablation_rates(ablation)
-    if rows:
-        charts_draw_features(rows)
-    if arguments.tables:
-        charts_print_tables(data, rows, ablation.get("removed", []))
-
-
-SAMPLES_MODES = [
-    (mcv2_reference.SKIP, "SKIP", "#e4e3df"),
-    (mcv2_reference.MOTION, "MOTION", "#2a78d6"),
-    (mcv2_reference.SOLID, "SOLID", "#1baf7a"),
-    (mcv2_reference.PALETTE, "PALETTE", "#eb6834"),
-    (mcv2_reference.PATTERN, "PATTERN", "#eda100"),
-    (mcv2_reference.COMPACT, "COMPACT", "#8f5bd6"),
-]
-
-
-def samples_decoded(path, wanted):
-    decoder, found = (Decoder(), {})
-    for index, data in enumerate(read_archive(path)):
-        picture = decoder.accept(data)
-        if index in wanted:
-            found[index] = (parse_frame(data), picture.copy())
-        if len(found) == len(wanted):
-            break
-    return found
-
-
-def samples_source_frame(path, index, width, height):
-    size = width * height * CHANNELS
-    return numpy.fromfile(path, numpy.uint8, size, offset=index * size).reshape(height, width, CHANNELS)
-
-
-def samples_crop_of(text):
-    pixel_x, pixel_y, width, height = (int(value) for value in text.split(LIST_SEPARATOR))
-    return (pixel_x, pixel_y, width, height)
-
-
-def samples_inside(leaf, crop):
-    pixel_x, pixel_y, width, height = crop
-    return (
-        leaf.pixel_x < pixel_x + width
-        and leaf.pixel_x + leaf.size > pixel_x
-        and (leaf.pixel_y < pixel_y + height)
-        and (leaf.pixel_y + leaf.size > pixel_y)
+    parser.add_argument(
+        "--size", type=lambda text: tuple(int(value) for value in text.split("x")), default=(DEFAULT_WIDTH, DEFAULT_HEIGHT)
     )
-
-
-def samples_finish(axis, title):
-    axis.set_xticks([])
-    axis.set_yticks([])
-    for spine in axis.spines.values():
-        spine.set_visible(False)
-    axis.set_title(title, fontsize=CHARTS_FONT_SIZE, color=CHARTS_INK, loc="left")
+    commands = parser.add_subparsers(dest="command", required=True)
+    tree = commands.add_parser(TREE_COMMAND)
+    tree.add_argument("archive")
+    tree.add_argument(FRAMES_OPTION, required=True)
+    tree.add_argument(CROP_OPTION, required=True)
+    tree.add_argument(OUT_OPTION, default=TREE_FIGURE_NAME)
+    leaves = commands.add_parser(LEAVES_COMMAND)
+    leaves.add_argument("archive")
+    leaves.add_argument("source")
+    leaves.add_argument(FRAME_OPTION, type=int, default=0)
+    leaves.add_argument(CROP_OPTION, required=True)
+    dump = commands.add_parser(BYTES_COMMAND)
+    dump.add_argument("archive")
+    dump.add_argument(FRAME_OPTION, type=int, default=0)
+    arguments = parser.parse_args()
+    if arguments.command != BYTES_COMMAND:
+        logging.getLogger(FONT_MANAGER_LOGGER).setLevel(logging.ERROR)
+        charts_style()
+        IMAGES.mkdir(parents=True, exist_ok=True)
+    {TREE_COMMAND: samples_draw_tree, LEAVES_COMMAND: samples_draw_leaves, BYTES_COMMAND: samples_print_bytes}[
+        arguments.command
+    ](arguments)
 
 
 def samples_draw_tree(arguments):
@@ -3285,21 +3291,38 @@ def samples_draw_tree(arguments):
         )
 
 
-def samples_biggest(frame, mode, crop):
-    candidates = [leaf for leaf in frame.leaves if leaf.mode == mode and samples_inside(leaf, crop)]
-    candidates = candidates or [leaf for leaf in frame.leaves if leaf.mode == mode]
-    return max(candidates, key=lambda leaf: (leaf.size, -leaf.pixel_y, -leaf.pixel_x)) if candidates else None
+def samples_decoded(path, wanted):
+    decoder, found = (Decoder(), {})
+    for index, data in enumerate(read_archive(path)):
+        picture = decoder.accept(data)
+        if index in wanted:
+            found[index] = (parse_frame(data), picture.copy())
+        if len(found) == len(wanted):
+            break
+    return found
 
 
-def samples_bits_of(leaf):
-    record = leaf.record
-    if leaf.mode == mcv2_reference.PALETTE:
-        bits = numpy.unpackbits(numpy.frombuffer(record[COLORS_BYTES:], numpy.uint8), bitorder=BIT_ORDER)
-        return bits.reshape(leaf.size, leaf.size)
-    axis = numpy.unpackbits(numpy.frombuffer(record[PATTERN_HEADER_BYTES:], numpy.uint8), bitorder=BIT_ORDER)
-    return numpy.broadcast_to(
-        axis[None, :] if record[PATTERN_ORIENTATION_INDEX] == VERTICAL_STRIPES else axis[:, None], (leaf.size, leaf.size)
+def samples_crop_of(text):
+    pixel_x, pixel_y, width, height = (int(value) for value in text.split(LIST_SEPARATOR))
+    return (pixel_x, pixel_y, width, height)
+
+
+def samples_inside(leaf, crop):
+    pixel_x, pixel_y, width, height = crop
+    return (
+        leaf.pixel_x < pixel_x + width
+        and leaf.pixel_x + leaf.size > pixel_x
+        and (leaf.pixel_y < pixel_y + height)
+        and (leaf.pixel_y + leaf.size > pixel_y)
     )
+
+
+def samples_finish(axis, title):
+    axis.set_xticks([])
+    axis.set_yticks([])
+    for spine in axis.spines.values():
+        spine.set_visible(False)
+    axis.set_title(title, fontsize=CHARTS_FONT_SIZE, color=CHARTS_INK, loc="left")
 
 
 def samples_draw_leaves(arguments):
@@ -3357,6 +3380,28 @@ def samples_draw_leaves(arguments):
     pyplot.close(figure)
 
 
+def samples_source_frame(path, index, width, height):
+    size = width * height * CHANNELS
+    return numpy.fromfile(path, numpy.uint8, size, offset=index * size).reshape(height, width, CHANNELS)
+
+
+def samples_biggest(frame, mode, crop):
+    candidates = [leaf for leaf in frame.leaves if leaf.mode == mode and samples_inside(leaf, crop)]
+    candidates = candidates or [leaf for leaf in frame.leaves if leaf.mode == mode]
+    return max(candidates, key=lambda leaf: (leaf.size, -leaf.pixel_y, -leaf.pixel_x)) if candidates else None
+
+
+def samples_bits_of(leaf):
+    record = leaf.record
+    if leaf.mode == mcv2_reference.PALETTE:
+        bits = numpy.unpackbits(numpy.frombuffer(record[COLORS_BYTES:], numpy.uint8), bitorder=BIT_ORDER)
+        return bits.reshape(leaf.size, leaf.size)
+    axis = numpy.unpackbits(numpy.frombuffer(record[PATTERN_HEADER_BYTES:], numpy.uint8), bitorder=BIT_ORDER)
+    return numpy.broadcast_to(
+        axis[None, :] if record[PATTERN_ORIENTATION_INDEX] == VERTICAL_STRIPES else axis[:, None], (leaf.size, leaf.size)
+    )
+
+
 def samples_print_bytes(arguments):
     data = list(read_archive(arguments.archive))[arguments.frame]
     frame = parse_frame(data)
@@ -3392,66 +3437,6 @@ def samples_print_bytes(arguments):
             print(
                 f"leaf {leaf.size}x{leaf.size} at ({leaf.pixel_x}, {leaf.pixel_y}) {names[leaf.mode]} q={leaf.quantizer} offset {leaf.offset}: {leaf.record.hex()}"
             )
-
-
-def samples_main():
-    parser = argparse.ArgumentParser(
-        description=(
-            "Decode archives independently to draw cropped leaf trees and source/decoded palette or pattern "
-            "leaves, or print frame bytes. --size describes the raw source dimensions. Exit 1 on input/render "
-            "failure; 2 on invalid options."
-        ),
-    )
-    parser.add_argument(
-        "--size", type=lambda text: tuple(int(value) for value in text.split("x")), default=(DEFAULT_WIDTH, DEFAULT_HEIGHT)
-    )
-    commands = parser.add_subparsers(dest="command", required=True)
-    tree = commands.add_parser(TREE_COMMAND)
-    tree.add_argument("archive")
-    tree.add_argument(FRAMES_OPTION, required=True)
-    tree.add_argument(CROP_OPTION, required=True)
-    tree.add_argument(OUT_OPTION, default=TREE_FIGURE_NAME)
-    leaves = commands.add_parser(LEAVES_COMMAND)
-    leaves.add_argument("archive")
-    leaves.add_argument("source")
-    leaves.add_argument(FRAME_OPTION, type=int, default=0)
-    leaves.add_argument(CROP_OPTION, required=True)
-    dump = commands.add_parser(BYTES_COMMAND)
-    dump.add_argument("archive")
-    dump.add_argument(FRAME_OPTION, type=int, default=0)
-    arguments = parser.parse_args()
-    if arguments.command != BYTES_COMMAND:
-        logging.getLogger(FONT_MANAGER_LOGGER).setLevel(logging.ERROR)
-        charts_style()
-        IMAGES.mkdir(parents=True, exist_ok=True)
-    {TREE_COMMAND: samples_draw_tree, LEAVES_COMMAND: samples_draw_leaves, BYTES_COMMAND: samples_print_bytes}[
-        arguments.command
-    ](arguments)
-
-
-def main():
-    commands = {
-        "bd_rate": bd_rate_main,
-        "codec_curves": codec_curves_main,
-        "counter_video": counter_video_main,
-        "capture_check": capture_check_main,
-        "edge_streams": edge_streams_main,
-        "fixtures": fixtures_main,
-        "differential": differential_main,
-        "rate_quality": rate_quality_main,
-        "shader_check": shader_check_main,
-        "shader_timing": shader_timing_main,
-        "strip_check": strip_check_main,
-        "strip_fit_check": strip_fit_check_main,
-        "latency": latency_main,
-        "charts": charts_main,
-        "samples": samples_main,
-    }
-    if len(sys.argv) <= 1 or sys.argv[1] not in commands:
-        raise SystemExit("Usage: mcv2_tools.py <" + "|".join(commands) + "> [arguments]")
-    command = sys.argv.pop(1)
-    sys.argv[0] = f"{sys.argv[0]} {command}"
-    return commands[command]()
 
 
 if __name__ == "__main__":
