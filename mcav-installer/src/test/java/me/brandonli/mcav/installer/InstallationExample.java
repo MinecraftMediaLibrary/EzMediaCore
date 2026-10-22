@@ -24,10 +24,12 @@ import java.nio.file.Path;
 
 public final class InstallationExample {
 
+  private static final String DEPENDENCY_FOLDER = "dependencies";
+
   private InstallationExample() {}
 
   static void main() throws ClassNotFoundException, IOException {
-    final Path folder = Path.of("dependencies");
+    final Path folder = Path.of(DEPENDENCY_FOLDER);
     final ClassLoader parent = InstallationExample.class.getClassLoader();
     final URL[] noUrls = new URL[0];
     try (final URLClassLoader loader = new URLClassLoader(noUrls, parent)) {
