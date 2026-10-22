@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -32,7 +33,12 @@ import org.mockito.Mockito;
  */
 final class SvcModuleTest {
 
-  private final SvcModule module = new SvcModule();
+  private SvcModule module;
+
+  @BeforeEach
+  void setUp() {
+    this.module = new SvcModule();
+  }
 
   @AfterEach
   void clearTheInjectedApi() {
@@ -50,6 +56,7 @@ final class SvcModuleTest {
     this.module.start();
     final VoicechatServerApi api = SvcModule.getVoiceChatApi();
     assertNull(api);
+
     final IllegalStateException exception = assertThrows(IllegalStateException.class, SvcModule::requireVoiceChatApi);
     final String message = exception.getMessage();
     assertEquals("The Simple Voice Chat API was not injected; call SvcModule#inject from your voice chat plugin!", message);
@@ -63,6 +70,7 @@ final class SvcModuleTest {
     final VoicechatServerApi required = SvcModule.requireVoiceChatApi();
     assertSame(api, injected);
     assertSame(api, required);
+
     this.module.stop();
     final VoicechatServerApi afterStop = SvcModule.getVoiceChatApi();
     assertNull(afterStop);
@@ -84,6 +92,7 @@ final class SvcModuleTest {
     final VoicechatServerApi api = Mockito.mock(VoicechatServerApi.class);
     this.module.inject(api);
     assertThrows(NullPointerException.class, () -> this.module.inject(null));
+
     final VoicechatServerApi injected = SvcModule.getVoiceChatApi();
     assertSame(api, injected);
   }

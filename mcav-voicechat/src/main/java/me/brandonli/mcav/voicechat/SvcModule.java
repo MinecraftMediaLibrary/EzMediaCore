@@ -45,6 +45,22 @@ public final class SvcModule implements MCAVModule {
   public SvcModule() {}
 
   /**
+   * Starts the module. Nothing is prepared here, because the voice chat API only becomes available once your voice
+   * chat plugin calls {@link #inject(VoicechatServerApi)}.
+   */
+  @Override
+  public void start() {}
+
+  /**
+   * Stops the module and forgets the injected voice chat API, so filters can no longer be created or started until
+   * an API is injected again. Existing filters keep their speakers and must be released by their callers.
+   */
+  @Override
+  public void stop() {
+    voiceChatApi = null;
+  }
+
+  /**
    * Hands the Simple Voice Chat server API to the library. Call it from the {@code initialize} method of your
    * voice chat plugin.
    *
@@ -54,16 +70,8 @@ public final class SvcModule implements MCAVModule {
    */
   public void inject(final VoicechatServerApi api) {
     Preconditions.checkNotNull(api, "Voice chat API must not be null!");
-    voiceChatApi = api;
-  }
 
-  /**
-   * Returns the injected server API.
-   *
-   * @return the shared API snapshot, or null before injection or after {@link #stop()}
-   */
-  public static @Nullable VoicechatServerApi getVoiceChatApi() {
-    return voiceChatApi;
+    voiceChatApi = api;
   }
 
   /**
@@ -78,23 +86,17 @@ public final class SvcModule implements MCAVModule {
       final String message = "The Simple Voice Chat API was not injected; call SvcModule#inject from your voice chat plugin!";
       throw new IllegalStateException(message);
     }
+
     return api;
   }
 
   /**
-   * Starts the module. Nothing is prepared here, because the voice chat API only becomes available once your voice
-   * chat plugin calls {@link #inject(VoicechatServerApi)}.
+   * Returns the injected server API.
+   *
+   * @return the shared API snapshot, or null before injection or after {@link #stop()}
    */
-  @Override
-  public void start() {}
-
-  /**
-   * Stops the module and forgets the injected voice chat API, so filters can no longer be created or started until
-   * an API is injected again. Existing filters keep their speakers and must be released by their callers.
-   */
-  @Override
-  public void stop() {
-    voiceChatApi = null;
+  public static @Nullable VoicechatServerApi getVoiceChatApi() {
+    return voiceChatApi;
   }
 
   /**

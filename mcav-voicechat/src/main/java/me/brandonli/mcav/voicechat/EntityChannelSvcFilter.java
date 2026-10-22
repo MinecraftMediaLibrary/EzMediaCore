@@ -73,6 +73,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
    */
   EntityChannelSvcFilter(final float distance, final Object[] entities) {
     SvcModule.requireVoiceChatApi();
+
     this.distance = distance;
     this.entities = entities.clone();
     this.speakers = new ArrayList<>();
@@ -122,6 +123,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
       final String message = "Entity %s was refused an audio channel by Simple Voice Chat!".formatted(platformEntity);
       throw new PlayerException(message);
     }
+
     channel.setDistance(this.distance);
 
     final OpusEncoder encoder = api.createEncoder();
@@ -136,6 +138,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
       speaker.stop(exception);
       throw exception;
     }
+
     return speaker;
   }
 
@@ -151,10 +154,13 @@ public final class EntityChannelSvcFilter implements SvcFilter {
   public synchronized void release() {
     this.running = false;
     this.partialLength = 0;
-    final Throwable failure = this.stopSpeakers(null);
+
+    final @Nullable Throwable failure = this.stopSpeakers(null);
+
     if (failure instanceof final RuntimeException exception) {
       throw exception;
     }
+
     if (failure instanceof final Error error) {
       throw error;
     }
@@ -163,36 +169,13 @@ public final class EntityChannelSvcFilter implements SvcFilter {
   private @Nullable Throwable stopSpeakers(final @Nullable Throwable initialFailure) {
     final List<Speaker> stopped = new ArrayList<>(this.speakers);
     this.speakers.clear();
+
     Throwable failure = initialFailure;
     for (final Speaker speaker : stopped) {
       failure = speaker.stop(failure);
     }
-    return failure;
-  }
 
-  /**
-   * Attempts an independent cleanup, preserving the first recoverable failure and suppressing later ones.
-   *
-   * @param previous the earlier failure, if any
-   * @param cleanup  the cleanup to attempt
-   * @return the first failure, or null if every cleanup has succeeded
-   */
-  private static @Nullable Throwable cleanup(final @Nullable Throwable previous, final Runnable cleanup) {
-    try {
-      cleanup.run();
-      return previous;
-    } catch (final RuntimeException | Error exception) {
-      ThrowableUtils.throwIfFatal(exception);
-      if (previous == null) {
-        return exception;
-      }
-      final Equivalence<Object> identity = Equivalence.identity();
-      final boolean same = identity.equivalent(previous, exception);
-      if (!same) {
-        previous.addSuppressed(exception);
-      }
-      return previous;
-    }
+    return failure;
   }
 
   /**
@@ -208,6 +191,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
   public synchronized boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
     Preconditions.checkNotNull(samples, "Samples must not be null!");
     Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
     if (!this.running) {
       return false;
     }
@@ -217,6 +201,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
     while (offset < mono.length) {
       offset = this.collect(mono, offset);
     }
+
     return false;
   }
 
@@ -235,13 +220,19 @@ public final class EntityChannelSvcFilter implements SvcFilter {
     this.partialLength += count;
 
     if (this.partialLength == FRAME_SAMPLES) {
-      final short[] frame = this.partial.clone();
-      for (final Speaker speaker : this.speakers) {
-        speaker.enqueue(frame);
-      }
-      this.partialLength = 0;
+      this.enqueuePartialFrame();
     }
+
     return offset + count;
+  }
+
+  private void enqueuePartialFrame() {
+    final short[] frame = this.partial.clone();
+    for (final Speaker speaker : this.speakers) {
+      speaker.enqueue(frame);
+    }
+
+    this.partialLength = 0;
   }
 
   /**
@@ -252,12 +243,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
    */
   @Override
   public synchronized int getQueuedFrames() {
-    int most = 0;
-    for (final Speaker speaker : this.speakers) {
-      final int queued = speaker.getQueuedFrames();
-      most = Math.max(most, queued);
-    }
-    return most;
+    return this.speakers.stream().mapToInt(Speaker::getQueuedFrames).max().orElse(0);
   }
 
   /**
@@ -275,15 +261,12 @@ public final class EntityChannelSvcFilter implements SvcFilter {
       this.frames = new ArrayDeque<>(MAXIMUM_QUEUED_FRAMES);
     }
 
-    private void setPlayer(final AudioPlayer player) {
-      this.player = player;
-    }
-
     private void enqueue(final short[] frame) {
       synchronized (this.frames) {
         if (this.frames.size() >= MAXIMUM_QUEUED_FRAMES) {
           this.frames.pollFirst();
         }
+
         this.frames.addLast(frame);
       }
     }
@@ -295,8 +278,51 @@ public final class EntityChannelSvcFilter implements SvcFilter {
         if (frame == null) {
           return SILENCE;
         }
+
         return frame;
       }
+    }
+
+    private @Nullable Throwable stop(final @Nullable Throwable initialFailure) {
+      synchronized (this.frames) {
+        this.frames.clear();
+      }
+
+      final @Nullable Throwable failure = this.stopPlayer(initialFailure);
+      return this.cleanup(failure, this.encoder::close);
+    }
+
+    private @Nullable Throwable stopPlayer(final @Nullable Throwable initialFailure) {
+      final AudioPlayer current = this.player;
+      if (current == null) {
+        return initialFailure;
+      }
+
+      return this.cleanup(initialFailure, current::stopPlaying);
+    }
+
+    private @Nullable Throwable cleanup(final @Nullable Throwable previous, final Runnable cleanup) {
+      try {
+        cleanup.run();
+        return previous;
+      } catch (final RuntimeException | Error exception) {
+        ThrowableUtils.throwIfFatal(exception);
+        return this.keepFirstFailure(previous, exception);
+      }
+    }
+
+    private Throwable keepFirstFailure(final @Nullable Throwable previous, final Throwable failure) {
+      if (previous == null) {
+        return failure;
+      }
+
+      final Equivalence<Object> identity = Equivalence.identity();
+      final boolean same = identity.equivalent(previous, failure);
+      if (!same) {
+        previous.addSuppressed(failure);
+      }
+
+      return previous;
     }
 
     private int getQueuedFrames() {
@@ -305,16 +331,8 @@ public final class EntityChannelSvcFilter implements SvcFilter {
       }
     }
 
-    @Nullable Throwable stop(final @Nullable Throwable initialFailure) {
-      synchronized (this.frames) {
-        this.frames.clear();
-      }
-      Throwable failure = initialFailure;
-      final AudioPlayer current = this.player;
-      if (current != null) {
-        failure = cleanup(failure, current::stopPlaying);
-      }
-      return cleanup(failure, this.encoder::close);
+    private void setPlayer(final AudioPlayer player) {
+      this.player = player;
     }
   }
 }

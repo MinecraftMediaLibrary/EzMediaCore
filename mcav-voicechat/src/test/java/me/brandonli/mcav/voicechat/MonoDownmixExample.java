@@ -78,6 +78,7 @@ public final class MonoDownmixExample {
     final SourceDataLine line = AudioSystem.getSourceDataLine(format);
     line.open(format);
     line.start();
+
     return line;
   }
 
@@ -90,6 +91,7 @@ public final class MonoDownmixExample {
     final Path path = Path.of(file);
     final FileSource source = FileSource.path(path);
     player.start(source);
+
     return player;
   }
 
@@ -100,8 +102,10 @@ public final class MonoDownmixExample {
     for (final short sample : mono) {
       bytes.putShort(sample);
     }
+
     final byte[] array = bytes.array();
     line.write(array, 0, array.length);
+
     return false;
   }
 }
