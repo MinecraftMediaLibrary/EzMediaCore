@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 import me.brandonli.mcav.installer.testing.LocalMavenRepository;
+import me.brandonli.mcav.installer.testing.Optionality;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
@@ -156,17 +157,41 @@ final class InstallationManagerTest {
   }
 
   private void publishApp() throws IOException {
-    final String compileDependency = LocalMavenRepository.dependency(GROUP, COMPILE_DEPENDENCY, VERSION, COMPILE_SCOPE, false);
-    final String runtimeDependency = LocalMavenRepository.dependency(GROUP, RUNTIME_DEPENDENCY, VERSION, RUNTIME_SCOPE, false);
-    final String testDependency = LocalMavenRepository.dependency(GROUP, TEST_DEPENDENCY, VERSION, TEST_SCOPE, false);
-    final String providedDependency = LocalMavenRepository.dependency(GROUP, PROVIDED_DEPENDENCY, VERSION, PROVIDED_SCOPE, false);
+    final String compileDependency = LocalMavenRepository.dependency(
+      GROUP,
+      COMPILE_DEPENDENCY,
+      VERSION,
+      COMPILE_SCOPE,
+      Optionality.REQUIRED
+    );
+    final String runtimeDependency = LocalMavenRepository.dependency(
+      GROUP,
+      RUNTIME_DEPENDENCY,
+      VERSION,
+      RUNTIME_SCOPE,
+      Optionality.REQUIRED
+    );
+    final String testDependency = LocalMavenRepository.dependency(GROUP, TEST_DEPENDENCY, VERSION, TEST_SCOPE, Optionality.REQUIRED);
+    final String providedDependency = LocalMavenRepository.dependency(
+      GROUP,
+      PROVIDED_DEPENDENCY,
+      VERSION,
+      PROVIDED_SCOPE,
+      Optionality.REQUIRED
+    );
     final List<String> dependencies = List.of(compileDependency, runtimeDependency, testDependency, providedDependency);
     this.repository.publish(GROUP, APPLICATION, VERSION, dependencies);
   }
 
   private void publishCompileDependency() throws IOException {
-    final String transitive = LocalMavenRepository.dependency(GROUP, TRANSITIVE, VERSION, COMPILE_SCOPE, false);
-    final String optionalTransitive = LocalMavenRepository.dependency(GROUP, OPTIONAL_TRANSITIVE, VERSION, COMPILE_SCOPE, true);
+    final String transitive = LocalMavenRepository.dependency(GROUP, TRANSITIVE, VERSION, COMPILE_SCOPE, Optionality.REQUIRED);
+    final String optionalTransitive = LocalMavenRepository.dependency(
+      GROUP,
+      OPTIONAL_TRANSITIVE,
+      VERSION,
+      COMPILE_SCOPE,
+      Optionality.OPTIONAL
+    );
     final List<String> dependencies = List.of(transitive, optionalTransitive);
     this.repository.publish(GROUP, COMPILE_DEPENDENCY, VERSION, dependencies);
   }
@@ -452,10 +477,10 @@ final class InstallationManagerTest {
   }
 
   private List<String> platformDependencies() {
-    final String nativesDependency = LocalMavenRepository.dependency(GROUP, NATIVES, VERSION, COMPILE_SCOPE, false);
+    final String nativesDependency = LocalMavenRepository.dependency(GROUP, NATIVES, VERSION, COMPILE_SCOPE, Optionality.REQUIRED);
     final String linuxDependency = LocalMavenRepository.classifiedDependency(GROUP, NATIVES, VERSION, LINUX_CLASSIFIER);
     final String windowsDependency = LocalMavenRepository.classifiedDependency(GROUP, NATIVES, VERSION, WINDOWS_CLASSIFIER);
-    final String otherGroupDependency = LocalMavenRepository.dependency(OTHER_GROUP, NATIVES, VERSION, COMPILE_SCOPE, false);
+    final String otherGroupDependency = LocalMavenRepository.dependency(OTHER_GROUP, NATIVES, VERSION, COMPILE_SCOPE, Optionality.REQUIRED);
     return List.of(nativesDependency, linuxDependency, windowsDependency, otherGroupDependency);
   }
 

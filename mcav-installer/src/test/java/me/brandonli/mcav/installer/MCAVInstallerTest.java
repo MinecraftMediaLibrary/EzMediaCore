@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.installer.testing.LocalMavenRepository;
+import me.brandonli.mcav.installer.testing.Optionality;
 import me.brandonli.mcav.installer.testing.RecordingHandler;
 import me.brandonli.mcav.installer.testing.ResourceUtils;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -82,7 +83,7 @@ final class MCAVInstallerTest {
     this.repository = new LocalMavenRepository(remote);
     this.folder = this.directory.resolve(DEPENDENCIES_FOLDER);
 
-    final String helper = LocalMavenRepository.dependency(GROUP, HELPER, VERSION, "compile", false);
+    final String helper = LocalMavenRepository.dependency(GROUP, HELPER, VERSION, "compile", Optionality.REQUIRED);
     final List<String> commonDependencies = List.of(helper);
     this.repository.publish(Artifact.GROUP_ID, COMMON, SNAPSHOT, commonDependencies);
     this.repository.publish(Artifact.GROUP_ID, "mcav-bukkit", SNAPSHOT, NO_DEPENDENCIES);

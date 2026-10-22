@@ -85,11 +85,11 @@ public final class LocalMavenRepository {
   /**
    * Creates the XML of a dependency.
    *
-   * @param groupId    the group id
-   * @param artifactId the artifact id
-   * @param version    the version
-   * @param scope      the Maven scope
-   * @param optional   whether the dependency is optional
+   * @param groupId     the group id
+   * @param artifactId  the artifact id
+   * @param version     the version
+   * @param scope       the Maven scope
+   * @param optionality whether the dependency is required or optional
    * @return the XML element
    */
   public static String dependency(
@@ -97,8 +97,9 @@ public final class LocalMavenRepository {
     final String artifactId,
     final String version,
     final String scope,
-    final boolean optional
+    final Optionality optionality
   ) {
+    final boolean optional = optionality == Optionality.OPTIONAL;
     return (
       "<dependency><groupId>" +
       groupId +
