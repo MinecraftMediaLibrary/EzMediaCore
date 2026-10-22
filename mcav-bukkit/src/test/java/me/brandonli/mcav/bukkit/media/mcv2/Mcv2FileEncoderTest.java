@@ -48,6 +48,8 @@ import me.brandonli.mcav.bukkit.media.mcv2.transport.TransportPages;
 import me.brandonli.mcav.bukkit.testing.EqualityAssertions;
 import me.brandonli.mcav.bukkit.testing.TestMedia;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
+import org.bytedeco.ffmpeg.global.avutil;
+import org.bytedeco.ffmpeg.global.swscale;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.junit.jupiter.api.Test;
@@ -180,6 +182,20 @@ final class Mcv2FileEncoderTest {
 
     final boolean allBlack = Arrays.equals(new byte[rgb.length], rgb);
     assertFalse(allBlack, "the first picture of the test pattern is not all black");
+  }
+
+  @Test
+  void shouldAskForRgbPicturesScaledByAreaAndDecodedOnEveryCore() throws Exception {
+    final Path video = TestMedia.video();
+    final FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(video.toFile());
+    try (final Mcv2FileEncoder.FrameReader _ = Mcv2FileEncoder.open(grabber, "clip.mp4", WIDTH, HEIGHT)) {
+      final int pixelFormat = grabber.getPixelFormat();
+      final int scalingFlags = grabber.getImageScalingFlags();
+      final String threads = grabber.getVideoOption("threads");
+      assertEquals(avutil.AV_PIX_FMT_RGB24, pixelFormat);
+      assertEquals(swscale.SWS_AREA, scalingFlags);
+      assertEquals("auto", threads);
+    }
   }
 
   @Test
