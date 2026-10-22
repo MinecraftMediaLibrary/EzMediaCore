@@ -648,6 +648,46 @@ final class Mcv2PacerTest {
   }
 
   @Test
+  void shouldAllowAFrameRateExactlyAtTheToleratedMinimum() {
+    final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
+    long now = 0;
+    // 60 ms frames over the 52.6 ms of 19 fps: found over at the 96th frame, the 114th is still short of a second later
+    for (int frameNumber = 1; frameNumber <= 114; frameNumber++) {
+      now += 52_631_579L;
+      pacer.arrive(now);
+      pacer.encoded(60, Mcv2FrameKind.PREDICTED, now);
+    }
+
+    // these intervals smooth the measured rate to exactly 19 fps, so every second frame gives exactly 9.5 fps
+    final long[] intervals = {
+      52_631_551L,
+      52_631_570L,
+      52_631_602L,
+      52_631_587L,
+      52_631_596L,
+      52_631_591L,
+      52_631_583L,
+      52_631_585L,
+      52_631_609L,
+      52_631_605L,
+      52_631_573L,
+      52_631_540L,
+    };
+    for (final long interval : intervals) {
+      now += interval;
+      pacer.arrive(now);
+    }
+
+    final double videoFrameRate = pacer.getVideoFramesPerSecond();
+    assertEquals(19, videoFrameRate);
+
+    final Mcv2Pacer.Change change = pacer.encoded(60, Mcv2FrameKind.PREDICTED, now).orElseThrow();
+    final Mcv2Pacer.Rung expectedTo = Mcv2Pacer.Rung.of(FULL_WIDTH, FULL_HEIGHT, 2);
+    final Mcv2Pacer.Rung to = change.getTo();
+    assertEquals(expectedTo, to);
+  }
+
+  @Test
   void shouldStepDownExactlyASecondAfterItsWarmUp() {
     // 30 ms per frame at 50 fps from a first frame at 100 s: nothing is judged for five seconds, the frame at 105 s is
     // the first found over its 20 ms, and the step comes a second later, at 106 s
