@@ -25,20 +25,36 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
  * byte {@code s + 4}, the packed colour ids 4 to 67, which are the four brightnesses of the base colours 1 to 16. Their
  * 64 RGB values are distinct on the supported Minecraft 26.3 palette, so the resource pack's
  * shader recovers every symbol exactly from the texel the client uploads.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class MapAlphabet {
 
-  /** The useful bits per symbol this alphabet carries. */
+  /**
+   * The useful bits per symbol this alphabet carries.
+   *
+   * @since 1.0.0
+   */
   public static final int SYMBOL_BITS = 6;
 
-  /** The map colour byte of symbol 0. */
+  /**
+   * The map colour byte of symbol 0.
+   *
+   * @since 1.0.0
+   */
   public static final int FIRST_COLOR = 4;
 
-  /** The number of symbols. */
+  /**
+   * The number of symbols.
+   *
+   * @since 1.0.0
+   */
   public static final int SIZE = 1 << SYMBOL_BITS;
 
   private MapAlphabet() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -47,17 +63,20 @@ public final class MapAlphabet {
    * @param symbols the symbols, at most 16,384
    * @return a new map-color array, a multiple of 128 bytes; empty input produces an empty array
    * @throws IllegalArgumentException if there are more than 16,384 symbols or an unsigned symbol exceeds 63
-   * @throws NullPointerException if {@code symbols} is null
+   * @throws NullPointerException     if {@code symbols} is null
+   * @since 1.0.0
    */
   public static byte[] toMapColors(final byte[] symbols) {
-    Preconditions.checkNotNull(symbols, "Symbols must not be null");
-    Preconditions.checkArgument(symbols.length <= TransportPages.PAGE_SYMBOLS, "A map holds at most 16384 symbols");
+    Preconditions.checkNotNull(symbols, "Symbols must not be null!");
+    Preconditions.checkArgument(symbols.length <= TransportPages.PAGE_SYMBOLS, "A map holds at most 16384 symbols!");
+
     final byte[] colors = new byte[Math.ceilDiv(symbols.length, TransportPages.MAP_SIDE) * TransportPages.MAP_SIDE];
     for (int index = 0; index < colors.length; index++) {
       final int symbol = index < symbols.length ? Byte.toUnsignedInt(symbols[index]) : 0;
-      Preconditions.checkArgument(symbol < SIZE, "Symbol %s is outside the six-bit alphabet", symbol);
+      Preconditions.checkArgument(symbol < SIZE, "Symbol %s is outside the six-bit alphabet!", symbol);
       colors[index] = (byte) (symbol + FIRST_COLOR);
     }
+
     return colors;
   }
 
@@ -66,19 +85,22 @@ public final class MapAlphabet {
    *
    * @param colors the map colours
    * @return a new symbol array of the same length; any row padding remains present
-   * @throws Mcv2Exception if a colour is outside the alphabet
+   * @throws Mcv2Exception        if a colour is outside the alphabet
    * @throws NullPointerException if {@code colors} is null
+   * @since 1.0.0
    */
-  public static byte[] fromMapColors(final byte[] colors) throws Mcv2Exception {
-    Preconditions.checkNotNull(colors, "Colors must not be null");
+  public static byte[] fromMapColors(final byte[] colors) {
+    Preconditions.checkNotNull(colors, "Colors must not be null!");
+
     final byte[] symbols = new byte[colors.length];
     for (int index = 0; index < colors.length; index++) {
       final int symbol = Byte.toUnsignedInt(colors[index]) - FIRST_COLOR;
       if (symbol < 0 || symbol >= SIZE) {
-        throw new Mcv2Exception("Map colour outside the alphabet");
+        throw new Mcv2Exception("Map colour outside the alphabet!");
       }
       symbols[index] = (byte) symbol;
     }
+
     return symbols;
   }
 }

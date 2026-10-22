@@ -37,6 +37,11 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  * first. As described in {@link MapConfiguration}, images that are smaller than the maps are centered, and images
  * that are larger are cropped equally on every side. Displaying a new image replaces the previous one directly,
  * without clearing the maps first, so there is no flicker between images.
+ *
+ * <p>Every method may be called from any thread; serialize display and release calls, as {@link DisplayableImage}
+ * describes.
+ *
+ * @since 1.0.0
  */
 public class MapImage implements DisplayableImage {
 
@@ -54,10 +59,12 @@ public class MapImage implements DisplayableImage {
    *
    * @param image the image to show, which is resized in place if {@link MapConfiguration#shouldResize()} is set
    * @throws NullPointerException if the image is null
+   * @since 1.0.0
    */
   @Override
   public void displayImage(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
+
     this.resizeIfConfigured(image);
 
     final byte[] dithered = this.algorithm.ditherIntoBytes(image);
@@ -87,6 +94,8 @@ public class MapImage implements DisplayableImage {
 
   /**
    * Clears the maps of every viewer.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

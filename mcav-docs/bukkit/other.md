@@ -20,10 +20,12 @@ the video is over.
 ```java
   // call on the main thread
   public static FunctionalVideoFilter showVideoInChat(final Collection<UUID> viewers, final VideoPlayerMultiplexer player) {
-    final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
+    final int chatWidth = 16;
+    final int chatHeight = 16;
+    final ChatConfigurationBuilder builder = ChatConfiguration.builder();
     builder.character(Characters.BLACK_SQUARE);
-    builder.chatWidth(16);
-    builder.chatHeight(16);
+    builder.chatWidth(chatWidth);
+    builder.chatHeight(chatHeight);
     builder.viewers(viewers);
     final ChatConfiguration configuration = builder.build();
 
@@ -32,6 +34,7 @@ the video is over.
     final VideoPipelineStep pipeline = VideoPipelineStep.of(chatResult);
     final VideoAttachableCallback videoCallback = player.getVideoAttachableCallback();
     videoCallback.attach(pipeline);
+
     return chatResult;
   }
 ```

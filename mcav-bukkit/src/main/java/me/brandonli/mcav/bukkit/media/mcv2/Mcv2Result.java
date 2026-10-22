@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -40,8 +41,8 @@ import java.util.function.LongSupplier;
 import me.brandonli.mcav.bukkit.BukkitModule;
 import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
 import me.brandonli.mcav.bukkit.media.map.MapPacketFactory;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Pool;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Pool;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.transport.TransportPages;
 import me.brandonli.mcav.bukkit.media.result.CompressedMapResult;
 import me.brandonli.mcav.media.image.ImageBuffer;
@@ -65,19 +66,19 @@ import org.slf4j.LoggerFactory;
  *
  * <p>Frames are encoded inside the screen's encoder budget ({@link Mcv2Configuration#getEncoderPool()}), which every
  * screen of the server shares unless it was given its own, in two steps: the screen's thread searches and writes a frame
- * ({@link MCV2#begin}), then hands it to the screen's sender thread, which verifies it ({@link MCV2#finish})
+ * ({@link Mcv2#begin}), then hands it to the screen's sender thread, which verifies it ({@link Mcv2#finish})
  * and sends it while the next frame is searched: one frame is in flight at most, and a frame is sent only once
  * verified. A frame that fails its verification stops the screen. A keyframe the channel asks for while a frame is in
  * flight comes with the frame after it; another preset begins only after the frame in flight is sent. The screen's
  * threads only wait for the budget. When the encoder is slower than the video, frames that arrive while it works
  * replace each other and only the newest is encoded, which the encoder's previous-frame reference allows. The encoder
- * bounds every frame to what the screen's page slots carry ({@link MCV2#setFrameLimit}): a frame that would take
+ * bounds every frame to what the screen's page slots carry ({@link Mcv2#setFrameLimit}): a frame that would take
  * more pages is searched again at a higher lambda. One that still has more pages than the screen has slots is not sent,
  * and the next is a keyframe.
  *
  * <p>A {@link Mcv2Pacer} keeps the screen within what its budget sustains: when the frames take longer than the video
  * gives them, it first searches less hard, down the preset ladder from the screen's settings
- * ({@code DEFAULT}, then {@code FAST}) on one encoder that switches without a keyframe; then it encodes fewer frames, down to {@link Mcv2Pacer#MIN_FRAME_RATE} a second,
+ * ({@code DEFAULT}, then {@code FAST}) on one encoder that switches without a keyframe; then it encodes fewer frames, down to {@link Mcv2Pacer#MINIMUM_FRAME_RATE} a second,
  * then shows a smaller video when the owner offers smaller sizes ({@link #setSmallerSizes}: each size has its own pack),
  * and when even that is too much, every viewer is shown the dithered maps, which need no encoder, until a later try
  * finds room again. Every step is logged, a step down as a warning, and handed to the
@@ -92,8 +93,27 @@ import org.slf4j.LoggerFactory;
  * channel screen and fallback result. The pack tracker, fallback algorithm and encoder pool remain caller-owned.
  * Serialize applyFilter calls; copied RGB/pixel data is handed to workers, so callers may reuse or close an input
  * buffer after the call returns. Do not mutate it during conversion.
+ *
+ * {@snippet :
+ * final Mcv2PackServer.Lease lease = packs.open(requested);
+ * final Mcv2Configuration configuration = lease.getConfiguration();
+ * final Mcv2Viewers viewers = packs.getViewers();
+ * final DitherAlgorithm fallback = DitherAlgorithm.filterLite();
+ * final Mcv2Result result = new Mcv2Result(configuration, viewers, fallback);
+ * result.start();
+ * final VideoPipelineStep pipeline = VideoPipelineStep.of(result);
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * video.attach(pipeline);
+ * // when the video is over
+ * result.release();
+ * lease.close();
+ * }
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Result implements FunctionalVideoFilter {
+
+  private static final String LISTENER_NULL_MESSAGE = "Listener must not be null!";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Mcv2Result.class);
 
@@ -112,13 +132,13 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
   private static final int UNDECODABLE = 2;
 
-  private static final String FRAME_TOO_LARGE = "MCV2 frame {} of {} bytes needs more than {} pages; it is not sent";
+  private static final String FRAME_TOO_LARGE = "MCV2 frame {} of {} bytes needs more than {} pages; it is not sent.";
 
-  private static final String PACING_STEP = "{}";
+  private static final String PACING_STEP = "{}.";
 
-  private static final String ENCODER_FAILED = "The MCV2 screen stops: encoding a frame failed";
+  private static final String ENCODER_FAILED = "The MCV2 screen stops: encoding a frame failed.";
 
-  private static final String SENDER_FAILED = "The MCV2 screen stops: verifying or sending a frame failed";
+  private static final String SENDER_FAILED = "The MCV2 screen stops: verifying or sending a frame failed.";
 
   private static final double NANOSECONDS_PER_SECOND = 1e9;
 
@@ -128,6 +148,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   private static final double DEFAULT_COST = 1;
 
   private static final double FAST_COST = 0.9;
+
+  private static final int LAST_CHANNEL_OFFSET = 2;
 
   private final Mcv2Configuration requested;
 
@@ -159,7 +181,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
   private final List<Mcv2Pacer.Preset> presets;
 
-  private final Function<Settings, MCV2> encoders;
+  private final Function<Settings, Mcv2> encoders;
 
   private final Mcv2LatestFrame<Arrival> pending;
 
@@ -191,11 +213,751 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
   private @Nullable Resizer resizer;
 
+  /**
+   * Constructs a new result.
+   *
+   * @param configuration     the screen
+   * @param viewers           who has the pack loaded
+   * @param fallbackAlgorithm how the video is dithered for viewers without the pack, or null to show them nothing
+   * @throws NullPointerException if configuration or viewers is null
+   * @since 1.0.0
+   */
+  public Mcv2Result(final Mcv2Configuration configuration, final Mcv2Viewers viewers, final @Nullable DitherAlgorithm fallbackAlgorithm) {
+    this(configuration, new Mcv2Channel(configuration, viewers), fallbackAlgorithm);
+  }
+
+  Mcv2Result(final Mcv2Configuration configuration, final Mcv2Channel channel, final @Nullable DitherAlgorithm fallbackAlgorithm) {
+    this(configuration, channel, fallbackAlgorithm, System::nanoTime, null);
+  }
+
+  Mcv2Result(
+    final Mcv2Configuration configuration,
+    final Mcv2Channel channel,
+    final @Nullable DitherAlgorithm fallbackAlgorithm,
+    final LongSupplier clock,
+    final @Nullable Executor dithering
+  ) {
+    this(configuration, channel, fallbackAlgorithm, clock, dithering, settings ->
+      configuration.getEncoderPool().encoder(settings, Mcv2.Verification.VERIFIED)
+    );
+  }
+
+  Mcv2Result(
+    final Mcv2Configuration configuration,
+    final Mcv2Channel channel,
+    final @Nullable DitherAlgorithm fallbackAlgorithm,
+    final LongSupplier clock,
+    final @Nullable Executor dithering,
+    final Function<Settings, Mcv2> encoders
+  ) {
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+    Preconditions.checkNotNull(channel, "Channel must not be null!");
+
+    this.requested = configuration;
+    this.screen = new Screen(configuration, channel);
+    this.fallbackViewers = ConcurrentHashMap.newKeySet();
+    this.fallback =
+      fallbackAlgorithm == null
+        ? null
+        : new Fallback(new CompressedMapResult(fallbackConfiguration(configuration, this.fallbackViewers)), fallbackAlgorithm);
+    if (dithering == null) {
+      final ExecutorService thread = Executors.newSingleThreadExecutor(Thread.ofPlatform().daemon().name("mcav-mcv2-dither").factory());
+      this.ditheringThread = thread;
+      this.dithering = thread;
+    } else {
+      this.ditheringThread = null;
+      this.dithering = dithering;
+    }
+
+    this.lock = new Object();
+    this.pending = new Mcv2LatestFrame<>();
+    this.statistics = new Statistics();
+    this.clock = clock;
+    this.lastFallbackRefresh = clock.getAsLong();
+    this.framesPerNanosecond = configuration.getMaximumFrameRate() / NANOSECONDS_PER_SECOND;
+    this.ladder = ladder(configuration.getSettings());
+    this.presets = presets(this.ladder);
+    this.encoders = encoders;
+  }
+
+  private static List<Settings> ladder(final Settings settings) {
+    if (settings.isFast()) {
+      return List.of(settings);
+    }
+
+    // Every finite product is divided as before, so 72 still gives exactly 55; one that overflows is scaled instead.
+    final double product = settings.getLambda() * Settings.FAST.getLambda();
+    final double lambda = Double.isFinite(product)
+      ? product / Settings.DEFAULT.getLambda()
+      : settings.getLambda() * (Settings.FAST.getLambda() / Settings.DEFAULT.getLambda());
+    return List.of(settings, Settings.of(lambda, true));
+  }
+
+  private static List<Mcv2Pacer.Preset> presets(final List<Settings> ladder) {
+    if (ladder.size() == 1) {
+      return List.of(Mcv2Pacer.Preset.ONLY);
+    }
+
+    final List<Mcv2Pacer.Preset> presets = new ArrayList<>();
+    for (final Settings settings : ladder) {
+      presets.add(preset(settings));
+    }
+
+    return List.copyOf(presets);
+  }
+
+  private static Mcv2Pacer.Preset preset(final Settings settings) {
+    if (settings.isFast()) {
+      return Mcv2Pacer.Preset.of("FAST", FAST_COST);
+    }
+
+    return Mcv2Pacer.Preset.of("DEFAULT", DEFAULT_COST);
+  }
+
+  private static MapConfiguration fallbackConfiguration(final Mcv2Configuration configuration, final Set<UUID> viewers) {
+    return MapConfiguration.builder()
+      .map(configuration.getMap())
+      .mapBlockWidth(configuration.getColumns())
+      .mapBlockHeight(configuration.getRows())
+      // Dithered maps need wall scaling to avoid cropping or centering a smaller video.
+      .resize(true)
+      .viewers(viewers)
+      .build();
+  }
+
+  /**
+   * Lets the screen step down to smaller video sizes when its encoder budget cannot sustain the size it was asked for,
+   * before it falls back to the dithered maps. Call before {@link #start()}.
+   *
+   * <p>The list is copied, but its arrays are retained. Supply non-null arrays of exactly two positive pixel
+   * dimensions, each within the codec limit, and do not mutate them afterward. Validation is deferred to pacer/configuration use.
+   *
+   * @param sizes   the smaller sizes, largest first, each a width and a height
+   * @param resizer offers a size's pack and creates its channel
+   * @throws NullPointerException if {@code sizes} or {@code resizer} is null
+   * @since 1.0.0
+   */
+  public void setSmallerSizes(final List<int[]> sizes, final Resizer resizer) {
+    Preconditions.checkNotNull(sizes, "Sizes must not be null!");
+    Preconditions.checkNotNull(resizer, "Resizer must not be null!");
+
+    this.smaller = List.copyOf(sizes);
+    this.resizer = resizer;
+  }
+
+  /**
+   * Returns the rung of the ladder the screen is on.
+   *
+   * @return the rung, or empty before the result is started
+   * @since 1.0.0
+   */
+  public Optional<Mcv2Pacer.Rung> getRung() {
+    synchronized (this.lock) {
+      final @Nullable Mcv2Pacer screenPacer = this.pacer;
+      return Optional.ofNullable(screenPacer).map(Mcv2Pacer::getRung);
+    }
+  }
+
+  /**
+   * Spawns the screen's page frames and starts the encoder. Call on the main thread.
+   *
+   * @since 1.0.0
+   */
+  @Override
+  public void start() {
+    this.screen.channel().open();
+    this.opened = true;
+    final Fallback dithered = this.fallback;
+    if (dithered != null) {
+      dithered.result().start();
+    }
+
+    final Pool encoderPool = this.requested.getEncoderPool();
+    final Mcv2 encoder = this.encoders.apply(this.ladder.getFirst());
+
+    final Thread thread = Thread.ofPlatform()
+      .daemon()
+      .name("mcav-mcv2-screen")
+      .unstarted(() -> this.encodeLoop(encoder));
+
+    final BlockingQueue<Handoff> queue = new SynchronousQueue<>();
+    final Pipeline started = new Pipeline(encoderPool, queue);
+    final Thread delivery = Thread.ofPlatform()
+      .daemon()
+      .name("mcav-mcv2-sender")
+      .unstarted(() -> this.deliverLoop(started, thread));
+    this.pace();
+    synchronized (this.lock) {
+      this.pipeline = started;
+      this.worker = thread;
+      this.sender = delivery;
+      this.handed = 0;
+      this.delivered = 0;
+      this.running = true;
+      this.pending.open();
+    }
+
+    delivery.start();
+    thread.start();
+  }
+
+  /**
+   * Hands the frame to the encoder for the viewers with the pack, and dithers it for the others.
+   *
+   * @param data     the frame, resized in place to the screen's video size
+   * @param metadata the metadata of the original video, which is not used
+   * @return false when rate limiting skips the frame before conversion, otherwise true because it may
+   *         have been resized; this does not report encoding, sending or client decoding success
+   * @throws NullPointerException if {@code data} or {@code metadata} is null
+   * @since 1.0.0
+   */
+  @Override
+  public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
+    Preconditions.checkNotNull(data, "Frame must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
+    if (!this.takeFrame(this.clock.getAsLong())) {
+      return false;
+    }
+
+    final boolean encode;
+    final boolean everyoneDithered;
+    Mcv2Pacer.Preset preset = this.presets.getFirst();
+    Optional<Mcv2Pacer.Change> tried = Optional.empty();
+    synchronized (this.lock) {
+      final Mcv2Pacer screenPacer = this.pacer;
+      if (screenPacer != null) {
+        tried = this.followArrival(screenPacer);
+        encode = screenPacer.isEncoded();
+        preset = screenPacer.getRung().getPreset();
+      } else {
+        encode = true;
+      }
+
+      everyoneDithered = this.ditheredForAll;
+    }
+
+    tried.ifPresent(this::announce);
+
+    final Screen current = this.screen;
+
+    final Set<UUID> others = everyoneDithered ? current.channel().near(this.requested.getViewers()) : current.channel().update();
+    this.fallbackViewers.retainAll(others);
+    this.fallbackViewers.addAll(others);
+    final int width = current.configuration().getVideoWidth();
+    final int height = current.configuration().getVideoHeight();
+    if (data.getWidth() != width || data.getHeight() != height) {
+      new ResizeFilter(width, height).applyFilter(data);
+    }
+
+    if (encode && !current.channel().getRecipients().isEmpty()) {
+      // A full-frame ARGB copy at 1080p adds an 8 MB G1 humongous allocation per frame.
+      final Arrival arrival = new Arrival(rgbFromBgr(data.getData(), width * height), width, height, System.currentTimeMillis(), preset);
+      this.pending.offer(arrival);
+    }
+
+    final Fallback dithered = this.fallback;
+    if (dithered != null && !others.isEmpty() && this.ditheringBusy.compareAndSet(false, true)) {
+      // ImageBuffer replaces its pixel array, allowing asynchronous reads without a copy.
+      final int[] packedColors = data.getPixels();
+      try {
+        this.dithering.execute(() -> this.dither(dithered, packedColors, width, height));
+      } catch (final RejectedExecutionException exception) {
+        this.ditheringBusy.set(false);
+      }
+    }
+
+    return true;
+  }
+
+  // A client decodes at most one frame per frame it draws, and a frame it misses breaks the P frames after it.
+  boolean takeFrame(final long now) {
+    if (this.framesPerNanosecond == 0) {
+      return true;
+    }
+
+    synchronized (this.lock) {
+      if (this.lastFrame != Long.MIN_VALUE) {
+        this.frameCredit = Math.min(FRAME_CREDIT_CAP, this.frameCredit + (now - this.lastFrame) * this.framesPerNanosecond);
+      }
+
+      this.lastFrame = now;
+
+      if (this.frameCredit < 1) {
+        return false;
+      }
+
+      this.frameCredit -= 1;
+
+      return true;
+    }
+  }
+
+  private void dither(final Fallback dithered, final int[] packedColors, final int width, final int height) {
+    try (final ImageBuffer frame = ImageBuffer.buffer(packedColors, width, height)) {
+      final CompressedMapResult maps = dithered.result();
+      final long now = this.clock.getAsLong();
+      if (now - this.lastFallbackRefresh >= FALLBACK_REFRESH_NANOSECONDS) {
+        maps.refresh();
+        this.lastFallbackRefresh = now;
+      }
+
+      maps.process(frame, dithered.algorithm());
+    } finally {
+      this.ditheringBusy.set(false);
+    }
+  }
+
+  static byte[] rgbFromBgr(final ByteBuffer sourceBuffer, final int pixels) {
+    final byte[] pictureBytes = new byte[pixels * Mcv2Decoder.CHANNELS];
+    sourceBuffer.get(sourceBuffer.position(), pictureBytes);
+    for (int pixelOffset = 0; pixelOffset < pictureBytes.length; pixelOffset += Mcv2Decoder.CHANNELS) {
+      final byte blue = pictureBytes[pixelOffset];
+      pictureBytes[pixelOffset] = pictureBytes[pixelOffset + LAST_CHANNEL_OFFSET];
+      pictureBytes[pixelOffset + LAST_CHANNEL_OFFSET] = blue;
+    }
+
+    return pictureBytes;
+  }
+
+  private long[] linkCounts() {
+    final long[] counts = new long[LINK_COUNTS];
+    for (final Mcv2Link link : this.screen.channel().getLinks().values()) {
+      counts[SENT] += link.getSent();
+      counts[BEHIND] += link.getBehind();
+      counts[UNDECODABLE] += link.getUndecodable();
+    }
+
+    return counts;
+  }
+
+  private void record(final Mcv2FrameEvent event, final Delivery delivery, final int colors, final long[] before) {
+    final long[] after = this.linkCounts();
+    long backlog = 0;
+    for (final Mcv2Link link : this.screen.channel().getLinks().values()) {
+      backlog = Math.max(backlog, link.getBacklog());
+    }
+
+    event.frameId = delivery.frameId;
+    event.keyframe = delivery.statistics.isKeyframe();
+    event.bytes = delivery.frame.length;
+    event.colors = colors;
+    event.arrived = delivery.source.arrived;
+    event.sent = System.currentTimeMillis();
+    event.encode = delivery.statistics.getNanoseconds();
+    event.sentTo = (int) (after[SENT] - before[SENT]);
+    event.behind = (int) (after[BEHIND] - before[BEHIND]);
+    event.waiting = (int) (after[UNDECODABLE] - before[UNDECODABLE]);
+    event.backlog = backlog;
+    event.fingerprint = Mcv2FrameEvent.fingerprint(delivery.source.pictureBytes, delivery.source.width, delivery.source.height);
+    event.commit();
+  }
+
+  private void stop(final @Nullable Thread thread) {
+    if (thread == null) {
+      return;
+    }
+
+    thread.interrupt();
+    try {
+      thread.join(TimeUnit.SECONDS.toMillis(JOIN_SECONDS));
+    } catch (final InterruptedException exception) {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  private Optional<Mcv2Pacer.Change> followArrival(final Mcv2Pacer screenPacer) {
+    final Optional<Mcv2Pacer.Change> change = screenPacer.arrive(this.clock.getAsLong());
+    change.ifPresent(this::follow);
+
+    return change;
+  }
+
+  void encodeLoop(final Mcv2 first) {
+    final Pipeline own;
+    synchronized (this.lock) {
+      own = this.pipeline;
+    }
+
+    try {
+      this.encodeArrivals(first);
+    } catch (final InterruptedException exception) {
+      Thread.currentThread().interrupt();
+    } catch (final RuntimeException exception) {
+      LOGGER.error(ENCODER_FAILED, exception);
+    } finally {
+      this.stopPipeline(own);
+    }
+  }
+
+  private void encodeArrivals(final Mcv2 first) throws InterruptedException {
+    long frameId = this.requested.getFirstFrameId();
+    Mcv2 encoder = first;
+    for (Arrival arrival = this.take(); arrival != null; arrival = this.take()) {
+      final Settings settings = this.settingsFor(arrival);
+      if (!settings.equals(encoder.getSettings())) {
+        this.drain();
+        encoder = this.encoderFor(settings, encoder);
+      }
+      this.send(encoder, arrival, frameId);
+      frameId = (frameId + 1) & Mcv2Decoder.MAXIMUM_UNSIGNED_INT;
+    }
+  }
+
+  Settings settingsFor(final Arrival arrival) {
+    return this.ladder.get(this.presets.indexOf(arrival.preset));
+  }
+
+  Mcv2 encoderFor(final Settings settings, final Mcv2 encoder) {
+    encoder.switchTo(settings);
+    return encoder;
+  }
+
+  void pace() {
+    final List<int[]> sizes = new ArrayList<>();
+    sizes.add(new int[] { this.requested.getVideoWidth(), this.requested.getVideoHeight() });
+    sizes.addAll(this.smaller);
+    final Mcv2Pacer.Floor floor = this.fallback != null ? Mcv2Pacer.Floor.DITHERED_MAPS : Mcv2Pacer.Floor.LOWEST_ENCODED_RUNG;
+    final Mcv2Pacer screenPacer = new Mcv2Pacer(sizes, this.presets, floor);
+    synchronized (this.lock) {
+      this.pacer = screenPacer;
+      this.ditheredForAll = false;
+    }
+  }
+
+  @Nullable Arrival poll() {
+    return this.pending.poll();
+  }
+
+  @Nullable Arrival take() throws InterruptedException {
+    return this.pending.take();
+  }
+
+  void send(final Mcv2 encoder, final Arrival arrival, final long frameId) throws InterruptedException {
+    final Screen current = this.screen;
+    if (current.channel().takeKeyframeRequest()) {
+      encoder.requestKeyframe();
+    }
+
+    encoder.setFrameLimit(current.configuration().getPageSlots() * TransportPages.capacity());
+    final int width = arrival.width;
+    final int height = arrival.height;
+    final Pipeline running;
+    synchronized (this.lock) {
+      running = this.pipeline;
+    }
+
+    final long started = this.clock.getAsLong();
+    final boolean isKeyframe;
+    Delivery delivery = null;
+    if (running == null) {
+      final byte[] frame = encoder.encode(arrival.pictureBytes, width, height, frameId);
+      final Mcv2.Statistics statistics = encoder.getStatistics().orElseThrow();
+      isKeyframe = statistics.isKeyframe();
+      delivery = new Delivery(frame, statistics, frameId, arrival);
+    } else {
+      final Mcv2.Pending pending = running.budget().runInterruptibly(() -> encoder.begin(arrival.pictureBytes, width, height, frameId));
+      isKeyframe = pending.isKeyframe();
+      // Count before handoff so drain cannot overlook a frame the sender already owns.
+      synchronized (this.lock) {
+        this.handed++;
+      }
+
+      running.queue().put(new Handoff(encoder, pending, frameId, arrival));
+    }
+
+    final long finished = this.clock.getAsLong();
+    final Mcv2FrameKind kind = isKeyframe ? Mcv2FrameKind.KEYFRAME : Mcv2FrameKind.PREDICTED;
+    Optional<Mcv2Pacer.Change> change = Optional.empty();
+    synchronized (this.lock) {
+      final Mcv2Pacer screenPacer = this.pacer;
+      if (screenPacer != null) {
+        change = this.followEncoding(screenPacer, (finished - started) / NANOSECONDS_PER_MILLISECOND, kind, finished);
+      }
+    }
+
+    change.ifPresent(this::announce);
+
+    if (delivery != null) {
+      this.deliver(delivery);
+    }
+  }
+
+  private Optional<Mcv2Pacer.Change> followEncoding(
+    final Mcv2Pacer screenPacer,
+    final double encodeMilliseconds,
+    final Mcv2FrameKind kind,
+    final long finished
+  ) {
+    final Optional<Mcv2Pacer.Change> change = screenPacer.encoded(encodeMilliseconds, kind, finished);
+    change.ifPresent(this::follow);
+
+    return change;
+  }
+
+  void drain() throws InterruptedException {
+    synchronized (this.lock) {
+      while (this.running && this.delivered < this.handed) {
+        this.lock.wait();
+      }
+    }
+  }
+
+  private void stopPipeline(final @Nullable Pipeline stopped) {
+    final Thread screenThread;
+    final Thread delivery;
+    synchronized (this.lock) {
+      final Pipeline current = this.pipeline;
+
+      if (stopped == null || !Objects.equals(stopped, current)) {
+        return;
+      }
+
+      this.running = false;
+      this.pending.close();
+      this.lock.notifyAll();
+
+      screenThread = Objects.requireNonNull(this.worker, "A running pipeline has its screen's thread!");
+      delivery = Objects.requireNonNull(this.sender, "A running pipeline has its sender!");
+    }
+
+    screenThread.interrupt();
+    delivery.interrupt();
+  }
+
+  private void deliverLoop(final Pipeline running, final Thread screenThread) {
+    try {
+      while (true) {
+        this.deliverNext(running);
+      }
+    } catch (final InterruptedException exception) {
+      Thread.currentThread().interrupt();
+    } catch (final RuntimeException exception) {
+      LOGGER.error(SENDER_FAILED, exception);
+    } finally {
+      this.stopPipeline(running);
+      // Interrupt even after release clears the pipeline, or the screen thread can wait forever.
+      screenThread.interrupt();
+    }
+  }
+
+  private void deliverNext(final Pipeline running) throws InterruptedException {
+    final Handoff handoff = running.queue().take();
+    final Mcv2.Encoded encoded = running.budget().runInterruptibly(() -> handoff.encoder().finish(handoff.pending()));
+    this.deliver(new Delivery(encoded.getData(), encoded.getStatistics(), handoff.frameId(), handoff.source()));
+    synchronized (this.lock) {
+      this.delivered++;
+      this.lock.notifyAll();
+    }
+  }
+
+  private void deliver(final Delivery delivery) {
+    final byte[] frame = delivery.frame;
+    final long frameId = delivery.frameId;
+    final Mcv2.Statistics statistics = delivery.statistics;
+    final Mcv2FrameEvent event = new Mcv2FrameEvent();
+    final boolean recorded = event.isEnabled();
+    final long[] before = recorded ? this.linkCounts() : new long[LINK_COUNTS];
+    final Screen current = this.screen;
+    final int colors = current.channel().send(frame);
+    if (colors >= 0) {
+      this.frameListener.accept(frame);
+    }
+
+    if (recorded) {
+      this.record(event, delivery, colors, before);
+    }
+
+    if (colors < 0) {
+      LOGGER.warn(FRAME_TOO_LARGE, frameId, frame.length, current.configuration().getPageSlots());
+      this.statistics.drop();
+      return;
+    }
+
+    this.statistics.add(statistics, colors);
+  }
+
+  private void follow(final Mcv2Pacer.Change change) {
+    this.ditheredForAll = change.getTo().isDithered();
+
+    if (this.ditheredForAll) {
+      this.pending.clear();
+    }
+
+    Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), this::sync);
+  }
+
+  void sync() {
+    final Mcv2Pacer.Rung rung;
+    synchronized (this.lock) {
+      final Mcv2Pacer screenPacer = this.pacer;
+      if (screenPacer == null) {
+        return;
+      }
+
+      rung = screenPacer.getRung();
+    }
+
+    final Screen current = this.screen;
+    final Mcv2Configuration configuration = current.configuration();
+    if (rung.isDithered()) {
+      if (this.opened) {
+        current.channel().removeFrames();
+        this.opened = false;
+      }
+
+      return;
+    }
+
+    Screen target = current;
+    if (this.size(rung.getWidth(), rung.getHeight()) != this.size(configuration.getVideoWidth(), configuration.getVideoHeight())) {
+      current.channel().close();
+      this.opened = false;
+      final Mcv2Configuration size = this.requested.withVideo(rung.getWidth(), rung.getHeight());
+      target = new Screen(size, Preconditions.checkNotNull(this.resizer).resize(size));
+      this.screen = target;
+    }
+
+    if (!this.opened) {
+      target.channel().open();
+      this.opened = true;
+    }
+  }
+
+  private void announce(final Mcv2Pacer.Change change) {
+    if (change.isDown()) {
+      LOGGER.warn(PACING_STEP, change.describe());
+    } else {
+      LOGGER.debug(PACING_STEP, change.describe());
+    }
+
+    this.pacingListener.accept(change);
+  }
+
+  /**
+   * Stops the encoder, removes the page frames and clears the wall's maps for every viewer, those dithered for and those
+   * decoding MCV2. Call on the main thread.
+   *
+   * <p>Worker joins are bounded; a worker that does not respond to interruption may outlive this call.
+   * Fallback executor shutdown does not await termination. Release does not close the shared encoder pool or pack tracker.
+   *
+   * @since 1.0.0
+   */
+  @Override
+  public void release() {
+    final Thread thread;
+    final Thread delivery;
+    synchronized (this.lock) {
+      this.running = false;
+      this.pending.close();
+      this.lock.notifyAll();
+      thread = this.worker;
+      delivery = this.sender;
+      this.worker = null;
+      this.sender = null;
+      this.pipeline = null;
+      this.pacer = null;
+    }
+
+    this.stop(thread);
+    this.stop(delivery);
+    this.screen.channel().close();
+    this.opened = false;
+    // Encoded viewers retain anchor maps, which keep their last decoded picture visible.
+    final Set<UUID> decoding = new HashSet<>(this.requested.getViewers());
+    decoding.removeAll(this.fallbackViewers);
+    final int maps = this.requested.getColumns() * this.requested.getRows();
+    MapPacketFactory.clear(decoding, this.requested.getMap(), maps);
+    final ExecutorService ditheringOwn = this.ditheringThread;
+    if (ditheringOwn != null) {
+      ditheringOwn.shutdown();
+    }
+
+    final Fallback dithered = this.fallback;
+    if (dithered != null) {
+      dithered.result().release();
+    }
+  }
+
+  private long size(final int width, final int height) {
+    return ((long) width << Integer.SIZE) | height;
+  }
+
+  /**
+   * Returns what the result has done so far.
+   *
+   * @return the statistics, updated as frames are sent
+   * @since 1.0.0
+   */
+  public Statistics getStatistics() {
+    return this.statistics;
+  }
+
+  /**
+   * Returns the channel that delivers the frames.
+   *
+   * @return the channel
+   * @since 1.0.0
+   */
+  public Mcv2Channel getChannel() {
+    return this.screen.channel();
+  }
+
+  /**
+   * Returns the screen's configuration now: the one it was created with, or a copy at the smaller video size it stepped
+   * down to.
+   *
+   * @return the configuration
+   * @since 1.0.0
+   */
+  public Mcv2Configuration getConfiguration() {
+    return this.screen.configuration();
+  }
+
+  /**
+   * Sets who is told of the pacer's steps besides the server log, for example the operator who started the screen.
+   *
+   * <p>The callback may run on different threads on different calls; it must be thread-safe, nonblocking and
+   * must schedule Bukkit world changes on the main thread. Callback exceptions are not swallowed at the call site.
+   *
+   * @param listener called with every step, on the thread that caused it
+   * @throws NullPointerException if {@code listener} is null
+   * @since 1.0.0
+   */
+  public void setPacingListener(final Consumer<Mcv2Pacer.Change> listener) {
+    Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
+
+    this.pacingListener = listener;
+  }
+
+  /**
+   * Sets who hears every frame the screen sends, as the bytes of its bitstream, for example to record the stream the
+   * viewers were sent and decode it again with the reference decoder. A frame too large for the screen's page slots is
+   * not sent, and not heard.
+   *
+   * <p>The callback receives the actual encoded array without a defensive copy. Treat it as read-only and
+   * copy it before handing it to code that may mutate it. A callback that throws stops the screen: the failure is
+   * logged, and no later frame is encoded or sent.
+   *
+   * @param listener called with every frame sent, on the thread that sends the frames, which it should not hold up
+   * @throws NullPointerException if {@code listener} is null
+   * @since 1.0.0
+   */
+  public void setFrameListener(final Consumer<byte[]> listener) {
+    Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
+
+    this.frameListener = listener;
+  }
+
   private record Screen(Mcv2Configuration configuration, Mcv2Channel channel) {}
 
   /**
    * What a screen's owner does to show the video at another size: the pack decodes one video size, so a smaller video
    * needs its pack offered to the viewers, and a channel of its own.
+   *
+   * <p>The result calls it on the server main thread only, so implementations need not be thread-safe.
+   *
+   * @since 1.0.0
    */
   @FunctionalInterface
   public interface Resizer {
@@ -205,6 +967,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
      *
      * @param configuration the screen at the new size
      * @return the channel that sends the video at that size
+     * @since 1.0.0
      */
     Mcv2Channel resize(Mcv2Configuration configuration);
   }
@@ -232,7 +995,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
   }
 
-  private record Handoff(MCV2 encoder, MCV2.Pending pending, long frameId, Arrival source) {}
+  private record Handoff(Mcv2 encoder, Mcv2.Pending pending, long frameId, Arrival source) {}
 
   private record Pipeline(Pool budget, BlockingQueue<Handoff> queue) {}
 
@@ -240,15 +1003,15 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
     private final byte[] frame;
 
-    private final MCV2.Stats stats;
+    private final Mcv2.Statistics statistics;
 
     private final long frameId;
 
     private final Arrival source;
 
-    private Delivery(final byte[] frame, final MCV2.Stats stats, final long frameId, final Arrival source) {
+    private Delivery(final byte[] frame, final Mcv2.Statistics statistics, final long frameId, final Arrival source) {
       this.frame = frame;
-      this.stats = stats;
+      this.statistics = statistics;
       this.frameId = frameId;
       this.source = source;
     }
@@ -257,8 +1020,10 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   /**
    * What the result has done so far.
    *
-   * <p>Each getter is synchronized, but several getter calls are not one atomic snapshot. Counts describe
-   * frames accepted by the channel, not multiplied by recipients or acknowledged by clients.
+   * <p>This class is thread-safe: each getter is synchronized, but several getter calls are not one atomic snapshot.
+   * Counts describe frames accepted by the channel, not multiplied by recipients or acknowledged by clients.
+   *
+   * @since 1.0.0
    */
   public static final class Statistics {
 
@@ -276,12 +1041,12 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
     Statistics() {}
 
-    synchronized void add(final MCV2.Stats stats, final int mapColors) {
+    synchronized void add(final Mcv2.Statistics statistics, final int mapColors) {
       this.frames++;
-      this.keyframes += stats.keyframe() ? 1 : 0;
-      this.bytes += stats.bytes();
+      this.keyframes += statistics.isKeyframe() ? 1 : 0;
+      this.bytes += statistics.getBytes();
       this.mapBytes += mapColors;
-      this.nanoseconds += stats.nanoseconds();
+      this.nanoseconds += statistics.getNanoseconds();
     }
 
     private synchronized void drop() {
@@ -289,712 +1054,64 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     /**
-     * Gets the number of frames sent.
+     * Returns the number of frames sent.
      *
      * @return the frames
+     * @since 1.0.0
      */
     public synchronized long getFrames() {
       return this.frames;
     }
 
     /**
-     * Gets the number of keyframes sent.
+     * Returns the number of keyframes sent.
      *
      * @return the keyframes
+     * @since 1.0.0
      */
     public synchronized long getKeyframes() {
       return this.keyframes;
     }
 
     /**
-     * Gets the number of frames not sent because they had more pages than the screen has page slots.
+     * Returns the number of frames not sent because they had more pages than the screen has page slots.
      *
      * @return the dropped frames
+     * @since 1.0.0
      */
     public synchronized long getDropped() {
       return this.dropped;
     }
 
     /**
-     * Gets the MCV2 bytes of the frames sent.
+     * Returns the MCV2 bytes of the frames sent.
      *
      * @return the frame bytes
+     * @since 1.0.0
      */
     public synchronized long getBytes() {
       return this.bytes;
     }
 
     /**
-     * Gets accumulated page-map color bytes per potential recipient: every page as whole 128-color rows.
+     * Returns accumulated page-map color bytes per potential recipient: every page as whole 128-color rows.
      * Anchors, packet overhead and actual recipient counts are excluded.
      *
      * @return the map bytes per viewer
+     * @since 1.0.0
      */
     public synchronized long getMapBytes() {
       return this.mapBytes;
     }
 
     /**
-     * Gets the time spent encoding the frames sent.
+     * Returns the time spent encoding the frames sent.
      *
      * @return the encode time in nanoseconds
+     * @since 1.0.0
      */
     public synchronized long getNanoseconds() {
       return this.nanoseconds;
     }
-  }
-
-  /**
-   * Constructs a new result.
-   *
-   * @param configuration     the screen
-   * @param viewers           who has the pack loaded
-   * @param fallbackAlgorithm how the video is dithered for viewers without the pack, or null to show them nothing
-   * @throws NullPointerException if configuration or viewers is null
-   */
-  public Mcv2Result(final Mcv2Configuration configuration, final Mcv2Viewers viewers, final @Nullable DitherAlgorithm fallbackAlgorithm) {
-    this(configuration, new Mcv2Channel(configuration, viewers), fallbackAlgorithm);
-  }
-
-  Mcv2Result(final Mcv2Configuration configuration, final Mcv2Channel channel, final @Nullable DitherAlgorithm fallbackAlgorithm) {
-    this(configuration, channel, fallbackAlgorithm, System::nanoTime, null);
-  }
-
-  Mcv2Result(
-    final Mcv2Configuration configuration,
-    final Mcv2Channel channel,
-    final @Nullable DitherAlgorithm fallbackAlgorithm,
-    final LongSupplier clock,
-    final @Nullable Executor dithering
-  ) {
-    this(configuration, channel, fallbackAlgorithm, clock, dithering, settings -> configuration.getEncoderPool().encoder(settings, true));
-  }
-
-  Mcv2Result(
-    final Mcv2Configuration configuration,
-    final Mcv2Channel channel,
-    final @Nullable DitherAlgorithm fallbackAlgorithm,
-    final LongSupplier clock,
-    final @Nullable Executor dithering,
-    final Function<Settings, MCV2> encoders
-  ) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
-    Preconditions.checkNotNull(channel, "Channel must not be null");
-    this.requested = configuration;
-    this.screen = new Screen(configuration, channel);
-    this.fallbackViewers = ConcurrentHashMap.newKeySet();
-    this.fallback =
-      fallbackAlgorithm == null
-        ? null
-        : new Fallback(new CompressedMapResult(fallbackConfiguration(configuration, this.fallbackViewers)), fallbackAlgorithm);
-    if (dithering == null) {
-      final ExecutorService thread = Executors.newSingleThreadExecutor(Thread.ofPlatform().daemon().name("mcav-mcv2-dither").factory());
-      this.ditheringThread = thread;
-      this.dithering = thread;
-    } else {
-      this.ditheringThread = null;
-      this.dithering = dithering;
-    }
-    this.lock = new Object();
-    this.pending = new Mcv2LatestFrame<>();
-    this.statistics = new Statistics();
-    this.clock = clock;
-    this.lastFallbackRefresh = clock.getAsLong();
-    this.framesPerNanosecond = configuration.getMaxFrameRate() / NANOSECONDS_PER_SECOND;
-    this.ladder = ladder(configuration.getSettings());
-    this.presets = presets(this.ladder);
-    this.encoders = encoders;
-  }
-
-  private static List<Settings> ladder(final Settings settings) {
-    if (settings.fast()) {
-      return List.of(settings);
-    }
-    // Every finite product is divided as before, so 72 still gives exactly 55; one that overflows is scaled instead.
-    final double product = settings.lambda() * Settings.FAST.lambda();
-    final double lambda = Double.isFinite(product)
-      ? product / Settings.DEFAULT.lambda()
-      : settings.lambda() * (Settings.FAST.lambda() / Settings.DEFAULT.lambda());
-    return List.of(settings, new Settings(lambda, true));
-  }
-
-  private static List<Mcv2Pacer.Preset> presets(final List<Settings> ladder) {
-    if (ladder.size() == 1) {
-      return List.of(Mcv2Pacer.Preset.ONLY);
-    }
-    final List<Mcv2Pacer.Preset> presets = new ArrayList<>();
-    for (final Settings settings : ladder) {
-      presets.add(preset(settings));
-    }
-    return List.copyOf(presets);
-  }
-
-  private static Mcv2Pacer.Preset preset(final Settings settings) {
-    if (settings.fast()) {
-      return new Mcv2Pacer.Preset("FAST", FAST_COST);
-    }
-    return new Mcv2Pacer.Preset("DEFAULT", DEFAULT_COST);
-  }
-
-  private static MapConfiguration fallbackConfiguration(final Mcv2Configuration configuration, final Set<UUID> viewers) {
-    return MapConfiguration.builder()
-      .map(configuration.getMap())
-      .mapBlockWidth(configuration.getColumns())
-      .mapBlockHeight(configuration.getRows())
-      // Dithered maps need wall scaling to avoid cropping or centering a smaller video.
-      .resize(true)
-      .viewers(viewers)
-      .build();
-  }
-
-  /**
-   * Gets what the result has done so far.
-   *
-   * @return the statistics, updated as frames are sent
-   */
-  public Statistics getStatistics() {
-    return this.statistics;
-  }
-
-  /**
-   * Gets the channel that delivers the frames.
-   *
-   * @return the channel
-   */
-  public Mcv2Channel getChannel() {
-    return this.screen.channel();
-  }
-
-  /**
-   * Gets the screen's configuration now: the one it was created with, or a copy at the smaller video size it stepped
-   * down to.
-   *
-   * @return the configuration
-   */
-  public Mcv2Configuration getConfiguration() {
-    return this.screen.configuration();
-  }
-
-  /**
-   * Lets the screen step down to smaller video sizes when its encoder budget cannot sustain the size it was asked for,
-   * before it falls back to the dithered maps. Call before {@link #start()}.
-   *
-   * <p>The list is copied, but its arrays are retained. Supply non-null arrays of exactly two positive pixel
-   * dimensions, each within the codec limit, and do not mutate them afterward. Validation is deferred to pacer/configuration use.
-   *
-   * @param sizes   the smaller sizes, largest first, each a width and a height
-   * @param resizer offers a size's pack and creates its channel
-   * @throws NullPointerException if {@code sizes} or {@code resizer} is null
-   */
-  public void setSmallerSizes(final List<int[]> sizes, final Resizer resizer) {
-    Preconditions.checkNotNull(sizes, "Sizes must not be null");
-    Preconditions.checkNotNull(resizer, "Resizer must not be null");
-    this.smaller = List.copyOf(sizes);
-    this.resizer = resizer;
-  }
-
-  /**
-   * Sets who is told of the pacer's steps besides the server log, for example the operator who started the screen.
-   *
-   * <p>The callback may run on different threads on different calls; it must be thread-safe, nonblocking and
-   * must schedule Bukkit world changes on the main thread. Callback exceptions are not swallowed at the call site.
-   *
-   * @param listener called with every step, on the thread that caused it
-   * @throws NullPointerException if {@code listener} is null
-   */
-  public void setPacingListener(final Consumer<Mcv2Pacer.Change> listener) {
-    Preconditions.checkNotNull(listener, "Listener must not be null");
-    this.pacingListener = listener;
-  }
-
-  /**
-   * Sets who hears every frame the screen sends, as the bytes of its bitstream, for example to record the stream the
-   * viewers were sent and decode it again with the reference decoder. A frame too large for the screen's page slots is
-   * not sent, and not heard.
-   *
-   * <p>The callback receives the actual encoded array without a defensive copy. Treat it as read-only and
-   * copy it before handing it to code that may mutate it. A callback that throws stops the screen: the failure is
-   * logged, and no later frame is encoded or sent.
-   *
-   * @param listener called with every frame sent, on the thread that sends the frames, which it should not hold up
-   * @throws NullPointerException if {@code listener} is null
-   */
-  public void setFrameListener(final Consumer<byte[]> listener) {
-    Preconditions.checkNotNull(listener, "Listener must not be null");
-    this.frameListener = listener;
-  }
-
-  /**
-   * Gets the rung of the ladder the screen is on.
-   *
-   * @return the rung, or null before the result is started
-   */
-  public Mcv2Pacer.@Nullable Rung getRung() {
-    synchronized (this.lock) {
-      final Mcv2Pacer screenPacer = this.pacer;
-      return screenPacer == null ? null : screenPacer.getRung();
-    }
-  }
-
-  /**
-   * Spawns the screen's page frames and starts the encoder. Call on the main thread.
-   */
-  @Override
-  public void start() {
-    this.screen.channel().open();
-    this.opened = true;
-    final Fallback dithered = this.fallback;
-    if (dithered != null) {
-      dithered.result().start();
-    }
-    final Pool encoderPool = this.requested.getEncoderPool();
-    final MCV2 encoder = this.encoders.apply(this.ladder.getFirst());
-
-    final Thread thread = Thread.ofPlatform()
-      .daemon()
-      .name("mcav-mcv2-screen")
-      .unstarted(() -> this.encodeLoop(encoder));
-
-    final BlockingQueue<Handoff> queue = new SynchronousQueue<>();
-    final Pipeline started = new Pipeline(encoderPool, queue);
-    final Thread delivery = Thread.ofPlatform()
-      .daemon()
-      .name("mcav-mcv2-sender")
-      .unstarted(() -> this.deliverLoop(started, thread));
-    this.pace();
-    synchronized (this.lock) {
-      this.pipeline = started;
-      this.worker = thread;
-      this.sender = delivery;
-      this.handed = 0;
-      this.delivered = 0;
-      this.running = true;
-      this.pending.open();
-    }
-    delivery.start();
-    thread.start();
-  }
-
-  /**
-   * Hands the frame to the encoder for the viewers with the pack, and dithers it for the others.
-   *
-   * @param data     the frame, resized in place to the screen's video size
-   * @param metadata the metadata of the original video, which is not used
-   * @return false when rate limiting skips the frame before conversion, otherwise true because it may
-   *         have been resized; this does not report encoding, sending or client decoding success
-   * @throws NullPointerException if {@code data} or {@code metadata} is null
-   */
-  @Override
-  public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(data, "Frame must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
-    if (!this.takeFrame(this.clock.getAsLong())) {
-      return false;
-    }
-    final boolean encode;
-    final boolean everyoneDithered;
-    Mcv2Pacer.Preset preset = this.presets.getFirst();
-    Mcv2Pacer.Change tried = null;
-    synchronized (this.lock) {
-      final Mcv2Pacer screenPacer = this.pacer;
-      if (screenPacer != null) {
-        tried = screenPacer.arrive(this.clock.getAsLong());
-        if (tried != null) {
-          this.follow(tried);
-        }
-        encode = screenPacer.isEncoded();
-        preset = screenPacer.getRung().preset();
-      } else {
-        encode = true;
-      }
-      everyoneDithered = this.ditheredForAll;
-    }
-    if (tried != null) {
-      this.announce(tried);
-    }
-    final Screen current = this.screen;
-
-    final Set<UUID> others = everyoneDithered ? current.channel().near(this.requested.getViewers()) : current.channel().update();
-    this.fallbackViewers.retainAll(others);
-    this.fallbackViewers.addAll(others);
-    final int width = current.configuration().getVideoWidth();
-    final int height = current.configuration().getVideoHeight();
-    if (data.getWidth() != width || data.getHeight() != height) {
-      new ResizeFilter(width, height).applyFilter(data);
-    }
-
-    if (encode && !current.channel().getRecipients().isEmpty()) {
-      // A full-frame ARGB copy at 1080p adds an 8 MB G1 humongous allocation per frame.
-      final Arrival arrival = new Arrival(rgbFromBgr(data.getData(), width * height), width, height, System.currentTimeMillis(), preset);
-      this.pending.offer(arrival);
-    }
-    final Fallback dithered = this.fallback;
-    if (dithered != null && !others.isEmpty() && this.ditheringBusy.compareAndSet(false, true)) {
-      // ImageBuffer replaces its pixel array, allowing asynchronous reads without a copy.
-      final int[] packedColors = data.getPixels();
-      try {
-        this.dithering.execute(() -> this.dither(dithered, packedColors, width, height));
-      } catch (final RejectedExecutionException released) {
-        this.ditheringBusy.set(false);
-      }
-    }
-    return true;
-  }
-
-  // A client decodes at most one frame per frame it draws, and a frame it misses breaks the P frames after it.
-  boolean takeFrame(final long now) {
-    if (this.framesPerNanosecond == 0) {
-      return true;
-    }
-    synchronized (this.lock) {
-      if (this.lastFrame != Long.MIN_VALUE) {
-        this.frameCredit = Math.min(FRAME_CREDIT_CAP, this.frameCredit + (now - this.lastFrame) * this.framesPerNanosecond);
-      }
-      this.lastFrame = now;
-      if (this.frameCredit < 1) {
-        return false;
-      }
-      this.frameCredit -= 1;
-      return true;
-    }
-  }
-
-  private void dither(final Fallback dithered, final int[] packedColors, final int width, final int height) {
-    try (final ImageBuffer frame = ImageBuffer.buffer(packedColors, width, height)) {
-      final CompressedMapResult maps = dithered.result();
-      final long now = this.clock.getAsLong();
-      if (now - this.lastFallbackRefresh >= FALLBACK_REFRESH_NANOSECONDS) {
-        maps.refresh();
-        this.lastFallbackRefresh = now;
-      }
-      maps.process(frame, dithered.algorithm());
-    } finally {
-      this.ditheringBusy.set(false);
-    }
-  }
-
-  static byte[] rgbFromBgr(final ByteBuffer sourceBuffer, final int pixels) {
-    final byte[] pictureBytes = new byte[pixels * Mcv2Decoder.CHANNELS];
-    sourceBuffer.get(sourceBuffer.position(), pictureBytes);
-    for (int pixelOffset = 0; pixelOffset < pictureBytes.length; pixelOffset += Mcv2Decoder.CHANNELS) {
-      final byte blue = pictureBytes[pixelOffset];
-      pictureBytes[pixelOffset] = pictureBytes[pixelOffset + 2];
-      pictureBytes[pixelOffset + 2] = blue;
-    }
-    return pictureBytes;
-  }
-
-  private long[] linkCounts() {
-    final long[] counts = new long[LINK_COUNTS];
-    for (final Mcv2Link link : this.screen.channel().getLinks().values()) {
-      counts[SENT] += link.getSent();
-      counts[BEHIND] += link.getBehind();
-      counts[UNDECODABLE] += link.getUndecodable();
-    }
-    return counts;
-  }
-
-  private void record(final Mcv2FrameEvent event, final Delivery delivery, final int colors, final long[] before) {
-    final long[] after = this.linkCounts();
-    long backlog = 0;
-    for (final Mcv2Link link : this.screen.channel().getLinks().values()) {
-      backlog = Math.max(backlog, link.getBacklog());
-    }
-    event.frameId = delivery.frameId;
-    event.keyframe = delivery.stats.keyframe();
-    event.bytes = delivery.frame.length;
-    event.colors = colors;
-    event.arrived = delivery.source.arrived;
-    event.sent = System.currentTimeMillis();
-    event.encode = delivery.stats.nanoseconds();
-    event.sentTo = (int) (after[SENT] - before[SENT]);
-    event.behind = (int) (after[BEHIND] - before[BEHIND]);
-    event.waiting = (int) (after[UNDECODABLE] - before[UNDECODABLE]);
-    event.backlog = backlog;
-    event.fingerprint = Mcv2FrameEvent.fingerprint(delivery.source.pictureBytes, delivery.source.width, delivery.source.height);
-    event.commit();
-  }
-
-  private static void stop(final @Nullable Thread thread) {
-    if (thread == null) {
-      return;
-    }
-    thread.interrupt();
-    try {
-      thread.join(TimeUnit.SECONDS.toMillis(JOIN_SECONDS));
-    } catch (final InterruptedException exception) {
-      Thread.currentThread().interrupt();
-    }
-  }
-
-  void encodeLoop(final MCV2 first) {
-    final Pipeline own;
-    synchronized (this.lock) {
-      own = this.pipeline;
-    }
-    long frameId = this.requested.getFirstFrameId();
-    MCV2 encoder = first;
-    try {
-      for (Arrival arrival = this.take(); arrival != null; arrival = this.take()) {
-        final Settings settings = this.settingsFor(arrival);
-        if (!settings.equals(encoder.getSettings())) {
-          this.drain();
-          encoder = this.encoderFor(settings, encoder);
-        }
-        this.send(encoder, arrival, frameId);
-        frameId = (frameId + 1) & Mcv2Decoder.MAX_U32;
-      }
-    } catch (final InterruptedException exception) {
-      Thread.currentThread().interrupt();
-    } catch (final RuntimeException failure) {
-      LOGGER.error(ENCODER_FAILED, failure);
-    } finally {
-      this.stopPipeline(own);
-    }
-  }
-
-  Settings settingsFor(final Arrival arrival) {
-    return this.ladder.get(this.presets.indexOf(arrival.preset));
-  }
-
-  MCV2 encoderFor(final Settings settings, final MCV2 encoder) {
-    encoder.switchTo(settings);
-    return encoder;
-  }
-
-  void pace() {
-    final List<int[]> sizes = new ArrayList<>();
-    sizes.add(new int[] { this.requested.getVideoWidth(), this.requested.getVideoHeight() });
-    sizes.addAll(this.smaller);
-    final Mcv2Pacer screenPacer = new Mcv2Pacer(sizes, this.presets, this.fallback != null);
-    synchronized (this.lock) {
-      this.pacer = screenPacer;
-      this.ditheredForAll = false;
-    }
-  }
-
-  @Nullable Arrival poll() {
-    return this.pending.poll();
-  }
-
-  @Nullable Arrival take() throws InterruptedException {
-    return this.pending.take();
-  }
-
-  void send(final MCV2 encoder, final Arrival arrival, final long frameId) throws InterruptedException {
-    final Screen current = this.screen;
-    if (current.channel().takeKeyframeRequest()) {
-      encoder.requestKeyframe();
-    }
-
-    encoder.setFrameLimit(current.configuration().getPageSlots() * TransportPages.capacity());
-    final int width = arrival.width;
-    final int height = arrival.height;
-    final Pipeline running;
-    synchronized (this.lock) {
-      running = this.pipeline;
-    }
-    final long started = this.clock.getAsLong();
-    final boolean isKeyframe;
-    Delivery delivery = null;
-    if (running == null) {
-      final byte[] frame = encoder.encode(arrival.pictureBytes, width, height, frameId);
-      final MCV2.Stats stats = Preconditions.checkNotNull(encoder.getStats());
-      isKeyframe = stats.keyframe();
-      delivery = new Delivery(frame, stats, frameId, arrival);
-    } else {
-      final MCV2.Pending pending = running.budget().run(() -> encoder.begin(arrival.pictureBytes, width, height, frameId));
-      isKeyframe = pending.isKeyframe();
-      // Count before handoff so drain cannot overlook a frame the sender already owns.
-      synchronized (this.lock) {
-        this.handed++;
-      }
-      running.queue().put(new Handoff(encoder, pending, frameId, arrival));
-    }
-    final long finished = this.clock.getAsLong();
-    Mcv2Pacer.Change change = null;
-    synchronized (this.lock) {
-      final Mcv2Pacer screenPacer = this.pacer;
-      if (screenPacer != null) {
-        change = screenPacer.encoded((finished - started) / NANOSECONDS_PER_MILLISECOND, isKeyframe, finished);
-        if (change != null) {
-          this.follow(change);
-        }
-      }
-    }
-    if (change != null) {
-      this.announce(change);
-    }
-    if (delivery != null) {
-      this.deliver(delivery);
-    }
-  }
-
-  void drain() throws InterruptedException {
-    synchronized (this.lock) {
-      while (this.running && this.delivered < this.handed) {
-        this.lock.wait();
-      }
-    }
-  }
-
-  private void stopPipeline(final @Nullable Pipeline stopped) {
-    final Thread screenThread;
-    final Thread delivery;
-    synchronized (this.lock) {
-      final Pipeline current = this.pipeline;
-
-      if (stopped == null || !Objects.equals(stopped, current)) {
-        return;
-      }
-      this.running = false;
-      this.pending.close();
-      this.lock.notifyAll();
-
-      screenThread = Objects.requireNonNull(this.worker, "A running pipeline has its screen's thread");
-      delivery = Objects.requireNonNull(this.sender, "A running pipeline has its sender");
-    }
-
-    screenThread.interrupt();
-    delivery.interrupt();
-  }
-
-  private void deliverLoop(final Pipeline running, final Thread screenThread) {
-    try {
-      while (true) {
-        final Handoff handoff = running.queue().take();
-        final MCV2.Encoded encoded = running.budget().run(() -> handoff.encoder().finish(handoff.pending()));
-        this.deliver(new Delivery(encoded.getData(), encoded.getStats(), handoff.frameId(), handoff.source()));
-        synchronized (this.lock) {
-          this.delivered++;
-          this.lock.notifyAll();
-        }
-      }
-    } catch (final InterruptedException exception) {
-      Thread.currentThread().interrupt();
-    } catch (final RuntimeException failure) {
-      LOGGER.error(SENDER_FAILED, failure);
-    } finally {
-      this.stopPipeline(running);
-      // Interrupt even after release clears the pipeline, or the screen thread can wait forever.
-      screenThread.interrupt();
-    }
-  }
-
-  private void deliver(final Delivery delivery) {
-    final byte[] frame = delivery.frame;
-    final long frameId = delivery.frameId;
-    final MCV2.Stats stats = delivery.stats;
-    final Mcv2FrameEvent event = new Mcv2FrameEvent();
-    final boolean recorded = event.isEnabled();
-    final long[] before = recorded ? this.linkCounts() : new long[LINK_COUNTS];
-    final Screen current = this.screen;
-    final int colors = current.channel().send(frame);
-    if (colors >= 0) {
-      this.frameListener.accept(frame);
-    }
-    if (recorded) {
-      this.record(event, delivery, colors, before);
-    }
-    if (colors < 0) {
-      LOGGER.warn(FRAME_TOO_LARGE, frameId, frame.length, current.configuration().getPageSlots());
-      this.statistics.drop();
-      return;
-    }
-    this.statistics.add(stats, colors);
-  }
-
-  private void follow(final Mcv2Pacer.Change change) {
-    this.ditheredForAll = change.to().isDithered();
-    if (this.ditheredForAll) {
-      this.pending.clear();
-    }
-    Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), this::sync);
-  }
-
-  void sync() {
-    final Mcv2Pacer.Rung rung;
-    synchronized (this.lock) {
-      final Mcv2Pacer screenPacer = this.pacer;
-      if (screenPacer == null) {
-        return;
-      }
-      rung = screenPacer.getRung();
-    }
-    final Screen current = this.screen;
-    final Mcv2Configuration configuration = current.configuration();
-    if (rung.isDithered()) {
-      if (this.opened) {
-        current.channel().removeFrames();
-        this.opened = false;
-      }
-      return;
-    }
-    Screen target = current;
-    if (size(rung.width(), rung.height()) != size(configuration.getVideoWidth(), configuration.getVideoHeight())) {
-      current.channel().close();
-      this.opened = false;
-      final Mcv2Configuration size = this.requested.withVideo(rung.width(), rung.height());
-      target = new Screen(size, Preconditions.checkNotNull(this.resizer).resize(size));
-      this.screen = target;
-    }
-    if (!this.opened) {
-      target.channel().open();
-      this.opened = true;
-    }
-  }
-
-  private void announce(final Mcv2Pacer.Change change) {
-    if (change.down()) {
-      LOGGER.warn(PACING_STEP, change.describe());
-    } else {
-      LOGGER.info(PACING_STEP, change.describe());
-    }
-    this.pacingListener.accept(change);
-  }
-
-  /**
-   * Stops the encoder, removes the page frames and clears the wall's maps for every viewer, those dithered for and those
-   * decoding MCV2. Call on the main thread.
-   *
-   * <p>Worker joins are bounded; a worker that does not respond to interruption may outlive this call.
-   * Fallback executor shutdown does not await termination. Release does not close the shared encoder pool or pack tracker.
-   */
-  @Override
-  public void release() {
-    final Thread thread;
-    final Thread delivery;
-    synchronized (this.lock) {
-      this.running = false;
-      this.pending.close();
-      this.lock.notifyAll();
-      thread = this.worker;
-      delivery = this.sender;
-      this.worker = null;
-      this.sender = null;
-      this.pipeline = null;
-      this.pacer = null;
-    }
-    stop(thread);
-    stop(delivery);
-    this.screen.channel().close();
-    this.opened = false;
-    // Encoded viewers retain anchor maps, which keep their last decoded picture visible.
-    final Set<UUID> decoding = new HashSet<>(this.requested.getViewers());
-    decoding.removeAll(this.fallbackViewers);
-    final int maps = this.requested.getColumns() * this.requested.getRows();
-    MapPacketFactory.clear(decoding, this.requested.getMap(), maps);
-    final ExecutorService ditheringOwn = this.ditheringThread;
-    if (ditheringOwn != null) {
-      ditheringOwn.shutdown();
-    }
-    final Fallback dithered = this.fallback;
-    if (dithered != null) {
-      dithered.result().release();
-    }
-  }
-
-  private static long size(final int width, final int height) {
-    return ((long) width << Integer.SIZE) | height;
   }
 }

@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.Images;
 import me.brandonli.mcav.bukkit.testing.MapPackets;
@@ -41,10 +41,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests that releasing an MCV2 screen clears every map of its wall for the viewers that decoded it, a wall of several
- * maps included.
- */
 final class Mcv2ResultReleaseTest {
 
   private static final UUID WITH_PACK = UUID.fromString("00000000-0000-0000-0000-000000000061");
@@ -67,7 +63,7 @@ final class Mcv2ResultReleaseTest {
   }
 
   @Test
-  void clearsEveryMapOfAWallOfSeveralMapsForTheViewersWithThePack() {
+  void shouldClearEveryMapOfAWallOfSeveralMapsForTheViewersWithThePack() {
     final Mcv2Viewers viewers = mock(Mcv2Viewers.class);
     when(viewers.isLoaded(WITH_PACK)).thenReturn(true);
     final Mcv2Screen screen = mock(Mcv2Screen.class);
@@ -87,7 +83,7 @@ final class Mcv2ResultReleaseTest {
       .video(64, 32)
       .pageMap(500)
       .settings(Settings.FAST)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     final Mcv2Result result = new Mcv2Result(
       configuration,
@@ -102,19 +98,19 @@ final class Mcv2ResultReleaseTest {
     result.applyFilter(frame, metadata);
     this.server.runTasks();
     result.applyFilter(frame, metadata);
-    assertEquals(Set.of(WITH_PACK), result.getChannel().getRecipients());
+    final Set<UUID> expectedRecipients = Set.of(WITH_PACK);
+    final Set<UUID> recipients = result.getChannel().getRecipients();
+    assertEquals(expectedRecipients, recipients);
 
     result.release();
 
     final List<Packet<?>> sent = this.server.getSentPackets(WITH_PACK);
     final List<ClientboundMapItemDataPacket> cleared = MapPackets.unbundle(sent.getLast());
-    assertEquals(
-      List.of(100, 101, 102, 103, 104, 105),
-      cleared
-        .stream()
-        .map(packet -> packet.mapId().id())
-        .toList(),
-      "every map of the wall is cleared, not the first only"
-    );
+    final List<Integer> expectedMapIds = List.of(100, 101, 102, 103, 104, 105);
+    final List<Integer> clearedMapIds = cleared
+      .stream()
+      .map(packet -> packet.mapId().id())
+      .toList();
+    assertEquals(expectedMapIds, clearedMapIds, "every map of the wall is cleared, not the first only");
   }
 }

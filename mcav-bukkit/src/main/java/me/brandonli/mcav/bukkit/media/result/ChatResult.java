@@ -39,6 +39,8 @@ import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
  * Input buffers remain caller-owned and are consumed synchronously, even when converted display data is applied
  * on a later server tick. Serialize frame delivery with lifecycle operations unless this class explicitly provides
  * locking, and never mutate an input buffer concurrently with conversion.
+ *
+ * @since 1.0.0
  */
 public class ChatResult implements FunctionalVideoFilter {
 
@@ -49,9 +51,11 @@ public class ChatResult implements FunctionalVideoFilter {
    *
    * @param configuration the configuration describing the viewers, character, and size of the chat image
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   public ChatResult(final ChatConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Chat configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Chat configuration must not be null!");
+
     this.configuration = configuration;
   }
 
@@ -62,11 +66,13 @@ public class ChatResult implements FunctionalVideoFilter {
    * @param metadata the metadata of the original video
    * @return always true, because the frame is resized
    * @throws NullPointerException if {@code data} or {@code metadata} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(data, "Frame must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(data, "Frame must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
     final int width = this.configuration.getChatWidth();
     final int height = this.configuration.getChatHeight();
     final ResizeFilter resize = new ResizeFilter(width, height);
@@ -78,11 +84,14 @@ public class ChatResult implements FunctionalVideoFilter {
     final ClientboundSystemChatPacket packet = new ClientboundSystemChatPacket(message, false);
     final Collection<UUID> viewers = this.configuration.getViewers();
     PacketUtils.sendPackets(viewers, packet);
+
     return true;
   }
 
   /**
    * Clears the chat of every viewer, so the video starts on an empty chat.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -92,6 +101,8 @@ public class ChatResult implements FunctionalVideoFilter {
 
   /**
    * Clears the chat of every viewer.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

@@ -18,12 +18,15 @@
 /**
  * Tick-driven block, text-entity and sidebar renderers shared by still-image displays and video results.
  *
- * <p>Show a renderer, submit caller-owned images, then hide it. Conversion occurs in the calling thread;
- * the latest converted frame is applied on the main thread at most once per tick. Viewer membership is also
- * checked each tick. Hiding cancels rendering and removes/restores display state; perform shutdown cleanup on
- * the main thread. Input buffers are never owned by the renderer and must not be mutated during conversion.
+ * <p>Show a renderer, a {@link BlockRenderer}, {@link EntityRenderer} or {@link ScoreboardRenderer}, submit
+ * caller-owned images, then hide it. Conversion occurs in the calling thread; the latest converted frame is applied on
+ * the main thread at most once per tick. Viewer membership is also checked each tick. Hiding cancels rendering and
+ * removes/restores display state; perform shutdown cleanup on the main thread. Input buffers are never owned by the
+ * renderer and must not be mutated during conversion.
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
+ *
+ * @since 1.0.0
  */
 package me.brandonli.mcav.bukkit.media.render;

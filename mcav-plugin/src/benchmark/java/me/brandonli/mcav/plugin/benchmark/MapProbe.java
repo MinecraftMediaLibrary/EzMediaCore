@@ -128,7 +128,7 @@ final class MapProbe implements DitherResultStep {
       }
     }
     final MapLayout layout = new MapLayout(startMapId, columns, rows, width, height);
-    final DeltaMapEncoder created = new DeltaMapEncoder(layout, DeltaMapEncoder.DEFAULT_MAX_BYTES_PER_FRAME);
+    final DeltaMapEncoder created = new DeltaMapEncoder(layout, DeltaMapEncoder.DEFAULT_MAXIMUM_BYTES_PER_FRAME);
     this.encoder = created;
     return created;
   }

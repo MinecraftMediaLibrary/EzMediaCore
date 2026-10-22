@@ -38,37 +38,40 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ChatUtils}.
- */
 final class ChatUtilsTest {
 
   private static final int RED = 0xFFFF0000;
   private static final int GREEN = 0xFF00FF00;
   private static final int BLUE = 0xFF0000FF;
 
-  /**
-   * Gets the color of every visible character of the component, skipping line breaks.
-   */
-  private static List<Integer> getCharacterColors(final Component component) {
+  private static final int RED_RGB = 0xFF0000;
+  private static final int GREEN_RGB = 0x00FF00;
+  private static final int BLUE_RGB = 0x0000FF;
+
+  private static final String CHARACTER = "#";
+
+  private List<Integer> getCharacterColors(final Component component) {
     final List<Integer> colors = new ArrayList<>();
-    final FormattedText.StyledContentConsumer<Void> consumer = (style, content) -> {
-      final TextColor color = style.getColor();
-      final int value = color == null ? -1 : color.getValue();
-      for (int index = 0; index < content.length(); index++) {
-        final char character = content.charAt(index);
-        if (character != '\n') {
-          colors.add(value);
-        }
-      }
-      return Optional.empty();
-    };
+    final FormattedText.StyledContentConsumer<Void> consumer = (style, content) -> this.recordColors(colors, style, content);
     component.visit(consumer, Style.EMPTY);
     return colors;
   }
 
+  private Optional<Void> recordColors(final List<Integer> colors, final Style style, final String content) {
+    final TextColor color = style.getColor();
+    final int value = color == null ? -1 : color.getValue();
+    for (int index = 0; index < content.length(); index++) {
+      final char character = content.charAt(index);
+      if (character != '\n') {
+        colors.add(value);
+      }
+    }
+
+    return Optional.empty();
+  }
+
   @Test
-  void createsUniqueInvisibleStringsFromTheHexDigitsOfTheIndex() {
+  void shouldCreateUniqueInvisibleStringsFromTheHexadecimalDigitsOfTheIndex() {
     final String zero = ChatUtils.getUniqueString(0);
     final String ten = ChatUtils.getUniqueString(10);
     final String large = ChatUtils.getUniqueString(0x1f0);
@@ -77,6 +80,7 @@ final class ChatUtilsTest {
       final String entry = ChatUtils.getUniqueString(index);
       entries.add(entry);
     }
+
     final int uniqueCount = entries.size();
     assertEquals("§0", zero);
     assertEquals("§a", ten);
@@ -86,82 +90,84 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void writesAColorCodeOnlyWhenTheColorChanges() {
+  void shouldWriteAColorCodeOnlyWhenTheColorChanges() {
     final int[] pixels = { 0xFF112233, 0x00112233, 0xFF000000, 0x7F445566 };
-    final String line = ChatUtils.createRawLine(pixels, "#", 4, 0);
+    final String line = ChatUtils.createRawLine(pixels, CHARACTER, 4, 0);
     assertEquals("§x§1§1§2§2§3§3##§x§0§0§0§0§0§0#§x§4§4§5§5§6§6#", line);
   }
 
   @Test
-  void supportsLongPixelMarkersInChatAndRawLines() {
+  void shouldSupportLongPixelMarkersInChatAndRawLines() {
     final String marker = "long pixel marker with spaces";
     final int[] pixels = { RED };
     final String raw = ChatUtils.createRawLine(pixels, marker, 1, 0);
-    assertEquals("§x§f§f§0§0§0§0" + marker, raw);
+    final String expectedRaw = "§x§f§f§0§0§0§0" + marker;
+    assertEquals(expectedRaw, raw);
+
     final Component component = ChatUtils.createChatComponent(pixels, marker, 1, 1);
     final String text = component.getString();
     assertEquals(marker, text);
   }
 
   @Test
-  void convertsTheRequestedRowOnly() {
+  void shouldConvertTheRequestedRowOnly() {
     final int[] pixels = { RED, RED, GREEN, BLUE };
     final String line = ChatUtils.createRawLine(pixels, "ab", 2, 1);
     assertEquals("§x§0§0§f§f§0§0ab§x§0§0§0§0§f§fab", line);
   }
 
   @Test
-  void rejectsOverflowingImageAndRowBounds() {
+  void shouldRejectOverflowingImageAndRowBounds() {
     final int[] pixels = new int[4];
-    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, "#", 2, Integer.MAX_VALUE));
-    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, "#", Integer.MAX_VALUE, 1));
-    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createChatComponent(pixels, "#", 65536, 65536));
+    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, CHARACTER, 2, Integer.MAX_VALUE));
+    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, CHARACTER, Integer.MAX_VALUE, 1));
+    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createChatComponent(pixels, CHARACTER, 65536, 65536));
   }
 
   @Test
-  void rejectsRowsOutsideOfTheImage() {
+  void shouldRejectRowsOutsideOfTheImage() {
     final int[] pixels = new int[4];
-    assertThrows(NullPointerException.class, () -> ChatUtils.createRawLine(null, "#", 2, 0));
+    assertThrows(NullPointerException.class, () -> ChatUtils.createRawLine(null, CHARACTER, 2, 0));
     assertThrows(NullPointerException.class, () -> ChatUtils.createRawLine(pixels, null, 2, 0));
-    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, "#", 0, 0));
-    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, "#", 2, -1));
-    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, "#", 2, 2));
+    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, CHARACTER, 0, 0));
+    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, CHARACTER, 2, -1));
+    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, CHARACTER, 2, 2));
   }
 
   @Test
-  void createsOneColoredLineOfTextPerRow() {
+  void shouldCreateOneColoredLineOfTextPerRow() {
     final int[] pixels = { RED, RED, GREEN, BLUE };
-    final Component component = ChatUtils.createChatComponent(pixels, "#", 2, 2);
+    final Component component = ChatUtils.createChatComponent(pixels, CHARACTER, 2, 2);
     final String text = component.getString();
-    final List<Integer> colors = getCharacterColors(component);
-    final List<Integer> expectedColors = List.of(0xFF0000, 0xFF0000, 0x00FF00, 0x0000FF);
+    final List<Integer> colors = this.getCharacterColors(component);
+    final List<Integer> expectedColors = List.of(RED_RGB, RED_RGB, GREEN_RGB, BLUE_RGB);
     assertEquals("##\n##", text);
     assertEquals(expectedColors, colors);
   }
 
   @Test
-  void usesTheFirstPixelsWhenThereIsMoreDataThanNeeded() {
+  void shouldUseTheFirstPixelsWhenThereIsMoreDataThanNeeded() {
     final int[] pixels = { BLUE, GREEN, RED };
     final Component component = ChatUtils.createChatComponent(pixels, "█", 1, 2);
     final String text = component.getString();
-    final List<Integer> colors = getCharacterColors(component);
-    final List<Integer> expectedColors = List.of(0x0000FF, 0x00FF00);
+    final List<Integer> colors = this.getCharacterColors(component);
+    final List<Integer> expectedColors = List.of(BLUE_RGB, GREEN_RGB);
     assertEquals("█\n█", text);
     assertEquals(expectedColors, colors);
   }
 
   @Test
-  void rejectsImagesThatDoNotMatchThePixels() {
+  void shouldRejectImagesThatDoNotMatchThePixels() {
     final int[] pixels = new int[4];
-    assertThrows(NullPointerException.class, () -> ChatUtils.createChatComponent(null, "#", 2, 2));
+    assertThrows(NullPointerException.class, () -> ChatUtils.createChatComponent(null, CHARACTER, 2, 2));
     assertThrows(NullPointerException.class, () -> ChatUtils.createChatComponent(pixels, null, 2, 2));
-    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createChatComponent(pixels, "#", 0, 2));
-    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createChatComponent(pixels, "#", 2, 0));
-    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createChatComponent(pixels, "#", 3, 2));
+    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createChatComponent(pixels, CHARACTER, 0, 2));
+    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createChatComponent(pixels, CHARACTER, 2, 0));
+    assertThrows(IllegalArgumentException.class, () -> ChatUtils.createChatComponent(pixels, CHARACTER, 3, 2));
   }
 
   @Test
-  void clearsTheChatOfOnlineViewersByPushingOutTheHistory() throws ReflectiveOperationException {
+  void shouldClearTheChatOfOnlineViewersByPushingOutTheHistory() throws ReflectiveOperationException {
     final UUID online = UUID.randomUUID();
     final UUID offline = UUID.randomUUID();
     try (final FakeServer server = FakeServer.start()) {
@@ -185,7 +191,7 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(ChatUtils.class);
   }
 }

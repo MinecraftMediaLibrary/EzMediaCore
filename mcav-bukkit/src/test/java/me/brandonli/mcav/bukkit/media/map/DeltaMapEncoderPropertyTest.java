@@ -35,44 +35,35 @@ import net.jqwik.api.Provide;
 import net.jqwik.api.arbitraries.IntegerArbitrary;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
-/**
- * Properties of {@link DeltaMapEncoder}, checked against a model of the clients: an array per map that receives every
- * patch the encoder returns, in order, exactly as a client applies map data packets.
- *
- * <p>The encoder documents two ways in which a frame may reach the clients incompletely: maps that do not fit the byte
- * budget of a frame wait for later frames, and tiles with only a few changed pixels are held back for a few frames.
- * Both only delay: once the picture stops changing, the clients must end up showing exactly the last frame. The number
- * of frames that takes is bounded, because every frame that sends anything brings at least one tile up to date and at
- * most {@value #MAX_QUIET_FRAMES} frames in a row can send nothing while a tile is still out of date.
- */
 final class DeltaMapEncoderPropertyTest {
 
   private static final String SEED = "20260925";
   private static final int MAP_SIZE = MapLayout.MAP_SIZE;
   private static final int TILES_PER_MAP = 64;
-  private static final int MAX_QUIET_FRAMES = 7;
+  private static final int MAXIMUM_QUIET_FRAMES = 7;
   private static final short NEVER_SENT = -1;
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  private static final int PER_MILLE = 1000;
+
+  private static final String SCENARIOS = "scenarios";
+
+  // jqwik 1.10 shares a range between derived arbitraries, so each range starts from a fresh one
+  private Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
   @Provide
   Arbitrary<EncodingScenario> scenarios() {
-    final Arbitrary<Integer> columns = between(1, 3);
-    final Arbitrary<Integer> rows = between(1, 3);
-    final Arbitrary<Integer> widths = between(1, 3 * MAP_SIZE + 40);
-    final Arbitrary<Integer> heights = between(1, 3 * MAP_SIZE + 40);
-    final Arbitrary<Integer> tinyBudgets = between(1, 600);
-    final Arbitrary<Integer> smallBudgets = between(600, 40_000);
-    final Arbitrary<Integer> largeBudgets = between(40_000, 1 << 20);
+    final Arbitrary<Integer> columns = this.between(1, 3);
+    final Arbitrary<Integer> rows = this.between(1, 3);
+    final Arbitrary<Integer> widths = this.between(1, 3 * MAP_SIZE + 40);
+    final Arbitrary<Integer> heights = this.between(1, 3 * MAP_SIZE + 40);
+    final Arbitrary<Integer> tinyBudgets = this.between(1, 600);
+    final Arbitrary<Integer> smallBudgets = this.between(600, 40_000);
+    final Arbitrary<Integer> largeBudgets = this.between(40_000, 1 << 20);
     final Arbitrary<Integer> budgets = Arbitraries.oneOf(tinyBudgets, smallBudgets, largeBudgets);
-    final Arbitrary<List<FrameEdit>> editsOfFrame = edits();
+    final Arbitrary<List<FrameEdit>> editsOfFrame = this.edits();
     final ListArbitrary<List<FrameEdit>> frames = editsOfFrame.list();
     final ListArbitrary<List<FrameEdit>> someFrames = frames.ofMinSize(1);
     final ListArbitrary<List<FrameEdit>> boundedFrames = someFrames.ofMaxSize(6);
@@ -87,16 +78,12 @@ final class DeltaMapEncoderPropertyTest {
     return scenarios.as(EncodingScenario::new);
   }
 
-  /**
-   * Changes of one frame against the previous one: large rectangles, which look like motion, and single pixels, which
-   * look like dithering noise and are held back by the encoder.
-   */
-  private static Arbitrary<List<FrameEdit>> edits() {
-    final Arbitrary<Integer> positions = between(0, 999);
-    final Arbitrary<Integer> sizes = between(1, 1000);
+  private Arbitrary<List<FrameEdit>> edits() {
+    final Arbitrary<Integer> positions = this.between(0, 999);
+    final Arbitrary<Integer> sizes = this.between(1, PER_MILLE);
     final Arbitrary<Integer> pixels = Arbitraries.just(1);
     final Arbitrary<Integer> extents = Arbitraries.oneOf(sizes, pixels);
-    final Arbitrary<Integer> colors = between(0, 60);
+    final Arbitrary<Integer> colors = this.between(0, 60);
     final Combinators.Combinator5<Integer, Integer, Integer, Integer, Integer> combined = Combinators.combine(
       positions,
       positions,
@@ -110,14 +97,14 @@ final class DeltaMapEncoderPropertyTest {
   }
 
   @Property(seed = SEED)
-  void everyFrameRespectsTheBudgetAndCarriesOnlyPixelsOfThatFrame(@ForAll("scenarios") final EncodingScenario scenario) {
+  void shouldRespectTheBudgetAndCarryOnlyPixelsOfThatFrameInEveryFrame(@ForAll(SCENARIOS) final EncodingScenario scenario) {
     final MapLayout layout = scenario.createLayout();
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, scenario.getBudget());
     final ClientModel clients = new ClientModel(layout);
 
     for (final byte[] frame : scenario.createFrames()) {
       final List<MapTilePatch> patches = encoder.encode(frame);
-      assertWithinBudget(patches, scenario.getBudget());
+      this.assertWithinBudget(patches, scenario.getBudget());
       for (final MapTilePatch patch : patches) {
         clients.assertCarriesFramePixels(patch, frame);
         clients.apply(patch);
@@ -128,7 +115,7 @@ final class DeltaMapEncoderPropertyTest {
   }
 
   @Property(seed = SEED)
-  void theClientsShowExactlyTheLastFrameOnceThePictureStopsChanging(@ForAll("scenarios") final EncodingScenario scenario) {
+  void shouldShowExactlyTheLastFrameOnTheClientsOnceThePictureStopsChanging(@ForAll(SCENARIOS) final EncodingScenario scenario) {
     final MapLayout layout = scenario.createLayout();
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, scenario.getBudget());
     final ClientModel clients = new ClientModel(layout);
@@ -140,21 +127,23 @@ final class DeltaMapEncoderPropertyTest {
 
     final byte[] lastFrame = frames.getLast();
     final int coveredMaps = clients.countCoveredMaps();
-    final int frameLimit = MAX_QUIET_FRAMES * (coveredMaps * (TILES_PER_MAP + 1)) + MAX_QUIET_FRAMES;
+    final int frameLimit = MAXIMUM_QUIET_FRAMES * (coveredMaps * (TILES_PER_MAP + 1)) + MAXIMUM_QUIET_FRAMES;
     int quietFrames = 0;
     int extraFrames = 0;
-    while (quietFrames < MAX_QUIET_FRAMES) {
-      assertTrue(extraFrames < frameLimit, () -> "the clients did not catch up within " + frameLimit + " frames");
+    while (quietFrames < MAXIMUM_QUIET_FRAMES) {
+      final boolean withinLimit = extraFrames < frameLimit;
+      assertTrue(withinLimit, () -> "the clients did not catch up within " + frameLimit + " frames");
       final List<MapTilePatch> patches = encoder.encode(lastFrame);
       clients.applyAll(patches);
       quietFrames = patches.isEmpty() ? quietFrames + 1 : 0;
       extraFrames++;
     }
+
     clients.assertShows(lastFrame);
   }
 
   @Property(seed = SEED)
-  void aResetSendsEveryCoveredMapCompletelyAgain(@ForAll("scenarios") final EncodingScenario scenario) {
+  void shouldSendEveryCoveredMapCompletelyAgainOnAReset(@ForAll(SCENARIOS) final EncodingScenario scenario) {
     final MapLayout layout = scenario.createLayout();
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 1 << 30);
     final List<byte[]> frames = scenario.createFrames();
@@ -170,7 +159,7 @@ final class DeltaMapEncoderPropertyTest {
     clients.assertShows(lastFrame);
   }
 
-  private static void assertWithinBudget(final List<MapTilePatch> patches, final int budget) {
+  private void assertWithinBudget(final List<MapTilePatch> patches, final int budget) {
     long bytes = 0;
     final Set<Integer> maps = new HashSet<>();
     for (final MapTilePatch patch : patches) {
@@ -178,15 +167,14 @@ final class DeltaMapEncoderPropertyTest {
       final int mapId = patch.getMapId();
       maps.add(mapId);
     }
+
     final long sent = bytes;
     final int mapCount = maps.size();
     final boolean withinBudget = sent <= budget || mapCount == 1;
     assertTrue(withinBudget, () -> sent + " bytes over " + mapCount + " maps in one frame, budget " + budget);
   }
 
-  /**
-   * One frame of a scenario, a pure function of the scenario so that shrinking the scenario shrinks the frames.
-   */
+  // a pure function of the scenario, so shrinking the scenario shrinks the frames
   private static final class EncodingScenario {
 
     private final int columns;
@@ -216,14 +204,6 @@ final class DeltaMapEncoderPropertyTest {
       return new MapLayout(7, this.columns, this.rows, this.imageWidth, this.imageHeight);
     }
 
-    private int getBudget() {
-      return this.budget;
-    }
-
-    /**
-     * Builds the frames: the first starts from a picture with a different color in every row, and every frame applies
-     * its edits to the previous one.
-     */
     private List<byte[]> createFrames() {
       final List<byte[]> frames = new ArrayList<>();
       byte[] frame = new byte[this.imageWidth * this.imageHeight];
@@ -231,6 +211,7 @@ final class DeltaMapEncoderPropertyTest {
         final int row = index / this.imageWidth;
         frame[index] = (byte) (row % 50);
       }
+
       for (final List<FrameEdit> edits : this.frameEdits) {
         final byte[] next = frame.clone();
         for (final FrameEdit edit : edits) {
@@ -239,7 +220,12 @@ final class DeltaMapEncoderPropertyTest {
         frames.add(next);
         frame = next;
       }
+
       return frames;
+    }
+
+    private int getBudget() {
+      return this.budget;
     }
 
     @Override
@@ -261,9 +247,6 @@ final class DeltaMapEncoderPropertyTest {
     }
   }
 
-  /**
-   * A rectangle painted in one color, given in thousandths of the image so it fits every image size.
-   */
   private static final class FrameEdit {
 
     private final int left;
@@ -281,8 +264,8 @@ final class DeltaMapEncoderPropertyTest {
     }
 
     private void applyTo(final byte[] frame, final int imageWidth, final int imageHeight) {
-      final int left = (this.left * imageWidth) / 1000;
-      final int top = (this.top * imageHeight) / 1000;
+      final int left = (this.left * imageWidth) / PER_MILLE;
+      final int top = (this.top * imageHeight) / PER_MILLE;
       final int right = Math.min(imageWidth, left + scale(this.width, imageWidth));
       final int bottom = Math.min(imageHeight, top + scale(this.height, imageHeight));
       for (int row = top; row < bottom; row++) {
@@ -293,7 +276,7 @@ final class DeltaMapEncoderPropertyTest {
     }
 
     private static int scale(final int size, final int imageSize) {
-      final int scaled = (size * imageSize) / 1000;
+      final int scaled = (size * imageSize) / PER_MILLE;
       return size == 1 ? 1 : Math.max(1, scaled);
     }
 
@@ -303,10 +286,6 @@ final class DeltaMapEncoderPropertyTest {
     }
   }
 
-  /**
-   * What the clients display: every map starts with pixels that were never sent, and every patch overwrites its
-   * rectangle, as the Minecraft client does with a map data packet.
-   */
   private static final class ClientModel {
 
     private final MapLayout layout;
@@ -349,12 +328,10 @@ final class DeltaMapEncoderPropertyTest {
       final int mapCount = this.layout.getMapCount();
       final boolean inLayout = index >= 0 && index < mapCount;
       assertTrue(inLayout, () -> "patch for map " + mapId + ", which is not part of the layout");
+
       return index;
     }
 
-    /**
-     * Asserts that a patch lies inside the covered region of its map and shows the pixels the frame has there.
-     */
     private void assertCarriesFramePixels(final MapTilePatch patch, final byte[] frame) {
       final int index = this.indexOf(patch);
       final MapRegion region = this.layout.getRegion(index);
@@ -381,34 +358,38 @@ final class DeltaMapEncoderPropertyTest {
       }
     }
 
-    /**
-     * Asserts that the snapshot is exactly what the clients display: every map that received anything, and nothing else.
-     */
     private void assertMatchesSnapshot(final List<MapTilePatch> snapshot) {
       final ClientModel restored = new ClientModel(this.layout);
       restored.applyAll(snapshot);
       for (int index = 0; index < this.maps.length; index++) {
-        assertArrayEquals(this.maps[index], restored.maps[index], "the snapshot reconstructs every sent pixel of map " + index);
+        final short[] expectedMap = this.maps[index];
+        final short[] restoredMap = restored.maps[index];
+        assertArrayEquals(expectedMap, restoredMap, "the snapshot reconstructs every sent pixel of map " + index);
       }
+
       final Set<Integer> snapshotMaps = new HashSet<>();
       for (final MapTilePatch patch : snapshot) {
         final int index = this.indexOf(patch);
         snapshotMaps.add(index);
-        final short[] map = this.maps[index];
-        final byte[] colors = patch.getColors();
-        final int width = patch.getWidth();
-        for (int row = 0; row < patch.getHeight(); row++) {
-          for (int column = 0; column < width; column++) {
-            final short shown = map[(patch.getY() + row) * MAP_SIZE + patch.getX() + column];
-            final short expected = colors[row * width + column];
-            assertEquals(expected, shown, "the snapshot shows what the clients display");
-          }
-        }
+        this.assertPatchShown(patch, this.maps[index]);
       }
+
       for (int index = 0; index < this.maps.length; index++) {
         final boolean received = this.hasReceived(index);
         final boolean inSnapshot = snapshotMaps.contains(index);
         assertEquals(received, inSnapshot, "the snapshot holds exactly the maps that were sent");
+      }
+    }
+
+    private void assertPatchShown(final MapTilePatch patch, final short[] map) {
+      final byte[] colors = patch.getColors();
+      final int width = patch.getWidth();
+      for (int row = 0; row < patch.getHeight(); row++) {
+        for (int column = 0; column < width; column++) {
+          final short shown = map[(patch.getY() + row) * MAP_SIZE + patch.getX() + column];
+          final short expected = colors[row * width + column];
+          assertEquals(expected, shown, "the snapshot shows what the clients display");
+        }
       }
     }
 
@@ -418,6 +399,7 @@ final class DeltaMapEncoderPropertyTest {
           return true;
         }
       }
+
       return false;
     }
 
@@ -429,31 +411,33 @@ final class DeltaMapEncoderPropertyTest {
           covered++;
         }
       }
+
       return covered;
     }
 
-    /**
-     * Asserts that every map shows the frame where the image covers it and was never sent anything anywhere else.
-     */
     private void assertShows(final byte[] frame) {
       final int imageWidth = this.layout.getImageWidth();
       for (int index = 0; index < this.maps.length; index++) {
-        final MapRegion region = this.layout.getRegion(index);
-        final short[] map = this.maps[index];
         for (int row = 0; row < MAP_SIZE; row++) {
-          for (int column = 0; column < MAP_SIZE; column++) {
-            final short shown = map[row * MAP_SIZE + column];
-            final int regionX = column - region.getLocalX();
-            final int regionY = row - region.getLocalY();
-            final boolean covered = regionX >= 0 && regionY >= 0 && regionX < region.getWidth() && regionY < region.getHeight();
-            if (covered) {
-              final int sourceIndex = (region.getSourceY() + regionY) * imageWidth + region.getSourceX() + regionX;
-              final short expected = frame[sourceIndex];
-              assertEquals(expected, shown, "map " + index + " shows the last frame at " + column + "," + row);
-            } else {
-              assertEquals(NEVER_SENT, shown, "map " + index + " was sent nothing outside the image at " + column + "," + row);
-            }
-          }
+          this.assertRowShows(frame, imageWidth, index, row);
+        }
+      }
+    }
+
+    private void assertRowShows(final byte[] frame, final int imageWidth, final int index, final int row) {
+      final MapRegion region = this.layout.getRegion(index);
+      final short[] map = this.maps[index];
+      for (int column = 0; column < MAP_SIZE; column++) {
+        final short shown = map[row * MAP_SIZE + column];
+        final int regionX = column - region.getLocalX();
+        final int regionY = row - region.getLocalY();
+        final boolean covered = regionX >= 0 && regionY >= 0 && regionX < region.getWidth() && regionY < region.getHeight();
+        if (covered) {
+          final int sourceIndex = (region.getSourceY() + regionY) * imageWidth + region.getSourceX() + regionX;
+          final short expected = frame[sourceIndex];
+          assertEquals(expected, shown, "map " + index + " shows the last frame at " + column + "," + row);
+        } else {
+          assertEquals(NEVER_SENT, shown, "map " + index + " was sent nothing outside the image at " + column + "," + row);
         }
       }
     }

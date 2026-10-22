@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import me.brandonli.mcav.bukkit.media.config.BlockConfiguration;
+import me.brandonli.mcav.bukkit.media.config.BlockConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.lookup.BlockPaletteLookup;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.FakeWorld;
@@ -53,9 +54,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-/**
- * Tests {@link BlockRenderer}.
- */
 final class BlockRendererTest {
 
   private static final int BROWN = (102 << 16) | (76 << 8) | 51;
@@ -64,6 +62,8 @@ final class BlockRendererTest {
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID OFFLINE = UUID.fromString("00000000-0000-0000-0000-000000000002");
   private static final UUID LATE = UUID.fromString("00000000-0000-0000-0000-000000000003");
+
+  private static final int OPAQUE_ALPHA = 0xFF000000;
 
   private FakeServer server;
   private FakeWorld world;
@@ -89,7 +89,7 @@ final class BlockRendererTest {
   private BlockConfiguration createConfiguration() {
     final World configuredWorld = this.world.getWorld();
     final Location position = new Location(configuredWorld, 10.7, 64.2, -5.3);
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     builder.viewers(this.viewers);
     builder.position(position);
     builder.blockWidth(3);
@@ -97,20 +97,20 @@ final class BlockRendererTest {
     return builder.build();
   }
 
-  private static ImageBuffer solidImage(final int width, final int height, final int rgb) {
+  private ImageBuffer solidImage(final int width, final int height, final int rgb) {
     final int[] pixels = new int[width * height];
-    Arrays.fill(pixels, 0xFF000000 | rgb);
+    Arrays.fill(pixels, OPAQUE_ALPHA | rgb);
     return ImageBuffer.buffer(pixels, width, height);
   }
 
-  private static ImageBuffer imageWithOneMagentaBlock() {
+  private ImageBuffer imageWithOneMagentaBlock() {
     final int[] pixels = new int[6];
-    Arrays.fill(pixels, 0xFF000000 | BROWN);
-    pixels[4] = 0xFF000000 | MAGENTA;
+    Arrays.fill(pixels, OPAQUE_ALPHA | BROWN);
+    pixels[4] = OPAQUE_ALPHA | MAGENTA;
     return ImageBuffer.buffer(pixels, 3, 2);
   }
 
-  private static Map<Position, BlockData> expectAll(final BlockData block) {
+  private Map<Position, BlockData> expectAll(final BlockData block) {
     final Map<Position, BlockData> expected = new HashMap<>();
     for (int blockX = 9; blockX <= 11; blockX++) {
       for (int blockY = 64; blockY <= 65; blockY++) {
@@ -118,6 +118,7 @@ final class BlockRendererTest {
         expected.put(position, block);
       }
     }
+
     return expected;
   }
 
@@ -130,12 +131,14 @@ final class BlockRendererTest {
         expected.put(position, original);
       }
     }
+
     return expected;
   }
 
-  private static List<Map<? extends Position, BlockData>> captureChanges(final CraftPlayer player, final int expectedCalls) {
+  private List<Map<? extends Position, BlockData>> captureChanges(final CraftPlayer player, final int expectedCalls) {
     final ArgumentCaptor<Map<? extends Position, BlockData>> captor = ArgumentCaptor.captor();
     verify(player, times(expectedCalls)).sendMultiBlockChange(captor.capture());
+
     return captor.getAllValues();
   }
 
@@ -146,37 +149,38 @@ final class BlockRendererTest {
   }
 
   @Test
-  void showsFramesAsAWallCenteredOnThePositionAndGrowingUpward() {
+  void shouldShowFramesAsAWallCenteredOnThePositionAndGrowingUpward() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer image = solidImage(3, 2, BROWN);
+    final ImageBuffer image = this.solidImage(3, 2, BROWN);
 
     renderer.show();
     renderer.render(image);
     this.server.runTasks();
 
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 1);
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 1);
     final BlockData brown = BlockPaletteLookup.getBlockData(BROWN);
-    final Map<Position, BlockData> expected = expectAll(brown);
+    final Map<Position, BlockData> expected = this.expectAll(brown);
     final Map<? extends Position, BlockData> sent = changes.getFirst();
     assertEquals(expected, sent);
   }
 
   @Test
-  void placesTheFirstImageRowAtTheTop() {
+  void shouldPlaceTheFirstImageRowAtTheTop() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final int[] pixels = { BROWN, BROWN, BROWN, MAGENTA, BROWN, BROWN };
     for (int index = 0; index < pixels.length; index++) {
-      pixels[index] |= 0xFF000000;
+      pixels[index] |= OPAQUE_ALPHA;
     }
+
     final ImageBuffer image = ImageBuffer.buffer(pixels, 3, 2);
 
     renderer.show();
     renderer.render(image);
     this.server.runTasks();
 
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 1);
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 1);
     final Map<? extends Position, BlockData> sent = changes.getFirst();
     final Position bottomLeft = Position.block(9, 64, -6);
     final Position topLeft = Position.block(9, 65, -6);
@@ -189,7 +193,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void dithersColorsThatNoBlockHasToThePaletteOfTheWall() {
+  void shouldDitherColorsThatNoBlockHasToThePaletteOfTheWall() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final int unmappedColor = (1 << 16) | (2 << 8) | 3;
@@ -197,12 +201,12 @@ final class BlockRendererTest {
     final Material airMaterial = air.getMaterial();
     assertEquals(Material.AIR, airMaterial, "the color of this test is not a color of the block palette");
 
-    final ImageBuffer image = solidImage(3, 2, unmappedColor);
+    final ImageBuffer image = this.solidImage(3, 2, unmappedColor);
     renderer.show();
     renderer.render(image);
     this.server.runTasks();
 
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 1);
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 1);
     final Map<? extends Position, BlockData> sent = changes.getFirst();
     final Position bottomLeft = Position.block(9, 64, -6);
     final BlockData block = sent.get(bottomLeft);
@@ -210,12 +214,12 @@ final class BlockRendererTest {
   }
 
   @Test
-  void sendsOnlyTheBlocksThatChangedToViewersWhoAlreadySeeTheWall() {
+  void shouldSendOnlyTheBlocksThatChangedToViewersWhoAlreadySeeTheWall() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer first = solidImage(3, 2, BROWN);
-    final ImageBuffer identical = solidImage(3, 2, BROWN);
-    final ImageBuffer changed = imageWithOneMagentaBlock();
+    final ImageBuffer first = this.solidImage(3, 2, BROWN);
+    final ImageBuffer identical = this.solidImage(3, 2, BROWN);
+    final ImageBuffer changed = this.imageWithOneMagentaBlock();
 
     renderer.show();
     renderer.render(first);
@@ -225,7 +229,7 @@ final class BlockRendererTest {
     renderer.render(changed);
     this.server.runTasks();
 
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 2);
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 2);
     final Map<? extends Position, BlockData> delta = changes.get(1);
     final BlockData magenta = BlockPaletteLookup.getBlockData(MAGENTA);
     final Position changedPosition = Position.block(10, 64, -6);
@@ -234,11 +238,11 @@ final class BlockRendererTest {
   }
 
   @Test
-  void sendsTheCompleteWallToViewersWhoStartWatchingDuringPlayback() {
+  void shouldSendTheCompleteWallToViewersWhoStartWatchingDuringPlayback() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer first = solidImage(3, 2, BROWN);
-    final ImageBuffer changed = imageWithOneMagentaBlock();
+    final ImageBuffer first = this.solidImage(3, 2, BROWN);
+    final ImageBuffer changed = this.imageWithOneMagentaBlock();
 
     renderer.show();
     renderer.render(first);
@@ -249,14 +253,14 @@ final class BlockRendererTest {
     renderer.render(changed);
     this.server.runTasks();
 
-    final List<Map<? extends Position, BlockData>> lateChanges = captureChanges(latePlayer, 1);
-    final List<Map<? extends Position, BlockData>> viewerChanges = captureChanges(this.viewer, 2);
+    final List<Map<? extends Position, BlockData>> lateChanges = this.captureChanges(latePlayer, 1);
+    final List<Map<? extends Position, BlockData>> viewerChanges = this.captureChanges(this.viewer, 2);
     final Map<? extends Position, BlockData> lateWall = lateChanges.getFirst();
     final Map<? extends Position, BlockData> viewerDelta = viewerChanges.get(1);
     final BlockData brown = BlockPaletteLookup.getBlockData(BROWN);
     final BlockData magenta = BlockPaletteLookup.getBlockData(MAGENTA);
     final Position changedPosition = Position.block(10, 64, -6);
-    final Map<Position, BlockData> expectedWall = expectAll(brown);
+    final Map<Position, BlockData> expectedWall = this.expectAll(brown);
     expectedWall.put(changedPosition, magenta);
     final Map<Position, BlockData> expectedDelta = Map.of(changedPosition, magenta);
     assertEquals(expectedWall, lateWall, "the new viewer sees the whole current picture, not only the delta");
@@ -264,31 +268,32 @@ final class BlockRendererTest {
   }
 
   @Test
-  void sendsTheCompleteWallToEveryViewerOnceEveryInterval() {
+  void shouldSendTheCompleteWallToEveryViewerOnceEveryInterval() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer image = solidImage(3, 2, BROWN);
+    final ImageBuffer image = this.solidImage(3, 2, BROWN);
 
     renderer.show();
     renderer.render(image);
     this.runTicksUntilTheFullResendIsDue();
     verify(this.viewer, times(1)).sendMultiBlockChange(anyMap());
+
     this.server.runTasks();
 
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 2);
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 2);
     final Map<? extends Position, BlockData> resent = changes.get(1);
     final BlockData brown = BlockPaletteLookup.getBlockData(BROWN);
-    final Map<Position, BlockData> expected = expectAll(brown);
+    final Map<Position, BlockData> expected = this.expectAll(brown);
     assertEquals(20, BlockRenderer.FULL_RESEND_INTERVAL_TICKS);
     assertEquals(expected, resent, "a static picture is sent again, so reloaded chunks show the wall again");
   }
 
   @Test
-  void sendsTheCompleteWallAgainToViewersWhoRejoin() {
+  void shouldSendTheCompleteWallAgainToViewersWhoRejoin() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer first = solidImage(3, 2, BROWN);
-    final ImageBuffer changed = imageWithOneMagentaBlock();
+    final ImageBuffer first = this.solidImage(3, 2, BROWN);
+    final ImageBuffer changed = this.imageWithOneMagentaBlock();
 
     renderer.show();
     renderer.render(first);
@@ -300,23 +305,23 @@ final class BlockRendererTest {
     this.world.enter(rejoined);
     this.server.runTasks();
 
-    final List<Map<? extends Position, BlockData>> rejoinedChanges = captureChanges(rejoined, 1);
+    final List<Map<? extends Position, BlockData>> rejoinedChanges = this.captureChanges(rejoined, 1);
     final Map<? extends Position, BlockData> wall = rejoinedChanges.getFirst();
     final BlockData brown = BlockPaletteLookup.getBlockData(BROWN);
     final BlockData magenta = BlockPaletteLookup.getBlockData(MAGENTA);
     final Position changedPosition = Position.block(10, 64, -6);
-    final Map<Position, BlockData> expectedWall = expectAll(brown);
+    final Map<Position, BlockData> expectedWall = this.expectAll(brown);
     expectedWall.put(changedPosition, magenta);
     verify(this.viewer, times(1)).sendMultiBlockChange(anyMap());
     assertEquals(expectedWall, wall);
   }
 
   @Test
-  void restoresTheOriginalBlocksForViewersWhoAreRemovedDuringPlayback() {
+  void shouldRestoreTheOriginalBlocksForViewersWhoAreRemovedDuringPlayback() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer image = solidImage(3, 2, BROWN);
-    final ImageBuffer changed = imageWithOneMagentaBlock();
+    final ImageBuffer image = this.solidImage(3, 2, BROWN);
+    final ImageBuffer changed = this.imageWithOneMagentaBlock();
 
     renderer.show();
     renderer.render(image);
@@ -326,14 +331,14 @@ final class BlockRendererTest {
     renderer.render(changed);
     this.server.runTasks();
 
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 2);
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 2);
     final Map<? extends Position, BlockData> restored = changes.get(1);
     final Map<Position, BlockData> expected = this.expectOriginal();
     assertEquals(expected, restored, "the removed viewer sees the world again and receives no more frames");
   }
 
   @Test
-  void waitsForTheFirstFrameBeforeSendingAnything() {
+  void shouldWaitForTheFirstFrameBeforeSendingAnything() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
 
@@ -344,10 +349,10 @@ final class BlockRendererTest {
   }
 
   @Test
-  void resizesImagesToTheWall() {
+  void shouldResizeImagesToTheWall() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer image = solidImage(30, 20, BROWN);
+    final ImageBuffer image = this.solidImage(30, 20, BROWN);
 
     renderer.render(image);
 
@@ -358,10 +363,10 @@ final class BlockRendererTest {
   }
 
   @Test
-  void restoresTheOriginalBlocksWhenHidden() throws ReflectiveOperationException {
+  void shouldRestoreTheOriginalBlocksWhenHidden() throws ReflectiveOperationException {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer image = solidImage(3, 2, BROWN);
+    final ImageBuffer image = this.solidImage(3, 2, BROWN);
 
     renderer.show();
     renderer.render(image);
@@ -370,40 +375,42 @@ final class BlockRendererTest {
     renderer.hide();
 
     final int tasks = this.server.getScheduledTaskCount();
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 2);
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 2);
     final Map<? extends Position, BlockData> restored = changes.get(1);
     final Map<Position, BlockData> expected = this.expectOriginal();
     assertEquals(expected, restored);
     assertEquals(0, tasks, "rendering stopped");
+
     final Field retainedField = BlockRenderer.class.getDeclaredField("activeViewers");
     retainedField.setAccessible(true);
     final Set<?> retained = (Set<?>) retainedField.get(renderer);
-    assertTrue(retained.isEmpty(), "released displays must not retain obsolete rendering state");
+    final boolean empty = retained.isEmpty();
+    assertTrue(empty, "released displays must not retain obsolete rendering state");
   }
 
   @Test
-  void restoresBlocksForAViewerRemovedImmediatelyBeforeHide() {
+  void shouldRestoreBlocksForAViewerRemovedImmediatelyBeforeHide() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer image = solidImage(3, 2, BROWN);
+    final ImageBuffer image = this.solidImage(3, 2, BROWN);
     renderer.show();
     renderer.render(image);
     this.server.runTasks();
     this.viewers.remove(VIEWER);
     renderer.hide();
     renderer.hide();
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 2);
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 2);
     final Map<? extends Position, BlockData> restored = changes.getLast();
     final Map<Position, BlockData> expected = this.expectOriginal();
     assertEquals(expected, restored);
   }
 
   @Test
-  void startsOverWithEveryViewerWhenShownAgain() {
+  void shouldStartOverWithEveryViewerWhenShownAgain() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer first = solidImage(3, 2, BROWN);
-    final ImageBuffer second = solidImage(3, 2, BROWN);
+    final ImageBuffer first = this.solidImage(3, 2, BROWN);
+    final ImageBuffer second = this.solidImage(3, 2, BROWN);
 
     renderer.show();
     renderer.render(first);
@@ -413,15 +420,15 @@ final class BlockRendererTest {
     renderer.render(second);
     this.server.runTasks();
 
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 3);
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 3);
     final Map<? extends Position, BlockData> wall = changes.get(2);
     final BlockData brown = BlockPaletteLookup.getBlockData(BROWN);
-    final Map<Position, BlockData> expected = expectAll(brown);
+    final Map<Position, BlockData> expected = this.expectAll(brown);
     assertEquals(expected, wall);
   }
 
   @Test
-  void capturesTheOriginalBlocksOnlyOnce() {
+  void shouldCaptureTheOriginalBlocksOnlyOnce() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
 
@@ -435,7 +442,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void queuedShowCannotCaptureBlocksAfterMainThreadHide() {
+  void shouldNotLetAQueuedShowCaptureBlocksAfterAMainThreadHide() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final World world = this.world.getWorld();
@@ -445,15 +452,16 @@ final class BlockRendererTest {
     renderer.hide();
     this.server.runTasks();
     verify(world, never()).getBlockData(anyInt(), anyInt(), anyInt());
+
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(0, tasks);
   }
 
   @Test
-  void queuedHideCannotRestoreABlockWallRequestedAgainOnMain() {
+  void shouldNotLetAQueuedHideRestoreABlockWallRequestedAgainOnTheMainThread() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
-    final ImageBuffer first = solidImage(3, 2, BROWN);
+    final ImageBuffer first = this.solidImage(3, 2, BROWN);
     renderer.show();
     renderer.render(first);
     this.server.runTasks();
@@ -462,21 +470,22 @@ final class BlockRendererTest {
     this.server.setPrimaryThread(true);
     renderer.show();
     this.server.runTasks();
-    final ImageBuffer changed = imageWithOneMagentaBlock();
+    final ImageBuffer changed = this.imageWithOneMagentaBlock();
     renderer.render(changed);
     this.server.runTasks();
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 2);
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 2);
     final Map<? extends Position, BlockData> delta = changes.getLast();
     final BlockData magenta = BlockPaletteLookup.getBlockData(MAGENTA);
     final Position changedPosition = Position.block(10, 64, -6);
     final Map<Position, BlockData> expected = Map.of(changedPosition, magenta);
     assertEquals(expected, delta, "old queued cleanup must neither restore the wall nor disable subsequent frames");
+
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(1, tasks);
   }
 
   @Test
-  void capturesTheBlocksOnTheMainThreadWhenShownFromAnotherThread() {
+  void shouldCaptureTheBlocksOnTheMainThreadWhenShownFromAnotherThread() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final World configuredWorld = this.world.getWorld();
@@ -484,13 +493,14 @@ final class BlockRendererTest {
     this.server.setPrimaryThread(false);
     renderer.show();
     verify(configuredWorld, never()).getBlockData(anyInt(), anyInt(), anyInt());
+
     this.server.runTasks();
 
     verify(configuredWorld, times(6)).getBlockData(anyInt(), anyInt(), anyInt());
   }
 
   @Test
-  void ignoresFramesAndTicksWhileNotShown() {
+  void shouldIgnoreFramesAndTicksWhileNotShown() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final BlockData brown = BlockPaletteLookup.getBlockData(BROWN);
@@ -504,7 +514,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void needsAPositionInAWorld() {
+  void shouldNeedAPositionInAWorld() {
     final BlockConfiguration configuration = this.createConfiguration();
     final Location position = configuration.getPosition();
     position.setWorld(null);
@@ -514,7 +524,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
 
@@ -523,40 +533,44 @@ final class BlockRendererTest {
   }
 
   @Test
-  void sendsTheWallOnlyToViewersInItsWorld() {
+  void shouldSendTheWallOnlyToViewersInItsWorld() {
     final CraftPlayer elsewhere = this.server.addPlayer(LATE);
     FakeWorld.create().enter(elsewhere);
     this.viewers.add(LATE);
     final BlockRenderer renderer = new BlockRenderer(this.createConfiguration());
     renderer.show();
-    renderer.render(solidImage(3, 2, BROWN));
+    renderer.render(this.solidImage(3, 2, BROWN));
     this.server.runTasks();
-    renderer.render(imageWithOneMagentaBlock());
+    renderer.render(this.imageWithOneMagentaBlock());
     this.server.runTasks();
     this.runTicksUntilTheFullResendIsDue();
     renderer.hide();
     this.server.runTasks();
     verify(elsewhere, never()).sendMultiBlockChange(any());
-    captureChanges(this.viewer, 4);
+
+    this.captureChanges(this.viewer, 4);
   }
 
   @Test
-  void aViewerWhoComesBackFromAnotherWorldGetsTheWholeWallAgain() {
+  void shouldSendTheWholeWallAgainToAViewerWhoComesBackFromAnotherWorld() {
     final BlockRenderer renderer = new BlockRenderer(this.createConfiguration());
     renderer.show();
-    renderer.render(solidImage(3, 2, BROWN));
+    renderer.render(this.solidImage(3, 2, BROWN));
     this.server.runTasks();
     final World nether = FakeWorld.create().getWorld();
     when(this.viewer.getWorld()).thenReturn(nether);
-    renderer.render(imageWithOneMagentaBlock());
+    renderer.render(this.imageWithOneMagentaBlock());
     this.server.runTasks();
-    captureChanges(this.viewer, 1);
+    this.captureChanges(this.viewer, 1);
     this.world.enter(this.viewer);
     this.server.runTasks();
-    final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 2);
-    assertEquals(6, changes.getLast().size(), "the whole wall, not only what changed while they were away");
-    final Map<Position, BlockData> expected = expectAll(BlockPaletteLookup.getBlockData(BROWN));
+    final List<Map<? extends Position, BlockData>> changes = this.captureChanges(this.viewer, 2);
+    final Map<? extends Position, BlockData> returnedWall = changes.getLast();
+    final int returnedWallSize = returnedWall.size();
+    assertEquals(6, returnedWallSize, "the whole wall, not only what changed while they were away");
+
+    final Map<Position, BlockData> expected = this.expectAll(BlockPaletteLookup.getBlockData(BROWN));
     expected.put(Position.block(10, 64, -6), BlockPaletteLookup.getBlockData(MAGENTA));
-    assertEquals(expected, changes.getLast(), "returning viewers see every pixel of the newest wall");
+    assertEquals(expected, returnedWall, "returning viewers see every pixel of the newest wall");
   }
 }

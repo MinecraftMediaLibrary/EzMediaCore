@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
+import me.brandonli.mcav.bukkit.media.config.MapConfigurationBuilder;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.Images;
 import me.brandonli.mcav.bukkit.testing.MapPackets;
@@ -37,18 +38,20 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/**
- * Tests {@link MapResult}.
- */
 final class MapResultTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
+
+  private static final int MAP_SIZE = 128;
+
+  private static final int FRAME_COLOR = 0xFF102030;
 
   private FakeServer server;
   private DitherAlgorithm algorithm;
@@ -71,38 +74,27 @@ final class MapResultTest {
     this.server.close();
   }
 
-  private static MapConfiguration createConfiguration(final boolean shouldResize) {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+  private MapConfiguration createConfiguration(final Sizing sizing) {
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.map(5);
     builder.mapBlockWidth(1);
     builder.mapBlockHeight(1);
     builder.mapWidthResolution(64);
     builder.mapHeightResolution(64);
-    configureResize(builder, shouldResize);
+    builder.resize(sizing == Sizing.RESIZED);
     return builder.build();
   }
 
-  private static void configureResize(final MapConfiguration.Builder<?> builder, final boolean shouldResize) {
-    builder.resize(shouldResize);
-  }
-
-  /**
-   * Creates a configuration of a grid of maps, whose first map has the id 5.
-   *
-   * @param columns the number of maps per row
-   * @param rows    the number of rows of maps
-   * @return the configuration
-   */
-  private static MapConfiguration createGridConfiguration(final int columns, final int rows) {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+  private MapConfiguration createGridConfiguration(final int columns, final int rows) {
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.map(5);
     builder.mapBlockWidth(columns);
     builder.mapBlockHeight(rows);
     builder.mapWidthResolution(64);
     builder.mapHeightResolution(64);
-    configureResize(builder, false);
+    builder.resize(false);
     return builder.build();
   }
 
@@ -118,44 +110,46 @@ final class MapResultTest {
   }
 
   @Test
-  void sendsTheCompletePictureInEveryFrame() {
-    final MapConfiguration configuration = createConfiguration(false);
+  void shouldSendTheCompletePictureInEveryFrame() {
+    final MapConfiguration configuration = this.createConfiguration(Sizing.ORIGINAL);
     final MapResult result = new MapResult(configuration);
     result.start();
-    final ImageBuffer image = Images.solid(128, 128, 0xFF102030);
+    final ImageBuffer image = Images.solid(MAP_SIZE, MAP_SIZE, FRAME_COLOR);
     result.process(image, this.algorithm);
     result.process(image, this.algorithm);
     final List<Packet<?>> packets = this.server.getSentPackets(VIEWER);
     final int packetCount = packets.size();
     final ClientboundMapItemDataPacket second = this.onlyMapPacket(1);
-    final byte[] colors = MapPackets.pattern(128 * 128, 4);
+    final byte[] colors = MapPackets.pattern(MAP_SIZE * MAP_SIZE, 4);
 
     assertEquals(2, packetCount, "nothing is sent on start, and unchanged frames are sent again");
-    MapPackets.assertMapPacket(second, 5, 0, 0, 128, 128, colors);
+
+    MapPackets.assertMapPacket(second, 5, 0, 0, MAP_SIZE, MAP_SIZE, colors);
   }
 
   @Test
-  void resizesFramesWhenConfigured() {
-    final MapConfiguration configuration = createConfiguration(true);
+  void shouldResizeFramesWhenConfigured() {
+    final MapConfiguration configuration = this.createConfiguration(Sizing.RESIZED);
     final MapResult result = new MapResult(configuration);
-    final ImageBuffer image = Images.solid(128, 128, 0xFF102030);
+    final ImageBuffer image = Images.solid(MAP_SIZE, MAP_SIZE, FRAME_COLOR);
     result.process(image, this.algorithm);
     final ClientboundMapItemDataPacket packet = this.onlyMapPacket(0);
     final byte[] picture = MapPackets.pattern(64 * 64, 4);
-    final byte[] colors = new byte[128 * 128];
+    final byte[] colors = new byte[MAP_SIZE * MAP_SIZE];
     for (int row = 0; row < 64; row++) {
-      System.arraycopy(picture, row * 64, colors, (row + 32) * 128 + 32, 64);
+      System.arraycopy(picture, row * 64, colors, (row + 32) * MAP_SIZE + 32, 64);
     }
+
     final int width = image.getWidth();
 
-    MapPackets.assertMapPacket(packet, 5, 0, 0, 128, 128, colors);
+    MapPackets.assertMapPacket(packet, 5, 0, 0, MAP_SIZE, MAP_SIZE, colors);
     assertEquals(64, width);
   }
 
   @ParameterizedTest
   @ValueSource(ints = { 1, 3 })
-  void shrinkingAFrameClearsTheEntirePreviousPicture(final int columns) {
-    final MapResult result = new MapResult(createGridConfiguration(columns, 1));
+  void shouldClearTheEntirePreviousPictureWhenShrinkingAFrame(final int columns) {
+    final MapResult result = new MapResult(this.createGridConfiguration(columns, 1));
     when(this.algorithm.ditherIntoBytes(any(ImageBuffer.class))).thenAnswer(invocation -> {
       final ImageBuffer frame = invocation.getArgument(0);
       final byte[] pixels = new byte[frame.getWidth() * frame.getHeight()];
@@ -163,48 +157,58 @@ final class MapResultTest {
       return pixels;
     });
     try (
-      final ImageBuffer large = Images.solid(columns * 128, 128, 0xFF102030);
+      final ImageBuffer large = Images.solid(columns * MAP_SIZE, MAP_SIZE, FRAME_COLOR);
       final ImageBuffer small = Images.solid(64, 64, 0xFF304050)
     ) {
       result.process(large, this.algorithm);
       result.process(small, this.algorithm);
       result.process(small, this.algorithm);
     }
-    final int canvasWidth = columns * 128;
-    final byte[] actual = new byte[canvasWidth * 128];
+
+    final int canvasWidth = columns * MAP_SIZE;
+    final byte[] actual = new byte[canvasWidth * MAP_SIZE];
     for (final Packet<?> bundle : this.server.getSentPackets(VIEWER)) {
       for (final ClientboundMapItemDataPacket packet : MapPackets.unbundle(bundle)) {
-        final int column = packet.mapId().id() - 5;
-        assertTrue(column >= 0 && column < columns);
-        final MapItemSavedData.MapPatch update = packet.colorPatch().orElseThrow();
-        for (int row = 0; row < update.height(); row++) {
-          final int offset = (update.startY() + row) * canvasWidth + column * 128 + update.startX();
-          System.arraycopy(update.mapColors(), row * update.width(), actual, offset, update.width());
-        }
+        this.copyPacket(actual, packet, columns);
       }
     }
+
     final byte[] expected = new byte[actual.length];
     for (int row = 32; row < 96; row++) {
       final int offset = row * canvasWidth + (canvasWidth - 64) / 2;
       Arrays.fill(expected, offset, offset + 64, (byte) 9);
     }
+
     assertArrayEquals(expected, actual, "the current picture is surrounded by transparent pixels, including uncovered maps");
   }
 
-  @Test
-  void clearsTheMapsWhenReleased() {
-    final MapConfiguration configuration = createConfiguration(false);
-    final MapResult result = new MapResult(configuration);
-    result.release();
-    final ClientboundMapItemDataPacket packet = this.onlyMapPacket(0);
-    final byte[] transparent = new byte[128 * 128];
+  private void copyPacket(final byte[] actual, final ClientboundMapItemDataPacket packet, final int columns) {
+    final int canvasWidth = columns * MAP_SIZE;
+    final int column = packet.mapId().id() - 5;
+    final boolean insideTheGrid = column >= 0 && column < columns;
+    assertTrue(insideTheGrid);
 
-    MapPackets.assertMapPacket(packet, 5, 0, 0, 128, 128, transparent);
+    final MapItemSavedData.MapPatch update = packet.colorPatch().orElseThrow();
+    for (int row = 0; row < update.height(); row++) {
+      final int offset = (update.startY() + row) * canvasWidth + column * MAP_SIZE + update.startX();
+      System.arraycopy(update.mapColors(), row * update.width(), actual, offset, update.width());
+    }
   }
 
   @Test
-  void clearsEveryMapOfTheGridWhenReleased() {
-    final MapConfiguration configuration = createGridConfiguration(2, 2);
+  void shouldClearTheMapsWhenReleased() {
+    final MapConfiguration configuration = this.createConfiguration(Sizing.ORIGINAL);
+    final MapResult result = new MapResult(configuration);
+    result.release();
+    final ClientboundMapItemDataPacket packet = this.onlyMapPacket(0);
+    final byte[] transparent = new byte[MAP_SIZE * MAP_SIZE];
+
+    MapPackets.assertMapPacket(packet, 5, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
+  }
+
+  @Test
+  void shouldClearEveryMapOfTheGridWhenReleased() {
+    final MapConfiguration configuration = this.createGridConfiguration(2, 2);
     final MapResult result = new MapResult(configuration);
 
     result.release();
@@ -214,27 +218,31 @@ final class MapResultTest {
     final List<ClientboundMapItemDataPacket> mapPackets = MapPackets.unbundle(bundle);
     final int mapPacketCount = mapPackets.size();
     final ClientboundMapItemDataPacket last = mapPackets.get(3);
-    final byte[] transparent = new byte[128 * 128];
+    final byte[] transparent = new byte[MAP_SIZE * MAP_SIZE];
 
     assertEquals(4, mapPacketCount, "every map of the 2x2 grid is cleared");
-    MapPackets.assertMapPacket(last, 8, 0, 0, 128, 128, transparent);
+
+    MapPackets.assertMapPacket(last, 8, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
   }
 
   @ParameterizedTest
   @ValueSource(ints = { 3, 5 })
-  void rejectsDitheredPixelsWhoseLengthDoesNotMatchTheImage(final int length) {
-    final MapResult result = new MapResult(createConfiguration(false));
+  void shouldRejectDitheredPixelsWhoseLengthDoesNotMatchTheImage(final int length) {
+    final MapResult result = new MapResult(this.createConfiguration(Sizing.ORIGINAL));
     when(this.algorithm.ditherIntoBytes(any(ImageBuffer.class))).thenReturn(new byte[length]);
-    try (final ImageBuffer image = Images.solid(2, 2, 0xFF102030)) {
+    try (final ImageBuffer image = Images.solid(2, 2, FRAME_COLOR)) {
       final IllegalArgumentException failure = assertThrows(IllegalArgumentException.class, () -> result.process(image, this.algorithm));
-      assertEquals("Image size does not match layout", failure.getMessage());
+      final @Nullable String message = failure.getMessage();
+      assertEquals("Image size does not match layout!", message);
     }
-    assertEquals(List.of(), this.server.getSentPackets(VIEWER), "invalid converted pixels must not reach the viewer");
+
+    final List<Packet<?>> sent = this.server.getSentPackets(VIEWER);
+    assertEquals(List.of(), sent, "invalid converted pixels must not reach the viewer");
   }
 
   @Test
-  void rejectsMissingArguments() {
-    final MapConfiguration configuration = createConfiguration(false);
+  void shouldRejectMissingArguments() {
+    final MapConfiguration configuration = this.createConfiguration(Sizing.ORIGINAL);
     final MapResult result = new MapResult(configuration);
 
     assertThrows(NullPointerException.class, () -> new MapResult(null));
@@ -248,5 +256,10 @@ final class MapResultTest {
     final boolean nothingSent = packets.isEmpty();
 
     assertTrue(nothingSent);
+  }
+
+  private enum Sizing {
+    RESIZED,
+    ORIGINAL,
   }
 }

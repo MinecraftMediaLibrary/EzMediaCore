@@ -28,13 +28,17 @@ import java.nio.file.Path;
  * the players, so it usually has to be opened in the firewall and forwarded. The resource pack file is read for
  * every download, so it can be rebuilt while the server is running.
  *
- * <p>The advertised host name affects the URL only; the listener binds the configured port on all local
- * interfaces. Start and shutdown are serialized by the owned server. Shutdown waits for its listener and event
- * loops to close, so avoid calling it from an event-loop callback. The instance can be started again afterward.
- * The source file remains caller-owned, and file/read failures are reported to downloaders rather than checked
- * when the listener starts.
+ * <p>The advertised host name affects the URL only; the listener binds the configured port on all local interfaces.
+ * This class is thread-safe: start and shutdown are serialized by the owned server. Shutdown waits for its listener and
+ * event loops to close, so avoid calling it from an event-loop callback. The instance can be started again afterward.
+ * The source file remains caller-owned, and file/read failures are reported to downloaders rather than checked when the
+ * listener starts.
+ *
+ * @since 1.0.0
  */
 public class ServerPackHosting implements HttpHosting {
+
+  private static final int MAXIMUM_PORT = 65535;
 
   private final Path zip;
   private final String hostName;
@@ -48,28 +52,20 @@ public class ServerPackHosting implements HttpHosting {
    * @param hostName the host name or address players use to reach this server
    * @param port     the port to listen on, from 1 to 65535
    * @throws IllegalArgumentException if the port is out of range
-   * @throws NullPointerException if the zip path or advertised host name is null
+   * @throws NullPointerException     if the zip path or advertised host name is null
+   * @since 1.0.0
    */
   public ServerPackHosting(final Path zip, final String hostName, final int port) {
     this(zip, hostName, port, new FileHttpServer(port, zip));
   }
 
-  /**
-   * Constructs a new {@code ServerPackHosting} that runs the specified server, which may listen on another port
-   * than the one players are told about, for example a free port picked by the operating system in tests.
-   *
-   * @param zip      the path to the resource pack zip to serve
-   * @param hostName the host name or address players use to reach this server
-   * @param port     the port players use to reach this server, from 1 to 65535
-   * @param server   the server that serves the pack
-   * @throws IllegalArgumentException if the port is out of range
-   */
   @VisibleForTesting
   ServerPackHosting(final Path zip, final String hostName, final int port, final FileHttpServer server) {
     Preconditions.checkNotNull(zip);
     Preconditions.checkNotNull(hostName);
-    Preconditions.checkArgument(port > 0 && port <= 65535, "Port must be between 1 and 65535");
+    Preconditions.checkArgument(port > 0 && port <= MAXIMUM_PORT, "Port must be between 1 and 65535!");
     Preconditions.checkNotNull(server);
+
     this.zip = zip;
     this.hostName = hostName;
     this.port = port;
@@ -80,6 +76,7 @@ public class ServerPackHosting implements HttpHosting {
    * Starts the HTTP server. Calling this method while the server is running has no effect.
    *
    * @throws HttpServerException if the port is already in use or cannot be bound
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -88,6 +85,8 @@ public class ServerPackHosting implements HttpHosting {
 
   /**
    * Stops the HTTP server. Calling this method while the server is stopped has no effect.
+   *
+   * @since 1.0.0
    */
   @Override
   public void shutdown() {
@@ -95,9 +94,10 @@ public class ServerPackHosting implements HttpHosting {
   }
 
   /**
-   * Gets the resource pack zip that is served. The file is read again for every download.
+   * Returns the resource pack zip that is served. The file is read again for every download.
    *
    * @return the path to the resource pack zip
+   * @since 1.0.0
    */
   @Override
   public Path getZip() {
@@ -105,9 +105,10 @@ public class ServerPackHosting implements HttpHosting {
   }
 
   /**
-   * Gets the host name or address players use to reach this server, as passed to the constructor.
+   * Returns the host name or address players use to reach this server, as passed to the constructor.
    *
    * @return the host name
+   * @since 1.0.0
    */
   @Override
   public String getHostName() {
@@ -115,9 +116,10 @@ public class ServerPackHosting implements HttpHosting {
   }
 
   /**
-   * Gets the port players use to reach this server, as passed to the constructor.
+   * Returns the port players use to reach this server, as passed to the constructor.
    *
    * @return the port, from 1 to 65535
+   * @since 1.0.0
    */
   @Override
   public int getPort() {

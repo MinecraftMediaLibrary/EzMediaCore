@@ -23,10 +23,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.Frame;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Collects transport pages into complete frames, like the reference's {@code Assembler}: pages may arrive in any
@@ -35,11 +35,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>The assembler never advances a reference; it only returns frames that are complete and valid. Instances are not
  * thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class PageAssembler {
 
-  /** Frames that may be pending at once. */
-  public static final int MAX_PENDING = 4;
+  /**
+   * Frames that may be pending at once.
+   *
+   * @since 1.0.0
+   */
+  public static final int MAXIMUM_PENDING = 4;
 
   private final long streamId;
 
@@ -48,12 +54,14 @@ public final class PageAssembler {
   /**
    * Constructs a new assembler.
    *
-   * @param streamId the unsigned 32-bit stream id to accept, from 0 through 4,294,967,295; not checked here
+   * @param streamId   the unsigned 32-bit stream id to accept, from 0 through 4,294,967,295; not checked here
    * @param symbolBits the negotiated width, 6 bits per symbol
    * @throws IllegalArgumentException if the symbol width is not 6
+   * @since 1.0.0
    */
   public PageAssembler(final long streamId, final int symbolBits) {
-    Preconditions.checkArgument(symbolBits == MapAlphabet.SYMBOL_BITS, "Unsupported symbol width: %s", symbolBits);
+    Preconditions.checkArgument(symbolBits == MapAlphabet.SYMBOL_BITS, "Symbol width %s is unsupported!", symbolBits);
+
     this.streamId = streamId;
   }
 
@@ -65,22 +73,25 @@ public final class PageAssembler {
    * including when final frame validation fails; the returned byte array belongs to the caller.
    *
    * @param symbols the page's useful symbols
-   * @return the complete frame's bytes once its last page arrives, otherwise null
-   * @throws Mcv2Exception if the page is invalid, belongs to another stream, contradicts the other pages of its frame,
-   *                       or completes a frame that is not valid
+   * @return the complete frame's bytes once its last page arrives, otherwise empty
+   * @throws Mcv2Exception        if the page is invalid, belongs to another stream, contradicts the other pages of its frame,
+   *                              or completes a frame that is not valid
    * @throws NullPointerException if the symbol array is null
+   * @since 1.0.0
    */
-  public byte @Nullable [] push(final byte[] symbols) throws Mcv2Exception {
+  public Optional<byte[]> push(final byte[] symbols) {
     final TransportPage page = TransportPages.readPage(symbols);
     if (page.getStreamId() != this.streamId) {
-      throw new Mcv2Exception("Wrong stream");
+      throw new Mcv2Exception("Wrong stream!");
     }
+
     final long frameId = page.getFrameId();
-    if (!this.pending.containsKey(frameId) && this.pending.size() >= MAX_PENDING) {
+    if (!this.pending.containsKey(frameId) && this.pending.size() >= MAXIMUM_PENDING) {
       final Iterator<Long> oldest = this.pending.keySet().iterator();
       oldest.next();
       oldest.remove();
     }
+
     final Map<Integer, TransportPage> parts = this.pending.computeIfAbsent(frameId, _ -> new HashMap<>());
     if (!parts.isEmpty()) {
       final TransportPage first = parts.values().iterator().next();
@@ -91,42 +102,50 @@ public final class PageAssembler {
         page.getFlags() == first.getFlags();
       if (!consistent) {
         this.pending.remove(frameId);
-        throw new Mcv2Exception("Inconsistent pages");
+        throw new Mcv2Exception("Inconsistent pages!");
       }
     }
+
     final TransportPage previous = parts.get(page.getNumber());
     if (previous != null && !previous.equals(page)) {
       this.pending.remove(frameId);
-      throw new Mcv2Exception("Conflicting page duplicate");
+      throw new Mcv2Exception("Conflicting page duplicate!");
     }
+
     parts.put(page.getNumber(), page);
+
     if (parts.size() != page.getCount()) {
-      return null;
+      return Optional.empty();
     }
+
     // Distinct validated page numbers filling the count cover exactly 0..count-1.
     final TransportPage[] ordered = new TransportPage[page.getCount()];
     for (final TransportPage part : parts.values()) {
       ordered[part.getNumber()] = part;
     }
+
     final ByteArrayOutputStream frame = new ByteArrayOutputStream(page.getFrameBytes());
     for (final TransportPage part : ordered) {
       frame.writeBytes(part.payload());
     }
+
     this.pending.remove(frameId);
     final byte[] data = frame.toByteArray();
     final Frame parsed = Mcv2Decoder.parse(data);
     if (
       parsed.getFrameId() != frameId || parsed.getReferenceId() != page.getReferenceId() || (parsed.isKeyframe() ? 1 : 0) != page.getFlags()
     ) {
-      throw new Mcv2Exception("Frame and page identity mismatch");
+      throw new Mcv2Exception("Frame and page identity mismatch!");
     }
-    return data;
+
+    return Optional.of(data);
   }
 
   /**
-   * Gets the number of frames waiting for pages.
+   * Returns the number of frames waiting for pages.
    *
    * @return the pending frame count
+   * @since 1.0.0
    */
   public int getPendingCount() {
     return this.pending.size();

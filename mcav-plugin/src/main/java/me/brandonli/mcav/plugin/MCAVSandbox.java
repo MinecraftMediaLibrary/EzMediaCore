@@ -22,8 +22,8 @@ import me.brandonli.mcav.MCAV;
 import me.brandonli.mcav.MCAVApi;
 import me.brandonli.mcav.browser.BrowserModule;
 import me.brandonli.mcav.bukkit.BukkitModule;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Pool;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Pool;
 import me.brandonli.mcav.bukkit.utils.versioning.ServerEnvironment;
 import me.brandonli.mcav.bukkit.utils.versioning.UnsupportedServerVersionException;
 import me.brandonli.mcav.plugin.audio.AudioProvider;
@@ -155,7 +155,7 @@ public final class MCAVSandbox extends JavaPlugin {
    * @param failure the setup problem
    * @param remedy  what the server owner has to do about it
    */
-  private void disableBecause(final IllegalStateException failure, final String remedy) {
+  private void disableBecause(final RuntimeException failure, final String remedy) {
     final ComponentLogger pluginLogger = this.requireLogger();
     final String reason = failure.getMessage();
     pluginLogger.error(CANNOT_ENABLE, reason, remedy);
@@ -200,8 +200,8 @@ public final class MCAVSandbox extends JavaPlugin {
     final int processors = Runtime.getRuntime().availableProcessors();
     this.requireLogger().info(ENCODER_SHARE, Pool.shared().getThreads(), processors);
     // the native kernels extract into the data folder, never /tmp; installing them decides which kernels run and logs it
-    MCV2.installNatives(this.getDataFolder().toPath().resolve(NATIVES_FOLDER), mapper.getMcv2Native());
-    this.requireLogger().info(ENCODER_KERNELS, MCV2.describeNatives());
+    Mcv2.installNatives(this.getDataFolder().toPath().resolve(NATIVES_FOLDER), mapper.getMcv2Native());
+    this.requireLogger().info(ENCODER_KERNELS, Mcv2.describeNatives());
   }
 
   private void loadManagers() {

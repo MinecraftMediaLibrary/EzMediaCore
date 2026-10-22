@@ -30,13 +30,21 @@ import java.util.concurrent.atomic.AtomicLong;
  * decodable keyframe and keeps displaying its previous picture meanwhile.
  *
  * <p>Offers come from the thread that sends frames, one at a time; writes complete on the connection's thread.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Link {
 
-  /** How many times the backlog limit a keyframe may still go out over. */
+  /**
+   * How many times the backlog limit a keyframe may still go out over.
+   *
+   * @since 1.0.0
+   */
   public static final int KEYFRAME_ALLOWANCE = 2;
 
   private static final long NONE = -1;
+
+  private static final String KIND_NULL_MESSAGE = "Kind must not be null!";
 
   private final long limit;
 
@@ -56,21 +64,27 @@ public final class Mcv2Link {
    * @param limit the nonnegative backlog threshold in estimated bytes before accepting another frame;
    *              zero admits a frame only when the tracked backlog is zero
    * @throws IllegalArgumentException if the limit is negative
+   * @since 1.0.0
    */
   public Mcv2Link(final long limit) {
-    Preconditions.checkArgument(limit >= 0, "Backlog limit must not be negative");
+    Preconditions.checkArgument(limit >= 0, "Backlog limit must not be negative!");
+
     this.limit = limit;
   }
 
   /**
-   * Checks whether a frame is independent or predicts from the last frame this viewer was sent.
+   * Returns whether a frame is independent or predicts from the last frame this viewer was sent.
    *
-   * @param isKeyframe  whether the frame is a keyframe
+   * @param kind        whether the frame is a keyframe or a P frame
    * @param referenceId the id of the frame a P frame predicts from
    * @return true if the viewer holds what the frame needs
+   * @throws NullPointerException if kind is null
+   * @since 1.0.0
    */
-  public synchronized boolean canDecode(final boolean isKeyframe, final long referenceId) {
-    return isKeyframe || (referenceId != NONE && referenceId == this.lastFrame);
+  public synchronized boolean canDecode(final Mcv2FrameKind kind, final long referenceId) {
+    Preconditions.checkNotNull(kind, KIND_NULL_MESSAGE);
+
+    return kind == Mcv2FrameKind.KEYFRAME || (referenceId != NONE && referenceId == this.lastFrame);
   }
 
   /**
@@ -82,25 +96,34 @@ public final class Mcv2Link {
    *
    * @param frameId     the frame's id
    * @param referenceId the id of the frame a P frame predicts from
-   * @param isKeyframe  whether the frame is a keyframe
+   * @param kind        whether the frame is a keyframe or a P frame
    * @param bytes       the video bytes the frame puts on the viewer's connection
    * @return true if the frame is to be sent to the viewer
+   * @throws NullPointerException     if kind is null
    * @throws IllegalArgumentException if frameId is outside unsigned 32-bit range or bytes is negative
+   * @since 1.0.0
    */
-  public synchronized boolean offer(final long frameId, final long referenceId, final boolean isKeyframe, final long bytes) {
-    Preconditions.checkArgument(frameId >= 0 && frameId <= Mcv2Decoder.MAX_U32, "Frame id must be an unsigned 32-bit value");
-    Preconditions.checkArgument(bytes >= 0, "Bytes must not be negative");
-    if (this.backlog.get() > (isKeyframe ? allowance(this.limit) : this.limit)) {
+  public synchronized boolean offer(final long frameId, final long referenceId, final Mcv2FrameKind kind, final long bytes) {
+    Preconditions.checkNotNull(kind, KIND_NULL_MESSAGE);
+    Preconditions.checkArgument(frameId >= 0 && frameId <= Mcv2Decoder.MAXIMUM_UNSIGNED_INT, "Frame id must be an unsigned 32-bit value!");
+    Preconditions.checkArgument(bytes >= 0, "Bytes must not be negative!");
+
+    if (this.backlog.get() > (kind == Mcv2FrameKind.KEYFRAME ? allowance(this.limit) : this.limit)) {
       this.behind++;
+
       return false;
     }
-    if (!this.canDecode(isKeyframe, referenceId)) {
+
+    if (!this.canDecode(kind, referenceId)) {
       this.undecodable++;
+
       return false;
     }
+
     this.lastFrame = frameId;
     this.backlog.addAndGet(bytes);
     this.sent++;
+
     return true;
   }
 
@@ -115,42 +138,47 @@ public final class Mcv2Link {
    * a frame's charge. Nonnegative amounts and balanced accounting are caller preconditions, not checked here.
    *
    * @param bytes the bytes {@link #offer} added for the frame
+   * @since 1.0.0
    */
   public void written(final long bytes) {
     this.backlog.addAndGet(-bytes);
   }
 
   /**
-   * Gets the video bytes handed to the viewer's connection and not yet written.
+   * Returns the video bytes handed to the viewer's connection and not yet written.
    *
    * @return the backlog
+   * @since 1.0.0
    */
   public long getBacklog() {
     return this.backlog.get();
   }
 
   /**
-   * Gets how many frames the viewer was sent.
+   * Returns how many frames the viewer was sent.
    *
    * @return the frames sent
+   * @since 1.0.0
    */
   public synchronized long getSent() {
     return this.sent;
   }
 
   /**
-   * Gets how many frames the viewer missed because its connection was over the backlog limit.
+   * Returns how many frames the viewer missed because its connection was over the backlog limit.
    *
    * @return the frames missed for the backlog
+   * @since 1.0.0
    */
   public synchronized long getBehind() {
     return this.behind;
   }
 
   /**
-   * Gets how many frames the viewer missed because it did not hold their reference, after missing one before.
+   * Returns how many frames the viewer missed because it did not hold their reference, after missing one before.
    *
    * @return the frames missed for their reference
+   * @since 1.0.0
    */
   public synchronized long getUndecodable() {
     return this.undecodable;

@@ -38,10 +38,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.mockito.ArgumentMatchers;
 
-/**
- * A mocked world for tests. Every block has its own block data mock, and spawning a text display creates a valid
- * {@link CraftTextDisplay} mock with a server entity mock, after running the configuration callback on it.
- */
 public final class FakeWorld {
 
   private final World world;
@@ -77,62 +73,29 @@ public final class FakeWorld {
     );
   }
 
-  /**
-   * Creates a new world.
-   *
-   * @return the world
-   */
   public static FakeWorld create() {
     return new FakeWorld();
   }
 
-  /**
-   * Puts players into this world: each player's world is this one from now on.
-   *
-   * @param players the players
-   */
   public void enter(final Player... players) {
     for (final Player player : players) {
       when(player.getWorld()).thenReturn(this.world);
     }
   }
 
-  /**
-   * Gets the world mock.
-   *
-   * @return the world
-   */
-  public World getWorld() {
-    return this.world;
-  }
-
-  /**
-   * Gets the block data mock of a block, which is the same for every call with the same coordinates.
-   *
-   * @param blockX the x coordinate
-   * @param blockY the y coordinate
-   * @param blockZ the z coordinate
-   * @return the block data
-   */
   public BlockData getOriginalBlock(final int blockX, final int blockY, final int blockZ) {
     final String key = blockX + "," + blockY + "," + blockZ;
     return this.blocks.computeIfAbsent(key, name -> mock(BlockData.class, "block " + name));
   }
 
-  /**
-   * Gets the text displays spawned so far, in order.
-   *
-   * @return the spawned displays
-   */
+  public World getWorld() {
+    return this.world;
+  }
+
   public List<CraftTextDisplay> getSpawnedDisplays() {
     return List.copyOf(this.spawnedDisplays);
   }
 
-  /**
-   * Gets the locations text displays were spawned at, in order.
-   *
-   * @return the spawn locations
-   */
   public List<Location> getSpawnLocations() {
     return List.copyOf(this.spawnLocations);
   }

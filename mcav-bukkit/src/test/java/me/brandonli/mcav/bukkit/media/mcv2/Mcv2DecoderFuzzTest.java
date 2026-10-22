@@ -26,25 +26,29 @@ import org.junit.jupiter.api.Tag;
 final class Mcv2DecoderFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
-  void decodesOrRejectsAnyFrame(final byte[] data) {
+  void shouldDecodeOrRejectAnyFrame(final byte[] data) {
     final Mcv2Decoder.Frame frame;
     try {
       frame = Mcv2Decoder.parse(data);
-    } catch (final Mcv2Exception rejected) {
+    } catch (final Mcv2Exception exception) {
       return;
     }
+
     final int size = frame.getWidth() * frame.getHeight() * 3;
     // A nonuniform reference exposes incorrect motion or residual reads.
     final byte[] reference = new byte[size];
     for (int index = 0; index < size; index++) {
       reference[index] = (byte) (index * 37);
     }
+
     final byte[] picture;
     try {
       picture = Mcv2Decoder.decode(frame, reference, frame.getReferenceId());
-    } catch (final Mcv2Exception rejected) {
+    } catch (final Mcv2Exception exception) {
       return;
     }
-    assertEquals(size, picture.length);
+
+    final int pictureLength = picture.length;
+    assertEquals(size, pictureLength);
   }
 }

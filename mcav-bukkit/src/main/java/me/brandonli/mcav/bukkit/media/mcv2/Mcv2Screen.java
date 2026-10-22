@@ -73,11 +73,19 @@ import org.bukkit.plugin.Plugin;
  * <p>The visible wall and its map items remain caller-owned. This object owns only its hidden page entities
  * and chunk holds. Use build/show/hide/remove on the main thread; do not manipulate or remove entities obtained
  * from {@link #getFrames()} independently. Removal releases chunk holds but does not restore wall map pixels.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Screen {
 
-  /** The prefix of the per-screen team names of the page frames. */
+  /**
+   * The prefix of the per-screen team names of the page frames.
+   *
+   * @since 1.0.0
+   */
   public static final String TEAM = "mcav_mcv2";
+
+  private static final String PLAYER_NULL_MESSAGE = "Player must not be null!";
 
   private static final AtomicInteger NEXT_TEAM_ID = new AtomicInteger();
 
@@ -86,6 +94,18 @@ public final class Mcv2Screen {
   private static final int[] SIGNATURE = { 21, 3, 58, 44, 9, 37, 60, 17 };
 
   private static final int CHUNK_SHIFT = 4;
+
+  private static final int BLOCKS_BEHIND = 2;
+
+  private static final int ROW_SYMBOL = 1;
+  private static final int COLUMNS_SYMBOL = 2;
+  private static final int ROWS_SYMBOL = 3;
+  private static final int FACING_SYMBOL = 4;
+  private static final int STREAM_LOW_SYMBOL = 5;
+  private static final int STREAM_HIGH_SYMBOL = 6;
+  private static final int CHECKSUM_SYMBOL = 7;
+
+  private static final int ANCHOR_ROWS = 1;
 
   // Bukkit holds one plugin ticket per chunk, so overlapping screens must share ownership.
   private static final Map<HeldChunk, Integer> HELD_CHUNKS = new HashMap<>();
@@ -101,11 +121,13 @@ public final class Mcv2Screen {
    *
    * @param configuration the screen
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   public Mcv2Screen(final Mcv2Configuration configuration) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+
     this.configuration = configuration;
-    this.teamName = TEAM + Integer.toUnsignedString(NEXT_TEAM_ID.getAndIncrement(), 36);
+    this.teamName = TEAM + Integer.toUnsignedString(NEXT_TEAM_ID.getAndIncrement(), Character.MAX_RADIX);
     this.frames = new ArrayList<>();
     this.chunks = new LinkedHashSet<>();
   }
@@ -119,38 +141,46 @@ public final class Mcv2Screen {
    * main thread.
    *
    * @throws IllegalStateException if the frames were already spawned or a required plugin has not been injected
-   * @throws NullPointerException if the origin no longer resolves to a world
+   * @throws NullPointerException  if the origin no longer resolves to a world
+   * @since 1.0.0
    */
   public void build() {
-    Preconditions.checkState(this.frames.isEmpty(), "The page frames already exist");
+    Preconditions.checkState(this.frames.isEmpty(), "The page frames already exist!");
+
     final Location origin = this.configuration.getOrigin();
-    final World world = Preconditions.checkNotNull(origin.getWorld(), "The origin must be in a world");
+    final World world = Preconditions.checkNotNull(origin.getWorld(), "The origin must be in a world!");
     final BlockFace right = this.configuration.getRight();
     final BlockFace back = this.configuration.getFacing().getOppositeFace();
     for (int row = 0; row < this.configuration.getRows(); row++) {
       for (int column = 0; column < this.configuration.getColumns(); column++) {
         final Location behind = origin
           .clone()
-          .add(right.getModX() * column + back.getModX() * 2, -row, right.getModZ() * column + back.getModZ() * 2);
+          .add(right.getModX() * column + back.getModX() * BLOCKS_BEHIND, -row, right.getModZ() * column + back.getModZ() * BLOCKS_BEHIND);
         final int slot = slot(column, row, this.configuration.getColumns(), this.configuration.getPageSlots());
         final ItemStack page = pageItem(this.configuration.getPageMap() + slot);
-        final HeldChunk chunk = new HeldChunk(world, behind.getBlockX() >> CHUNK_SHIFT, behind.getBlockZ() >> CHUNK_SHIFT);
-        if (this.chunks.add(chunk)) {
-          hold(chunk);
-        }
-        final ItemFrame frame = world.spawn(behind, ItemFrame.class, spawned -> {
-          spawned.setVisibleByDefault(false);
-          spawned.setPersistent(false);
-          spawned.setFacingDirection(back, true);
-          spawned.setItem(page, false);
-          spawned.setGlowing(true);
-          spawned.setInvulnerable(true);
-          spawned.setFixed(true);
-          spawned.setSilent(true);
-        });
+        this.holdChunkAt(world, behind);
+        final ItemFrame frame = world.spawn(behind, ItemFrame.class, spawned -> this.preparePageFrame(spawned, back, page));
         this.frames.add(frame);
       }
     }
+  }
+
+  private void holdChunkAt(final World world, final Location location) {
+    final HeldChunk chunk = new HeldChunk(world, location.getBlockX() >> CHUNK_SHIFT, location.getBlockZ() >> CHUNK_SHIFT);
+    if (this.chunks.add(chunk)) {
+      this.hold(chunk);
+    }
+  }
+
+  private void preparePageFrame(final ItemFrame frame, final BlockFace back, final ItemStack page) {
+    frame.setVisibleByDefault(false);
+    frame.setPersistent(false);
+    frame.setFacingDirection(back, true);
+    frame.setItem(page, false);
+    frame.setGlowing(true);
+    frame.setInvulnerable(true);
+    frame.setFixed(true);
+    frame.setSilent(true);
   }
 
   static ItemStack pageItem(final int mapId) {
@@ -160,27 +190,21 @@ public final class Mcv2Screen {
   }
 
   /**
-   * Gets the page frames.
-   *
-   * @return an unmodifiable list snapshot in wall order, containing live screen-owned entity references
-   */
-  public List<ItemFrame> getFrames() {
-    return List.copyOf(this.frames);
-  }
-
-  /**
    * Shows the screen to a player with the pack: the page frames, their team and the anchors. Call on the main thread.
    *
    * @param player the player
    * @throws IllegalStateException if no plugin has been injected
-   * @throws NullPointerException if {@code player} is null
+   * @throws NullPointerException  if {@code player} is null
+   * @since 1.0.0
    */
   public void show(final Player player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
     final Plugin plugin = BukkitModule.getPlugin();
     for (final ItemFrame frame : this.frames) {
       player.showEntity(plugin, frame);
     }
+
     final List<UUID> viewer = List.of(player.getUniqueId());
     PacketUtils.sendPackets(viewer, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(this.team(), true));
     MapPacketFactory.send(viewer, this.anchors());
@@ -191,43 +215,47 @@ public final class Mcv2Screen {
    *
    * @param player the player
    * @throws IllegalStateException if no plugin has been injected
-   * @throws NullPointerException if {@code player} is null
+   * @throws NullPointerException  if {@code player} is null
+   * @since 1.0.0
    */
   public void hide(final Player player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
     final Plugin plugin = BukkitModule.getPlugin();
     for (final ItemFrame frame : this.frames) {
       player.hideEntity(plugin, frame);
     }
+
     PacketUtils.sendPackets(List.of(player.getUniqueId()), ClientboundSetPlayerTeamPacket.createRemovePacket(this.team()));
   }
 
   /**
    * Removes the page frames, and lets their chunks unload. Call on the main thread.
+   *
+   * @since 1.0.0
    */
   public void remove() {
     this.frames.forEach(Entity::remove);
     this.frames.clear();
-    this.chunks.forEach(Mcv2Screen::release);
+    this.chunks.forEach(this::release);
     this.chunks.clear();
   }
 
-  private static void hold(final HeldChunk chunk) {
+  private void hold(final HeldChunk chunk) {
     final int holders = HELD_CHUNKS.getOrDefault(chunk, 0) + 1;
     HELD_CHUNKS.put(chunk, holders);
+
     if (holders == 1) {
       chunk.world().addPluginChunkTicket(chunk.chunkX(), chunk.chunkZ(), BukkitModule.getPlugin());
     }
   }
 
-  private static void release(final HeldChunk chunk) {
+  private void release(final HeldChunk chunk) {
     final Integer holders = HELD_CHUNKS.computeIfPresent(chunk, (_, count) -> count == 1 ? null : count - 1);
     if (holders == null) {
       chunk.world().removePluginChunkTicket(chunk.chunkX(), chunk.chunkZ(), BukkitModule.getPlugin());
     }
   }
-
-  private record HeldChunk(World world, int chunkX, int chunkZ) {}
 
   PlayerTeam team() {
     final PlayerTeam team = new PlayerTeam(new Scoreboard(), this.teamName);
@@ -237,13 +265,15 @@ public final class Mcv2Screen {
     for (final ItemFrame frame : this.frames) {
       members.add(frame.getUniqueId().toString());
     }
+
     return team;
   }
 
   /**
-   * The anchor row of every wall map.
+   * Returns the anchor row of every wall map.
    *
    * @return one patch per map, row 0 only
+   * @since 1.0.0
    */
   public List<MapTilePatch> anchors() {
     final int columns = this.configuration.getColumns();
@@ -254,24 +284,44 @@ public final class Mcv2Screen {
     final List<MapTilePatch> patches = new ArrayList<>(columns * rows);
     for (int row = 0; row < rows; row++) {
       for (int column = 0; column < columns; column++) {
-        final byte[] symbols = new byte[MapLayout.MAP_SIZE];
-        for (int index = 0; index < SIGNATURE.length; index++) {
-          symbols[index] = (byte) SIGNATURE[index];
-        }
+        final byte[] symbols = this.signedSymbols();
         final int symbolOffset = SIGNATURE.length;
         symbols[symbolOffset] = (byte) column;
-        symbols[symbolOffset + 1] = (byte) row;
-        symbols[symbolOffset + 2] = (byte) columns;
-        symbols[symbolOffset + 3] = (byte) rows;
-        symbols[symbolOffset + 4] = (byte) facing;
-        symbols[symbolOffset + 5] = (byte) streamLow;
-        symbols[symbolOffset + 6] = (byte) streamHigh;
+        symbols[symbolOffset + ROW_SYMBOL] = (byte) row;
+        symbols[symbolOffset + COLUMNS_SYMBOL] = (byte) columns;
+        symbols[symbolOffset + ROWS_SYMBOL] = (byte) rows;
+        symbols[symbolOffset + FACING_SYMBOL] = (byte) facing;
+        symbols[symbolOffset + STREAM_LOW_SYMBOL] = (byte) streamLow;
+        symbols[symbolOffset + STREAM_HIGH_SYMBOL] = (byte) streamHigh;
 
-        symbols[symbolOffset + 7] = (byte) ((column + row + columns + rows + facing + streamLow + streamHigh) % MapAlphabet.SIZE);
+        symbols[symbolOffset + CHECKSUM_SYMBOL] = (byte) ((column + row + columns + rows + facing + streamLow + streamHigh) %
+          MapAlphabet.SIZE);
         final int mapId = this.configuration.getMap() + row * columns + column;
-        patches.add(new MapTilePatch(mapId, 0, 0, MapLayout.MAP_SIZE, 1, MapAlphabet.toMapColors(symbols)));
+        patches.add(MapTilePatch.of(mapId, 0, 0, MapLayout.MAP_SIZE, ANCHOR_ROWS, MapAlphabet.toMapColors(symbols)));
       }
     }
+
     return patches;
   }
+
+  private byte[] signedSymbols() {
+    final byte[] symbols = new byte[MapLayout.MAP_SIZE];
+    for (int index = 0; index < SIGNATURE.length; index++) {
+      symbols[index] = (byte) SIGNATURE[index];
+    }
+
+    return symbols;
+  }
+
+  /**
+   * Returns the page frames.
+   *
+   * @return an unmodifiable list snapshot in wall order, containing live screen-owned entity references
+   * @since 1.0.0
+   */
+  public List<ItemFrame> getFrames() {
+    return List.copyOf(this.frames);
+  }
+
+  private record HeldChunk(World world, int chunkX, int chunkZ) {}
 }

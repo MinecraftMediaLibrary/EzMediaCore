@@ -17,11 +17,9 @@
  */
 package me.brandonli.mcav.bukkit.media.config;
 
-import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.result.Characters;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /**
  * Describes an image drawn onto the sidebar scoreboard, for use with the scoreboard image and scoreboard result.
@@ -31,182 +29,93 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
  *
  * <p>The viewers collection is not copied, so a concurrent collection can be passed. The renderer checks membership each server tick,
  * shows the board to new or returning online viewers, and restores removed viewers who still see its board.
+ *
+ * <p>This class is immutable and thread-safe, except for the viewer collection, which it shares with the caller instead
+ * of copying.
+ *
+ * {@snippet :
+ * final int width = 16;
+ * final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
+ * final ScoreboardConfiguration configuration = builder
+ *   .viewers(viewers)
+ *   .character(Characters.BLACK_SQUARE)
+ *   .lines(ScoreboardConfiguration.MAXIMUM_LINES)
+ *   .width(width)
+ *   .build();
+ * }
+ *
+ * @since 1.0.0
  */
-public class ScoreboardConfiguration {
+public final class ScoreboardConfiguration {
 
   /**
    * The maximum number of lines the sidebar can show.
+   *
+   * @since 1.0.0
    */
-  public static final int MAX_LINES = 15;
+  public static final int MAXIMUM_LINES = 15;
 
   private final Collection<UUID> viewers;
   private final String character;
   private final int lines;
   private final int width;
 
-  private ScoreboardConfiguration(final Builder<?> builder, final Collection<UUID> viewers, final String character) {
+  ScoreboardConfiguration(final Collection<UUID> viewers, final String character, final int lines, final int width) {
     this.viewers = viewers;
     this.character = character;
-    this.lines = builder.lines;
-    this.width = builder.width;
-  }
-
-  /**
-   * Gets the players who see the scoreboard.
-   *
-   * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
-   *         concurrent collection if another thread changes membership during rendering
-   */
-  public Collection<UUID> getViewers() {
-    return this.viewers;
-  }
-
-  /**
-   * Gets the text drawn for every pixel, usually a single character such as {@code █}.
-   *
-   * @return the pixel text
-   * @see Characters
-   */
-  public String getCharacter() {
-    return this.character;
-  }
-
-  /**
-   * Gets the height of the image in lines.
-   *
-   * @return the number of lines, at most {@link #MAX_LINES}
-   */
-  public int getLines() {
-    return this.lines;
-  }
-
-  /**
-   * Gets the width of the image in characters.
-   *
-   * @return the width in characters
-   */
-  public int getWidth() {
-    return this.width;
-  }
-
-  /**
-   * The builder returned by {@link #builder()}.
-   */
-  public static final class ScoreboardResultBuilder extends Builder<ScoreboardResultBuilder> {
-
-    ScoreboardResultBuilder() {}
-
-    /**
-     * Returns this builder with its concrete type.
-     *
-     * @return this builder
-     */
-    @Override
-    protected ScoreboardResultBuilder self() {
-      return this;
-    }
+    this.lines = lines;
+    this.width = width;
   }
 
   /**
    * Creates a new builder for a scoreboard configuration.
    *
    * @return a new builder
+   * @since 1.0.0
    */
-  public static Builder<?> builder() {
-    return new ScoreboardResultBuilder();
+  public static ScoreboardConfigurationBuilder builder() {
+    return new DefaultScoreboardConfigurationBuilder();
   }
 
   /**
-   * Builds scoreboard configurations. Every value is required.
+   * Returns the players who see the scoreboard.
    *
-   * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
-   * required fields are checked by {@link #build()}, which may be called again to create another configuration.
-   *
-   * @param <T> the type of the builder
+   * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
+   *         concurrent collection if another thread changes membership during rendering
+   * @since 1.0.0
    */
-  public abstract static class Builder<T extends Builder<T>> {
+  public Collection<UUID> getViewers() {
+    return this.viewers;
+  }
 
-    private @MonotonicNonNull Collection<UUID> viewers;
-    private @MonotonicNonNull String character;
-    private int lines;
-    private int width;
+  /**
+   * Returns the text drawn for every pixel, usually a single character such as {@code █}.
+   *
+   * @return the pixel text
+   * @see Characters
+   * @since 1.0.0
+   */
+  public String getCharacter() {
+    return this.character;
+  }
 
-    Builder() {}
+  /**
+   * Returns the height of the image in lines.
+   *
+   * @return the number of lines, at most {@link #MAXIMUM_LINES}
+   * @since 1.0.0
+   */
+  public int getLines() {
+    return this.lines;
+  }
 
-    /**
-     * Returns this builder with its concrete type, so the setters can be chained.
-     *
-     * @return this builder
-     */
-    abstract T self();
-
-    /**
-     * Sets the players who see the scoreboard. The collection is not copied, see {@link ScoreboardConfiguration}.
-     *
-     * @param viewers the UUIDs of the viewers
-     * @return this builder
-     * @throws NullPointerException if the viewers are null
-     */
-    public T viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null");
-      this.viewers = viewers;
-      return this.self();
-    }
-
-    /**
-     * Sets the text drawn for every pixel.
-     *
-     * <p>The text must be nonempty when {@link #build()} is called. Multiple characters are allowed, but
-     * change the visual width of a pixel; no font or character-width validation is performed.
-     *
-     * @param character the pixel text, usually a single character such as {@code █}
-     * @return this builder
-     * @throws NullPointerException if the character is null
-     */
-    public T character(final String character) {
-      Preconditions.checkNotNull(character, "Character must not be null");
-      this.character = character;
-      return this.self();
-    }
-
-    /**
-     * Sets the height of the image in lines.
-     *
-     * @param lines the number of lines, from 1 to {@link #MAX_LINES}
-     * @return this builder
-     */
-    public T lines(final int lines) {
-      this.lines = lines;
-      return this.self();
-    }
-
-    /**
-     * Sets the width of the image in characters.
-     *
-     * @param width the width in characters, which must be positive
-     * @return this builder
-     */
-    public T width(final int width) {
-      this.width = width;
-      return this.self();
-    }
-
-    /**
-     * Builds the scoreboard configuration.
-     *
-     * @return the scoreboard configuration
-     * @throws IllegalArgumentException if a size is out of range or the character is empty
-     * @throws NullPointerException     if the viewers or the character were not set
-     */
-    public ScoreboardConfiguration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set");
-      final String configuredCharacter = Preconditions.checkNotNull(this.character, "Character must be set");
-
-      Preconditions.checkArgument(!configuredCharacter.isEmpty(), "Character must not be empty");
-      Preconditions.checkArgument(this.lines > 0 && this.lines <= MAX_LINES, "Lines must be between 1 and %s", MAX_LINES);
-      Preconditions.checkArgument(this.width > 0, "Width must be positive");
-
-      return new ScoreboardConfiguration(this, configuredViewers, configuredCharacter);
-    }
+  /**
+   * Returns the width of the image in characters.
+   *
+   * @return the width in characters
+   * @since 1.0.0
+   */
+  public int getWidth() {
+    return this.width;
   }
 }

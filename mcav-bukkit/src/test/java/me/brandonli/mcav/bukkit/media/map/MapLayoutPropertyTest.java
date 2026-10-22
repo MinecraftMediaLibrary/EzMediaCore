@@ -32,34 +32,29 @@ import net.jqwik.api.Provide;
 import net.jqwik.api.arbitraries.IntegerArbitrary;
 import net.jqwik.api.constraints.IntRange;
 
-/**
- * Properties of {@link MapLayout}, {@link MapRegion} and the patches a layout cuts out of an image, for every grid and
- * image size rather than the few the examples use.
- */
 final class MapLayoutPropertyTest {
 
   private static final String SEED = "20260925";
-  private static final int MAX_SIDE_IN_MAPS = 6;
-  private static final int MAX_IMAGE_SIDE = MAX_SIDE_IN_MAPS * MapLayout.MAP_SIZE + 90;
+  private static final int MAXIMUM_SIDE_IN_MAPS = 6;
+  private static final int MAXIMUM_IMAGE_SIDE = MAXIMUM_SIDE_IN_MAPS * MapLayout.MAP_SIZE + 90;
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  private static final String GRIDS = "grids";
+
+  // jqwik 1.10 shares a range between derived arbitraries, so each range starts from a fresh one
+  private Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
   @Provide
   Arbitrary<MapGrid> grids() {
-    final Arbitrary<Integer> smallIds = between(0, 100);
-    final Arbitrary<Integer> largeIds = between(0, 1 << 30);
+    final Arbitrary<Integer> smallIds = this.between(0, 100);
+    final Arbitrary<Integer> largeIds = this.between(0, 1 << 30);
     final Arbitrary<Integer> startMapIds = Arbitraries.oneOf(smallIds, largeIds);
-    final Arbitrary<Integer> columns = between(1, MAX_SIDE_IN_MAPS);
-    final Arbitrary<Integer> rows = between(1, MAX_SIDE_IN_MAPS);
-    final Arbitrary<Integer> widths = between(1, MAX_IMAGE_SIDE);
-    final Arbitrary<Integer> heights = between(1, MAX_IMAGE_SIDE);
+    final Arbitrary<Integer> columns = this.between(1, MAXIMUM_SIDE_IN_MAPS);
+    final Arbitrary<Integer> rows = this.between(1, MAXIMUM_SIDE_IN_MAPS);
+    final Arbitrary<Integer> widths = this.between(1, MAXIMUM_IMAGE_SIDE);
+    final Arbitrary<Integer> heights = this.between(1, MAXIMUM_IMAGE_SIDE);
     final Combinators.Combinator5<Integer, Integer, Integer, Integer, Integer> grids = Combinators.combine(
       startMapIds,
       columns,
@@ -71,7 +66,7 @@ final class MapLayoutPropertyTest {
   }
 
   @Property(seed = SEED)
-  void everyMapIdLiesInTheRangeOfItsLayout(@ForAll("grids") final MapGrid grid) {
+  void shouldKeepEveryMapIdInTheRangeOfItsLayout(@ForAll(GRIDS) final MapGrid grid) {
     final MapLayout layout = grid.createLayout();
     final int mapCount = layout.getMapCount();
     final long firstId = grid.getStartMapId();
@@ -79,10 +74,13 @@ final class MapLayoutPropertyTest {
     final int cells = grid.getColumns() * grid.getRows();
 
     assertEquals(cells, mapCount, "one map per cell of the grid");
+
     for (int index = 0; index < mapCount; index++) {
+      final long expectedMapId = firstId + index;
       final long mapId = layout.getMapId(index);
-      assertEquals(firstId + index, mapId, "maps are numbered consecutively");
+      assertEquals(expectedMapId, mapId, "maps are numbered consecutively");
     }
+
     assertThrows(IndexOutOfBoundsException.class, () -> layout.getMapId(mapCount));
     assertThrows(IndexOutOfBoundsException.class, () -> layout.getMapId(-1));
 
@@ -96,7 +94,7 @@ final class MapLayoutPropertyTest {
   }
 
   @Property(seed = SEED)
-  void theMapsShowEveryVisiblePixelOfTheImageExactlyOnceAndCentered(@ForAll("grids") final MapGrid grid) {
+  void shouldShowEveryVisiblePixelOfTheImageOnTheMapsExactlyOnceAndCentered(@ForAll(GRIDS) final MapGrid grid) {
     final MapLayout layout = grid.createLayout();
     final byte[] image = grid.createImage();
     final List<MapTilePatch> patches = layout.extractAll(image);
@@ -110,13 +108,15 @@ final class MapLayoutPropertyTest {
     final int height = grid.getImageHeight();
     final int visibleWidth = Math.min(width, grid.getGridWidth());
     final int visibleHeight = Math.min(height, grid.getGridHeight());
+    final int expectedPixels = visibleWidth * visibleHeight;
     final int coveredPixels = coverage.countCoveredOnce();
-    assertEquals(visibleWidth * visibleHeight, coveredPixels, "every pixel that fits on the grid is shown once");
+    assertEquals(expectedPixels, coveredPixels, "every pixel that fits on the grid is shown once");
+
     coverage.assertCentered();
   }
 
   @Property(seed = SEED)
-  void rejectsGridsWhoseIdsWouldPassTheLargestMapId(
+  void shouldRejectGridsWhoseIdsWouldPassTheLargestMapId(
     @ForAll @IntRange(min = 1, max = 64) final int columns,
     @ForAll @IntRange(min = 1, max = 64) final int rows,
     @ForAll @IntRange(min = 0, max = 4095) final int overshoot
@@ -129,14 +129,12 @@ final class MapLayoutPropertyTest {
     final int fits = (int) lastAllowedStart;
 
     assertThrows(IllegalArgumentException.class, () -> new MapLayout(tooLate, columns, rows, 1, 1));
+
     final MapLayout layout = new MapLayout(fits, columns, rows, 1, 1);
     final int lastId = layout.getMapId(mapCount - 1);
     assertEquals(Integer.MAX_VALUE, lastId, "the last map may have the largest id");
   }
 
-  /**
-   * A grid of maps with an image on it; the image may be smaller than the grid, larger, or larger in one direction.
-   */
   private static final class MapGrid {
 
     private final int startMapId;
@@ -157,15 +155,13 @@ final class MapLayoutPropertyTest {
       return new MapLayout(this.startMapId, this.columns, this.rows, this.imageWidth, this.imageHeight);
     }
 
-    /**
-     * Fills an image so that neighboring pixels have different colors, cycling through the 256 a byte holds.
-     */
     private byte[] createImage() {
       final byte[] image = new byte[this.imageWidth * this.imageHeight];
       for (int index = 0; index < image.length; index++) {
         final int row = index / this.imageWidth;
         image[index] = (byte) (index * 31 + row * 7);
       }
+
       return image;
     }
 
@@ -205,10 +201,6 @@ final class MapLayoutPropertyTest {
     }
   }
 
-  /**
-   * Which pixels of the image the patches show, checked against the image as the patches are added. Every patch must
-   * show the image at the same position on the grid, so the offset of the image is learned from the first patch.
-   */
   private static final class ImageCoverage {
 
     private final MapGrid grid;
@@ -240,6 +232,7 @@ final class MapLayoutPropertyTest {
       final int sourceX = region.getSourceX() + left - region.getLocalX();
       final int sourceY = region.getSourceY() + top - region.getLocalY();
       this.checkOffset(gridX - sourceX, gridY - sourceY);
+
       this.mark(patch, sourceX, sourceY);
     }
 
@@ -249,6 +242,7 @@ final class MapLayoutPropertyTest {
         this.offsetX = patchOffsetX;
         this.offsetY = patchOffsetY;
       }
+
       assertEquals(this.offsetX, patchOffsetX, "every map shows the image at the same horizontal position");
       assertEquals(this.offsetY, patchOffsetY, "every map shows the image at the same vertical position");
     }
@@ -272,20 +266,19 @@ final class MapLayoutPropertyTest {
     private int countCoveredOnce() {
       int covered = 0;
       for (final int count : this.counts) {
-        assertTrue(count <= 1, "no pixel of the image is shown twice");
+        final boolean shownAtMostOnce = count <= 1;
+        assertTrue(shownAtMostOnce, "no pixel of the image is shown twice");
         covered += count;
       }
+
       return covered;
     }
 
-    /**
-     * Asserts that the image is centered: the grid pixels left over before and after it, or the image pixels cut off
-     * before and after the grid, differ by at most one on each axis.
-     */
     private void assertCentered() {
       if (!this.offsetKnown) {
         return;
       }
+
       final int gridWidth = this.grid.getGridWidth();
       final int gridHeight = this.grid.getGridHeight();
       final int imageWidth = this.grid.getImageWidth();
@@ -296,7 +289,8 @@ final class MapLayoutPropertyTest {
 
     private static void assertBalanced(final int before, final int after, final String axis) {
       final int difference = Math.abs(before - after);
-      assertTrue(difference <= 1, () -> "image centered " + axis + ": " + before + " before, " + after + " after");
+      final boolean balanced = difference <= 1;
+      assertTrue(balanced, () -> "image centered " + axis + ": " + before + " before, " + after + " after");
     }
 
     private static void assertInsideRegion(final MapTilePatch patch, final MapRegion region) {
@@ -310,7 +304,8 @@ final class MapLayoutPropertyTest {
       final int regionBottom = regionY + region.getHeight();
       final boolean inside = left >= regionX && top >= regionY && right <= regionRight && bottom <= regionBottom;
       final boolean insideMap = right <= MapLayout.MAP_SIZE && bottom <= MapLayout.MAP_SIZE;
-      assertTrue(inside && insideMap, "patch inside the covered region of its map");
+      final boolean insideRegionAndMap = inside && insideMap;
+      assertTrue(insideRegionAndMap, "patch inside the covered region of its map");
     }
   }
 }

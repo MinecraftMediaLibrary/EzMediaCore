@@ -57,9 +57,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link FileServerHandler}.
- */
 final class FileServerHandlerTest {
 
   private static final byte[] PACK = { 'P', 'K', 3, 4, 7, 7 };
@@ -72,6 +69,21 @@ final class FileServerHandlerTest {
   private static final String NOT_FOUND = statusResponse("404 Not Found");
   private static final String TOO_LARGE = statusResponse("431 Request Header Fields Too Large");
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+  private static final String MISSING_FILE_NAME = "missing.zip";
+  private static final String OPENED_FILE_NAME = "opened.zip";
+  private static final String GENERIC_FILE_NAME = "resourcepack.zip";
+
+  private static final String GET_REQUEST = "GET / HTTP/1.1\r\n\r\n";
+  private static final String HEAD_REQUEST = "HEAD / HTTP/1.1\r\n\r\n";
+  private static final String POST_REQUEST = "POST / HTTP/1.1\r\n\r\n";
+  private static final String HEADERS_END = "\r\n\r\n";
+  private static final String LETTER = "a";
+  private static final int HEADER_LIMIT = 8192;
+
+  private static final String CLOSE_FAILURE_MESSAGE = "Close failed!";
+  private static final String RESET_MESSAGE = "Connection reset!";
+
   @TempDir
   private Path directory;
 
@@ -79,30 +91,30 @@ final class FileServerHandlerTest {
 
   @BeforeEach
   void writePack() throws IOException {
-    this.pack = this.directory.resolve("pack.zip");
+    this.pack = this.directory.resolve(PACK_FILE_NAME);
     Files.write(this.pack, PACK);
   }
 
-  private static ByteBuf ascii(final String text) {
+  private ByteBuf ascii(final String text) {
     return Unpooled.copiedBuffer(text, StandardCharsets.US_ASCII);
   }
 
-  private static ByteBuf repeatedLetters(final int count) {
-    final String letters = "a".repeat(count);
-    return ascii(letters);
+  private ByteBuf repeatedLetters(final int count) {
+    final String letters = LETTER.repeat(count);
+    return this.ascii(letters);
   }
 
-  private static void writeRequest(final EmbeddedChannel channel, final String request) {
-    final ByteBuf requestBytes = ascii(request);
+  private void writeRequest(final EmbeddedChannel channel, final String request) {
+    final ByteBuf requestBytes = this.ascii(request);
     channel.writeInbound(requestBytes);
   }
 
-  private static EmbeddedChannel createChannel(final Path file) {
+  private EmbeddedChannel createChannel(final Path file) {
     final FileServerHandler handler = new FileServerHandler(file);
     return new EmbeddedChannel(handler);
   }
 
-  private static String readOutboundText(final EmbeddedChannel channel) {
+  private String readOutboundText(final EmbeddedChannel channel) {
     final ByteBuf buffer = channel.readOutbound();
     try {
       return buffer.toString(StandardCharsets.US_ASCII);
@@ -111,7 +123,7 @@ final class FileServerHandlerTest {
     }
   }
 
-  private static byte[] readRegion(final EmbeddedChannel channel) throws IOException {
+  private byte[] readRegion(final EmbeddedChannel channel) throws IOException {
     final Object message = channel.readOutbound();
     final FileRegion region = assertInstanceOf(FileRegion.class, message);
     try {
@@ -122,6 +134,7 @@ final class FileServerHandlerTest {
       while (transferred < count) {
         transferred += region.transferTo(target, transferred);
       }
+
       return output.toByteArray();
     } finally {
       region.release();
@@ -132,7 +145,7 @@ final class FileServerHandlerTest {
     return "HTTP/1.1 " + status + "\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
   }
 
-  private static ChannelHandlerContext mockContext(final ChannelPipeline pipeline) {
+  private ChannelHandlerContext mockContext(final ChannelPipeline pipeline) {
     final ChannelHandlerContext context = mock(ChannelHandlerContext.class);
     final ChannelFuture future = mock(ChannelFuture.class);
     when(context.alloc()).thenReturn(ByteBufAllocator.DEFAULT);
@@ -142,13 +155,13 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void answersGetRequestsWithTheFileAndClosesTheConnection() throws IOException {
-    final EmbeddedChannel channel = createChannel(this.pack);
-    final ByteBuf request = ascii("GET /pack.zip HTTP/1.1\r\nHost: example\r\n\r\n");
+  void shouldAnswerGetRequestsWithTheFileAndCloseTheConnection() throws IOException {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
+    final ByteBuf request = this.ascii("GET /pack.zip HTTP/1.1\r\nHost: example\r\n\r\n");
 
     channel.writeInbound(request);
-    final String headers = readOutboundText(channel);
-    final byte[] body = readRegion(channel);
+    final String headers = this.readOutboundText(channel);
+    final byte[] body = this.readRegion(channel);
     final boolean open = channel.isOpen();
     final int references = request.refCnt();
 
@@ -159,7 +172,7 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void keepsUntrustedFileNamesInsideOneHeaderValue() throws IOException {
+  void shouldKeepUntrustedFileNamesInsideOneHeaderValue() throws IOException {
     final Path path = mock(Path.class);
     final Path name = mock(Path.class);
     when(path.getFileName()).thenReturn(name);
@@ -167,9 +180,9 @@ final class FileServerHandlerTest {
     final FileServerHandler handler = new FileServerHandler(path, _ -> FileChannel.open(this.pack, StandardOpenOption.READ));
     final EmbeddedChannel channel = new EmbeddedChannel(handler);
     try {
-      writeRequest(channel, "GET / HTTP/1.1\r\n\r\n");
-      final String headers = readOutboundText(channel);
-      final byte[] body = readRegion(channel);
+      this.writeRequest(channel, GET_REQUEST);
+      final String headers = this.readOutboundText(channel);
+      final byte[] body = this.readRegion(channel);
       assertEquals(OK_HEADERS, headers);
       assertArrayEquals(PACK, body);
     } finally {
@@ -178,11 +191,11 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void answersHeadRequestsWithTheHeadersOnly() {
-    final EmbeddedChannel channel = createChannel(this.pack);
+  void shouldAnswerHeadRequestsWithTheHeadersOnly() {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
 
-    writeRequest(channel, "HEAD / HTTP/1.1\r\n\r\n");
-    final String headers = readOutboundText(channel);
+    this.writeRequest(channel, HEAD_REQUEST);
+    final String headers = this.readOutboundText(channel);
     final Object body = channel.readOutbound();
     final boolean open = channel.isOpen();
 
@@ -192,14 +205,14 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void waitsForTheEndOfTheHeadersAcrossSeveralReads() {
-    final EmbeddedChannel channel = createChannel(this.pack);
+  void shouldWaitForTheEndOfTheHeadersAcrossSeveralReads() {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
 
-    writeRequest(channel, "HEAD / HTTP/1.1\r\nHost: example\r\n\r");
+    this.writeRequest(channel, "HEAD / HTTP/1.1\r\nHost: example\r\n\r");
     final Object early = channel.readOutbound();
     final boolean openWhileWaiting = channel.isOpen();
-    writeRequest(channel, "\n");
-    final String headers = readOutboundText(channel);
+    this.writeRequest(channel, "\n");
+    final String headers = this.readOutboundText(channel);
 
     assertNull(early);
     assertTrue(openWhileWaiting);
@@ -207,14 +220,14 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void rejectsOtherMethods() {
-    final EmbeddedChannel post = createChannel(this.pack);
-    final EmbeddedChannel withoutSpace = createChannel(this.pack);
+  void shouldRejectOtherMethods() {
+    final EmbeddedChannel post = this.createChannel(this.pack);
+    final EmbeddedChannel withoutSpace = this.createChannel(this.pack);
 
-    writeRequest(post, "POST / HTTP/1.1\r\n\r\n");
-    final String postResponse = readOutboundText(post);
-    writeRequest(withoutSpace, "GET\r\n\r\n");
-    final String withoutSpaceResponse = readOutboundText(withoutSpace);
+    this.writeRequest(post, POST_REQUEST);
+    final String postResponse = this.readOutboundText(post);
+    this.writeRequest(withoutSpace, "GET\r\n\r\n");
+    final String withoutSpaceResponse = this.readOutboundText(withoutSpace);
     final boolean postOpen = post.isOpen();
 
     assertEquals(METHOD_NOT_ALLOWED, postResponse);
@@ -223,35 +236,35 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void answersNotFoundWhenTheFileIsMissing() {
-    final Path missing = this.directory.resolve("missing.zip");
-    final EmbeddedChannel channel = createChannel(missing);
+  void shouldAnswerNotFoundWhenTheFileIsMissing() {
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
+    final EmbeddedChannel channel = this.createChannel(missing);
 
-    writeRequest(channel, "GET / HTTP/1.1\r\n\r\n");
-    final String response = readOutboundText(channel);
+    this.writeRequest(channel, GET_REQUEST);
+    final String response = this.readOutboundText(channel);
 
     assertEquals(NOT_FOUND, response);
   }
 
   @Test
-  void closesTheFileWhenOnlyTheHeadersAreRequested() throws IOException {
+  void shouldCloseTheFileWhenOnlyTheHeadersAreRequested() throws IOException {
     final FileChannel channel = mock(FileChannel.class);
     final long length = PACK.length;
     when(channel.size()).thenReturn(length);
     final FileServerHandler handler = new FileServerHandler(this.pack, _ -> channel);
     final EmbeddedChannel embedded = new EmbeddedChannel(handler);
 
-    writeRequest(embedded, "HEAD / HTTP/1.1\r\n\r\n");
-    final String headers = readOutboundText(embedded);
+    this.writeRequest(embedded, HEAD_REQUEST);
+    final String headers = this.readOutboundText(embedded);
 
     assertEquals(OK_HEADERS, headers);
     verify(channel).close();
   }
 
   @Test
-  void acceptsHeadersThatFillTheBufferExactly() {
-    final EmbeddedChannel channel = createChannel(this.pack);
-    final ByteBuf exactlyFull = repeatedLetters(8192);
+  void shouldAcceptHeadersThatFillTheBufferExactly() {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
+    final ByteBuf exactlyFull = this.repeatedLetters(HEADER_LIMIT);
 
     channel.writeInbound(exactlyFull);
     final Object response = channel.readOutbound();
@@ -262,63 +275,64 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void answersRequestsWhoseHeadersEndWithTheirFirstBytes() {
-    final EmbeddedChannel channel = createChannel(this.pack);
+  void shouldAnswerRequestsWhoseHeadersEndWithTheirFirstBytes() {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
 
-    writeRequest(channel, "\r\n\r\n");
-    final String response = readOutboundText(channel);
+    this.writeRequest(channel, HEADERS_END);
+    final String response = this.readOutboundText(channel);
 
     assertEquals(METHOD_NOT_ALLOWED, response, "a request without a method is answered, not awaited");
   }
 
   @Test
-  void rejectsAMethodWithoutSpacesAtTheExactBufferBoundary() {
-    final EmbeddedChannel channel = createChannel(this.pack);
-    final String malformed = "a".repeat(252) + "\r\n\r\n";
-    writeRequest(channel, malformed);
-    final String response = readOutboundText(channel);
+  void shouldRejectAMethodWithoutSpacesAtTheExactBufferBoundary() {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
+    final String malformed = LETTER.repeat(252) + HEADERS_END;
+    this.writeRequest(channel, malformed);
+    final String response = this.readOutboundText(channel);
     assertEquals(METHOD_NOT_ALLOWED, response);
   }
 
   @Test
-  void answersARequestWhoseHeadersEndInAReadThatPassesTheLimit() throws IOException {
-    final EmbeddedChannel channel = createChannel(this.pack);
+  void shouldAnswerARequestWhoseHeadersEndInAReadThatPassesTheLimit() throws IOException {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
     final String request = "GET /pack.zip HTTP/1.1\r\nHost: localhost\r\n\r\n";
-    final String afterHeaders = "a".repeat(8192);
+    final String afterHeaders = LETTER.repeat(HEADER_LIMIT);
 
-    writeRequest(channel, request + afterHeaders);
-    final String headers = readOutboundText(channel);
+    this.writeRequest(channel, request + afterHeaders);
+    final String headers = this.readOutboundText(channel);
 
     assertEquals(OK_HEADERS, headers, "the headers ended within the limit, so the request is answered");
-    final byte[] body = readRegion(channel);
+
+    final byte[] body = this.readRegion(channel);
     assertArrayEquals(PACK, body);
   }
 
   @Test
-  void answersHeadersThatEndAtTheLimitInAReadThatPassesIt() {
-    final EmbeddedChannel channel = createChannel(this.pack);
-    final String headersAtTheLimit = "a".repeat(8188) + "\r\n\r\n";
+  void shouldAnswerHeadersThatEndAtTheLimitInAReadThatPassesIt() {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
+    final String headersAtTheLimit = LETTER.repeat(8188) + HEADERS_END;
 
-    writeRequest(channel, headersAtTheLimit + "b");
-    final String response = readOutboundText(channel);
+    this.writeRequest(channel, headersAtTheLimit + "b");
+    final String response = this.readOutboundText(channel);
 
     assertEquals(METHOD_NOT_ALLOWED, response, "headers that end at the limit are read, whatever follows them");
   }
 
   @Test
-  void rejectsHeadersThatAreTooLarge() {
-    final EmbeddedChannel single = createChannel(this.pack);
-    final EmbeddedChannel accumulated = createChannel(this.pack);
-    final ByteBuf oversized = repeatedLetters(9000);
-    final ByteBuf firstHalf = repeatedLetters(5000);
-    final ByteBuf secondHalf = repeatedLetters(5000);
+  void shouldRejectHeadersThatAreTooLarge() {
+    final EmbeddedChannel single = this.createChannel(this.pack);
+    final EmbeddedChannel accumulated = this.createChannel(this.pack);
+    final ByteBuf oversized = this.repeatedLetters(9000);
+    final ByteBuf firstHalf = this.repeatedLetters(5000);
+    final ByteBuf secondHalf = this.repeatedLetters(5000);
 
     single.writeInbound(oversized);
-    final String singleResponse = readOutboundText(single);
+    final String singleResponse = this.readOutboundText(single);
     accumulated.writeInbound(firstHalf);
     final Object early = accumulated.readOutbound();
     accumulated.writeInbound(secondHalf);
-    final String accumulatedResponse = readOutboundText(accumulated);
+    final String accumulatedResponse = this.readOutboundText(accumulated);
 
     assertEquals(TOO_LARGE, singleResponse);
     assertNull(early);
@@ -326,8 +340,8 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void ignoresMessagesThatAreNotBytes() {
-    final EmbeddedChannel channel = createChannel(this.pack);
+  void shouldIgnoreMessagesThatAreNotBytes() {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
 
     channel.writeInbound("not bytes");
     final Object response = channel.readOutbound();
@@ -338,62 +352,63 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void usesAGenericFileNameForPathsWithoutOne() {
+  void shouldUseAGenericFileNameForPathsWithoutOne() {
     final Path root = this.directory.getRoot();
 
     final String rootName = FileServerHandler.getFileName(root);
     final String packName = FileServerHandler.getFileName(this.pack);
 
-    assertEquals("resourcepack.zip", rootName);
-    assertEquals("pack.zip", packName);
+    assertEquals(GENERIC_FILE_NAME, rootName);
+    assertEquals(PACK_FILE_NAME, packName);
   }
 
   @Test
-  void takesTheLengthAndTheBodyFromTheSameOpenFile() throws IOException {
-    final Path opened = this.directory.resolve("opened.zip");
+  void shouldTakeTheLengthAndTheBodyFromTheSameOpenFile() throws IOException {
+    final Path opened = this.directory.resolve(OPENED_FILE_NAME);
     Files.write(opened, PACK);
     Files.write(this.pack, REPLACED_PACK);
     final FileServerHandler handler = new FileServerHandler(this.pack, _ -> FileChannel.open(opened, StandardOpenOption.READ));
     final EmbeddedChannel channel = new EmbeddedChannel(handler);
 
-    writeRequest(channel, "GET / HTTP/1.1\r\n\r\n");
-    final String headers = readOutboundText(channel);
-    final byte[] body = readRegion(channel);
+    this.writeRequest(channel, GET_REQUEST);
+    final String headers = this.readOutboundText(channel);
+    final byte[] body = this.readRegion(channel);
 
     assertEquals(OK_HEADERS, headers, "the pack was replaced after it was opened");
     assertArrayEquals(PACK, body);
   }
 
   @Test
-  void answersNotFoundAndClosesTheFileWhenItsSizeCannotBeRead() throws IOException {
+  void shouldAnswerNotFoundAndCloseTheFileWhenItsSizeCannotBeRead() throws IOException {
     final FileChannel broken = mock(FileChannel.class);
-    when(broken.size()).thenThrow(new IOException("size failed"));
-    doThrow(new IOException("close failed")).when(broken).close();
+    when(broken.size()).thenThrow(new IOException("Size failed!"));
+    doThrow(new IOException(CLOSE_FAILURE_MESSAGE)).when(broken).close();
     final FileServerHandler handler = new FileServerHandler(this.pack, _ -> broken);
     final EmbeddedChannel channel = new EmbeddedChannel(handler);
 
-    writeRequest(channel, "GET / HTTP/1.1\r\n\r\n");
-    final String response = readOutboundText(channel);
+    this.writeRequest(channel, GET_REQUEST);
+    final String response = this.readOutboundText(channel);
 
     assertEquals(NOT_FOUND, response);
     verify(broken).close();
   }
 
   @Test
-  void removesTheReadTimeoutOnceTheRequestIsCompleteAndKeepsTheWriteTimeout() {
+  void shouldRemoveTheReadTimeoutOnceTheRequestIsCompleteAndKeepTheWriteTimeout() {
     final FileServerHandler handler = new FileServerHandler(this.pack);
     final ChannelPipeline pipeline = mock(ChannelPipeline.class);
     final ChannelHandler timeout = mock(ChannelHandler.class);
     final ChannelHandler writeTimeout = mock(ChannelHandler.class);
-    final ChannelHandlerContext context = mockContext(pipeline);
+    final ChannelHandlerContext context = this.mockContext(pipeline);
     when(pipeline.get(FileHttpChannelInitializer.READ_TIMEOUT_NAME)).thenReturn(timeout);
     when(pipeline.get(FileHttpChannelInitializer.WRITE_TIMEOUT_NAME)).thenReturn(writeTimeout);
-    final ByteBuf requestLine = ascii("POST / HTTP/1.1\r\n");
-    final ByteBuf headerEnd = ascii("\r\n");
+    final ByteBuf requestLine = this.ascii("POST / HTTP/1.1\r\n");
+    final ByteBuf headerEnd = this.ascii("\r\n");
 
     handler.handlerAdded(context);
     handler.channelRead(context, requestLine);
     verify(pipeline, never()).remove(timeout);
+
     handler.channelRead(context, headerEnd);
     handler.handlerRemoved(context);
 
@@ -402,12 +417,12 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void answersOnlyTheFirstRequestOfAConnection() {
+  void shouldAnswerOnlyTheFirstRequestOfAConnection() {
     final FileServerHandler handler = new FileServerHandler(this.pack);
     final ChannelPipeline pipeline = mock(ChannelPipeline.class);
-    final ChannelHandlerContext context = mockContext(pipeline);
-    final ByteBuf first = ascii("POST / HTTP/1.1\r\n\r\n");
-    final ByteBuf late = ascii("HEAD / HTTP/1.1\r\n\r\n");
+    final ChannelHandlerContext context = this.mockContext(pipeline);
+    final ByteBuf first = this.ascii(POST_REQUEST);
+    final ByteBuf late = this.ascii(HEAD_REQUEST);
 
     handler.handlerAdded(context);
     handler.channelRead(context, first);
@@ -420,14 +435,14 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void releasesTheRequestBufferOnceWhenRemoved() {
+  void shouldReleaseTheRequestBufferOnceWhenRemoved() {
     final FileServerHandler handler = new FileServerHandler(this.pack);
     final ChannelHandlerContext context = mock(ChannelHandlerContext.class);
     final ByteBufAllocator allocator = mock(ByteBufAllocator.class);
-    final ByteBuf requestBuffer = Unpooled.buffer(256, 8192);
+    final ByteBuf requestBuffer = Unpooled.buffer(256, HEADER_LIMIT);
     when(context.alloc()).thenReturn(allocator);
-    when(allocator.buffer(256, 8192)).thenReturn(requestBuffer);
-    final ByteBuf late = ascii("GET / HTTP/1.1\r\n\r\n");
+    when(allocator.buffer(256, HEADER_LIMIT)).thenReturn(requestBuffer);
+    final ByteBuf late = this.ascii(GET_REQUEST);
 
     handler.handlerAdded(context);
     handler.handlerRemoved(context);
@@ -441,10 +456,10 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void closesTheConnectionOnErrors() {
-    final EmbeddedChannel channel = createChannel(this.pack);
+  void shouldCloseTheConnectionOnErrors() {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
     final ChannelPipeline pipeline = channel.pipeline();
-    final IOException reset = new IOException("connection reset");
+    final IOException reset = new IOException(RESET_MESSAGE);
 
     pipeline.fireExceptionCaught(reset);
     final boolean open = channel.isOpen();
@@ -453,14 +468,14 @@ final class FileServerHandlerTest {
   }
 
   @Test
-  void logsAConnectionThatCannotBeClosedAfterAnError() {
+  void shouldLogAConnectionThatCannotBeClosedAfterAnError() {
     final EmbeddedChannel channel = new EmbeddedChannel();
-    final IOException closeFailure = new IOException("close failed");
+    final IOException closeFailure = new IOException(CLOSE_FAILURE_MESSAGE);
     final ChannelFuture failedClose = channel.newFailedFuture(closeFailure);
     final ChannelHandlerContext context = mock(ChannelHandlerContext.class);
     when(context.close()).thenReturn(failedClose);
     final FileServerHandler handler = new FileServerHandler(this.pack);
-    final IOException reset = new IOException("connection reset");
+    final IOException reset = new IOException(RESET_MESSAGE);
 
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(FileServerHandler.class)) {
@@ -470,20 +485,21 @@ final class FileServerHandlerTest {
 
     final int count = events.size();
     assertEquals(1, count);
+
     final LogCapture.RecordedEvent event = events.getFirst();
     final Level level = event.getLevel();
     final String message = event.getMessage();
     final Throwable thrown = event.getThrown();
     assertEquals(Level.DEBUG, level);
-    assertEquals("Could not close a resource pack download connection after an error", message);
+    assertEquals("Could not close a resource pack download connection after an error.", message);
     assertSame(closeFailure, thrown);
   }
 
   @Test
-  void logsNothingWhenTheConnectionClosesAfterAnError() {
-    final EmbeddedChannel channel = createChannel(this.pack);
+  void shouldLogNothingWhenTheConnectionClosesAfterAnError() {
+    final EmbeddedChannel channel = this.createChannel(this.pack);
     final ChannelPipeline pipeline = channel.pipeline();
-    final IOException reset = new IOException("connection reset");
+    final IOException reset = new IOException(RESET_MESSAGE);
 
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(FileServerHandler.class)) {

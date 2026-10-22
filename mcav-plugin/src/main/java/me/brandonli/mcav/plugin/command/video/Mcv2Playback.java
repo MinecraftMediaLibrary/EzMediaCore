@@ -91,6 +91,6 @@ final class Mcv2Playback implements Runnable {
   }
 
   private void shift(final byte[] frame, final int field) {
-    Mcv2Decoder.putU32(frame, field, (Mcv2Decoder.u32(frame, field) + this.offset) & Mcv2Decoder.MAX_U32);
+    Mcv2Decoder.putU32(frame, field, (Mcv2Decoder.u32(frame, field) + this.offset) & Mcv2Decoder.MAXIMUM_UNSIGNED_INT);
   }
 }

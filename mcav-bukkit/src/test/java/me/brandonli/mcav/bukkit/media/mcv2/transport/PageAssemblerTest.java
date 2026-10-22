@@ -19,10 +19,11 @@ package me.brandonli.mcav.bukkit.media.mcv2.transport;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.zip.CRC32;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
@@ -33,62 +34,72 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/** The page assembler: reordering, duplicates, conflicts, eviction and the frame/page identity check. */
 final class PageAssemblerTest {
 
-  /** A two-page keyframe (frame id 0) at six bits. */
+  private static final String FRAME_ID_FIELD = "frame id";
+  private static final String REFERENCE_ID_FIELD = "reference id";
+  private static final String FRAME_TYPE_FIELD = "frame type";
+
   private static final byte[] BIG = Mcv2Trees.twoPages();
 
-  /** A one-page keyframe, also frame id 0. */
   private static final byte[] TINY = Mcv2Trees.tiny();
 
   private static List<byte[]> pages(final byte[] frame) {
-    try {
-      return TransportPages.makePages(frame, 3);
-    } catch (final Mcv2Exception exception) {
-      throw new AssertionError(exception);
-    }
+    return TransportPages.makePages(frame, 3);
   }
 
   private static byte[] page(final int number) {
     return pages(BIG).get(number);
   }
 
-  /** A copy of a page with one header field changed and its CRC recomputed, so only the assembler's rules object. */
+  // recomputes the CRC, so only the assembler's rules object
   private static byte[] rewritten(final byte[] page, final int offset, final long value) {
-    try {
-      final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
-      if (offset == 6 || offset == 16 || offset == 18) {
-        Mcv2Decoder.putU16(raw, offset, (int) value);
-      } else {
-        Mcv2Decoder.putU32(raw, offset, value);
-      }
-      Mcv2Decoder.putU32(raw, 28, 0);
-      final CRC32 crc = new CRC32();
-      crc.update(raw);
-      Mcv2Decoder.putU32(raw, 28, crc.getValue());
-      return TransportPages.toSymbols(raw);
-    } catch (final Mcv2Exception exception) {
-      throw new AssertionError(exception);
+    final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
+    if (offset == 6 || offset == 16 || offset == 18) {
+      Mcv2Decoder.putU16(raw, offset, (int) value);
+    } else {
+      Mcv2Decoder.putU32(raw, offset, value);
     }
+
+    Mcv2Decoder.putU32(raw, 28, 0);
+    final CRC32 crc = new CRC32();
+    crc.update(raw);
+    Mcv2Decoder.putU32(raw, 28, crc.getValue());
+    return TransportPages.toSymbols(raw);
   }
 
   @Test
-  void assemblesPagesInAnyOrderAndAcceptsIdenticalDuplicates() throws Mcv2Exception {
+  void shouldAssemblePagesInAnyOrderAndAcceptIdenticalDuplicates() {
     final PageAssembler assembler = new PageAssembler(3, 6);
-    assertEquals(2, pages(BIG).size());
-    assertNull(assembler.push(page(1)));
-    assertNull(assembler.push(page(1)));
-    assertEquals(1, assembler.getPendingCount());
-    assertArrayEquals(BIG, assembler.push(page(0)));
-    assertEquals(0, assembler.getPendingCount());
-    assertArrayEquals(TINY, assembler.push(pages(TINY).get(0)));
+    final int pageCount = pages(BIG).size();
+    assertEquals(2, pageCount);
+
+    final Optional<byte[]> firstPush = assembler.push(page(1));
+    assertTrue(firstPush.isEmpty());
+
+    final Optional<byte[]> duplicatePush = assembler.push(page(1));
+    assertTrue(duplicatePush.isEmpty());
+
+    final int pendingCountBeforeCompletion = assembler.getPendingCount();
+    assertEquals(1, pendingCountBeforeCompletion);
+
+    final byte[] assembled = assembler.push(page(0)).orElseThrow();
+    assertArrayEquals(BIG, assembled);
+
+    final int pendingCountAfterCompletion = assembler.getPendingCount();
+    assertEquals(0, pendingCountAfterCompletion);
+
+    final byte[] assembledTiny = assembler.push(pages(TINY).get(0)).orElseThrow();
+    assertArrayEquals(TINY, assembledTiny);
   }
 
   @Test
-  void refusesAnotherStreamAndUnsupportedWidths() {
+  void shouldRefuseAnotherStreamAndUnsupportedWidths() {
     final PageAssembler assembler = new PageAssembler(4, 6);
-    assertEquals("Wrong stream", assertThrows(Mcv2Exception.class, () -> assembler.push(page(0))).getMessage());
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(page(0)));
+    final String message = exception.getMessage();
+    assertEquals("Wrong stream!", message);
+
     assertThrows(IllegalArgumentException.class, () -> new PageAssembler(1, 5));
     assertThrows(IllegalArgumentException.class, () -> new PageAssembler(1, 9));
   }
@@ -96,65 +107,91 @@ final class PageAssemblerTest {
   private static Stream<Arguments> disagreements() {
     return Stream.of(
       Arguments.of("page count", page(1), pages(TINY).get(0)),
-      Arguments.of("reference id", page(0), rewritten(page(1), 20, 9)),
+      Arguments.of(REFERENCE_ID_FIELD, page(0), rewritten(page(1), 20, 9)),
       Arguments.of("frame length", page(1), rewritten(page(0), 24, BIG.length - 1)),
-      Arguments.of("frame type", page(0), rewritten(page(1), 6, 0))
+      Arguments.of(FRAME_TYPE_FIELD, page(0), rewritten(page(1), 6, 0))
     );
   }
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("disagreements")
-  void dropsAFrameWhosePagesDisagree(final String field, final byte[] first, final byte[] second) throws Mcv2Exception {
+  void shouldDropAFrameWhosePagesDisagree(final String field, final byte[] first, final byte[] second) {
     final PageAssembler assembler = new PageAssembler(3, 6);
-    assertNull(assembler.push(first));
-    assertEquals("Inconsistent pages", assertThrows(Mcv2Exception.class, () -> assembler.push(second)).getMessage());
-    assertEquals(0, assembler.getPendingCount());
+    final Optional<byte[]> firstPush = assembler.push(first);
+    assertTrue(firstPush.isEmpty());
+
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(second));
+    final String message = exception.getMessage();
+    assertEquals("Inconsistent pages!", message);
+
+    final int pendingCount = assembler.getPendingCount();
+    assertEquals(0, pendingCount);
   }
 
   @Test
-  void dropsAFrameOnAConflictingDuplicate() throws Mcv2Exception {
+  void shouldDropAFrameOnAConflictingDuplicate() {
     final PageAssembler assembler = new PageAssembler(3, 6);
     assembler.push(page(0));
     final byte[] conflicting = rewritten(page(0), 40, 0x12345678L);
-    assertEquals("Conflicting page duplicate", assertThrows(Mcv2Exception.class, () -> assembler.push(conflicting)).getMessage());
-    assertEquals(0, assembler.getPendingCount());
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(conflicting));
+    final String message = exception.getMessage();
+    assertEquals("Conflicting page duplicate!", message);
+
+    final int pendingCount = assembler.getPendingCount();
+    assertEquals(0, pendingCount);
   }
 
   @Test
-  void keepsAtMostFourFramesPendingAndEvictsTheOldest() throws Mcv2Exception {
+  void shouldKeepAtMostFourFramesPendingAndEvictTheOldest() {
     final PageAssembler assembler = new PageAssembler(3, 6);
     for (int id = 1; id <= 4; id++) {
-      assertNull(assembler.push(rewritten(page(0), 12, id)));
+      final Optional<byte[]> pending = assembler.push(rewritten(page(0), 12, id));
+      assertTrue(pending.isEmpty());
     }
+
     // frame 0 evicts frame 1, then frame 1 starts again and evicts frame 2
-    assertNull(assembler.push(page(0)));
-    assertEquals(PageAssembler.MAX_PENDING, assembler.getPendingCount());
-    assertNull(assembler.push(rewritten(page(1), 12, 1)));
-    assertEquals(PageAssembler.MAX_PENDING, assembler.getPendingCount());
+    final Optional<byte[]> firstEviction = assembler.push(page(0));
+    assertTrue(firstEviction.isEmpty());
+
+    final int pendingCountAfterFirstEviction = assembler.getPendingCount();
+    assertEquals(PageAssembler.MAXIMUM_PENDING, pendingCountAfterFirstEviction);
+
+    final Optional<byte[]> secondEviction = assembler.push(rewritten(page(1), 12, 1));
+    assertTrue(secondEviction.isEmpty());
+
+    final int pendingCountAfterSecondEviction = assembler.getPendingCount();
+    assertEquals(PageAssembler.MAXIMUM_PENDING, pendingCountAfterSecondEviction);
     // frame 0 survived the evictions and completes
-    assertArrayEquals(BIG, assembler.push(page(1)));
-    assertEquals(3, assembler.getPendingCount());
+    final byte[] assembled = assembler.push(page(1)).orElseThrow();
+    assertArrayEquals(BIG, assembled);
+
+    final int pendingCountAfterCompletion = assembler.getPendingCount();
+    assertEquals(3, pendingCountAfterCompletion);
   }
 
   private static Stream<Arguments> contradictions() {
-    return Stream.of(Arguments.of("frame id", 12, 9L), Arguments.of("reference id", 20, 9L), Arguments.of("frame type", 6, 0L));
+    return Stream.of(Arguments.of(FRAME_ID_FIELD, 12, 9L), Arguments.of(REFERENCE_ID_FIELD, 20, 9L), Arguments.of(FRAME_TYPE_FIELD, 6, 0L));
   }
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("contradictions")
-  void refusesAFrameWhoseHeaderContradictsItsPages(final String field, final int offset, final long value) throws Mcv2Exception {
+  void shouldRefuseAFrameWhoseHeaderContradictsItsPages(final String field, final int offset, final long value) {
     final PageAssembler assembler = new PageAssembler(3, 6);
     assembler.push(rewritten(page(0), offset, value));
     final byte[] last = rewritten(page(1), offset, value);
-    assertEquals("Frame and page identity mismatch", assertThrows(Mcv2Exception.class, () -> assembler.push(last)).getMessage());
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(last));
+    final String message = exception.getMessage();
+    assertEquals("Frame and page identity mismatch!", message);
   }
 
   @Test
-  void refusesACompleteFrameThatIsNotValid() throws Mcv2Exception {
+  void shouldRefuseACompleteFrameThatIsNotValid() {
     final PageAssembler assembler = new PageAssembler(3, 6);
     // the payload starts with the frame header; a zero width makes the frame invalid
     assembler.push(rewritten(page(0), 40, 0));
     assertThrows(Mcv2Exception.class, () -> assembler.push(page(1)));
-    assertEquals(0, assembler.getPendingCount());
+
+    final int pendingCount = assembler.getPendingCount();
+    assertEquals(0, pendingCount);
   }
 }

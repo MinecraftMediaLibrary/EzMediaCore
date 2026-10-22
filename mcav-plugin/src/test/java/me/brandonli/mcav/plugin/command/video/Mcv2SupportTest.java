@@ -35,9 +35,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Configuration;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Pacer;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Pack;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2PackServer;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Result;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Viewers;
@@ -161,7 +162,7 @@ final class Mcv2SupportTest {
     assertEquals(Settings.DEFAULT, configuration.getSettings());
     assertEquals(List.of(this.viewer), List.copyOf(configuration.getViewers()));
     assertEquals(Mcv2Configuration.DEFAULT_BACKLOG_LIMIT, configuration.getBacklogLimit());
-    assertEquals(Mcv2Configuration.MAX_PAGE_SLOTS, configuration.getPageSlots());
+    assertEquals(Mcv2Configuration.MAXIMUM_PAGE_SLOTS, configuration.getPageSlots());
   }
 
   @Test
@@ -235,9 +236,9 @@ final class Mcv2SupportTest {
       @SuppressWarnings("unchecked")
       final ArgumentCaptor<Consumer<Mcv2Pacer.Change>> listeners = ArgumentCaptor.forClass(Consumer.class);
       verify(result).setPacingListener(listeners.capture());
-      final Mcv2Pacer.Change change = new Mcv2Pacer.Change(
-        new Mcv2Pacer.Rung(640, 384, 1),
-        new Mcv2Pacer.Rung(640, 384, 2),
+      final Mcv2Pacer.Change change = Mcv2Pacer.Change.of(
+        Mcv2Pacer.Rung.of(640, 384, 1),
+        Mcv2Pacer.Rung.of(640, 384, 2),
         true,
         20,
         16.7,
@@ -325,5 +326,26 @@ final class Mcv2SupportTest {
     Mcv2Support.tellRefused(player);
     verify(player).sendMessage(Message.MCV2_PACK.build());
     verify(player).sendMessage(Message.MCV2_REFUSED.build());
+  }
+
+  @Test
+  void shouldShowTheDebugViewOnlyWhenItsPropertyIsSet() {
+    final List<Object> debugViews = new ArrayList<>();
+    try (
+      final MockedConstruction<Mcv2PackServer> _ = Mockito.mockConstruction(Mcv2PackServer.class, (_, context) ->
+        debugViews.add(context.arguments().get(2))
+      )
+    ) {
+      System.setProperty(Mcv2Support.DEBUG_VIEW, "true");
+      try {
+        final Mcv2Support _ = new Mcv2Support(this.folder, PackHosting::injector);
+      } finally {
+        System.clearProperty(Mcv2Support.DEBUG_VIEW);
+      }
+      final Mcv2Support _ = new Mcv2Support(this.folder, PackHosting::injector);
+    }
+
+    final List<Mcv2Pack.DebugView> expected = List.of(Mcv2Pack.DebugView.SHOWN, Mcv2Pack.DebugView.HIDDEN);
+    assertEquals(expected, debugViews);
   }
 }

@@ -81,7 +81,7 @@ decodes it on the player's GPU, in full colour, at the resolution you choose. Th
 
 The first two rows measure a procedural Minecraft test clip, which flatters MCV2; the last measures real gameplay.
 
-MCV2 uses one encoder class, `MCV2.java`, and one decoder shader, `mcv2.glsl`. The presets are `DEFAULT` and `FAST`.
+MCV2 uses one encoder class, `Mcv2.java`, and one decoder shader, `mcv2.glsl`. The presets are `DEFAULT` and `FAST`.
 Its benchmark, fixture, digest and shader tools live in `mcav-bukkit`'s test sources: `Mcv2Tools.java`,
 `mcv2_tools.py` and the independent reference decoder, `mcv2_reference.py`.
 

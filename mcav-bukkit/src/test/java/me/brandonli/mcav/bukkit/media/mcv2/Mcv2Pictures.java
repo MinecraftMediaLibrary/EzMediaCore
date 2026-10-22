@@ -19,10 +19,6 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 
 import java.util.Random;
 
-/**
- * The synthetic scene the encoder tests encode: a flat band, a checkerboard, a ramp and noisy waves, panned sideways a
- * given number of pixels per frame.
- */
 final class Mcv2Pictures {
 
   private Mcv2Pictures() {}
@@ -34,21 +30,36 @@ final class Mcv2Pictures {
       for (int column = 0; column < width; column++) {
         final int sourceColumn = column + frame * panPerFrame;
         final int offset = (row * width + column) * 3;
-        final int value;
-        if (row < height / 4) {
-          value = 90;
-        } else if (row < height / 2) {
-          value = ((sourceColumn / 4 + row / 4) & 1) == 0 ? 40 : 200;
-        } else if (column < width / 3) {
-          value = 30 + ((sourceColumn * 3 + row) % 180);
-        } else {
-          value = (int) (120 + 60 * Math.sin(sourceColumn / 7.0) * Math.cos(row / 5.0)) + random.nextInt(8);
-        }
+        final int value = sceneValue(width, height, row, column, sourceColumn, random);
         rgb[offset] = (byte) value;
         rgb[offset + 1] = (byte) Math.min(255, value + 20);
         rgb[offset + 2] = (byte) Math.max(0, value - 30);
       }
     }
+
     return rgb;
+  }
+
+  private static int sceneValue(
+    final int width,
+    final int height,
+    final int row,
+    final int column,
+    final int sourceColumn,
+    final Random random
+  ) {
+    if (row < height / 4) {
+      return 90;
+    }
+
+    if (row < height / 2) {
+      return ((sourceColumn / 4 + row / 4) & 1) == 0 ? 40 : 200;
+    }
+
+    if (column < width / 3) {
+      return 30 + ((sourceColumn * 3 + row) % 180);
+    }
+
+    return (int) (120 + 60 * Math.sin(sourceColumn / 7.0) * Math.cos(row / 5.0)) + random.nextInt(8);
   }
 }

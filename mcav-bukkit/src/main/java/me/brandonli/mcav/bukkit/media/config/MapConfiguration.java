@@ -17,13 +17,8 @@
  */
 package me.brandonli.mcav.bukkit.media.config;
 
-import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
-import me.brandonli.mcav.bukkit.media.image.DisplayableImage;
-import me.brandonli.mcav.bukkit.media.map.MapLayout;
-import me.brandonli.mcav.media.player.attachable.DimensionAttachableCallback;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /**
  * Describes a screen made of maps, for use with the map images and map results.
@@ -36,19 +31,28 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
  * <p>The viewers collection is not copied. It is read for every frame, so a concurrent collection can be passed
  * to add or remove viewers while media is playing.
  *
- * <pre><code>
- *   final MapConfiguration configuration = MapConfiguration.builder()
- *     .map(0)
- *     .mapBlockWidth(5)
- *     .mapBlockHeight(5)
- *     .viewers(viewers)
- *     .build();
- * </code></pre>
+ * {@snippet :
+ * final int firstMapId = 0;
+ * final int mapBlockWidth = 5;
+ * final int mapBlockHeight = 5;
+ * final MapConfigurationBuilder builder = MapConfiguration.builder();
+ * final MapConfiguration configuration = builder
+ *   .viewers(viewers)
+ *   .map(firstMapId)
+ *   .mapBlockWidth(mapBlockWidth)
+ *   .mapBlockHeight(mapBlockHeight)
+ *   .build();
+ * }
  *
  * <p>This configuration does not create map items, reserve map ids or place item frames. The caller supplies
  * the display surfaces and ensures the consecutive ids belong to this screen. Resizing is disabled by default.
+ *
+ * <p>This class is immutable and thread-safe, except for the viewer collection, which it shares with the caller instead
+ * of copying.
+ *
+ * @since 1.0.0
  */
-public class MapConfiguration {
+public final class MapConfiguration {
 
   private final Collection<UUID> viewers;
   private final int map;
@@ -58,255 +62,104 @@ public class MapConfiguration {
   private final int mapHeightResolution;
   private final boolean shouldResize;
 
-  private MapConfiguration(
-    final Builder<?> builder,
+  MapConfiguration(
     final Collection<UUID> viewers,
+    final int map,
+    final int mapBlockWidth,
+    final int mapBlockHeight,
     final int mapWidthResolution,
-    final int mapHeightResolution
+    final int mapHeightResolution,
+    final boolean shouldResize
   ) {
     this.viewers = viewers;
-    this.map = builder.map;
-    this.mapBlockWidth = builder.mapBlockWidth;
-    this.mapBlockHeight = builder.mapBlockHeight;
+    this.map = map;
+    this.mapBlockWidth = mapBlockWidth;
+    this.mapBlockHeight = mapBlockHeight;
     this.mapWidthResolution = mapWidthResolution;
     this.mapHeightResolution = mapHeightResolution;
-    this.shouldResize = builder.shouldResize;
-  }
-
-  /**
-   * Checks whether frames should be resized to the configured resolution before they are displayed.
-   *
-   * @return true if frames should be resized, false otherwise
-   */
-  public boolean shouldResize() {
-    return this.shouldResize;
-  }
-
-  /**
-   * Gets the players who see the maps.
-   *
-   * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
-   *         concurrent collection if another thread changes membership during rendering
-   */
-  public Collection<UUID> getViewers() {
-    return this.viewers;
-  }
-
-  /**
-   * Gets the id of the top left map of the screen.
-   *
-   * @return the id of the first map
-   */
-  public int getMap() {
-    return this.map;
-  }
-
-  /**
-   * Gets the width of the screen in maps.
-   *
-   * @return the number of maps horizontally
-   */
-  public int getMapBlockWidth() {
-    return this.mapBlockWidth;
-  }
-
-  /**
-   * Gets the height of the screen in maps.
-   *
-   * @return the number of maps vertically
-   */
-  public int getMapBlockHeight() {
-    return this.mapBlockHeight;
-  }
-
-  /**
-   * Gets the width in pixels that images are resized to if {@link #shouldResize()} is set. Defaults to the native
-   * width of the screen.
-   *
-   * @return the target width in pixels
-   */
-  public int getMapWidthResolution() {
-    return this.mapWidthResolution;
-  }
-
-  /**
-   * Gets the height in pixels that images are resized to if {@link #shouldResize()} is set. Defaults to the native
-   * height of the screen.
-   *
-   * @return the target height in pixels
-   */
-  public int getMapHeightResolution() {
-    return this.mapHeightResolution;
-  }
-
-  /**
-   * The builder returned by {@link #builder()}.
-   */
-  public static final class MapResultBuilder extends Builder<MapResultBuilder> {
-
-    MapResultBuilder() {}
-
-    /**
-     * Returns this builder with its concrete type.
-     *
-     * @return this builder
-     */
-    @Override
-    protected MapResultBuilder self() {
-      return this;
-    }
+    this.shouldResize = shouldResize;
   }
 
   /**
    * Creates a new builder for a map configuration.
    *
    * @return a new builder
+   * @since 1.0.0
    */
-  public static Builder<?> builder() {
-    return new MapResultBuilder();
+  public static MapConfigurationBuilder builder() {
+    return new DefaultMapConfigurationBuilder();
   }
 
   /**
-   * Builds map configurations. The map id, the grid size, and the viewers are required.
+   * Returns whether frames should be resized to the configured resolution before they are displayed.
    *
-   * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
-   * required fields are checked by {@link #build()}, which may be called again to create another configuration.
-   *
-   * @param <T> the type of the builder
+   * @return true if frames should be resized, false otherwise
+   * @since 1.0.0
    */
-  public abstract static class Builder<T extends Builder<T>> {
+  public boolean shouldResize() {
+    return this.shouldResize;
+  }
 
-    private @MonotonicNonNull Collection<UUID> viewers;
-    private int map;
-    private int mapBlockWidth;
-    private int mapBlockHeight;
-    private int mapWidthResolution;
-    private int mapHeightResolution;
-    private boolean shouldResize;
+  /**
+   * Returns the players who see the maps.
+   *
+   * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
+   *         concurrent collection if another thread changes membership during rendering
+   * @since 1.0.0
+   */
+  public Collection<UUID> getViewers() {
+    return this.viewers;
+  }
 
-    Builder() {
-      this.map = -1;
-    }
+  /**
+   * Returns the id of the top left map of the screen.
+   *
+   * @return the id of the first map
+   * @since 1.0.0
+   */
+  public int getMap() {
+    return this.map;
+  }
 
-    /**
-     * Returns this builder with its concrete type, so the setters can be chained.
-     *
-     * @return this builder
-     */
-    abstract T self();
+  /**
+   * Returns the width of the screen in maps.
+   *
+   * @return the number of maps horizontally
+   * @since 1.0.0
+   */
+  public int getMapBlockWidth() {
+    return this.mapBlockWidth;
+  }
 
-    /**
-     * Sets whether frames and images are resized to the configured resolution before they are displayed. Without
-     * resizing, images smaller than the maps are centered and larger ones are cropped.
-     *
-     * <p>For videos, prefer resizing in the media player with its {@link DimensionAttachableCallback}, which is faster
-     * because it happens before any other filter runs. Images shown with {@link DisplayableImage} have no player, so
-     * this option is the way to fit them to the maps.
-     *
-     * @param shouldResize true to resize frames and images, false to show them at their original size
-     * @return this builder
-     */
-    public T resize(final boolean shouldResize) {
-      this.shouldResize = shouldResize;
-      return this.self();
-    }
+  /**
+   * Returns the height of the screen in maps.
+   *
+   * @return the number of maps vertically
+   * @since 1.0.0
+   */
+  public int getMapBlockHeight() {
+    return this.mapBlockHeight;
+  }
 
-    /**
-     * Sets the players who see the maps. The collection is not copied, see {@link MapConfiguration}.
-     *
-     * @param viewers the UUIDs of the viewers
-     * @return this builder
-     * @throws NullPointerException if the viewers are null
-     */
-    public T viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null");
-      this.viewers = viewers;
-      return this.self();
-    }
+  /**
+   * Returns the width in pixels that images are resized to if {@link #shouldResize()} is set. Defaults to the native
+   * width of the screen.
+   *
+   * @return the target width in pixels
+   * @since 1.0.0
+   */
+  public int getMapWidthResolution() {
+    return this.mapWidthResolution;
+  }
 
-    /**
-     * Sets the id of the top left map of the screen.
-     *
-     * @param map the id of the first map, which must be non-negative
-     * @return this builder
-     */
-    public T map(final int map) {
-      this.map = map;
-      return this.self();
-    }
-
-    /**
-     * Sets the width of the screen in maps.
-     *
-     * @param mapBlockWidth the number of maps horizontally, which must be positive
-     * @return this builder
-     */
-    public T mapBlockWidth(final int mapBlockWidth) {
-      this.mapBlockWidth = mapBlockWidth;
-      return this.self();
-    }
-
-    /**
-     * Sets the height of the screen in maps.
-     *
-     * @param mapBlockHeight the number of maps vertically, which must be positive
-     * @return this builder
-     */
-    public T mapBlockHeight(final int mapBlockHeight) {
-      this.mapBlockHeight = mapBlockHeight;
-      return this.self();
-    }
-
-    /**
-     * Sets the width in pixels that images are resized to. Defaults to {@code 128 * mapBlockWidth}.
-     *
-     * @param mapWidthResolution the target width in pixels, which must not be negative; 0 selects the default
-     * @return this builder
-     */
-    public T mapWidthResolution(final int mapWidthResolution) {
-      this.mapWidthResolution = mapWidthResolution;
-      return this.self();
-    }
-
-    /**
-     * Sets the height in pixels that images are resized to. Defaults to {@code 128 * mapBlockHeight}.
-     *
-     * @param mapHeightResolution the target height in pixels, which must not be negative; 0 selects the default
-     * @return this builder
-     */
-    public T mapHeightResolution(final int mapHeightResolution) {
-      this.mapHeightResolution = mapHeightResolution;
-      return this.self();
-    }
-
-    /**
-     * Builds the map configuration. The builder is not changed, so it can be reused to build more configurations.
-     *
-     * @return the map configuration
-     * @throws IllegalArgumentException if the first map id is negative, a grid dimension is nonpositive,
-     *         a requested resolution is negative, or a default resolution would overflow an integer
-     * @throws NullPointerException     if the viewers were not set
-     */
-    public MapConfiguration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set");
-
-      Preconditions.checkArgument(this.map >= 0, "Map id must be set and non-negative");
-      Preconditions.checkArgument(this.mapBlockWidth > 0, "Map block width must be positive");
-      Preconditions.checkArgument(this.mapBlockHeight > 0, "Map block height must be positive");
-      Preconditions.checkArgument(this.mapWidthResolution >= 0, "Map width resolution must not be negative");
-      Preconditions.checkArgument(this.mapHeightResolution >= 0, "Map height resolution must not be negative");
-
-      final int widthResolution = resolveResolution(this.mapWidthResolution, this.mapBlockWidth);
-      final int heightResolution = resolveResolution(this.mapHeightResolution, this.mapBlockHeight);
-      return new MapConfiguration(this, configuredViewers, widthResolution, heightResolution);
-    }
-
-    private static int resolveResolution(final int configuredResolution, final int maps) {
-      if (configuredResolution > 0) {
-        return configuredResolution;
-      }
-      Preconditions.checkArgument(maps <= Integer.MAX_VALUE / MapLayout.MAP_SIZE, "Native map resolution exceeds the integer range");
-      return MapLayout.MAP_SIZE * maps;
-    }
+  /**
+   * Returns the height in pixels that images are resized to if {@link #shouldResize()} is set. Defaults to the native
+   * height of the screen.
+   *
+   * @return the target height in pixels
+   * @since 1.0.0
+   */
+  public int getMapHeightResolution() {
+    return this.mapHeightResolution;
   }
 }

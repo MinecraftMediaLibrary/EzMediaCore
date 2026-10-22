@@ -24,6 +24,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.epoll.EpollChannelOption;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import me.brandonli.mcav.bukkit.BukkitModule;
@@ -55,15 +56,19 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>Joins are handled as early as possible, with {@link EventPriority#LOWEST}, so other plugins can send media in
  * their own join handlers, and quits as late as possible, with {@link EventPriority#MONITOR}, so they can still
  * send packets in their quit handlers.
+ *
+ * @since 1.0.0
  */
 public final class PacketUtils {
+
+  private static final String PLAYER_NULL_MESSAGE = "Player must not be null!";
 
   private static final Map<UUID, CachedConnection> PLAYER_CONNECTIONS = new ConcurrentHashMap<>();
 
   private static volatile @Nullable Listener connectionListener;
 
   private PacketUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -73,16 +78,17 @@ public final class PacketUtils {
    * <p>Run on the server main thread. Reinitialization unregisters the previous listener and rebuilds the cache.
    *
    * @throws IllegalStateException if no plugin has been injected
+   * @since 1.0.0
    */
-  public static synchronized void init() {
+  public static synchronized void initialize() {
     final Map<UUID, CachedConnection> previous = Map.copyOf(PLAYER_CONNECTIONS);
     shutdown();
 
     final Plugin plugin = BukkitModule.getPlugin();
     final Listener listener = new ConnectionListener();
     final PluginManager pluginManager = Bukkit.getPluginManager();
-    final EventExecutor joinExecutor = (_, event) -> handleJoin(event);
-    final EventExecutor quitExecutor = (_, event) -> handleQuit(event);
+    final EventExecutor joinExecutor = (_, event) -> onPlayerJoin(event);
+    final EventExecutor quitExecutor = (_, event) -> onPlayerQuit(event);
     pluginManager.registerEvent(PlayerJoinEvent.class, listener, EventPriority.LOWEST, joinExecutor, plugin);
     pluginManager.registerEvent(PlayerQuitEvent.class, listener, EventPriority.MONITOR, quitExecutor, plugin);
     connectionListener = listener;
@@ -98,6 +104,8 @@ public final class PacketUtils {
    * {@link BukkitModule}.
    *
    * <p>Run on the server main thread. Existing player connections remain server-owned and are not closed.
+   *
+   * @since 1.0.0
    */
   public static synchronized void shutdown() {
     final Listener listener = connectionListener;
@@ -105,36 +113,41 @@ public final class PacketUtils {
       HandlerList.unregisterAll(listener);
       connectionListener = null;
     }
+
     PLAYER_CONNECTIONS.clear();
   }
 
   /**
-   * Checks whether the player with the specified UUID is online and able to receive packets. May be called from
-   * any thread.
+   * Returns whether the player with the specified UUID is online and able to receive packets. May be called from any
+   * thread.
    *
    * @param player the UUID of the player
    * @return true if a connection is currently cached; this is a snapshot and does not guarantee that a
    *         subsequent send succeeds or that the client receives it
    * @throws NullPointerException if {@code player} is null
+   * @since 1.0.0
    */
   public static boolean isConnected(final UUID player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
     return PLAYER_CONNECTIONS.containsKey(player);
   }
 
   /**
-   * Gets an opaque identity for the player's current connection. May be called from any thread. The identity is
+   * Returns an opaque identity for the player's current connection. May be called from any thread. The identity is
    * stable while that connection is cached, including cache refreshes, and changes when the player reconnects.
    * Retaining it does not retain the player or the network connection.
    *
    * @param player the player's UUID
-   * @return the connection identity, or null while the player is offline; a snapshot, not a guarantee of delivery
+   * @return the connection identity, or empty while the player is offline; a snapshot, not a guarantee of delivery
    * @throws NullPointerException if {@code player} is null
+   * @since 1.0.0
    */
-  public static @Nullable Object connectionIdentity(final UUID player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
-    final CachedConnection cached = PLAYER_CONNECTIONS.get(player);
-    return cached == null ? null : cached.identity();
+  public static Optional<Object> connectionIdentity(final UUID player) {
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
+    final @Nullable CachedConnection cached = PLAYER_CONNECTIONS.get(player);
+    return Optional.ofNullable(cached).map(CachedConnection::identity);
   }
 
   /**
@@ -144,10 +157,12 @@ public final class PacketUtils {
    * @param viewers the UUIDs of the players to send the packets to
    * @param packets the packets to send, in order
    * @throws NullPointerException if {@code viewers} or {@code packets} is null
+   * @since 1.0.0
    */
   public static void sendPackets(final Collection<UUID> viewers, final Packet<?>... packets) {
-    Preconditions.checkNotNull(viewers, "Viewers must not be null");
-    Preconditions.checkNotNull(packets, "Packets must not be null");
+    Preconditions.checkNotNull(viewers, "Viewers must not be null!");
+    Preconditions.checkNotNull(packets, "Packets must not be null!");
+
     for (final UUID viewer : viewers) {
       final CachedConnection connection = PLAYER_CONNECTIONS.get(viewer);
       if (connection == null) {
@@ -172,19 +187,23 @@ public final class PacketUtils {
    * @param packet   the packet
    * @param listener called on the player's connection thread when the packet was written, or could not be
    * @return true if the packet was handed to the player's connection, false for a player who is not online or a
-   *     connection not open yet, in which case the listener is never called
+   *         connection not open yet, in which case the listener is never called
    * @throws NullPointerException if {@code viewer}, {@code packet} or {@code listener} is null
+   * @since 1.0.0
    */
   public static boolean sendPacket(final UUID viewer, final Packet<?> packet, final ChannelFutureListener listener) {
-    Preconditions.checkNotNull(viewer, "Viewer must not be null");
-    Preconditions.checkNotNull(packet, "Packet must not be null");
-    Preconditions.checkNotNull(listener, "Listener must not be null");
+    Preconditions.checkNotNull(viewer, "Viewer must not be null!");
+    Preconditions.checkNotNull(packet, "Packet must not be null!");
+    Preconditions.checkNotNull(listener, "Listener must not be null!");
+
     final Channel channel = channel(viewer);
     if (channel == null) {
       return false;
     }
+
     final ChannelFuture written = channel.writeAndFlush(packet);
     written.addListener(listener);
+
     return true;
   }
 
@@ -202,13 +221,15 @@ public final class PacketUtils {
    * @param player the UUID of the player
    * @param bytes  the most unsent bytes the system may hold, positive
    * @return true if the cap was set; false for a player who is not online, a connection not open yet, or a transport
-   *     without the option
+   *         without the option
    * @throws IllegalArgumentException if the byte limit is nonpositive
-   * @throws NullPointerException if {@code player} is null
+   * @throws NullPointerException     if {@code player} is null
+   * @since 1.0.0
    */
   public static boolean limitUnsent(final UUID player, final int bytes) {
-    Preconditions.checkNotNull(player, "Player must not be null");
-    Preconditions.checkArgument(bytes > 0, "Bytes must be positive");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+    Preconditions.checkArgument(bytes > 0, "Bytes must be positive!");
+
     final Channel channel = channel(player);
     return channel != null && channel.config().setOption(EpollChannelOption.TCP_NOTSENT_LOWAT, (long) bytes);
   }
@@ -218,14 +239,14 @@ public final class PacketUtils {
     return cached == null ? null : cached.listener().connection.channel;
   }
 
-  private static void handleJoin(final Event event) {
+  private static void onPlayerJoin(final Event event) {
     if (event instanceof final PlayerJoinEvent joinEvent) {
       final Player player = joinEvent.getPlayer();
       addPlayerConnection(player, PLAYER_CONNECTIONS.get(player.getUniqueId()));
     }
   }
 
-  private static void handleQuit(final Event event) {
+  private static void onPlayerQuit(final Event event) {
     if (event instanceof final PlayerQuitEvent quitEvent) {
       final Player player = quitEvent.getPlayer();
       removePlayerConnection(player);
@@ -246,9 +267,6 @@ public final class PacketUtils {
     PLAYER_CONNECTIONS.remove(uuid);
   }
 
-  /**
-   * The owner of the connection tracking handlers, which {@link #shutdown()} unregisters all at once.
-   */
   private static final class ConnectionListener implements Listener {}
 
   private record CachedConnection(ServerGamePacketListenerImpl listener, Object identity) {}

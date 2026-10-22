@@ -21,22 +21,21 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import me.brandonli.mcav.bukkit.BukkitException;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
 import org.bukkit.Bukkit;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-/**
- * Tests {@link ServerEnvironment} and {@link UnsupportedServerVersionException}.
- */
 final class ServerEnvironmentTest {
 
   @Test
-  void supportsTheExactVersionAndItsPatchReleasesOnly() {
+  void shouldSupportTheExactVersionAndItsPatchReleasesOnly() {
     final boolean exact = ServerEnvironment.isSupported("26.3");
     final boolean patch = ServerEnvironment.isSupported("26.3.1");
     final boolean longerMinor = ServerEnvironment.isSupported("26.30");
@@ -54,7 +53,7 @@ final class ServerEnvironmentTest {
   }
 
   @Test
-  void acceptsASupportedServer() {
+  void shouldAcceptASupportedServer() {
     try (final FakeServer server = FakeServer.start()) {
       final MockedStatic<Bukkit> bukkit = server.getBukkit();
       bukkit.when(Bukkit::getMinecraftVersion).thenReturn("26.3.3");
@@ -67,7 +66,7 @@ final class ServerEnvironmentTest {
   }
 
   @Test
-  void rejectsAnUnsupportedServerWithAClearMessage() {
+  void shouldRejectAnUnsupportedServerWithAClearMessage() {
     try (final FakeServer server = FakeServer.start()) {
       final MockedStatic<Bukkit> bukkit = server.getBukkit();
       bukkit.when(Bukkit::getMinecraftVersion).thenReturn("1.21.4");
@@ -79,12 +78,24 @@ final class ServerEnvironmentTest {
       final String message = exception.getMessage();
       assertFalse(supported);
       assertEquals("MCAV only supports Minecraft 26.3, but the server is running 1.21.4!", message);
-      assertInstanceOf(IllegalStateException.class, exception, "an unchecked exception that catch (Exception) handles");
+      assertInstanceOf(BukkitException.class, exception);
     }
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldKeepTheMessageAndTheCauseInExceptions() {
+    final IllegalStateException failure = new IllegalStateException("Cause!");
+    final UnsupportedServerVersionException exception = new UnsupportedServerVersionException("Unsupported!", failure);
+
+    final String message = exception.getMessage();
+    final Throwable cause = exception.getCause();
+
+    assertEquals("Unsupported!", message);
+    assertSame(failure, cause);
+  }
+
+  @Test
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(ServerEnvironment.class);
   }
 }

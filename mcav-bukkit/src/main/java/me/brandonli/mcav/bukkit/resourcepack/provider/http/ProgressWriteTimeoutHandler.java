@@ -30,7 +30,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** Applies the write deadline to stalls, including partial progress within a zero-copy file region. */
+// progress inside a zero-copy file region resets the write deadline
 final class ProgressWriteTimeoutHandler extends WriteTimeoutHandler {
 
   private final int timeoutSeconds;
@@ -55,6 +55,7 @@ final class ProgressWriteTimeoutHandler extends WriteTimeoutHandler {
     for (final PendingWrite pending : this.writes) {
       pending.cancel();
     }
+
     this.writes.clear();
     super.handlerRemoved(context);
   }
@@ -104,6 +105,7 @@ final class ProgressWriteTimeoutHandler extends WriteTimeoutHandler {
     public void operationComplete(final ChannelProgressiveFuture future) {
       this.cancel();
       ProgressWriteTimeoutHandler.this.writes.remove(this);
+
       if (future.isSuccess()) {
         this.completion.trySuccess();
       } else {

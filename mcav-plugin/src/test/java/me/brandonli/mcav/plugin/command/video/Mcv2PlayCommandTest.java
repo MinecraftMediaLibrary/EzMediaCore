@@ -59,7 +59,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Pool;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Pool;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Channel;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Configuration;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
@@ -340,7 +340,7 @@ final class Mcv2PlayCommandTest {
       List.of(
         Message.UNSUPPORTED_DIMENSION.build(),
         Message.MCV2_FILE_ERROR.build("Not a stream file: missing.mcs"),
-        Message.MCV2_FILE_ERROR.build("Not an MCV2 frame")
+        Message.MCV2_FILE_ERROR.build("Not an MCV2 frame!")
       ),
       messages.getAllValues()
     );
@@ -889,12 +889,12 @@ final class Mcv2PlayCommandTest {
     assertEquals("Invalid MCV2 frame length: 1", assertThrows(IOException.class, () -> Mcv2PlayCommand.read(tiny)).getMessage());
     final Path empties = Files.write(this.folder.resolve("i.mcs"), concat(shortest, new byte[] { 0, 0, 0, 0 }));
     assertEquals("Invalid MCV2 frame length: 0", assertThrows(IOException.class, () -> Mcv2PlayCommand.read(empties)).getMessage());
-    final Path huge = Files.write(this.folder.resolve("j.mcs"), record(Mcv2Decoder.MAX_FRAME_BYTES + 1));
+    final Path huge = Files.write(this.folder.resolve("j.mcs"), record(Mcv2Decoder.MAXIMUM_FRAME_BYTES + 1));
     assertEquals(
-      "Invalid MCV2 frame length: " + (Mcv2Decoder.MAX_FRAME_BYTES + 1),
+      "Invalid MCV2 frame length: " + (Mcv2Decoder.MAXIMUM_FRAME_BYTES + 1),
       assertThrows(IOException.class, () -> Mcv2PlayCommand.read(huge)).getMessage()
     );
-    final byte[] longest = record(Mcv2Decoder.MAX_FRAME_BYTES);
+    final byte[] longest = record(Mcv2Decoder.MAXIMUM_FRAME_BYTES);
     assertEquals(1, Mcv2PlayCommand.read(Files.write(this.folder.resolve("k.mcs"), longest)).size());
     // every byte of the length counts, little-endian: 16 bytes follow, fewer than any of these lengths
     for (int high = 1; high < 4; high++) {

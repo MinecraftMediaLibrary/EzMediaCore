@@ -31,14 +31,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * An HTTP server on the loopback interface for tests that download files.
- *
- * <p>Every path answers with a queue of prepared responses. Once only one response is left, it is repeated for
- * every further request, so a path can fail a few times before it succeeds, or fail forever. Paths without
- * responses answer {@code 404}.
- */
+// the last queued response of a path repeats; a path without responses answers 404
 public final class LocalHttpServer implements AutoCloseable {
+
+  private static final String ROOT_PATH = "/";
 
   private final HttpServer server;
   private final Map<String, Deque<Response>> responses;
@@ -50,18 +46,13 @@ public final class LocalHttpServer implements AutoCloseable {
     this.requestCounts = new ConcurrentHashMap<>();
   }
 
-  /**
-   * Starts a server on a free port of the loopback interface.
-   *
-   * @return the running server
-   */
   public static LocalHttpServer start() {
     try {
       final InetAddress loopback = InetAddress.getLoopbackAddress();
       final InetSocketAddress address = new InetSocketAddress(loopback, 0);
       final HttpServer httpServer = HttpServer.create(address, 0);
       final LocalHttpServer localServer = new LocalHttpServer(httpServer);
-      httpServer.createContext("/", localServer::handle);
+      httpServer.createContext(ROOT_PATH, localServer::handle);
       httpServer.start();
       return localServer;
     } catch (final IOException exception) {
@@ -69,13 +60,6 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Adds a response to the queue of a path.
-   *
-   * @param path   the path, starting with a slash
-   * @param status the status code
-   * @param body   the body
-   */
   public void respond(final String path, final int status, final byte[] body) {
     final Deque<Response> queue = this.responses.computeIfAbsent(path, _ -> new ArrayDeque<>());
     final Response response = new Response(status, body);
@@ -84,24 +68,12 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Gets the URI of a path on this server.
-   *
-   * @param path the path, starting with a slash
-   * @return the URI
-   */
   public URI uri(final String path) {
     final InetSocketAddress address = this.server.getAddress();
     final int port = address.getPort();
     return URI.create("http://127.0.0.1:" + port + path);
   }
 
-  /**
-   * Gets how many requests a path received.
-   *
-   * @param path the path, starting with a slash
-   * @return the number of requests
-   */
   public int getRequestCount(final String path) {
     final AtomicInteger count = this.requestCounts.get(path);
     return count == null ? 0 : count.get();
@@ -119,11 +91,13 @@ public final class LocalHttpServer implements AutoCloseable {
     final boolean isHeadRequest = method.equals("HEAD");
     final long responseLength = isHeadRequest || body.length == 0 ? -1 : body.length;
     exchange.sendResponseHeaders(response.status, responseLength);
+
     if (!isHeadRequest && body.length > 0) {
       try (final OutputStream output = exchange.getResponseBody()) {
         output.write(body);
       }
     }
+
     exchange.close();
   }
 
@@ -132,26 +106,22 @@ public final class LocalHttpServer implements AutoCloseable {
     if (queue == null) {
       return new Response(404, new byte[0]);
     }
+
     synchronized (queue) {
       if (queue.size() > 1) {
         return queue.removeFirst();
       }
+
       final Response last = queue.peekFirst();
       return last == null ? new Response(404, new byte[0]) : last;
     }
   }
 
-  /**
-   * Stops the server immediately.
-   */
   @Override
   public void close() {
     this.server.stop(0);
   }
 
-  /**
-   * A prepared response.
-   */
   private static final class Response {
 
     private final int status;

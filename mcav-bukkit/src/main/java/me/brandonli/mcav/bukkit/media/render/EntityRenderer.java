@@ -35,7 +35,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.entity.CraftTextDisplay;
 import org.bukkit.entity.Display;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.Plugin;
@@ -58,8 +57,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * may resize the caller-owned image synchronously; the scheduled task retains only converted frame data. At most
  * the latest submitted frame is applied per tick, so intermediate frames may be dropped. Do not concurrently
  * write to the same input buffer. Hiding clears pending work; the renderer can subsequently be shown again.
+ *
+ * <p>Every public method may be called from any thread; the entity is changed on the main thread only.
+ *
+ * @since 1.0.0
  */
 public final class EntityRenderer extends MainThreadRenderer<Component> {
+
+  private static final int CHUNK_SHIFT = 4;
 
   private final EntityConfiguration configuration;
   private final Set<UUID> shownTo;
@@ -72,9 +77,11 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    *
    * @param configuration the configuration describing the viewers, position, and size of the entity image
    * @throws NullPointerException if the configuration is null
+   * @since 1.0.0
    */
   public EntityRenderer(final EntityConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+
     this.configuration = configuration;
     this.shownTo = new HashSet<>();
   }
@@ -83,7 +90,8 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    * Spawns the text display and shows it to every online viewer. May be called from any thread.
    *
    * @throws IllegalStateException if no plugin was injected, or if initialization runs on the calling thread
-   *         and the configured position no longer has a world
+   *                               and the configured position no longer has a world
+   * @since 1.0.0
    */
   public void show() {
     this.showDisplay(this::spawnEntity);
@@ -93,11 +101,13 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    * Converts the image into colored text and schedules it for display. May be called from any thread.
    *
    * @param image the image to render, which is resized to the entity dimensions in place
-   * @throws NullPointerException if the image is null
+   * @throws NullPointerException  if the image is null
    * @throws IllegalStateException if the image has been released
+   * @since 1.0.0
    */
   public void render(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
+
     final int width = this.configuration.getEntityWidth();
     final int height = this.configuration.getEntityHeight();
     final ResizeFilter resize = new ResizeFilter(width, height);
@@ -112,6 +122,8 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
   /**
    * Removes the text display. May be called from any thread, but call it on the main thread during shutdown,
    * because a disabled plugin cannot schedule the removal anymore.
+   *
+   * @since 1.0.0
    */
   public void hide() {
     this.hideDisplay(this::removeEntity);
@@ -126,10 +138,10 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     final Location location = configuredPosition.clone();
     final World world = location.getWorld();
     if (world == null) {
-      throw new IllegalStateException("Entity position has no world");
+      throw new IllegalStateException("Entity position has no world!");
     }
 
-    final TextDisplay display = world.spawn(location, TextDisplay.class, EntityRenderer::configureDisplay);
+    final TextDisplay display = world.spawn(location, TextDisplay.class, this::configureDisplay);
     this.showToViewers(display);
     this.entity = display;
   }
@@ -147,22 +159,14 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     }
   }
 
-  /**
-   * Shows the display to every viewer who cannot see it.
-   *
-   * <p>The entity is spawned with {@code setVisibleByDefault(false)}, so a player only ever sees it after an
-   * explicit {@link Player#showEntity(Plugin, Entity)}. That grant is per session and per player,
-   * and Paper takes it back whenever the entity stops being tracked, which a display respawned as its chunk loads again
-   * can do before its viewer ever saw it. So every tick, each online viewer who cannot see the display is shown it: a
-   * viewer added to the configuration after the spawn, a viewer who logged out and back in, and a viewer whose grant
-   * was taken back. Online viewers removed from the configuration have this plugin's visibility grant revoked.
-   */
+  // Paper revokes a showEntity grant when tracking ends, so every tick shows the display again to viewers who lost it
   @Override
   protected void onTick() {
     final TextDisplay current = this.entity;
     if (current == null) {
       return;
     }
+
     // a still image sends no further frame that would bring the display back after its chunk unloaded
     final TextDisplay display = current.isValid() ? current : this.respawnWithLastText();
     if (display == null) {
@@ -183,6 +187,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
       }
       this.shownTo.add(viewer);
     }
+
     final Set<UUID> removed = new HashSet<>(this.shownTo);
     removed.removeAll(watching);
     for (final UUID viewer : removed) {
@@ -191,11 +196,12 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
         player.hideEntity(plugin, display);
       }
     }
+
     this.shownTo.retainAll(watching);
   }
 
   // runs before the entity is added to the world, so no viewer ever sees the default settings
-  private static void configureDisplay(final TextDisplay display) {
+  private void configureDisplay(final TextDisplay display) {
     display.setPersistent(false);
     display.setInvulnerable(true);
     display.setSeeThrough(false);
@@ -207,12 +213,6 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     display.setLineWidth(Integer.MAX_VALUE);
   }
 
-  /**
-   * Sets the text of the display. If the display is gone, because its chunk was unloaded, a new display is spawned
-   * first, as soon as the chunk is loaded again.
-   *
-   * @param text the text of the frame
-   */
   @Override
   protected void apply(final Component text) {
     final TextDisplay current = this.entity;
@@ -227,31 +227,26 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
       return;
     }
 
-    setText(display, text);
+    this.setText(display, text);
   }
 
-  private static void setText(final TextDisplay display, final Component text) {
+  private void setText(final TextDisplay display, final Component text) {
     final CraftTextDisplay craftDisplay = (CraftTextDisplay) display;
     final net.minecraft.world.entity.Display.TextDisplay handle = craftDisplay.getHandle(); // fqn: Display is imported as org.bukkit.entity.Display
     handle.setText(text);
   }
 
-  /** Spawns a new display in place of one that is gone, with the text the old one showed last. */
   private @Nullable TextDisplay respawnWithLastText() {
     final TextDisplay display = this.respawnEntity();
     final Component text = this.lastText;
     if (display != null && text != null) {
-      setText(display, text);
+      this.setText(display, text);
     }
+
     return display;
   }
 
-  /**
-   * Spawns a new display in place of one that is gone. Nothing is spawned while the chunk at the position is not
-   * loaded, because spawning would load it again right after the server unloaded it.
-   *
-   * @return the new display, or null if the chunk is not loaded or the position has no world anymore
-   */
+  // spawning into an unloaded chunk would load it again
   private @Nullable TextDisplay respawnEntity() {
     final Location position = this.configuration.getPosition();
     final World world = position.getWorld();
@@ -261,8 +256,8 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
 
     final int blockX = position.getBlockX();
     final int blockZ = position.getBlockZ();
-    final int chunkX = blockX >> 4;
-    final int chunkZ = blockZ >> 4;
+    final int chunkX = blockX >> CHUNK_SHIFT;
+    final int chunkZ = blockZ >> CHUNK_SHIFT;
     final boolean loaded = world.isChunkLoaded(chunkX, chunkZ);
     if (!loaded) {
       return null;
@@ -270,6 +265,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
 
     this.entity = null;
     this.spawnEntity();
+
     return this.entity;
   }
 

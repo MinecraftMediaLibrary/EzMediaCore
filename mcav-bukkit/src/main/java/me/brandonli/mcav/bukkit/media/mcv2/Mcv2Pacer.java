@@ -17,11 +17,14 @@
  */
 package me.brandonli.mcav.bukkit.media.mcv2;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -29,7 +32,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>The screen's ladder has, from the top: the video size it was asked for at every frame of the video with each of
  * its {@linkplain Preset presets}, from the one it was asked for down to the fastest, then with the fastest at every
- * second, third, fourth and sixth frame while at least {@link #MIN_FRAME_RATE} frames a second remain; then the same for each
+ * second, third, fourth and sixth frame while at least {@link #MINIMUM_FRAME_RATE} frames a second remain; then the same for each
  * smaller size the screen can switch to; and last the dithered maps, which need no encoder. The screen reports how long
  * every encoded P frame held its pipeline - the frame's search, and the wait for the frame before it to be verified
  * and sent, which is what bounds the frames it keeps up with; keyframes, which come every few seconds and cost more,
@@ -38,22 +41,28 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * first rung below that the measured time predicts to fit in {@link #FIT} of its frame time - the encode time grows
  * with the pixels and with the preset's cost, the frame time with the frames skipped - else to the first that keeps up
  * at all, and to the dithered maps when none does; a faster preset at the same size and frame rate, which keeps every
- * frame the viewers see, only has to keep up. It judges a rung only after {@link #MIN_SAMPLES} P frames on it, and does
+ * frame the viewers see, only has to keep up. It judges a rung only after {@link #MINIMUM_SAMPLES} P frames on it, and does
  * not step down in the first {@link #STARTUP_SECONDS} of the video, while a new encoder warms up. It steps back up
  * when a rung above has been predicted to fit in {@link #ROOM} of its frame time for {@link #UP_SECONDS}, to the
  * highest such rung, and keeps off a rung it had to leave for {@link #BLOCK_SECONDS}, longer each time.
  * From the dithered maps it tries the lowest encoded rung again after {@link #RETRY_SECONDS}, and twice as long after
- * every try that failed, up to {@link #MAX_RETRY_SECONDS}; on the dithered maps it does not measure the video's rate,
+ * every try that failed, up to {@link #MAXIMUM_RETRY_SECONDS}; on the dithered maps it does not measure the video's rate,
  * since the frames then come as fast as the dithering allows. The thresholds guide adaptation after startup and sample-count gates; they are predictions, not a hard
  * latency guarantee. Changing content or external load can invalidate an earlier timing estimate.
  *
  * <p>Times are {@link System#nanoTime()} values passed in by the caller. Not thread-safe: the screen calls it from
  * one thread at a time.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Pacer {
 
-  /** The lowest frame rate a rung may have, in frames per second. */
-  public static final double MIN_FRAME_RATE = 10;
+  /**
+   * The lowest frame rate a rung may have, in frames per second.
+   *
+   * @since 1.0.0
+   */
+  public static final double MINIMUM_FRAME_RATE = 10;
 
   private static final double HIGH = 1.0;
 
@@ -65,19 +74,25 @@ public final class Mcv2Pacer {
 
   static final double STARTUP_SECONDS = 5.0;
 
-  static final int MIN_SAMPLES = 10;
+  static final int MINIMUM_SAMPLES = 10;
 
   private static final double UP_SECONDS = 5.0;
 
   private static final double RETRY_SECONDS = 30.0;
 
-  private static final double MAX_RETRY_SECONDS = 600.0;
+  private static final double MAXIMUM_RETRY_SECONDS = 600.0;
 
   private static final double BLOCK_SECONDS = 10.0;
 
   private static final double SMOOTHING = 0.2;
 
   private static final int[] DIVISORS = { 1, 2, 3, 4, 6 };
+
+  private static final int FULL_RATE_DIVISOR = 1;
+
+  private static final int SIZE_COMPONENTS = 2;
+
+  private static final int BACKOFF_FACTOR = 2;
 
   private static final long NANOSECONDS_PER_SECOND = 1_000_000_000L;
 
@@ -86,151 +101,12 @@ public final class Mcv2Pacer {
   private static final double WHOLE_RATE = 0.05;
 
   // A measured frame rate wavers around the nominal one, so a rung at the lowest rate may measure just below it.
-  private static final double MIN_FRAME_RATE_TOLERANCE = 0.95;
+  private static final double MINIMUM_FRAME_RATE_TOLERANCE = 0.95;
 
   // System.nanoTime() may be negative, so zero cannot mark an absent timestamp.
   private static final long NEVER = Long.MIN_VALUE;
 
-  /**
-   * A preset of the ladder: how hard the screen's encoder searches.
-   *
-   * @param name the preset's name in messages, for example {@code FAST}; empty for the one preset of a screen that
-   *             does not step through presets
-   * @param cost its encode time relative to the other presets of the ladder, which the pacer's predictions scale by
-   */
-  public record Preset(String name, double cost) {
-    /** The one preset of a screen that does not step through presets. */
-    public static final Preset ONLY = new Preset("", 1);
-
-    /**
-     * Constructs and validates a preset used to compare expected search costs.
-     *
-     * @param name the non-null diagnostic name, possibly empty for an unnamed single preset
-     * @param cost the strictly positive finite relative cost; only ratios between presets matter
-     * @throws NullPointerException if name is null
-     * @throws IllegalArgumentException if the cost is not positive and finite
-     */
-    public Preset {
-      Preconditions.checkNotNull(name, "Name must not be null");
-      Preconditions.checkArgument(cost > 0 && Double.isFinite(cost), "Cost must be positive and finite");
-    }
-
-    private String suffix() {
-      return this.name.isEmpty() ? "" : " with the " + this.name + " search";
-    }
-  }
-
-  /**
-   * A rung of the ladder.
-   *
-   * <p>Direct construction does not validate components. Use positive pixel dimensions, a positive frame
-   * divisor and a non-null preset for encoded rungs; {@link #DITHERED} is the canonical zero-divisor sentinel.
-   *
-   * @param width   the video width, or 0 for the dithered maps
-   * @param height  the video height, or 0 for the dithered maps
-   * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
-   * @param preset  how hard the encoder searches; {@link Preset#ONLY} on the dithered maps
-   */
-  public record Rung(int width, int height, int divisor, Preset preset) {
-    /** The dithered maps, the lowest rung. */
-    public static final Rung DITHERED = new Rung(0, 0, 0);
-
-    /**
-     * Creates a rung of a screen that does not step through presets.
-     *
-     * @param width   the video width, or 0 for the dithered maps
-     * @param height  the video height, or 0 for the dithered maps
-     * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
-     */
-    public Rung(final int width, final int height, final int divisor) {
-      this(width, height, divisor, Preset.ONLY);
-    }
-
-    /**
-     * Checks whether this is the dithered maps.
-     *
-     * @return true for the dithered maps
-     */
-    public boolean isDithered() {
-      return this.divisor == 0;
-    }
-
-    /**
-     * Gets the frames per second this rung encodes of a video.
-     *
-     * @param videoFrameRate the video's frames per second
-     * @return the encoded frames per second, 0 for the dithered maps
-     */
-    public double fps(final double videoFrameRate) {
-      return this.isDithered() ? 0 : videoFrameRate / this.divisor;
-    }
-
-    private long pixels() {
-      return (long) this.width * this.height;
-    }
-
-    /**
-     * Describes the rung for a message.
-     *
-     * @param videoFrameRate the video's frames per second
-     * @return for example {@code 1920x1080 at 30 fps}, {@code 1920x1080 at 30 fps with the FAST search} on a
-     *         ladder of presets, or {@code the dithered maps}
-     */
-    public String describe(final double videoFrameRate) {
-      return this.isDithered()
-        ? "the dithered maps"
-        : String.format(
-            Locale.getDefault(Locale.Category.FORMAT),
-            "%dx%d at %s fps%s",
-            this.width,
-            this.height,
-            rate(this.fps(videoFrameRate)),
-            this.preset.suffix()
-          );
-    }
-  }
-
-  static String rate(final double frameRate) {
-    final long whole = Math.round(frameRate);
-    return Math.abs(frameRate - whole) < WHOLE_RATE ? Long.toString(whole) : String.format(Locale.ROOT, "%.1f", frameRate);
-  }
-
-  /**
-   * A step of the pacer.
-   *
-   * @param from     the rung before
-   * @param to       the rung now
-   * @param down     whether the step went down the ladder
-   * @param encodeMilliseconds the smoothed encode time per frame that decided the step, 0 for a try from the dithered maps
-   * @param frameMilliseconds  the time a frame had on the rung before, 0 on the dithered maps
-   * @param videoFrameRate the video's frames per second as measured
-   */
-  public record Change(Rung from, Rung to, boolean down, double encodeMilliseconds, double frameMilliseconds, double videoFrameRate) {
-    /**
-     * Describes the step for the server's operator: what was chosen and why.
-     *
-     * @return the message
-     */
-    public String describe() {
-      if (this.from.isDithered()) {
-        return "MCV2 screen tries encoding again at %s after showing the dithered maps".formatted(this.to.describe(this.videoFrameRate));
-      }
-      final String timing = String.format(
-        Locale.ROOT,
-        "encoding %dx%d%s takes %.1f ms per frame, %s the %.1f ms a frame has at %s fps",
-        this.from.width(),
-        this.from.height(),
-        this.from.preset().suffix(),
-        this.encodeMilliseconds,
-        this.down ? "more than" : "well within",
-        this.frameMilliseconds,
-        rate(this.from.fps(this.videoFrameRate))
-      );
-      return this.down
-        ? "MCV2 screen steps down to %s: %s with the encoder threads it has".formatted(this.to.describe(this.videoFrameRate), timing)
-        : "MCV2 screen steps back up to %s: %s".formatted(this.to.describe(this.videoFrameRate), timing);
-    }
-  }
+  private static final int NO_RUNG = -1;
 
   private final List<Rung> ladder;
 
@@ -271,10 +147,11 @@ public final class Mcv2Pacer {
    * @param sizes the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
    *              can switch to
    * @throws IllegalArgumentException if there is no size, or a size is not positive
-   * @throws NullPointerException if the sizes or one of its arrays is null
+   * @throws NullPointerException     if the sizes or one of its arrays is null
+   * @since 1.0.0
    */
   public Mcv2Pacer(final List<int[]> sizes) {
-    this(sizes, true);
+    this(sizes, Floor.DITHERED_MAPS);
   }
 
   /**
@@ -283,15 +160,16 @@ public final class Mcv2Pacer {
    * <p>Each size array must contain exactly two positive pixel dimensions. Dimensions are copied into
    * immutable rungs, so later changes to the lists or arrays do not change this pacer.
    *
-   * @param sizes    the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
-   *                 can switch to
-   * @param dithered whether the screen can fall back to the dithered maps; without them, the lowest encoded rung is as
-   *                 low as the pacer goes, even when its frames take longer than they have
+   * @param sizes the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
+   *              can switch to
+   * @param floor how low the ladder goes: down to the dithered maps, or only to the lowest encoded rung, even when
+   *              its frames take longer than they have
    * @throws IllegalArgumentException if there is no size, or a size is not positive
-   * @throws NullPointerException if the sizes or one of its arrays is null
+   * @throws NullPointerException     if the sizes, one of its arrays or the floor is null
+   * @since 1.0.0
    */
-  public Mcv2Pacer(final List<int[]> sizes, final boolean dithered) {
-    this(sizes, List.of(Preset.ONLY), dithered);
+  public Mcv2Pacer(final List<int[]> sizes, final Floor floor) {
+    this(sizes, List.of(Preset.ONLY), floor);
   }
 
   /**
@@ -300,38 +178,44 @@ public final class Mcv2Pacer {
    * <p>Each size array must contain exactly two positive pixel dimensions. Dimensions are copied into
    * immutable rungs, so later changes to the lists or arrays do not change this pacer.
    *
-   * @param sizes    the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
-   *                 can switch to
-   * @param presets  how hard the encoder can search, from the preset the screen was asked for down to the fastest
-   * @param dithered whether the screen can fall back to the dithered maps; without them, the lowest encoded rung is as
-   *                 low as the pacer goes, even when its frames take longer than they have
+   * @param sizes   the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
+   *                can switch to
+   * @param presets how hard the encoder can search, from the preset the screen was asked for down to the fastest
+   * @param floor   how low the ladder goes: down to the dithered maps, or only to the lowest encoded rung, even when
+   *                its frames take longer than they have
    * @throws IllegalArgumentException if there is no size or no preset, a size is not positive, or a preset does not
    *                                  cost less than the one before it
-   * @throws NullPointerException if the sizes or one of its arrays is null, or presets is null
+   * @throws NullPointerException     if the sizes, one of its arrays, the presets or the floor is null
+   * @since 1.0.0
    */
-  public Mcv2Pacer(final List<int[]> sizes, final List<Preset> presets, final boolean dithered) {
-    Preconditions.checkArgument(!sizes.isEmpty(), "At least one size is needed");
-    Preconditions.checkArgument(!presets.isEmpty(), "At least one preset is needed");
+  public Mcv2Pacer(final List<int[]> sizes, final List<Preset> presets, final Floor floor) {
+    Preconditions.checkNotNull(floor, "Floor must not be null!");
+    Preconditions.checkArgument(!sizes.isEmpty(), "At least one size is needed!");
+    Preconditions.checkArgument(!presets.isEmpty(), "At least one preset is needed!");
+
     for (int index = 1; index < presets.size(); index++) {
       Preconditions.checkArgument(
-        presets.get(index).cost() < presets.get(index - 1).cost(),
-        "Each preset must cost less than the one before"
+        presets.get(index).getCost() < presets.get(index - 1).getCost(),
+        "Each preset must cost less than the one before!"
       );
     }
+
     final Preset fastest = presets.getLast();
     final List<Rung> rungs = new ArrayList<>();
     for (final int[] size : sizes) {
-      Preconditions.checkArgument(size.length == 2 && size[0] > 0 && size[1] > 0, "Sizes must be positive width and height");
+      Preconditions.checkArgument(size.length == SIZE_COMPONENTS && size[0] > 0 && size[1] > 0, "Sizes must be positive width and height!");
       for (final Preset preset : presets.subList(0, presets.size() - 1)) {
-        rungs.add(new Rung(size[0], size[1], 1, preset));
+        rungs.add(Rung.of(size[0], size[1], FULL_RATE_DIVISOR, preset));
       }
       for (final int divisor : DIVISORS) {
-        rungs.add(new Rung(size[0], size[1], divisor, fastest));
+        rungs.add(Rung.of(size[0], size[1], divisor, fastest));
       }
     }
-    if (dithered) {
+
+    if (floor == Floor.DITHERED_MAPS) {
       rungs.add(Rung.DITHERED);
     }
+
     this.ladder = List.copyOf(rungs);
     this.blockedUntil = new long[rungs.size()];
     this.blockSeconds = new double[rungs.size()];
@@ -339,31 +223,9 @@ public final class Mcv2Pacer {
     Arrays.fill(this.blockSeconds, BLOCK_SECONDS);
   }
 
-  /**
-   * Gets the rungs of the ladder, top first; the last is {@link Rung#DITHERED} when the screen can fall back to it.
-   *
-   * @return the unmodifiable ladder, whose immutable rungs may be shared
-   */
-  public List<Rung> getLadder() {
-    return this.ladder;
-  }
-
-  /**
-   * Gets the rung the screen is on.
-   *
-   * @return the rung
-   */
-  public Rung getRung() {
-    return this.ladder.get(this.current);
-  }
-
-  /**
-   * Gets the video's frames per second, as measured from the frames it hands over.
-   *
-   * @return the frame rate, or NaN before two frames arrived
-   */
-  public double getVideoFps() {
-    return NANOSECONDS_PER_SECOND / this.videoInterval;
+  static String rate(final double frameRate) {
+    final long whole = Math.round(frameRate);
+    return Math.abs(frameRate - whole) < WHOLE_RATE ? Long.toString(whole) : String.format(Locale.ROOT, "%.1f", frameRate);
   }
 
   /**
@@ -371,129 +233,170 @@ public final class Mcv2Pacer {
    * try again comes, which moves the pacer to the lowest encoded rung.
    *
    * @param now the arrival time in monotonic nanoseconds, from the same clock used for other calls
-   * @return the step a try from the dithered maps takes, which the caller carries out, or null
+   * @return the step a try from the dithered maps takes, which the caller carries out, or empty
+   * @since 1.0.0
    */
-  public @Nullable Change arrive(final long now) {
+  public Optional<Change> arrive(final long now) {
     if (this.firstArrival == NEVER) {
       this.firstArrival = now;
     }
+
     // Dithering throughput does not measure the video's frame rate.
     if (this.lastArrival != NEVER && now > this.lastArrival && !this.getRung().isDithered()) {
       final double interval = now - this.lastArrival;
       this.videoInterval = Double.isNaN(this.videoInterval) ? interval : this.videoInterval + SMOOTHING * (interval - this.videoInterval);
     }
+
     this.lastArrival = now;
-    Change change = null;
+    Optional<Change> change = Optional.empty();
     if (this.getRung().isDithered() && now >= this.retryAt) {
-      change = this.move(this.lowestEncoded(), false, 0, 0);
+      change = Optional.of(this.move(this.lowestEncoded(), Direction.UP, 0, 0));
     }
+
     this.arrivals++;
+
     return change;
   }
 
   /**
-   * Checks whether the frame that arrived last is to be encoded on the current rung.
+   * Returns whether the frame that arrived last is to be encoded on the current rung.
    *
    * @return true to encode it
+   * @since 1.0.0
    */
   public boolean isEncoded() {
     final Rung rung = this.getRung();
-    return !rung.isDithered() && (this.arrivals - 1) % rung.divisor() == 0;
+    return !rung.isDithered() && (this.arrivals - 1) % rung.getDivisor() == 0;
   }
 
   /**
    * Reports an encoded frame.
    *
    * @param milliseconds how long the frame took to encode, waiting for the budget's threads included
-   * @param isKeyframe   whether it was a keyframe, which is left out
-   * @param now the completion time in monotonic nanoseconds, from the same clock used for other calls
-   * @return the step it causes, which the caller carries out, or null
+   * @param kind         whether it was a keyframe, which is left out, or a P frame
+   * @param now          the completion time in monotonic nanoseconds, from the same clock used for other calls
+   * @return the step it causes, which the caller carries out, or empty
+   * @throws NullPointerException     if kind is null
    * @throws IllegalArgumentException if milliseconds is negative, NaN or infinite
+   * @since 1.0.0
    */
-  public @Nullable Change encoded(final double milliseconds, final boolean isKeyframe, final long now) {
-    Preconditions.checkArgument(milliseconds >= 0 && Double.isFinite(milliseconds), "Time must be finite and non-negative");
+  public Optional<Change> encoded(final double milliseconds, final Mcv2FrameKind kind, final long now) {
+    Preconditions.checkNotNull(kind, "Kind must not be null!");
+    Preconditions.checkArgument(milliseconds >= 0 && Double.isFinite(milliseconds), "Time must be finite and non-negative!");
+
     final Rung rung = this.getRung();
-    if (isKeyframe || rung.isDithered() || Double.isNaN(this.videoInterval)) {
-      return null;
+    if (kind == Mcv2FrameKind.KEYFRAME || rung.isDithered() || Double.isNaN(this.videoInterval)) {
+      return Optional.empty();
     }
+
     this.smoothed = Double.isNaN(this.smoothed) ? milliseconds : this.smoothed + SMOOTHING * (milliseconds - this.smoothed);
     this.samples++;
+
     if (this.settledSince == NEVER) {
       this.settledSince = now;
     }
-    if (this.samples < MIN_SAMPLES || now - this.firstArrival < seconds(STARTUP_SECONDS)) {
-      return null;
+
+    if (this.samples < MINIMUM_SAMPLES || now - this.firstArrival < this.seconds(STARTUP_SECONDS)) {
+      return Optional.empty();
     }
+
     final double frameMilliseconds = this.frameMilliseconds(rung);
     if (this.smoothed > HIGH * frameMilliseconds) {
       this.roomSince = NEVER;
+
       if (this.overSince == NEVER) {
         this.overSince = now;
       }
-      if (now - this.overSince >= seconds(DOWN_SECONDS)) {
-        return this.stepDown(now, frameMilliseconds);
+
+      if (now - this.overSince >= this.seconds(DOWN_SECONDS)) {
+        return Optional.ofNullable(this.stepDown(now, frameMilliseconds));
       }
-      return null;
+
+      return Optional.empty();
     }
+
     this.overSince = NEVER;
     // Resetting backoff before the next retry interval permits repeated rung oscillation.
     final long held = now - this.settledSince;
-    if (held >= seconds(Math.max(UP_SECONDS, this.blockSeconds[this.current]))) {
+    if (held >= this.seconds(Math.max(UP_SECONDS, this.blockSeconds[this.current]))) {
       this.blockSeconds[this.current] = BLOCK_SECONDS;
     }
-    if (held >= seconds(Math.max(UP_SECONDS, this.retrySeconds))) {
+
+    if (held >= this.seconds(Math.max(UP_SECONDS, this.retrySeconds))) {
       this.retrySeconds = RETRY_SECONDS;
     }
+
     final int above = this.bestAbove(now);
     if (above < 0) {
       this.roomSince = NEVER;
-      return null;
+
+      return Optional.empty();
     }
+
     if (this.roomSince == NEVER) {
       this.roomSince = now;
     }
-    return now - this.roomSince >= seconds(UP_SECONDS) ? this.move(above, false, this.smoothed, frameMilliseconds) : null;
+
+    if (now - this.roomSince < this.seconds(UP_SECONDS)) {
+      return Optional.empty();
+    }
+
+    final Change change = this.move(above, Direction.UP, this.smoothed, frameMilliseconds);
+    return Optional.of(change);
   }
 
   private @Nullable Change stepDown(final long now, final double frameMilliseconds) {
     final int left = this.current;
-    this.blockedUntil[left] = now + seconds(this.blockSeconds[left]);
-    this.blockSeconds[left] = Math.min(MAX_RETRY_SECONDS, this.blockSeconds[left] * 2);
+    this.blockedUntil[left] = now + this.seconds(this.blockSeconds[left]);
+    this.blockSeconds[left] = Math.min(MAXIMUM_RETRY_SECONDS, this.blockSeconds[left] * BACKOFF_FACTOR);
     final int encoded = this.encodedRungs();
 
     final Rung from = this.getRung();
     for (final double share : new double[] { FIT, HIGH }) {
-      for (int next = this.current + 1; next < encoded; next++) {
-        final Rung rung = this.ladder.get(next);
-        final boolean sameFrames = rung.pixels() == from.pixels() && rung.divisor() == from.divisor();
-        if (this.isAllowed(rung) && this.predict(next) <= (sameFrames ? HIGH : share) * this.frameMilliseconds(rung)) {
-          return this.move(next, true, this.smoothed, frameMilliseconds);
-        }
+      final int next = this.findFittingRungBelow(from, share, encoded);
+      if (next != NO_RUNG) {
+        return this.move(next, Direction.DOWN, this.smoothed, frameMilliseconds);
       }
     }
+
     if (encoded == this.ladder.size()) {
       final int lowest = this.lowestEncoded();
       this.overSince = NEVER;
-      return lowest > this.current ? this.move(lowest, true, this.smoothed, frameMilliseconds) : null;
+
+      return lowest > this.current ? this.move(lowest, Direction.DOWN, this.smoothed, frameMilliseconds) : null;
     }
-    final Change change = this.move(this.ladder.size() - 1, true, this.smoothed, frameMilliseconds);
-    this.retryAt = now + seconds(this.retrySeconds);
-    this.retrySeconds = Math.min(MAX_RETRY_SECONDS, this.retrySeconds * 2);
+
+    final Change change = this.move(this.ladder.size() - 1, Direction.DOWN, this.smoothed, frameMilliseconds);
+    this.retryAt = now + this.seconds(this.retrySeconds);
+    this.retrySeconds = Math.min(MAXIMUM_RETRY_SECONDS, this.retrySeconds * BACKOFF_FACTOR);
+
     return change;
+  }
+
+  private int findFittingRungBelow(final Rung from, final double share, final int encoded) {
+    for (int next = this.current + 1; next < encoded; next++) {
+      final Rung rung = this.ladder.get(next);
+      final boolean sameFrames = rung.pixels() == from.pixels() && rung.getDivisor() == from.getDivisor();
+      if (this.isAllowed(rung) && this.predict(next) <= (sameFrames ? HIGH : share) * this.frameMilliseconds(rung)) {
+        return next;
+      }
+    }
+
+    return NO_RUNG;
   }
 
   private int encodedRungs() {
     return this.ladder.getLast().isDithered() ? this.ladder.size() - 1 : this.ladder.size();
   }
 
-  private Change move(final int next, final boolean down, final double encodeMilliseconds, final double frameMilliseconds) {
-    final Change change = new Change(
+  private Change move(final int next, final Direction direction, final double encodeMilliseconds, final double frameMilliseconds) {
+    final Change change = Change.of(
       this.getRung(),
       this.ladder.get(next),
-      down,
+      direction == Direction.DOWN,
       encodeMilliseconds,
       frameMilliseconds,
-      this.getVideoFps()
+      this.getVideoFramesPerSecond()
     );
     this.current = next;
     this.smoothed = Double.NaN;
@@ -502,21 +405,25 @@ public final class Mcv2Pacer {
     this.settledSince = NEVER;
     this.arrivals = 0;
     this.samples = 0;
+
     return change;
   }
 
   private double frameMilliseconds(final Rung rung) {
-    return (rung.divisor() * this.videoInterval) / NANOSECONDS_PER_MILLISECOND;
+    return (rung.getDivisor() * this.videoInterval) / NANOSECONDS_PER_MILLISECOND;
   }
 
   private double predict(final int index) {
     final Rung target = this.ladder.get(index);
     final Rung rung = this.getRung();
-    return (this.smoothed * target.pixels() * target.preset().cost()) / (rung.pixels() * rung.preset().cost());
+    return (this.smoothed * target.pixels() * target.getPreset().getCost()) / (rung.pixels() * rung.getPreset().getCost());
   }
 
   private boolean isAllowed(final Rung rung) {
-    return rung.divisor() == 1 || rung.fps(this.getVideoFps()) >= MIN_FRAME_RATE * MIN_FRAME_RATE_TOLERANCE;
+    return (
+      rung.getDivisor() == FULL_RATE_DIVISOR ||
+      rung.framesPerSecond(this.getVideoFramesPerSecond()) >= MINIMUM_FRAME_RATE * MINIMUM_FRAME_RATE_TOLERANCE
+    );
   }
 
   private int bestAbove(final long now) {
@@ -526,6 +433,7 @@ public final class Mcv2Pacer {
         return index;
       }
     }
+
     return -1;
   }
 
@@ -534,10 +442,570 @@ public final class Mcv2Pacer {
     while (!this.isAllowed(this.ladder.get(index))) {
       index--;
     }
+
     return index;
   }
 
-  private static long seconds(final double value) {
+  private long seconds(final double value) {
     return (long) (value * NANOSECONDS_PER_SECOND);
+  }
+
+  /**
+   * Returns the rungs of the ladder, top first; the last is {@link Rung#DITHERED} when the screen can fall back to it.
+   *
+   * @return the unmodifiable ladder, whose immutable rungs may be shared
+   * @since 1.0.0
+   */
+  public List<Rung> getLadder() {
+    return this.ladder;
+  }
+
+  /**
+   * Returns the rung the screen is on.
+   *
+   * @return the rung
+   * @since 1.0.0
+   */
+  public Rung getRung() {
+    return this.ladder.get(this.current);
+  }
+
+  /**
+   * Returns the video's frames per second, as measured from the frames it hands over.
+   *
+   * @return the frame rate, or NaN before two frames arrived
+   * @since 1.0.0
+   */
+  public double getVideoFramesPerSecond() {
+    return NANOSECONDS_PER_SECOND / this.videoInterval;
+  }
+
+  /**
+   * A preset of the ladder: how hard the screen's encoder searches.
+   *
+   * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
+   */
+  public static final class Preset {
+
+    /**
+     * The one preset of a screen that does not step through presets.
+     *
+     * @since 1.0.0
+     */
+    public static final Preset ONLY = of("", 1);
+
+    private final String name;
+    private final double cost;
+
+    private Preset(final String name, final double cost) {
+      this.name = name;
+      this.cost = cost;
+    }
+
+    /**
+     * Returns a preset used to compare expected search costs.
+     *
+     * @param name the preset's name in messages, for example {@code FAST}; empty for the one preset of a screen that
+     *             does not step through presets
+     * @param cost its encode time relative to the other presets of the ladder, which the pacer's predictions scale by
+     * @return the preset
+     * @throws NullPointerException     if {@code name} is null
+     * @throws IllegalArgumentException if {@code cost} is not positive and finite
+     * @since 1.0.0
+     */
+    public static Preset of(final String name, final double cost) {
+      Preconditions.checkNotNull(name, "Name must not be null!");
+      Preconditions.checkArgument(cost > 0 && Double.isFinite(cost), "Cost must be positive and finite!");
+
+      return new Preset(name, cost);
+    }
+
+    private String suffix() {
+      return this.name.isEmpty() ? "" : " with the " + this.name + " search";
+    }
+
+    /**
+     * Returns the preset's name in messages.
+     *
+     * @return the preset's name in messages, for example {@code FAST}; empty for the one preset of a screen that does not
+     *         step through presets
+     * @since 1.0.0
+     */
+    public String getName() {
+      return this.name;
+    }
+
+    /**
+     * Returns the preset's encode time relative to the other presets of the ladder.
+     *
+     * @return its encode time relative to the other presets of the ladder, which the pacer's predictions scale by
+     * @since 1.0.0
+     */
+    public double getCost() {
+      return this.cost;
+    }
+
+    /**
+     * Returns whether {@code other} is a preset with the same parts.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     * @since 1.0.0
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Preset preset)) {
+        return false;
+      }
+
+      return this.name.equals(preset.name) && Double.compare(this.cost, preset.cost) == 0;
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     * @since 1.0.0
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.name, this.cost);
+    }
+
+    /**
+     * Returns a debugging representation with every part.
+     *
+     * @return the representation
+     * @since 1.0.0
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this).add("name", this.name).add("cost", this.cost).toString();
+    }
+  }
+
+  /**
+   * A rung of the ladder.
+   *
+   * <p>Construction does not validate the parts. Use positive pixel dimensions, a positive frame divisor and a
+   * non-null preset for encoded rungs; {@link #DITHERED} is the canonical zero-divisor sentinel.
+   *
+   * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
+   */
+  public static final class Rung {
+
+    /**
+     * The dithered maps, the lowest rung.
+     *
+     * @since 1.0.0
+     */
+    public static final Rung DITHERED = of(0, 0, 0);
+
+    private final int width;
+    private final int height;
+    private final int divisor;
+    private final Preset preset;
+
+    private Rung(final int width, final int height, final int divisor, final Preset preset) {
+      this.width = width;
+      this.height = height;
+      this.divisor = divisor;
+      this.preset = preset;
+    }
+
+    /**
+     * Returns a rung of the given size, frame divisor and preset.
+     *
+     * @param width   the video width, or 0 for the dithered maps
+     * @param height  the video height, or 0 for the dithered maps
+     * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
+     * @param preset  how hard the encoder searches; {@link Preset#ONLY} on the dithered maps
+     * @return the rung
+     * @since 1.0.0
+     */
+    public static Rung of(final int width, final int height, final int divisor, final Preset preset) {
+      return new Rung(width, height, divisor, preset);
+    }
+
+    /**
+     * Returns a rung of a screen that does not step through presets.
+     *
+     * @param width   the video width, or 0 for the dithered maps
+     * @param height  the video height, or 0 for the dithered maps
+     * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
+     * @return the rung
+     * @since 1.0.0
+     */
+    public static Rung of(final int width, final int height, final int divisor) {
+      return of(width, height, divisor, Preset.ONLY);
+    }
+
+    /**
+     * Returns whether this is the dithered maps.
+     *
+     * @return true for the dithered maps
+     * @since 1.0.0
+     */
+    public boolean isDithered() {
+      return this.divisor == 0;
+    }
+
+    /**
+     * Returns the frames per second this rung encodes of a video.
+     *
+     * @param videoFrameRate the video's frames per second
+     * @return the encoded frames per second, 0 for the dithered maps
+     * @since 1.0.0
+     */
+    public double framesPerSecond(final double videoFrameRate) {
+      return this.isDithered() ? 0 : videoFrameRate / this.divisor;
+    }
+
+    private long pixels() {
+      return (long) this.width * this.height;
+    }
+
+    /**
+     * Describes the rung for a message.
+     *
+     * @param videoFrameRate the video's frames per second
+     * @return for example {@code 1920x1080 at 30 fps}, {@code 1920x1080 at 30 fps with the FAST search} on a
+     *         ladder of presets, or {@code the dithered maps}
+     * @since 1.0.0
+     */
+    public String describe(final double videoFrameRate) {
+      return this.isDithered()
+        ? "the dithered maps"
+        : String.format(
+            Locale.getDefault(Locale.Category.FORMAT),
+            "%dx%d at %s fps%s",
+            this.width,
+            this.height,
+            rate(this.framesPerSecond(videoFrameRate)),
+            this.preset.suffix()
+          );
+    }
+
+    /**
+     * Returns the video width.
+     *
+     * @return the video width, or 0 for the dithered maps
+     * @since 1.0.0
+     */
+    public int getWidth() {
+      return this.width;
+    }
+
+    /**
+     * Returns the video height.
+     *
+     * @return the video height, or 0 for the dithered maps
+     * @since 1.0.0
+     */
+    public int getHeight() {
+      return this.height;
+    }
+
+    /**
+     * Returns every how many frames of the video one is encoded.
+     *
+     * @return every how many frames of the video one is encoded, or 0 for the dithered maps
+     * @since 1.0.0
+     */
+    public int getDivisor() {
+      return this.divisor;
+    }
+
+    /**
+     * Returns how hard the encoder searches.
+     *
+     * @return how hard the encoder searches; {@link Preset#ONLY} on the dithered maps
+     * @since 1.0.0
+     */
+    public Preset getPreset() {
+      return this.preset;
+    }
+
+    /**
+     * Returns whether {@code other} is a rung with the same parts.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     * @since 1.0.0
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Rung rung)) {
+        return false;
+      }
+
+      return this.width == rung.width && this.height == rung.height && this.divisor == rung.divisor && this.preset.equals(rung.preset);
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     * @since 1.0.0
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.width, this.height, this.divisor, this.preset);
+    }
+
+    /**
+     * Returns a debugging representation with every part.
+     *
+     * @return the representation
+     * @since 1.0.0
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+        .add("width", this.width)
+        .add("height", this.height)
+        .add("divisor", this.divisor)
+        .add("preset", this.preset)
+        .toString();
+    }
+  }
+
+  /**
+   * A step of the pacer.
+   *
+   * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
+   */
+  public static final class Change {
+
+    private final Rung from;
+    private final Rung to;
+    private final boolean down;
+    private final double encodeMilliseconds;
+    private final double frameMilliseconds;
+    private final double videoFrameRate;
+
+    private Change(
+      final Rung from,
+      final Rung to,
+      final boolean down,
+      final double encodeMilliseconds,
+      final double frameMilliseconds,
+      final double videoFrameRate
+    ) {
+      this.from = from;
+      this.to = to;
+      this.down = down;
+      this.encodeMilliseconds = encodeMilliseconds;
+      this.frameMilliseconds = frameMilliseconds;
+      this.videoFrameRate = videoFrameRate;
+    }
+
+    /**
+     * Returns a step between two rungs.
+     *
+     * @param from               the rung before
+     * @param to                 the rung now
+     * @param down               whether the step went down the ladder
+     * @param encodeMilliseconds the smoothed encode time per frame that decided the step, 0 for a try from the dithered maps
+     * @param frameMilliseconds  the time a frame had on the rung before, 0 on the dithered maps
+     * @param videoFrameRate     the video's frames per second as measured
+     * @return the change
+     * @since 1.0.0
+     */
+    public static Change of(
+      final Rung from,
+      final Rung to,
+      final boolean down,
+      final double encodeMilliseconds,
+      final double frameMilliseconds,
+      final double videoFrameRate
+    ) {
+      return new Change(from, to, down, encodeMilliseconds, frameMilliseconds, videoFrameRate);
+    }
+
+    /**
+     * Describes the step for the server's operator: what was chosen and why.
+     *
+     * @return the message
+     * @since 1.0.0
+     */
+    public String describe() {
+      if (this.from.isDithered()) {
+        return "MCV2 screen tries encoding again at %s after showing the dithered maps".formatted(this.to.describe(this.videoFrameRate));
+      }
+
+      final String timing = String.format(
+        Locale.ROOT,
+        "encoding %dx%d%s takes %.1f ms per frame, %s the %.1f ms a frame has at %s fps",
+        this.from.getWidth(),
+        this.from.getHeight(),
+        this.from.getPreset().suffix(),
+        this.encodeMilliseconds,
+        this.down ? "more than" : "well within",
+        this.frameMilliseconds,
+        rate(this.from.framesPerSecond(this.videoFrameRate))
+      );
+      return this.down
+        ? "MCV2 screen steps down to %s: %s with the encoder threads it has".formatted(this.to.describe(this.videoFrameRate), timing)
+        : "MCV2 screen steps back up to %s: %s".formatted(this.to.describe(this.videoFrameRate), timing);
+    }
+
+    /**
+     * Returns the rung before the step.
+     *
+     * @return the rung before
+     * @since 1.0.0
+     */
+    public Rung getFrom() {
+      return this.from;
+    }
+
+    /**
+     * Returns the rung after the step.
+     *
+     * @return the rung now
+     * @since 1.0.0
+     */
+    public Rung getTo() {
+      return this.to;
+    }
+
+    /**
+     * Returns whether the step went down the ladder.
+     *
+     * @return whether the step went down the ladder
+     * @since 1.0.0
+     */
+    public boolean isDown() {
+      return this.down;
+    }
+
+    /**
+     * Returns the smoothed encode time per frame that decided the step.
+     *
+     * @return the smoothed encode time per frame that decided the step, 0 for a try from the dithered maps
+     * @since 1.0.0
+     */
+    public double getEncodeMilliseconds() {
+      return this.encodeMilliseconds;
+    }
+
+    /**
+     * Returns the time a frame had on the rung before.
+     *
+     * @return the time a frame had on the rung before, 0 on the dithered maps
+     * @since 1.0.0
+     */
+    public double getFrameMilliseconds() {
+      return this.frameMilliseconds;
+    }
+
+    /**
+     * Returns the video's frames per second as measured.
+     *
+     * @return the video's frames per second as measured
+     * @since 1.0.0
+     */
+    public double getVideoFrameRate() {
+      return this.videoFrameRate;
+    }
+
+    /**
+     * Returns whether {@code other} is a change with the same parts.
+     *
+     * @param other the object to compare with
+     * @return whether every part matches
+     * @since 1.0.0
+     */
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+
+      if (!(other instanceof final Change change)) {
+        return false;
+      }
+
+      return (
+        this.from.equals(change.from) &&
+        this.to.equals(change.to) &&
+        this.down == change.down &&
+        Double.compare(this.encodeMilliseconds, change.encodeMilliseconds) == 0 &&
+        Double.compare(this.frameMilliseconds, change.frameMilliseconds) == 0 &&
+        Double.compare(this.videoFrameRate, change.videoFrameRate) == 0
+      );
+    }
+
+    /**
+     * Returns a hash code built from every part.
+     *
+     * @return the hash code
+     * @since 1.0.0
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.from, this.to, this.down, this.encodeMilliseconds, this.frameMilliseconds, this.videoFrameRate);
+    }
+
+    /**
+     * Returns a debugging representation with every part.
+     *
+     * @return the representation
+     * @since 1.0.0
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+        .add("from", this.from)
+        .add("to", this.to)
+        .add("down", this.down)
+        .add("encodeMilliseconds", this.encodeMilliseconds)
+        .add("frameMilliseconds", this.frameMilliseconds)
+        .add("videoFrameRate", this.videoFrameRate)
+        .toString();
+    }
+  }
+
+  /**
+   * How low a pacer's ladder goes when even its lowest encoded rung takes longer than its frames have.
+   *
+   * <p>This enum is immutable and thread-safe.
+   *
+   * @since 1.0.0
+   */
+  public enum Floor {
+    /**
+     * The ladder ends at the dithered maps, which the screen falls back to.
+     *
+     * @since 1.0.0
+     */
+    DITHERED_MAPS,
+
+    /**
+     * The ladder ends at its lowest encoded rung, because the screen has no dithered maps to fall back to.
+     *
+     * @since 1.0.0
+     */
+    LOWEST_ENCODED_RUNG,
+  }
+
+  private enum Direction {
+    UP,
+    DOWN,
   }
 }

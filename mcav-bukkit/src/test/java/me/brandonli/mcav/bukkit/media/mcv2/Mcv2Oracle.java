@@ -17,15 +17,19 @@
  */
 package me.brandonli.mcav.bukkit.media.mcv2;
 
-/** The spec's floating-point equations independently check the production integer kernels. */
 final class Mcv2Oracle {
 
+  private static final int MAXIMUM_CHANNEL = 255;
+
+  private static final double ROUNDING_OFFSET = 0.5;
+  private static final double PIXEL_CENTER = 0.5;
+
   private Mcv2Oracle() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   private static int roundedChannel(final double value) {
-    return (int) Math.min(255, Math.max(0, Math.floor(value + 0.5)));
+    return (int) Math.min(MAXIMUM_CHANNEL, Math.max(0, Math.floor(value + ROUNDING_OFFSET)));
   }
 
   static double interpolate(
@@ -37,8 +41,8 @@ final class Mcv2Oracle {
     final int column,
     final int row
   ) {
-    final double positionX = Math.min(grid - 1, Math.max(0, ((column + 0.5) * grid) / size - 0.5));
-    final double positionY = Math.min(grid - 1, Math.max(0, ((row + 0.5) * grid) / size - 0.5));
+    final double positionX = Math.min(grid - 1, Math.max(0, ((column + PIXEL_CENTER) * grid) / size - PIXEL_CENTER));
+    final double positionY = Math.min(grid - 1, Math.max(0, ((row + PIXEL_CENTER) * grid) / size - PIXEL_CENTER));
     final int lowerX = (int) positionX;
     final int lowerY = (int) positionY;
     final int upperX = Math.min(lowerX + 1, grid - 1);

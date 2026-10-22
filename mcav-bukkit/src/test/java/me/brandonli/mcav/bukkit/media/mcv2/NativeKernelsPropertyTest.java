@@ -20,8 +20,8 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.ForAll;
@@ -29,12 +29,6 @@ import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * The native kernels against the Java ones, the oracle: at every level this processor runs, every kernel computes
- * exactly what Java computes on the same inputs, and an encoder with native kernels writes exactly the bytes of one with
- * Java's, in every live search. A level the processor lacks is skipped, never forced; where no library loads there is
- * nothing to compare, and where one should load and does not, the test fails ({@link NativeTesting}).
- */
 final class NativeKernelsPropertyTest {
 
   private static final String SEED = "20260927";
@@ -46,10 +40,11 @@ final class NativeKernelsPropertyTest {
   }
 
   @Property(seed = SEED, tries = 2000)
-  boolean computesWhatJavaComputes(@ForAll("levels") final @Nullable Level level, @ForAll final long seed) {
+  boolean shouldComputeWhatJavaComputes(@ForAll("levels") final @Nullable Level level, @ForAll final long seed) {
     if (level == null) {
       return true;
     }
+
     final String difference = KernelDifferential.compare(
       KernelDifferential.of(new Random(seed)),
       Mcv2Internals.javaKernels(),
@@ -58,11 +53,12 @@ final class NativeKernelsPropertyTest {
     if (difference != null) {
       throw new AssertionError(difference + " differs at " + level);
     }
+
     return true;
   }
 
   @Property(seed = SEED, tries = 30)
-  boolean encodesWhatJavaEncodes(
+  boolean shouldEncodeWhatJavaEncodes(
     @ForAll("levels") final @Nullable Level level,
     @ForAll final long seed,
     @ForAll("searches") final Settings search
@@ -70,13 +66,14 @@ final class NativeKernelsPropertyTest {
     if (level == null) {
       return true;
     }
+
     final Random random = new Random(seed);
     final int width = 40 + random.nextInt(60);
     final int height = 30 + random.nextInt(50);
     final int panPerFrame = random.nextInt(7) - 3;
     final Settings settings = search;
-    final MCV2 java = NativeTesting.encoder(settings, 2, true, NativeTesting.javaFactory());
-    final MCV2 other = NativeTesting.encoder(settings, 2, true, NativeTesting.factory(level));
+    final Mcv2 java = NativeTesting.encoder(settings, 2, Mcv2.Verification.VERIFIED, NativeTesting.javaFactory());
+    final Mcv2 other = NativeTesting.encoder(settings, 2, Mcv2.Verification.VERIFIED, NativeTesting.factory(level));
     for (int frameNumber = 0; frameNumber < 4; frameNumber++) {
       if (frameNumber == 3) {
         java.requestKeyframe();
@@ -84,9 +81,11 @@ final class NativeKernelsPropertyTest {
       }
       final byte[] picture = Mcv2Pictures.scene(width, height, frameNumber + random.nextInt(3), panPerFrame);
       if (!Arrays.equals(java.encode(picture, width, height, frameNumber), other.encode(picture, width, height, frameNumber))) {
-        throw new AssertionError("frame " + frameNumber + " differs at " + level);
+        final String message = "Frame %s differs at level %s!".formatted(frameNumber, level);
+        throw new AssertionError(message);
       }
     }
+
     return true;
   }
 

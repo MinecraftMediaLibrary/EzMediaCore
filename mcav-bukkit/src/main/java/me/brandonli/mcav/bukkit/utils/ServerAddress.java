@@ -30,6 +30,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * Determines the address players use to reach the Minecraft server, for example to build the URL of a resource
  * pack the server hosts itself.
+ *
+ * <p>This class is thread-safe; concurrent calls before the first successful lookup may each look the address up.
+ *
+ * @since 1.0.0
  */
 public final class ServerAddress {
 
@@ -38,11 +42,11 @@ public final class ServerAddress {
   private static volatile @Nullable String publicAddress;
 
   private ServerAddress() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
-   * Gets the address players use to reach the server.
+   * Returns the address players use to reach the server.
    *
    * <p>If {@code server-ip} is set in {@code server.properties}, that address is used. Otherwise, the public
    * address is looked up with {@link NetworkUtils#lookUpPublicAddress()}. A successful lookup is cached for the
@@ -50,21 +54,17 @@ public final class ServerAddress {
    * seconds, so avoid calling this method on the main thread before the address is known.
    *
    * @return the public address of the server, or {@code localhost} if it cannot be determined right now, see
-   *     {@link #isFallbackAddress(String)}
+   *         {@link #isFallbackAddress(String)}
+   * @since 1.0.0
    */
-  public static String getPublicIPAddress() {
-    return getPublicIPAddress(NetworkUtils.DEFAULT_ADDRESS_SERVICE);
+  public static String getPublicIpAddress() {
+    return getPublicIpAddress(NetworkUtils.DEFAULT_ADDRESS_SERVICE);
   }
 
-  /**
-   * Gets the address players use to reach the server, looking the public address up with the specified service.
-   *
-   * @param addressService the service that answers with the public address of the caller as plain text
-   * @return the public address of the server, or {@code localhost} if it cannot be determined right now
-   */
   @VisibleForTesting
-  static String getPublicIPAddress(final URI addressService) {
-    Preconditions.checkNotNull(addressService, "Address service must not be null");
+  static String getPublicIpAddress(final URI addressService) {
+    Preconditions.checkNotNull(addressService, "Address service must not be null!");
+
     final String configuredAddress = Bukkit.getIp();
     final boolean hasConfiguredAddress = isConfiguredAddress(configuredAddress);
     if (hasConfiguredAddress) {
@@ -80,6 +80,7 @@ public final class ServerAddress {
     if (lookedUpAddress.isEmpty()) {
       return FALLBACK_ADDRESS;
     }
+
     final String address = lookedUpAddress.get();
     publicAddress = address;
     return address;
@@ -89,25 +90,29 @@ public final class ServerAddress {
     if (address.isBlank()) {
       return false;
     }
+
     final boolean literal = InetAddresses.isInetAddress(address);
     if (!literal) {
       return true;
     }
+
     final InetAddress parsed = InetAddresses.forString(address);
     return !parsed.isAnyLocalAddress();
   }
 
   /**
-   * Checks whether an address is the fallback that {@link #getPublicIPAddress()} returns when the public address
-   * cannot be determined. Callers that cache values derived from the address should not cache the fallback,
-   * because a later lookup may succeed.
+   * Returns whether an address is the fallback that {@link #getPublicIpAddress()} returns when the public address
+   * cannot be determined. Callers that cache values derived from the address should not cache the fallback, because a
+   * later lookup may succeed.
    *
    * @param address the address to check
    * @return true if the address is the fallback address {@code localhost}
    * @throws NullPointerException if the address is null
+   * @since 1.0.0
    */
   public static boolean isFallbackAddress(final String address) {
-    Preconditions.checkNotNull(address, "Address must not be null");
+    Preconditions.checkNotNull(address, "Address must not be null!");
+
     return address.equals(FALLBACK_ADDRESS);
   }
 }

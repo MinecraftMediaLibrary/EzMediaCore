@@ -36,38 +36,21 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Prepares the static state of Minecraft and Bukkit once, before the first test class runs.
- *
- * <p>Many Minecraft classes, such as map packets and players, can only be loaded after the game registries were
- * bootstrapped, and some Bukkit classes, such as {@link Criteria} and the block palette, read the server while they
- * are initialized. If one of them was first loaded without that preparation, it would stay broken for the rest of
- * the test run, so this extension is registered for every test class through extension auto-detection. The block
- * data of the palette are Mockito mocks that answer {@link BlockData#getMaterial()}, and {@link Criteria#DUMMY} is
- * a Mockito mock.
- */
+// many Minecraft classes load only after the registries are bootstrapped
 public final class MinecraftTestBootstrap implements BeforeAllCallback {
 
   private static boolean bootstrapped;
 
-  /**
-   * Bootstraps Minecraft before the test class runs, unless that already happened.
-   *
-   * @param context the context of the test class
-   */
   @Override
   public void beforeAll(final @NonNull ExtensionContext context) {
     bootstrap();
   }
 
-  /**
-   * Bootstraps the Minecraft registries and initializes the Bukkit classes that read the server, unless that
-   * already happened.
-   */
   static synchronized void bootstrap() {
     if (bootstrapped) {
       return;
     }
+
     SharedConstants.tryDetectVersion();
     Bootstrap.bootStrap();
     try (final MockedStatic<Bukkit> bukkit = Mockito.mockStatic(Bukkit.class)) {
@@ -77,11 +60,13 @@ public final class MinecraftTestBootstrap implements BeforeAllCallback {
 
       final Criteria initialized = Criteria.DUMMY;
       if (initialized == null) {
-        throw new IllegalStateException("The scoreboard criteria were initialized before the bootstrap");
+        throw new IllegalStateException("The scoreboard criteria were initialized before the bootstrap!");
       }
-      BlockPaletteLookup.init();
+
+      BlockPaletteLookup.initialize();
       bukkit.verify(() -> Bukkit.createBlockData(any(Material.class)), Mockito.atLeastOnce());
     }
+
     bootstrapped = true;
   }
 

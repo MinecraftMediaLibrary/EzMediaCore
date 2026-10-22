@@ -26,6 +26,11 @@ import org.bukkit.entity.TextDisplay;
 /**
  * Displays still images as colored text inside a {@link TextDisplay} entity. The entity is removed when the image
  * is released.
+ *
+ * <p>Every method may be called from any thread; serialize display and release calls, as {@link DisplayableImage}
+ * describes.
+ *
+ * @since 1.0.0
  */
 public class EntityImage implements DisplayableImage {
 
@@ -41,10 +46,12 @@ public class EntityImage implements DisplayableImage {
    *
    * @param image the image to show, which is resized to the entity in place
    * @throws NullPointerException if the image is null
+   * @since 1.0.0
    */
   @Override
   public void displayImage(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
+
     this.renderer.show();
     this.renderer.render(image);
   }
@@ -53,6 +60,8 @@ public class EntityImage implements DisplayableImage {
    * Removes the text display. May be called from any thread.
    *
    * <p>During plugin shutdown, call on the main thread so entity removal or restoration can run immediately.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

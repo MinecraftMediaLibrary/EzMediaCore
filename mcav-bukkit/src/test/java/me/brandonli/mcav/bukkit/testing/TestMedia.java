@@ -26,38 +26,17 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
-/**
- * The test video, generated once per test run with the FFmpeg executable bundled with JavaCV, so no binary test file
- * has to be committed.
- *
- * <p>The file is created the first time it is requested and reused afterwards. It lives in a temporary
- * directory that is deleted when the JVM exits.
- */
+// generated with the FFmpeg bundled with JavaCV, so no binary test file is committed
 public final class TestMedia {
 
-  /**
-   * The width of the test video.
-   */
   private static final int VIDEO_WIDTH = 320;
 
-  /**
-   * The height of the test video.
-   */
   private static final int VIDEO_HEIGHT = 240;
 
-  /**
-   * The frame rate of the test video.
-   */
   public static final int VIDEO_FRAME_RATE = 30;
 
-  /**
-   * The sample rate of the test video's sound.
-   */
   private static final int AUDIO_SAMPLE_RATE = 44_100;
 
-  /**
-   * The length of the test video in seconds.
-   */
   public static final int VIDEO_SECONDS = 5;
 
   private static final String TEST_PATTERN_INPUT =
@@ -69,7 +48,7 @@ public final class TestMedia {
   private static final Path DIRECTORY = createDirectory();
 
   private TestMedia() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   private static Path createDirectory() {
@@ -98,11 +77,6 @@ public final class TestMedia {
     }
   }
 
-  /**
-   * Gets a five second 320x240 MPEG-4 video at 30 frames per second with a mono AAC sine tone.
-   *
-   * @return the video file
-   */
   public static synchronized Path video() {
     final String arguments =
       TEST_PATTERN_INPUT + " " + SINE_INPUT + "440 -t " + VIDEO_SECONDS + " " + MPEG4_VIDEO_OUTPUT + " -g 30 -c:a aac -ac 1";

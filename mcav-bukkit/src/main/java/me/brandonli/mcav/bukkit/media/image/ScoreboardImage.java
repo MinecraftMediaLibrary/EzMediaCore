@@ -25,6 +25,11 @@ import me.brandonli.mcav.media.image.ImageBuffer;
 /**
  * Displays still images on the sidebar scoreboard of the viewers. The scoreboard the viewers had before is restored
  * when the image is released.
+ *
+ * <p>Every method may be called from any thread; serialize display and release calls, as {@link DisplayableImage}
+ * describes.
+ *
+ * @since 1.0.0
  */
 public class ScoreboardImage implements DisplayableImage {
 
@@ -40,10 +45,12 @@ public class ScoreboardImage implements DisplayableImage {
    *
    * @param image the image to show, which is resized to the scoreboard in place
    * @throws NullPointerException if the image is null
+   * @since 1.0.0
    */
   @Override
   public void displayImage(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
+
     this.renderer.show();
     this.renderer.render(image);
   }
@@ -54,6 +61,8 @@ public class ScoreboardImage implements DisplayableImage {
    * <p>During plugin shutdown, call on the main thread so entity removal or restoration can run immediately.
    *
    * <p>A scoreboard installed by another plugin after this display started is preserved.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

@@ -29,19 +29,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Every single-byte corruption of valid frames of every index form, deterministically: the parser accepts the result
- * or throws {@link Mcv2Exception}, never anything else, and an accepted frame decodes without failing, against a
- * matching reference when it is a P frame. The frames are the first keyframe and P frame of each committed
- * conformance and edge stream (the keyframe alone when it is the stream's only frame), which together use every v3
- * mode, compact quantizer and boundary geometry; every byte of the first 4 KB, where headers and indexes live, is
- * corrupted, and every 61st byte after it.
- */
 final class FrameMutationTest {
 
   private static final int[] MASKS = { 0x01, 0x80, 0xFF };
 
-  /** Every offset of the first bytes, where the header and index live; a sample of the payload after them. */
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String PROXY_DEFAULT_STREAM_PATH = "conformance/proxy-default.mcs";
+
   private static final int DENSE = 4096;
 
   private static final int STRIDE = 61;
@@ -50,60 +45,80 @@ final class FrameMutationTest {
     final List<Arguments> arguments = new ArrayList<>();
     for (final String folder : List.of("conformance", "edge")) {
       for (final String stream : Mcv2Fixtures.digests(folder).keySet()) {
-        final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + "/" + stream));
+        final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + PATH_SEPARATOR + stream));
         arguments.add(Arguments.of(stream, frames.subList(0, Math.min(2, frames.size()))));
       }
     }
+
     return arguments.stream();
   }
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("frames")
-  void everyCorruptionIsAcceptedOrDeclared(final String stream, final List<byte[]> frames) throws Mcv2Exception {
+  void shouldAcceptOrDeclareEveryCorruption(final String stream, final List<byte[]> frames) {
     final Mcv2Decoder.Frame reference = Mcv2Decoder.parse(frames.getFirst());
     final byte[] picture = Mcv2Decoder.decode(reference, null, 0);
-    int accepted = 0;
-    int rejected = 0;
+    final List<Boolean> acceptances = new ArrayList<>();
     for (final byte[] frame : frames) {
-      for (int offset = 0; offset < frame.length; offset += offset < DENSE ? 1 : STRIDE) {
-        for (final int mask : MASKS) {
-          final byte[] corrupted = frame.clone();
-          corrupted[offset] ^= (byte) mask;
-          final Mcv2Decoder.Frame parsed;
-          try {
-            parsed = Mcv2Decoder.parse(corrupted);
-          } catch (final Mcv2Exception expected) {
-            rejected++;
-            continue;
-          }
-          accepted++;
-          decodeAgainst(parsed, picture, reference.getFrameId());
-        }
+      this.corruptEveryOffset(frame, picture, reference.getFrameId(), acceptances);
+    }
+
+    final boolean rejectedAny = acceptances.contains(false);
+    assertTrue(rejectedAny, stream + " rejected nothing");
+
+    final boolean acceptedAny = acceptances.contains(true);
+    assertTrue(acceptedAny, stream + " accepted nothing");
+  }
+
+  private void corruptEveryOffset(final byte[] frame, final byte[] picture, final long frameId, final List<Boolean> acceptances) {
+    for (int offset = 0; offset < frame.length; offset += offset < DENSE ? 1 : STRIDE) {
+      for (final int mask : MASKS) {
+        final boolean accepted = this.isCorruptionAccepted(frame, offset, mask, picture, frameId);
+        acceptances.add(accepted);
       }
     }
-    assertTrue(rejected > 0, stream + " rejected nothing");
-    assertTrue(accepted > 0, stream + " accepted nothing");
+  }
+
+  private boolean isCorruptionAccepted(final byte[] frame, final int offset, final int mask, final byte[] picture, final long frameId) {
+    final byte[] corrupted = frame.clone();
+    corrupted[offset] ^= (byte) mask;
+    final Mcv2Decoder.Frame parsed;
+    try {
+      parsed = Mcv2Decoder.parse(corrupted);
+    } catch (final Mcv2Exception exception) {
+      return false;
+    }
+
+    this.decodeAgainst(parsed, picture, frameId);
+
+    return true;
   }
 
   @Test
-  void checksAReferenceMismatchThroughTheDecoder() throws Mcv2Exception {
-    final List<byte[]> stream = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/proxy-default.mcs"));
+  void shouldCheckAReferenceMismatchThroughTheDecoder() {
+    final List<byte[]> stream = Mcv2Fixtures.frames(Mcv2Fixtures.read(PROXY_DEFAULT_STREAM_PATH));
     final Mcv2Decoder.Frame keyframe = Mcv2Decoder.parse(stream.getFirst());
     final byte[] reference = Mcv2Decoder.decode(keyframe, null, 0);
     final Mcv2Decoder.Frame interFrame = Mcv2Decoder.parse(stream.get(1));
-    assertTrue(!interFrame.isKeyframe(), "the fixture contains an inter frame");
+    final boolean notKeyframe = !interFrame.isKeyframe();
+    assertTrue(notKeyframe, "the fixture contains an inter frame");
+
     final long wrongReference = interFrame.getReferenceId() + 1;
-    decodeAgainst(interFrame, reference, wrongReference);
+    this.decodeAgainst(interFrame, reference, wrongReference);
   }
 
-  private static void decodeAgainst(final Mcv2Decoder.Frame parsed, final byte[] picture, final long id) throws Mcv2Exception {
+  private void decodeAgainst(final Mcv2Decoder.Frame parsed, final byte[] picture, final long id) {
     final int expectedLength = parsed.getWidth() * parsed.getHeight() * 3;
     if (!parsed.isKeyframe() && (parsed.getReferenceId() != id || expectedLength != picture.length)) {
       final Mcv2Exception mismatch = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(parsed, picture, id));
-      assertEquals("Reference frame mismatch", mismatch.getMessage());
+      final String message = mismatch.getMessage();
+      assertEquals("Reference frame mismatch!", message);
+
       return;
     }
+
     final byte[] decoded = parsed.isKeyframe() ? Mcv2Decoder.decode(parsed, null, 0) : Mcv2Decoder.decode(parsed, picture, id);
-    assertEquals(expectedLength, decoded.length);
+    final int decodedLength = decoded.length;
+    assertEquals(expectedLength, decodedLength);
   }
 }

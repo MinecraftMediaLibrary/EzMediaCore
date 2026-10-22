@@ -21,16 +21,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Objects;
+import me.brandonli.mcav.bukkit.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link MapRegion}.
- */
 final class MapRegionTest {
 
   @Test
-  void storesBothCoordinateSystems() {
-    final MapRegion region = new MapRegion(1, 2, 3, 4, 5, 6);
+  void shouldStoreBothCoordinateSystems() {
+    final MapRegion region = MapRegion.of(1, 2, 3, 4, 5, 6);
     final int localX = region.getLocalX();
     final int localY = region.getLocalY();
     final int width = region.getWidth();
@@ -49,10 +48,10 @@ final class MapRegionTest {
   }
 
   @Test
-  void isEmptyWithoutWidthOrHeight() {
-    final MapRegion noWidth = new MapRegion(0, 0, 0, 4, 0, 0);
-    final MapRegion noHeight = new MapRegion(0, 0, 4, 0, 0, 0);
-    final MapRegion negative = new MapRegion(0, 0, -1, -1, 0, 0);
+  void shouldBeEmptyWithoutWidthOrHeight() {
+    final MapRegion noWidth = MapRegion.of(0, 0, 0, 4, 0, 0);
+    final MapRegion noHeight = MapRegion.of(0, 0, 4, 0, 0, 0);
+    final MapRegion negative = MapRegion.of(0, 0, -1, -1, 0, 0);
     final boolean noWidthEmpty = noWidth.isEmpty();
     final boolean noHeightEmpty = noHeight.isEmpty();
     final boolean negativeEmpty = negative.isEmpty();
@@ -60,5 +59,37 @@ final class MapRegionTest {
     assertTrue(noWidthEmpty);
     assertTrue(noHeightEmpty);
     assertTrue(negativeEmpty);
+  }
+
+  @Test
+  void shouldCompareRegionsByEveryPart() {
+    final MapRegion region = MapRegion.of(1, 2, 3, 4, 5, 6);
+    EqualityAssertions.assertEqualityContract(
+      region,
+      MapRegion.of(1, 2, 3, 4, 5, 6),
+      MapRegion.of(9, 2, 3, 4, 5, 6),
+      MapRegion.of(1, 9, 3, 4, 5, 6),
+      MapRegion.of(1, 2, 9, 4, 5, 6),
+      MapRegion.of(1, 2, 3, 9, 5, 6),
+      MapRegion.of(1, 2, 3, 4, 9, 6),
+      MapRegion.of(1, 2, 3, 4, 5, 9)
+    );
+  }
+
+  @Test
+  void shouldHashRegionsByEveryPart() {
+    final MapRegion region = MapRegion.of(1, 2, 3, 4, 5, 6);
+
+    final int hash = region.hashCode();
+    final int expected = Objects.hash(1, 2, 3, 4, 5, 6);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldDescribeRegionsWithEveryPart() {
+    final MapRegion region = MapRegion.of(1, 2, 3, 4, 5, 6);
+
+    final String description = region.toString();
+    assertEquals("MapRegion{localX=1, localY=2, width=3, height=4, sourceX=5, sourceY=6}", description);
   }
 }

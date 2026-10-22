@@ -17,11 +17,9 @@
  */
 package me.brandonli.mcav.bukkit.media.config;
 
-import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.result.Characters;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /**
  * Describes an image drawn into the chat, for use with the chat image and chat result.
@@ -32,177 +30,87 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
  *
  * <p>The viewers collection is not copied. It is read for every frame, so a concurrent collection can be passed
  * to add or remove viewers while media is playing.
+ *
+ * <p>This class is immutable and thread-safe, except for the viewer collection, which it shares with the caller instead
+ * of copying.
+ *
+ * {@snippet :
+ * final int chatWidth = 16;
+ * final int chatHeight = 16;
+ * final ChatConfigurationBuilder builder = ChatConfiguration.builder();
+ * final ChatConfiguration configuration = builder
+ *   .viewers(viewers)
+ *   .character(Characters.BLACK_SQUARE)
+ *   .chatWidth(chatWidth)
+ *   .chatHeight(chatHeight)
+ *   .build();
+ * }
+ *
+ * @since 1.0.0
  */
-public class ChatConfiguration {
+public final class ChatConfiguration {
 
   private final Collection<UUID> viewers;
   private final String character;
   private final int chatWidth;
   private final int chatHeight;
 
-  private ChatConfiguration(final Builder<?> builder, final Collection<UUID> viewers, final String character) {
+  ChatConfiguration(final Collection<UUID> viewers, final String character, final int chatWidth, final int chatHeight) {
     this.viewers = viewers;
     this.character = character;
-    this.chatWidth = builder.chatWidth;
-    this.chatHeight = builder.chatHeight;
-  }
-
-  /**
-   * Gets the players who see the chat image.
-   *
-   * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
-   *         concurrent collection if another thread changes membership during rendering
-   */
-  public Collection<UUID> getViewers() {
-    return this.viewers;
-  }
-
-  /**
-   * Gets the text drawn for every pixel, usually a single character such as {@code █}.
-   *
-   * @return the pixel text
-   * @see Characters
-   */
-  public String getCharacter() {
-    return this.character;
-  }
-
-  /**
-   * Gets the width of the image in characters.
-   *
-   * @return the width in characters
-   */
-  public int getChatWidth() {
-    return this.chatWidth;
-  }
-
-  /**
-   * Gets the height of the image in lines.
-   *
-   * @return the height in lines
-   */
-  public int getChatHeight() {
-    return this.chatHeight;
-  }
-
-  /**
-   * The builder returned by {@link #builder()}.
-   */
-  public static final class ChatResultBuilder extends Builder<ChatResultBuilder> {
-
-    ChatResultBuilder() {}
-
-    /**
-     * Returns this builder with its concrete type.
-     *
-     * @return this builder
-     */
-    @Override
-    protected ChatResultBuilder self() {
-      return this;
-    }
+    this.chatWidth = chatWidth;
+    this.chatHeight = chatHeight;
   }
 
   /**
    * Creates a new builder for a chat configuration.
    *
    * @return a new builder
+   * @since 1.0.0
    */
-  public static Builder<?> builder() {
-    return new ChatResultBuilder();
+  public static ChatConfigurationBuilder builder() {
+    return new DefaultChatConfigurationBuilder();
   }
 
   /**
-   * Builds chat configurations. Every value is required.
+   * Returns the players who see the chat image.
    *
-   * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
-   * required fields are checked by {@link #build()}, which may be called again to create another configuration.
-   *
-   * @param <T> the type of the builder
+   * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
+   *         concurrent collection if another thread changes membership during rendering
+   * @since 1.0.0
    */
-  public abstract static class Builder<T extends Builder<T>> {
+  public Collection<UUID> getViewers() {
+    return this.viewers;
+  }
 
-    private @MonotonicNonNull Collection<UUID> viewers;
-    private @MonotonicNonNull String character;
-    private int chatWidth;
-    private int chatHeight;
+  /**
+   * Returns the text drawn for every pixel, usually a single character such as {@code █}.
+   *
+   * @return the pixel text
+   * @see Characters
+   * @since 1.0.0
+   */
+  public String getCharacter() {
+    return this.character;
+  }
 
-    Builder() {}
+  /**
+   * Returns the width of the image in characters.
+   *
+   * @return the width in characters
+   * @since 1.0.0
+   */
+  public int getChatWidth() {
+    return this.chatWidth;
+  }
 
-    /**
-     * Returns this builder with its concrete type, so the setters can be chained.
-     *
-     * @return this builder
-     */
-    abstract T self();
-
-    /**
-     * Sets the players who see the chat image. The collection is not copied, see {@link ChatConfiguration}.
-     *
-     * @param viewers the UUIDs of the viewers
-     * @return this builder
-     * @throws NullPointerException if the viewers are null
-     */
-    public T viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null");
-      this.viewers = viewers;
-      return this.self();
-    }
-
-    /**
-     * Sets the text drawn for every pixel.
-     *
-     * <p>The text must be nonempty when {@link #build()} is called. Multiple characters are allowed, but
-     * change the visual width of a pixel; no font or character-width validation is performed.
-     *
-     * @param character the pixel text, usually a single character such as {@code █}
-     * @return this builder
-     * @throws NullPointerException if the character is null
-     */
-    public T character(final String character) {
-      Preconditions.checkNotNull(character, "Character must not be null");
-      this.character = character;
-      return this.self();
-    }
-
-    /**
-     * Sets the width of the image in characters.
-     *
-     * @param chatWidth the width in characters, which must be positive
-     * @return this builder
-     */
-    public T chatWidth(final int chatWidth) {
-      this.chatWidth = chatWidth;
-      return this.self();
-    }
-
-    /**
-     * Sets the height of the image in lines.
-     *
-     * @param chatHeight the height in lines, which must be positive
-     * @return this builder
-     */
-    public T chatHeight(final int chatHeight) {
-      this.chatHeight = chatHeight;
-      return this.self();
-    }
-
-    /**
-     * Builds the chat configuration.
-     *
-     * @return the chat configuration
-     * @throws IllegalArgumentException if a size is not positive or the character is empty
-     * @throws NullPointerException     if the viewers or the character were not set
-     */
-    public ChatConfiguration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set");
-      final String configuredCharacter = Preconditions.checkNotNull(this.character, "Character must be set");
-
-      Preconditions.checkArgument(!configuredCharacter.isEmpty(), "Character must not be empty");
-      Preconditions.checkArgument(this.chatWidth > 0, "Chat width must be positive");
-      Preconditions.checkArgument(this.chatHeight > 0, "Chat height must be positive");
-
-      return new ChatConfiguration(this, configuredViewers, configuredCharacter);
-    }
+  /**
+   * Returns the height of the image in lines.
+   *
+   * @return the height in lines
+   * @since 1.0.0
+   */
+  public int getChatHeight() {
+    return this.chatHeight;
   }
 }

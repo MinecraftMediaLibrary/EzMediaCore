@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 """Resuming codec curves into an earlier output preserves the previous measurements."""
 
 import json
@@ -25,50 +26,66 @@ from pathlib import Path
 import mcv2_tools
 
 
-DOCUMENTED = Path(__file__).resolve().parents[1] / "resources/mcv2/data" / "codec_curves.json"
+CURVES_NAME = "codec_curves.json"
+DOCUMENTED = Path(__file__).resolve().parents[1] / "resources/mcv2/data" / CURVES_NAME
+
+SOURCES_KEY = "sources"
+CODECS_KEY = "codecs"
+POINTS_KEY = "points"
+DIGEST_KEY = "sha256"
+
+DOCUMENTED_SOURCE = "proxy30"
+NEW_SOURCE = "a"
+
+DIGEST_DIGITS = 64
 
 
 class ResumeTest(unittest.TestCase):
     def setUp(self):
         self.folder = tempfile.TemporaryDirectory()
-        self.out = os.path.join(self.folder.name, "codec_curves.json")
+        self.out = os.path.join(self.folder.name, CURVES_NAME)
 
     def tearDown(self):
         self.folder.cleanup()
 
+    def test_should_resume_the_documented_output(self):
+        documented = json.loads(DOCUMENTED.read_text())
+        self.write(documented)
+        identity = documented[SOURCES_KEY][DOCUMENTED_SOURCE]
+        measured = mcv2_tools.codec_curves_resume(self.out, DOCUMENTED_SOURCE, dict(identity))
+        codecs = measured[CODECS_KEY]
+        self.assertEqual(documented[CODECS_KEY], codecs)
+
+        source = measured[SOURCES_KEY][DOCUMENTED_SOURCE]
+        self.assertEqual(identity, source)
+
+    def test_should_refuse_a_name_measured_from_other_content(self):
+        documented = json.loads(DOCUMENTED.read_text())
+        self.write(documented)
+        other = dict(documented[SOURCES_KEY][DOCUMENTED_SOURCE], sha256="0" * DIGEST_DIGITS)
+        with self.assertRaisesRegex(ValueError, "proxy30 already has measurements of other content"):
+            mcv2_tools.codec_curves_resume(self.out, DOCUMENTED_SOURCE, other)
+
+    def test_should_read_the_points_of_the_first_runs(self):
+        self.write({SOURCES_KEY: {}, POINTS_KEY: [{"source": NEW_SOURCE, "codec": "x264", "quality": 20}]})
+        measured = mcv2_tools.codec_curves_resume(self.out, NEW_SOURCE, {DIGEST_KEY: "1" * DIGEST_DIGITS})
+        codecs = measured[CODECS_KEY]
+        self.assertEqual([{"source": NEW_SOURCE, "codec": "x264", "quality": 20}], codecs)
+
+        self.assertNotIn(POINTS_KEY, measured)
+
+    def test_should_refuse_an_output_with_both_datasets(self):
+        self.write({SOURCES_KEY: {}, POINTS_KEY: [], CODECS_KEY: []})
+        with self.assertRaisesRegex(ValueError, "both points and codecs"):
+            mcv2_tools.codec_curves_resume(self.out, NEW_SOURCE, {})
+
+    def test_should_start_an_output_that_does_not_exist(self):
+        measured = mcv2_tools.codec_curves_resume(self.out, NEW_SOURCE, {DIGEST_KEY: "2" * DIGEST_DIGITS})
+        self.assertEqual({SOURCES_KEY: {NEW_SOURCE: {DIGEST_KEY: "2" * DIGEST_DIGITS}}, CODECS_KEY: []}, measured)
+
     def write(self, measured):
         with open(self.out, "w") as out:
             json.dump(measured, out)
-
-    def test_resumes_the_documented_output(self):
-        documented = json.loads(DOCUMENTED.read_text())
-        self.write(documented)
-        identity = documented["sources"]["proxy30"]
-        measured = mcv2_tools.codec_curves_resume(self.out, "proxy30", dict(identity))
-        self.assertEqual(documented["codecs"], measured["codecs"])
-        self.assertEqual(identity, measured["sources"]["proxy30"])
-
-    def test_refuses_a_name_measured_from_other_content(self):
-        documented = json.loads(DOCUMENTED.read_text())
-        self.write(documented)
-        other = dict(documented["sources"]["proxy30"], sha256="0" * 64)
-        with self.assertRaisesRegex(ValueError, "proxy30 already has measurements of other content"):
-            mcv2_tools.codec_curves_resume(self.out, "proxy30", other)
-
-    def test_reads_the_points_of_the_first_runs(self):
-        self.write({"sources": {}, "points": [{"source": "a", "codec": "x264", "quality": 20}]})
-        measured = mcv2_tools.codec_curves_resume(self.out, "a", {"sha256": "1" * 64})
-        self.assertEqual([{"source": "a", "codec": "x264", "quality": 20}], measured["codecs"])
-        self.assertNotIn("points", measured)
-
-    def test_refuses_an_output_with_both_datasets(self):
-        self.write({"sources": {}, "points": [], "codecs": []})
-        with self.assertRaisesRegex(ValueError, "both points and codecs"):
-            mcv2_tools.codec_curves_resume(self.out, "a", {})
-
-    def test_starts_an_output_that_does_not_exist(self):
-        measured = mcv2_tools.codec_curves_resume(self.out, "a", {"sha256": "2" * 64})
-        self.assertEqual({"sources": {"a": {"sha256": "2" * 64}}, "codecs": []}, measured)
 
 
 if __name__ == "__main__":

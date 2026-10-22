@@ -27,13 +27,9 @@ import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 import net.jqwik.api.constraints.IntRange;
 
-/** Whatever frames come and however the connection drains, a viewer is only sent frames it can decode. */
 final class Mcv2LinkPropertyTest {
 
   private static final String SEED = "20260926";
-
-  /** One step of a stream: a frame (its size, and whether it is a keyframe) and how much the connection wrote before. */
-  private record Step(boolean isKeyframe, int bytes, int drained) {}
 
   @Provide
   Arbitrary<List<Step>> streams() {
@@ -47,13 +43,8 @@ final class Mcv2LinkPropertyTest {
     return step.list().ofMinSize(1).ofMaxSize(200);
   }
 
-  /**
-   * Offers previous-frame and stale keyframe references to a one-picture client model, and checks that every frame sent is one
-   * the client could decode, that nothing is sent while the backlog is over the limit (twice it for a keyframe), and
-   * that the backlog is what was sent and not yet written.
-   */
   @Property(seed = SEED, tries = 400)
-  boolean sendsOnlyFramesTheViewerCanDecode(
+  boolean shouldSendOnlyFramesTheViewerCanDecode(
     @ForAll("streams") final List<Step> steps,
     @ForAll @IntRange(min = 0, max = 1000) final int limit,
     @ForAll final boolean fromKeyframe
@@ -79,21 +70,29 @@ final class Mcv2LinkPropertyTest {
         lastKey = id;
       }
       final boolean over = outstanding > (isKeyframe ? Mcv2Link.allowance(limit) : limit);
-      final boolean sent = link.offer(id, reference, isKeyframe, step.bytes());
+      final boolean decodable = isKeyframe || reference == clientLast;
+      final Mcv2FrameKind kind = isKeyframe ? Mcv2FrameKind.KEYFRAME : Mcv2FrameKind.PREDICTED;
+      final boolean sent = link.offer(id, reference, kind, step.bytes());
+      if (sent && (over || !decodable)) {
+        return false;
+      }
+
+      if (!sent && !over && decodable) {
+        return false;
+      }
+
       if (sent) {
-        if (over || !(isKeyframe || reference == clientLast)) {
-          return false;
-        }
         clientLast = id;
         outstanding += step.bytes();
         inFlight.add((long) step.bytes());
-      } else if (!over && (isKeyframe || reference == clientLast)) {
-        return false;
       }
       if (link.getBacklog() != outstanding) {
         return false;
       }
     }
+
     return link.getSent() + link.getBehind() + link.getUndecodable() == steps.size();
   }
+
+  private record Step(boolean isKeyframe, int bytes, int drained) {}
 }

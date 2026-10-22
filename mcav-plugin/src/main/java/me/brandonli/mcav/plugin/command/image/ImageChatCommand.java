@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.ChatConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ChatConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.image.DisplayableImage;
 import me.brandonli.mcav.plugin.MCAVSandbox;
 import me.brandonli.mcav.plugin.utils.ArgumentUtils;
@@ -121,7 +122,7 @@ public final class ImageChatCommand extends AbstractImageCommand {
   ) {
     final int width = resolution.getFirst();
     final int height = resolution.getSecond();
-    final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
+    final ChatConfigurationBuilder builder = ChatConfiguration.builder();
     builder.viewers(players);
     builder.chatWidth(width);
     builder.chatHeight(height);

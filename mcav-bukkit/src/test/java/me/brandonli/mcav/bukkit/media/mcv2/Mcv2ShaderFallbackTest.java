@@ -37,10 +37,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests that a player whose MCV2 client mod reports a shader pack in use, which keeps MCV2 from decoding, sees an MCV2
- * screen as a player without the pack does, and the video again once the report says otherwise.
- */
 final class Mcv2ShaderFallbackTest {
 
   private static final UUID PACK = UUID.fromString("00000000-0000-0000-0000-0000000000c1");
@@ -80,57 +76,90 @@ final class Mcv2ShaderFallbackTest {
   }
 
   @Test
-  void aPlayerReportingShadersInUseGetsTheDitheredMapsUntilTheyReportThemOff() {
+  void shouldShowTheDitheredMapsToAPlayerReportingShadersInUseUntilTheyReportThemOff() {
     this.load(this.player);
     final Mcv2Channel channel = this.channel(List.of(VIEWER));
     channel.update();
     this.server.runTasks();
-    assertEquals(Set.of(), channel.update(), "with the pack loaded, the player gets the frames");
+    final Set<UUID> loadedFallback = channel.update();
+    assertEquals(Set.of(), loadedFallback, "with the pack loaded, the player gets the frames");
 
     this.server.receivePluginMessage(this.player, CHANNEL, SHADERS_ON);
-    assertEquals(Set.of(VIEWER), channel.update(), "a player reporting shaders in use still gets MCV2 frames");
-    assertEquals(Set.of(), channel.getRecipients());
+    final Set<UUID> expectedShadersOnFallback = Set.of(VIEWER);
+    final Set<UUID> shadersOnFallback = channel.update();
+    assertEquals(expectedShadersOnFallback, shadersOnFallback, "a player reporting shaders in use still gets MCV2 frames");
+
+    final Set<UUID> shadersOnRecipients = channel.getRecipients();
+    assertEquals(Set.of(), shadersOnRecipients);
 
     this.server.receivePluginMessage(this.player, CHANNEL, SHADERS_OFF);
     channel.update();
     this.server.runTasks();
-    assertEquals(Set.of(), channel.update(), "shaders off, the player is shown the screen again without rejoining");
-    assertEquals(Set.of(VIEWER), channel.getRecipients());
+    final Set<UUID> shadersOffFallback = channel.update();
+    assertEquals(Set.of(), shadersOffFallback, "shaders off, the player is shown the screen again without rejoining");
+
+    final Set<UUID> expectedShadersOffRecipients = Set.of(VIEWER);
+    final Set<UUID> shadersOffRecipients = channel.getRecipients();
+    assertEquals(expectedShadersOffRecipients, shadersOffRecipients);
   }
 
   @Test
-  void aPlayerWhoReportedShadersBeforeTheirPackLoadedIsNeverShownTheFrames() {
+  void shouldNeverShowTheFramesToAPlayerWhoReportedShadersBeforeTheirPackLoaded() {
     this.server.receivePluginMessage(this.latePlayer, CHANNEL, SHADERS_ON);
     this.load(this.latePlayer);
     final Mcv2Channel channel = this.channel(List.of(LATE_VIEWER));
-    assertEquals(Set.of(LATE_VIEWER), channel.update());
-    assertEquals(0, this.server.runTasks(), "no show is scheduled for a player who cannot decode");
-    assertEquals(Set.of(LATE_VIEWER), channel.update());
-    assertEquals(Set.of(), channel.getRecipients());
+    final Set<UUID> expectedFallback = Set.of(LATE_VIEWER);
+    final Set<UUID> fallback = channel.update();
+    assertEquals(expectedFallback, fallback);
+
+    final int tasks = this.server.runTasks();
+    assertEquals(0, tasks, "no show is scheduled for a player who cannot decode");
+
+    final Set<UUID> expectedFallbackAgain = Set.of(LATE_VIEWER);
+    final Set<UUID> fallbackAgain = channel.update();
+    assertEquals(expectedFallbackAgain, fallbackAgain);
+
+    final Set<UUID> recipients = channel.getRecipients();
+    assertEquals(Set.of(), recipients);
   }
 
   @Test
-  void listensToTheChannelWhileRegisteredAndForgetsAPlayerWhoLeft() {
-    assertTrue(this.server.getMessenger().isIncomingChannelRegistered(this.server.getPlugin(), CHANNEL));
+  void shouldListenToTheChannelWhileRegisteredAndForgetAPlayerWhoLeft() {
+    final boolean registered = this.server.getMessenger().isIncomingChannelRegistered(this.server.getPlugin(), CHANNEL);
+    assertTrue(registered);
+
     this.load(this.player);
     this.server.receivePluginMessage(this.player, CHANNEL, SHADERS_ON);
-    assertTrue(this.viewers.hasShaderReport(VIEWER));
-    assertFalse(this.viewers.isLoaded(VIEWER));
-    assertFalse(this.viewers.hasShaderReport(LATE_VIEWER), "a report is its sender's alone");
+    final boolean reported = this.viewers.hasShaderReport(VIEWER);
+    assertTrue(reported);
 
-    this.viewers.handleQuit(new PlayerQuitEvent(this.player, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED));
-    assertFalse(this.viewers.hasShaderReport(VIEWER));
+    final boolean loaded = this.viewers.isLoaded(VIEWER);
+    assertFalse(loaded);
+
+    final boolean otherReported = this.viewers.hasShaderReport(LATE_VIEWER);
+    assertFalse(otherReported, "a report is its sender's alone");
+
+    this.viewers.onPlayerQuit(new PlayerQuitEvent(this.player, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED));
+    final boolean reportedAfterQuit = this.viewers.hasShaderReport(VIEWER);
+    assertFalse(reportedAfterQuit);
+
     this.load(this.player);
-    assertTrue(this.viewers.isLoaded(VIEWER), "a player who joins again without a report decodes as before");
+    final boolean loadedAfterRejoin = this.viewers.isLoaded(VIEWER);
+    assertTrue(loadedAfterRejoin, "a player who joins again without a report decodes as before");
 
     this.viewers.unregister();
-    assertFalse(this.server.getMessenger().isIncomingChannelRegistered(this.server.getPlugin(), CHANNEL));
+    final boolean registeredAfterUnregister = this.server.getMessenger().isIncomingChannelRegistered(this.server.getPlugin(), CHANNEL);
+    assertFalse(registeredAfterUnregister);
+
     this.server.receivePluginMessage(this.player, CHANNEL, SHADERS_ON);
-    assertTrue(this.viewers.isLoaded(VIEWER), "an unregistered tracker reads no reports");
+    final boolean loadedAfterUnregister = this.viewers.isLoaded(VIEWER);
+    assertTrue(loadedAfterUnregister, "an unregistered tracker reads no reports");
   }
 
   private void load(final CraftPlayer viewer) {
-    this.viewers.handleStatus(new PlayerResourcePackStatusEvent(viewer, PACK, PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED));
+    this.viewers.onResourcePackStatus(
+      new PlayerResourcePackStatusEvent(viewer, PACK, PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED)
+    );
   }
 
   private Mcv2Channel channel(final List<UUID> selected) {

@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.EntityConfiguration;
+import me.brandonli.mcav.bukkit.media.config.EntityConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.image.DisplayableImage;
 import me.brandonli.mcav.plugin.MCAVSandbox;
 import me.brandonli.mcav.plugin.utils.ArgumentUtils;
@@ -126,7 +127,7 @@ public final class ImageEntityCommand extends AbstractImageCommand {
   ) {
     final int width = resolution.getFirst();
     final int height = resolution.getSecond();
-    final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
+    final EntityConfigurationBuilder builder = EntityConfiguration.builder();
     builder.viewers(players);
     builder.entityWidth(width);
     builder.entityHeight(height);

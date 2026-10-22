@@ -23,16 +23,15 @@ import java.util.Map;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Workers;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** Access to the real block search without widening the encoder's API. */
 final class Mcv2BlockState {
 
   private static final Class<?> BUFFERS = Mcv2Internals.nested("Buffers");
   private static final Class<?> FRAME = Mcv2Internals.nested("FrameState");
   private static final Class<?> CODER = Mcv2Internals.nested("BlockCoder");
-  static final int NO_VECTOR = (int) Mcv2Internals.field(MCV2.class, null, "NO_VECTOR");
-  private final Object buffers;
+  static final int NO_VECTOR = (int) Mcv2Internals.field(Mcv2.class, null, "NO_VECTOR");
 
-  private record Block(int level, int index) {}
+  private static final String HALF_MEMBER = "half";
+  private final Object buffers;
 
   private final Map<Block, Object> coders = new HashMap<>();
   private final Object frame;
@@ -42,18 +41,22 @@ final class Mcv2BlockState {
     final byte[] reference,
     final int width,
     final int height,
-    final boolean keyframe,
-    final boolean fast,
+    final Mcv2FrameKind kind,
+    final Thresholds thresholds,
     final double lambda,
     final int @Nullable [] previous
   ) {
     this.buffers = Mcv2Internals.construct(BUFFERS, new Class<?>[] { int.class, int.class }, width, height);
-    if (!keyframe) {
-      final byte[] half = (byte[]) Mcv2Internals.field(BUFFERS, this.buffers, "half");
+
+    if (kind == Mcv2FrameKind.PREDICTED) {
+      final byte[] half = (byte[]) Mcv2Internals.field(BUFFERS, this.buffers, HALF_MEMBER);
       final byte[] quarter = (byte[]) Mcv2Internals.field(BUFFERS, this.buffers, "quarter");
       half(reference, width, height, half);
       half(half, (width + 1) / 2, (height + 1) / 2, quarter);
     }
+
+    final boolean keyframe = kind == Mcv2FrameKind.KEYFRAME;
+    final boolean fast = thresholds == Thresholds.FAST;
     this.frame = Mcv2Internals.construct(
       FRAME,
       new Class<?>[] {
@@ -83,9 +86,9 @@ final class Mcv2BlockState {
 
   static byte[] half(final byte[] picture, final int width, final int height, final byte[] out) {
     Mcv2Internals.call(
-      MCV2.class,
+      Mcv2.class,
       null,
-      "half",
+      HALF_MEMBER,
       new Class<?>[] { byte[].class, int.class, int.class, Mcv2Internals.nested("Workers"), byte[].class },
       picture,
       width,
@@ -136,7 +139,8 @@ final class Mcv2BlockState {
       picture[index] = (byte) source[index];
       reconstruction[index] = (byte) best[index];
     }
-    return MCV2SearchPropertyTest.distortion(picture, reconstruction);
+
+    return Mcv2SearchPropertyTest.distortion(picture, reconstruction);
   }
 
   double cost(final int level, final int block) {
@@ -161,6 +165,13 @@ final class Mcv2BlockState {
   }
 
   static int neededQuantizer(final float[] fit) {
-    return (int) Mcv2Internals.invoke(MCV2.class, null, "neededQuantizer", new Class<?>[] { float[].class }, fit);
+    return (int) Mcv2Internals.invoke(Mcv2.class, null, "neededQuantizer", new Class<?>[] { float[].class }, fit);
   }
+
+  enum Thresholds {
+    STANDARD,
+    FAST,
+  }
+
+  private record Block(int level, int index) {}
 }

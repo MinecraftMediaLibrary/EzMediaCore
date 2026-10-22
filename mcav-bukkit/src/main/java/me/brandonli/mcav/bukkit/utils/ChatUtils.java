@@ -31,38 +31,55 @@ import org.bukkit.craftbukkit.util.CraftChatMessage;
  * <p>Text is built with legacy section sign color codes, because they are the most compact way to describe a
  * color per character. A hex color is written as {@code §x§r§r§g§g§b§b}, and a color code is only emitted when
  * the color differs from the previous character, which keeps the text as short as possible.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ChatUtils {
 
+  private static final String PIXELS_NULL_MESSAGE = "Pixels must not be null!";
+  private static final String CHARACTER_NULL_MESSAGE = "Character must not be null!";
+
   private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
   private static final char COLOR_CHAR = '§';
-  private static final char HEX_COLOR_MARKER = 'x';
+  private static final char HEXADECIMAL_COLOR_MARKER = 'x';
   private static final int RGB_MASK = 0xFFFFFF;
-  private static final int HEX_COLOR_LENGTH = 14;
+  private static final int HEXADECIMAL_COLOR_LENGTH = 14;
+
+  private static final int CHARACTERS_PER_DIGIT = 2;
+
+  private static final int HIGHEST_NIBBLE_SHIFT = 20;
+  private static final int BITS_PER_NIBBLE = 4;
+  private static final int NIBBLE_MASK = 0xF;
+
   private static final int CHAT_HISTORY_LINES = 100;
   private static final String CLEAR_CHAT_MESSAGE = "\n".repeat(CHAT_HISTORY_LINES - 1);
 
   private ChatUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
-   * Generates a string of color codes that is unique for the given index. The string renders as nothing, which
-   * makes it useful as an invisible, unique scoreboard entry.
+   * Returns a string of color codes that is unique for the given index. The string renders as nothing, which makes it
+   * useful as an invisible, unique scoreboard entry.
    *
    * @param index a non-negative index
    * @return an invisible string that is unique for every index
    * @throws IllegalArgumentException if the index is negative
+   * @since 1.0.0
    */
   public static String getUniqueString(final int index) {
-    Preconditions.checkArgument(index >= 0, "Index must be non-negative");
-    final String hex = Integer.toHexString(index);
-    final char[] digits = hex.toCharArray();
-    final StringBuilder entry = new StringBuilder(digits.length * 2);
+    Preconditions.checkArgument(index >= 0, "Index must be non-negative!");
+
+    final String hexadecimal = Integer.toHexString(index);
+    final char[] digits = hexadecimal.toCharArray();
+    final StringBuilder entry = new StringBuilder(digits.length * CHARACTERS_PER_DIGIT);
     for (final char digit : digits) {
       entry.append(COLOR_CHAR);
       entry.append(digit);
     }
+
     return entry.toString();
   }
 
@@ -78,15 +95,17 @@ public final class ChatUtils {
    * @param row       the row to convert
    * @return the row as text with legacy section sign color codes
    * @throws IllegalArgumentException if width is nonpositive or the requested zero-based row is outside the data
-   * @throws NullPointerException if {@code data} or {@code character} is null
+   * @throws NullPointerException     if {@code data} or {@code character} is null
+   * @since 1.0.0
    */
   public static String createRawLine(final int[] data, final String character, final int width, final int row) {
-    Preconditions.checkNotNull(data, "Pixels must not be null");
-    Preconditions.checkNotNull(character, "Character must not be null");
-    Preconditions.checkArgument(width > 0, "Width must be positive");
-    Preconditions.checkArgument(row >= 0 && (row + 1L) * width <= data.length, "Row is outside of the image");
+    Preconditions.checkNotNull(data, PIXELS_NULL_MESSAGE);
+    Preconditions.checkNotNull(character, CHARACTER_NULL_MESSAGE);
+    Preconditions.checkArgument(width > 0, "Width must be positive!");
+    Preconditions.checkArgument(row >= 0 && (row + 1L) * width <= data.length, "Row is outside of the image!");
+
     final int characterLength = character.length();
-    final int capacity = width * (HEX_COLOR_LENGTH + characterLength);
+    final int capacity = width * (HEXADECIMAL_COLOR_LENGTH + characterLength);
     final StringBuilder builder = new StringBuilder(capacity);
     appendRow(builder, data, character, width, row);
     return builder.toString();
@@ -104,15 +123,17 @@ public final class ChatUtils {
    * @param height    the height of the image in pixels
    * @return a chat component showing the image
    * @throws IllegalArgumentException if either dimension is nonpositive or the image requires more pixels than supplied
-   * @throws NullPointerException if {@code data} or {@code character} is null
+   * @throws NullPointerException     if {@code data} or {@code character} is null
+   * @since 1.0.0
    */
   public static Component createChatComponent(final int[] data, final String character, final int width, final int height) {
-    Preconditions.checkNotNull(data, "Pixels must not be null");
-    Preconditions.checkNotNull(character, "Character must not be null");
-    Preconditions.checkArgument(width > 0 && height > 0, "Image must not be empty");
-    Preconditions.checkArgument((long) width * height <= data.length, "Image dimensions exceed the pixel data");
+    Preconditions.checkNotNull(data, PIXELS_NULL_MESSAGE);
+    Preconditions.checkNotNull(character, CHARACTER_NULL_MESSAGE);
+    Preconditions.checkArgument(width > 0 && height > 0, "Image must not be empty!");
+    Preconditions.checkArgument((long) width * height <= data.length, "Image dimensions exceed the pixel data!");
+
     final int characterLength = character.length();
-    final int capacity = width * height * (HEX_COLOR_LENGTH + characterLength) + height;
+    final int capacity = width * height * (HEXADECIMAL_COLOR_LENGTH + characterLength) + height;
     final StringBuilder builder = new StringBuilder(capacity);
     for (int row = 0; row < height; row++) {
       if (row > 0) {
@@ -120,9 +141,10 @@ public final class ChatUtils {
       }
       appendRow(builder, data, character, width, row);
     }
+
     final String text = builder.toString();
     final Component component = CraftChatMessage.fromStringOrNull(text, true);
-    return Objects.requireNonNull(component, "Text with color codes always converts to a component");
+    return Objects.requireNonNull(component, "Text with color codes always converts to a component!");
   }
 
   private static void appendRow(final StringBuilder builder, final int[] data, final String character, final int width, final int row) {
@@ -131,18 +153,18 @@ public final class ChatUtils {
     for (int column = 0; column < width; column++) {
       final int color = data[offset + column] & RGB_MASK;
       if (color != previousColor) {
-        appendHexColor(builder, color);
+        appendHexadecimalColor(builder, color);
         previousColor = color;
       }
       builder.append(character);
     }
   }
 
-  private static void appendHexColor(final StringBuilder builder, final int color) {
+  private static void appendHexadecimalColor(final StringBuilder builder, final int color) {
     builder.append(COLOR_CHAR);
-    builder.append(HEX_COLOR_MARKER);
-    for (int shift = 20; shift >= 0; shift -= 4) {
-      final int nibble = (color >> shift) & 0xF;
+    builder.append(HEXADECIMAL_COLOR_MARKER);
+    for (int shift = HIGHEST_NIBBLE_SHIFT; shift >= 0; shift -= BITS_PER_NIBBLE) {
+      final int nibble = (color >> shift) & NIBBLE_MASK;
       final char digit = HEX_DIGITS[nibble];
       builder.append(COLOR_CHAR);
       builder.append(digit);
@@ -155,9 +177,11 @@ public final class ChatUtils {
    *
    * @param viewers the UUIDs of the players to clear the chat for
    * @throws NullPointerException if {@code viewers} is null
+   * @since 1.0.0
    */
   public static void clearChat(final Collection<UUID> viewers) {
-    Preconditions.checkNotNull(viewers, "Viewers must not be null");
+    Preconditions.checkNotNull(viewers, "Viewers must not be null!");
+
     final Component message = Component.literal(CLEAR_CHAT_MESSAGE);
     final ClientboundSystemChatPacket packet = new ClientboundSystemChatPacket(message, false);
     PacketUtils.sendPackets(viewers, packet);

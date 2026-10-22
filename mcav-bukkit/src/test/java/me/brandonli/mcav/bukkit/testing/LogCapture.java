@@ -31,12 +31,6 @@ import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.Property;
 import org.apache.logging.log4j.message.Message;
 
-/**
- * Records what a class logs through SLF4J, which the Paper test runtime routes to Log4j.
- *
- * <p>Use it in a try-with-resources block. While it is open, every level is recorded for the logger of the class,
- * from any thread.
- */
 public final class LogCapture implements AutoCloseable {
 
   private final Logger logger;
@@ -52,47 +46,23 @@ public final class LogCapture implements AutoCloseable {
     logger.setLevel(Level.ALL);
   }
 
-  /**
-   * Starts recording what the class logs.
-   *
-   * @param type the class whose logger is recorded
-   * @return the capture, which must be closed
-   */
   public static LogCapture capture(final Class<?> type) {
     final Logger logger = (Logger) LogManager.getLogger(type);
     return new LogCapture(logger);
   }
 
-  /**
-   * Gets the recorded events, in order.
-   *
-   * @return the events
-   */
-  public List<RecordedEvent> getEvents() {
-    return List.copyOf(this.appender.events);
-  }
-
-  /**
-   * Waits for the next event that has not been returned by this method yet. Events are handed out in the order
-   * they were recorded, so the first call returns the first event, even if it was logged before the call.
-   *
-   * @param timeout the longest time to wait
-   * @return the next event
-   * @throws AssertionError       if no event was recorded before the timeout elapsed
-   * @throws InterruptedException if the current thread is interrupted while waiting
-   */
+  // returns the events in recorded order, those logged before the call included
   public RecordedEvent awaitEvent(final Duration timeout) throws InterruptedException {
-    final long timeoutMillis = timeout.toMillis();
-    final RecordedEvent event = this.appender.arrivals.poll(timeoutMillis, TimeUnit.MILLISECONDS);
+    final long timeoutMilliseconds = timeout.toMillis();
+    final RecordedEvent event = this.appender.arrivals.poll(timeoutMilliseconds, TimeUnit.MILLISECONDS);
     if (event == null) {
-      throw new AssertionError("No event was logged within " + timeout);
+      final String message = "No event was logged before the %s timeout ran out!".formatted(timeout);
+      throw new AssertionError(message);
     }
+
     return event;
   }
 
-  /**
-   * Stops recording.
-   */
   @Override
   public void close() {
     this.logger.removeAppender(this.appender);
@@ -100,9 +70,10 @@ public final class LogCapture implements AutoCloseable {
     this.appender.stop();
   }
 
-  /**
-   * One recorded log event.
-   */
+  public List<RecordedEvent> getEvents() {
+    return List.copyOf(this.appender.events);
+  }
+
   public static final class RecordedEvent {
 
     private final Level level;
@@ -115,37 +86,19 @@ public final class LogCapture implements AutoCloseable {
       this.thrown = thrown;
     }
 
-    /**
-     * Gets the level of the event.
-     *
-     * @return the level
-     */
     public Level getLevel() {
       return this.level;
     }
 
-    /**
-     * Gets the formatted message of the event.
-     *
-     * @return the message
-     */
     public String getMessage() {
       return this.message;
     }
 
-    /**
-     * Gets the exception logged with the event.
-     *
-     * @return the exception, or null if there is none
-     */
     public Throwable getThrown() {
       return this.thrown;
     }
   }
 
-  /**
-   * An appender that keeps every event in memory.
-   */
   private static final class RecordingAppender extends AbstractAppender {
 
     private final List<RecordedEvent> events;

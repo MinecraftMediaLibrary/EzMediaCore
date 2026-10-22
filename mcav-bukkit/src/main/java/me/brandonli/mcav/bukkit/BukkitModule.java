@@ -33,16 +33,18 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * After installing the module, a plugin instance must be injected with {@link #inject(Plugin)} before any Bukkit
  * feature is used, because listeners and tasks have to be registered on behalf of a plugin.
  *
- * <pre><code>
- *   final MCAVApi api = MCAV.api();
- *   api.install(BukkitModule.class);
- *   final BukkitModule module = api.getModule(BukkitModule.class);
- *   module.inject(plugin);
- * </code></pre>
+ * {@snippet :
+ * final MCAVApi api = MCAV.api();
+ * api.install(BukkitModule.class);
+ * final BukkitModule module = api.getModule(BukkitModule.class);
+ * module.inject(plugin);
+ * }
  *
  * <p>Initialize and stop this module on the server's main thread. The injected plugin remains caller-owned.
  * The module does not track or release players, holograms, image displays or hosted resource packs;
  * release those resources before disabling the plugin.
+ *
+ * @since 1.0.0
  */
 public final class BukkitModule implements MCAVModule {
 
@@ -58,28 +60,32 @@ public final class BukkitModule implements MCAVModule {
    *
    * @param plugin the plugin instance
    * @throws UnsupportedServerVersionException if the server runs an unsupported Minecraft version
-   * @throws NullPointerException if the plugin is null
+   * @throws NullPointerException              if the plugin is null
+   * @since 1.0.0
    */
   public void inject(final Plugin plugin) {
-    Preconditions.checkNotNull(plugin, "Plugin must not be null");
+    Preconditions.checkNotNull(plugin, "Plugin must not be null!");
+
     ServerEnvironment.checkSupported();
 
     injectedPlugin = plugin;
-    BlockPaletteLookup.init();
-    PacketUtils.init();
+    BlockPaletteLookup.initialize();
+    PacketUtils.initialize();
   }
 
   /**
-   * Gets the injected plugin.
+   * Returns the injected plugin.
    *
    * @return the plugin instance
    * @throws IllegalStateException if no plugin has been injected yet
+   * @since 1.0.0
    */
   public static Plugin getPlugin() {
     final Plugin plugin = injectedPlugin;
     if (plugin == null) {
-      throw new IllegalStateException("No plugin has been injected, call BukkitModule#inject(Plugin) first");
+      throw new IllegalStateException("No plugin has been injected, call BukkitModule#inject(Plugin) first!");
     }
+
     return plugin;
   }
 
@@ -88,6 +94,8 @@ public final class BukkitModule implements MCAVModule {
    * it was stopped. Does nothing before the first injection, because {@link #inject(Plugin)} starts the module
    * once the plugin is known, and does nothing while the injected plugin is disabled, because a disabled plugin
    * cannot register listeners.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -95,7 +103,8 @@ public final class BukkitModule implements MCAVModule {
     if (plugin == null || !plugin.isEnabled()) {
       return;
     }
-    PacketUtils.init();
+
+    PacketUtils.initialize();
   }
 
   /**
@@ -104,19 +113,23 @@ public final class BukkitModule implements MCAVModule {
    * <p>The plugin and the packet listener are shared by everything that loaded MCAV's classes from one class loader, so
    * this stops them for every MCAV instance there, not only for the one released. One instance per plugin, as
    * {@code MCAV.api()} asks for, never notices.
+   *
+   * @since 1.0.0
    */
   @Override
   public void stop() {
     if (injectedPlugin == null) {
       return;
     }
+
     PacketUtils.shutdown();
   }
 
   /**
-   * Gets the name of the module, which is {@code bukkit}.
+   * Returns the name of the module, which is {@code bukkit}.
    *
    * @return the name of the module
+   * @since 1.0.0
    */
   @Override
   public String getModuleName() {

@@ -44,13 +44,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-/**
- * Tests that the limit of a viewer's unsent bytes, which only keeps a slow viewer's backlog small, never keeps the
- * viewer from being shown the screen.
- */
 final class Mcv2ChannelUnsentLimitTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000041");
+
+  private static final int WALL_MAP = 100;
 
   private FakeServer server;
 
@@ -68,24 +66,24 @@ final class Mcv2ChannelUnsentLimitTest {
     this.server.close();
   }
 
-  private static Mcv2Viewers viewers() {
+  private Mcv2Viewers viewers() {
     final Mcv2Viewers viewers = mock(Mcv2Viewers.class);
     when(viewers.isLoaded(VIEWER)).thenReturn(true);
     return viewers;
   }
 
-  private static Mcv2Screen screen() {
+  private Mcv2Screen screen() {
     final Mcv2Screen screen = mock(Mcv2Screen.class);
-    when(screen.anchors()).thenReturn(List.of(new MapTilePatch(100, 0, 0, 128, 1, new byte[128])));
+    when(screen.anchors()).thenReturn(List.of(MapTilePatch.of(WALL_MAP, 0, 0, 128, 1, new byte[128])));
     return screen;
   }
 
-  private static Mcv2Configuration configuration(final int unsentLimit) {
+  private Mcv2Configuration configuration(final int unsentLimit) {
     return Mcv2Configuration.builder()
       .viewers(List.of(VIEWER))
       .origin(new Location(mock(World.class), 0, 64, 0))
       .facing(BlockFace.SOUTH)
-      .map(100)
+      .map(WALL_MAP)
       .columns(1)
       .rows(1)
       .pageMap(500)
@@ -94,10 +92,10 @@ final class Mcv2ChannelUnsentLimitTest {
   }
 
   @Test
-  void showsTheScreenToAViewerWhoseConnectionRefusesTheLimit() {
-    final Mcv2Viewers viewers = viewers();
-    final Mcv2Screen screen = screen();
-    final Mcv2Configuration configuration = configuration(4096);
+  void shouldShowTheScreenToAViewerWhoseConnectionRefusesTheLimit() {
+    final Mcv2Viewers viewers = this.viewers();
+    final Mcv2Screen screen = this.screen();
+    final Mcv2Configuration configuration = this.configuration(4096);
     // epoll refuses the option of a connection that closed since the show was scheduled, as when the player leaves
     final ChannelException closed = new ChannelException(new ClosedChannelException());
     try (final MockedStatic<PacketUtils> packets = mockStatic(PacketUtils.class, CALLS_REAL_METHODS)) {
@@ -107,17 +105,23 @@ final class Mcv2ChannelUnsentLimitTest {
       this.server.runTasks();
 
       verify(screen).show(this.player);
-      assertEquals(Set.of(), channel.update(), "the viewer receives frames, without the limit");
-      assertEquals(Set.of(VIEWER), channel.getRecipients());
+
+      final Set<UUID> updated = channel.update();
+      assertEquals(Set.of(), updated, "the viewer receives frames, without the limit");
+
+      final Set<UUID> expectedRecipients = Set.of(VIEWER);
+      final Set<UUID> recipients = channel.getRecipients();
+      assertEquals(expectedRecipients, recipients);
+
       packets.verify(() -> PacketUtils.limitUnsent(VIEWER, 4096));
     }
   }
 
   @Test
-  void leavesTheConnectionAloneForAScreenWithoutALimit() {
-    final Mcv2Screen screen = screen();
+  void shouldLeaveTheConnectionAloneForAScreenWithoutALimit() {
+    final Mcv2Screen screen = this.screen();
     try (final MockedStatic<PacketUtils> packets = mockStatic(PacketUtils.class, CALLS_REAL_METHODS)) {
-      final Mcv2Channel channel = new Mcv2Channel(configuration(0), viewers(), screen);
+      final Mcv2Channel channel = new Mcv2Channel(this.configuration(0), this.viewers(), screen);
       channel.update();
       this.server.runTasks();
       verify(screen).show(this.player);

@@ -45,17 +45,6 @@ import org.junit.jupiter.api.Tag;
 import org.mockito.ArgumentMatchers;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Fuzzes the text a video hologram shows about a video, which comes from the site of the video through yt-dlp: the
- * title and the uploader are whatever the site names them, tags, escapes and backslashes included. Whatever they are,
- * the hologram shows the title on the first line and the uploader on the second, each exactly as the site named it, and
- * a placeholder for a missing one; no part of them is read as markup.
- *
- * <p>The first byte of an input says which of the title (bit 0), the uploader (bit 1) and the upload time (bit 2) the
- * site reported; the next four bytes are the upload time in seconds, and the rest is the title and the uploader in
- * UTF-8, separated by the first zero byte. The seeds are titles and uploaders of real videos, tags, escaped tags and
- * backslashes.
- */
 @Tag("fuzz")
 final class StandardVideoHologramFuzzTest {
 
@@ -91,10 +80,11 @@ final class StandardVideoHologramFuzzTest {
   }
 
   @FuzzTest(maxDuration = "30s")
-  void showsTheTitleAndTheUploaderAsTheSiteNamedThem(final byte[] input) {
+  void shouldShowTheTitleAndTheUploaderAsTheSiteNamedThem(final byte[] input) {
     if (input.length < HEADER_BYTES) {
       return;
     }
+
     final int flags = input[0];
     final int timestamp = ByteBuffer.wrap(input, 1, Integer.BYTES).getInt();
     final String text = new String(input, HEADER_BYTES, input.length - HEADER_BYTES, StandardCharsets.UTF_8);
@@ -111,15 +101,18 @@ final class StandardVideoHologramFuzzTest {
     final UrlParseDump dump = gson.fromJson(json, UrlParseDump.class);
 
     SHOWN.set(null);
-    new StandardVideoHologram().handleRequest(LOCATION, dump);
+    new StandardVideoHologram().spawn(LOCATION, dump);
     final String plain = PLAIN.serialize(SHOWN.get());
 
     final String title = reportedTitle == null ? "Unknown title" : reportedTitle;
     final String uploader = reportedUploader == null ? "Unknown uploader" : reportedUploader;
     final String start = title + "\n" + uploader + " (";
-    assertTrue(plain.startsWith(start) && plain.endsWith(")"), () -> "shown as named: [" + start + "...)] but was [" + plain + "]");
+    final boolean shownAsNamed = plain.startsWith(start) && plain.endsWith(")");
+    assertTrue(shownAsNamed, () -> "shown as named: [" + start + "...)] but was [" + plain + "]");
+
     if (reportedTimestamp <= 0) {
-      assertEquals(start + "Unknown date)", plain, "a video without a date says so");
+      final String expected = start + "Unknown date)";
+      assertEquals(expected, plain, "a video without a date says so");
     }
   }
 }

@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Channel;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ final class Mcv2PlaybackTest {
   private Mcv2Channel channel;
 
   static List<byte[]> stream() {
-    final MCV2 encoder = new MCV2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
+    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
     final byte[] rgb = new byte[32 * 32 * 3];
     for (int at = 0; at < rgb.length; at += 3) {
       rgb[at] = 1;
@@ -111,15 +111,15 @@ final class Mcv2PlaybackTest {
   @Test
   void numbersItsFramesFromTheFirstFrameIdOfItsSlotAcrossTheWrap() {
     when(this.channel.getRecipients()).thenReturn(Set.of(UUID.randomUUID()));
-    final Mcv2Playback playback = new Mcv2Playback(this.channel, stream(), Mcv2Decoder.MAX_U32 - 1);
+    final Mcv2Playback playback = new Mcv2Playback(this.channel, stream(), Mcv2Decoder.MAXIMUM_UNSIGNED_INT - 1);
     playback.run();
-    assertEquals(Mcv2Decoder.MAX_U32 - 1, this.sent(1)[0]);
+    assertEquals(Mcv2Decoder.MAXIMUM_UNSIGNED_INT - 1, this.sent(1)[0]);
     playback.run();
-    assertEquals(Mcv2Decoder.MAX_U32, this.sent(2)[0]);
+    assertEquals(Mcv2Decoder.MAXIMUM_UNSIGNED_INT, this.sent(2)[0]);
     playback.run();
     final long[] third = this.sent(3);
     assertEquals(0, third[0], "the ids wrap like the clients' unsigned 32-bit sequence");
-    assertEquals(Mcv2Decoder.MAX_U32, third[1]);
+    assertEquals(Mcv2Decoder.MAXIMUM_UNSIGNED_INT, third[1]);
   }
 
   @Test

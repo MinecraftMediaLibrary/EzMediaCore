@@ -50,9 +50,15 @@ import org.mockito.Mockito;
 
 final class FileDownloadProgressTest {
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+  private static final String PAYLOAD = "payload";
+
+  private static final int WRITE_TIMEOUT_SECONDS = 300;
+  private static final int AFTER_TIMEOUT_SECONDS = 301;
+
   @Test
-  void keepsAProgressingFileRegionOpenPastTheWriteTimeout(@TempDir final Path folder) throws Exception {
-    final Path pack = folder.resolve("pack.zip");
+  void shouldKeepAProgressingFileRegionOpenPastTheWriteTimeout(@TempDir final Path folder) throws Exception {
+    final Path pack = folder.resolve(PACK_FILE_NAME);
     Files.write(pack, new byte[4096]);
     final SlowSocket channel = new SlowSocket();
     channel.freezeTime();
@@ -66,124 +72,159 @@ final class FileDownloadProgressTest {
       for (int interval = 0; interval < 8; interval++) {
         channel.advanceTimeBy(100, TimeUnit.SECONDS);
         channel.runScheduledPendingTasks();
-        assertTrue(channel.isOpen(), "partial file progress must renew the download deadline");
+        final boolean openWhileProgressing = channel.isOpen();
+        assertTrue(openWhileProgressing, "partial file progress must renew the download deadline");
+
         channel.take(128);
       }
-      assertTrue(channel.bodyBytes > 0 && channel.bodyBytes < 4096);
+
+      final boolean partiallyWritten = channel.bodyBytes > 0 && channel.bodyBytes < 4096;
+      assertTrue(partiallyWritten);
+
       channel.advanceTimeBy(299, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertTrue(channel.isOpen(), "a stall shorter than the limit is allowed");
+      final boolean openAfterShortStall = channel.isOpen();
+      assertTrue(openAfterShortStall, "a stall shorter than the limit is allowed");
+
       channel.advanceTimeBy(2, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertFalse(channel.isOpen(), "an actually stalled download is closed");
-      assertEquals(0, channel.region.refCnt(), "closing releases the owned file region");
+      final boolean openAfterStall = channel.isOpen();
+      assertFalse(openAfterStall, "an actually stalled download is closed");
+
+      final int regionReferenceCount = channel.region.refCnt();
+      assertEquals(0, regionReferenceCount, "closing releases the owned file region");
     } finally {
       channel.finishAndReleaseAll();
     }
   }
 
   @Test
-  void forwardsCompletionAndCancelsItsDeadline() {
+  void shouldForwardCompletionAndCancelItsDeadline() {
     final HeldWrite held = new HeldWrite();
-    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(300));
+    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(WRITE_TIMEOUT_SECONDS));
     channel.freezeTime();
     try {
       final ChannelPromise completion = channel.newPromise();
-      final ChannelFuture submitted = channel.writeOneOutbound("payload", completion);
+      final ChannelFuture submitted = channel.writeOneOutbound(PAYLOAD, completion);
       assertSame(completion, submitted);
-      assertFalse(completion.isDone());
+
+      final boolean done = completion.isDone();
+      assertFalse(done);
+
       held.promise().setSuccess();
-      assertTrue(completion.isSuccess());
-      channel.advanceTimeBy(301, TimeUnit.SECONDS);
+      final boolean succeeded = completion.isSuccess();
+      assertTrue(succeeded);
+
+      channel.advanceTimeBy(AFTER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertTrue(channel.isOpen());
+      final boolean open = channel.isOpen();
+      assertTrue(open);
     } finally {
       channel.finishAndReleaseAll();
     }
   }
 
   @Test
-  void forwardsTheOriginalWriteFailure() {
+  void shouldForwardTheOriginalWriteFailure() {
     final HeldWrite held = new HeldWrite();
-    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(300));
+    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(WRITE_TIMEOUT_SECONDS));
     channel.freezeTime();
     try {
       final ChannelPromise completion = channel.newPromise();
-      final ChannelFuture submitted = channel.writeOneOutbound("payload", completion);
+      final ChannelFuture submitted = channel.writeOneOutbound(PAYLOAD, completion);
       assertSame(completion, submitted);
-      final IOException failure = new IOException("socket closed");
+
+      final IOException failure = new IOException("Socket closed!");
       held.promise().setFailure(failure);
-      assertSame(failure, completion.cause());
-      channel.advanceTimeBy(301, TimeUnit.SECONDS);
+      final @Nullable Throwable cause = completion.cause();
+      assertSame(failure, cause);
+
+      channel.advanceTimeBy(AFTER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertTrue(channel.isOpen());
+      final boolean open = channel.isOpen();
+      assertTrue(open);
     } finally {
       channel.finishAndReleaseAll();
     }
   }
 
   @Test
-  void zeroProgressDoesNotExtendAStalledWrite() {
+  void shouldNotExtendAStalledWriteOnZeroProgress() {
     final HeldWrite held = new HeldWrite();
-    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(300), new IgnoreTimeout());
+    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(WRITE_TIMEOUT_SECONDS), new IgnoreTimeout());
     channel.freezeTime();
     try {
-      final ChannelFuture completion = channel.writeOneOutbound("payload");
-      assertFalse(completion.isDone());
+      final ChannelFuture completion = channel.writeOneOutbound(PAYLOAD);
+      final boolean done = completion.isDone();
+      assertFalse(done);
+
       channel.advanceTimeBy(200, TimeUnit.SECONDS);
-      assertTrue(held.promise().tryProgress(0, 10));
+      final boolean progressed = held.promise().tryProgress(0, 10);
+      assertTrue(progressed);
+
       channel.advanceTimeBy(101, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertFalse(channel.isOpen());
-      held.promise().setFailure(new IOException("closed after timeout"));
+      final boolean open = channel.isOpen();
+      assertFalse(open);
+
+      held.promise().setFailure(new IOException("Closed after timeout!"));
     } finally {
       channel.finishAndReleaseAll();
     }
   }
 
   @Test
-  void removalCancelsDeadlinesEvenWhenTheWriteMakesLaterProgress() {
+  void shouldCancelDeadlinesOnRemovalEvenWhenTheWriteMakesLaterProgress() {
     final HeldWrite held = new HeldWrite();
-    final ProgressWriteTimeoutHandler handler = new ProgressWriteTimeoutHandler(300);
+    final ProgressWriteTimeoutHandler handler = new ProgressWriteTimeoutHandler(WRITE_TIMEOUT_SECONDS);
     final EmbeddedChannel channel = new EmbeddedChannel(held, handler, new IgnoreTimeout());
     channel.freezeTime();
     try {
       final ChannelPromise completion = channel.newPromise();
-      final ChannelFuture submitted = channel.writeOneOutbound("payload", completion);
+      final ChannelFuture submitted = channel.writeOneOutbound(PAYLOAD, completion);
       assertSame(completion, submitted);
+
       channel.pipeline().remove(handler);
-      assertTrue(held.promise().tryProgress(1, 10));
-      channel.advanceTimeBy(301, TimeUnit.SECONDS);
+      final boolean progressed = held.promise().tryProgress(1, 10);
+      assertTrue(progressed);
+
+      channel.advanceTimeBy(AFTER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertTrue(channel.isOpen(), "a removed handler cannot create another deadline");
+      final boolean open = channel.isOpen();
+      assertTrue(open, "a removed handler cannot create another deadline");
+
       held.promise().setSuccess();
-      assertTrue(completion.isSuccess());
+      final boolean succeeded = completion.isSuccess();
+      assertTrue(succeeded);
     } finally {
       channel.finishAndReleaseAll();
     }
   }
 
   @Test
-  void reportsAnExceptionThrownWhileExpiringAWrite() {
+  void shouldReportAnExceptionThrownWhileExpiringAWrite() {
     final EmbeddedChannel channel = new EmbeddedChannel();
     channel.freezeTime();
-    final ProgressWriteTimeoutHandler handler = new ProgressWriteTimeoutHandler(300);
+    final ProgressWriteTimeoutHandler handler = new ProgressWriteTimeoutHandler(WRITE_TIMEOUT_SECONDS);
     final ChannelHandlerContext context = Mockito.mock(ChannelHandlerContext.class);
     final ChannelProgressivePromise progress = channel.newProgressivePromise();
     final ChannelPromise completion = channel.newPromise();
-    final RuntimeException failure = new IllegalStateException("timeout reporting failed");
+    final RuntimeException failure = new IllegalStateException("Timeout reporting failed!");
     Mockito.when(context.executor()).thenReturn(channel.eventLoop());
     Mockito.when(context.newProgressivePromise()).thenReturn(progress);
-    Mockito.when(context.write("payload", progress)).thenReturn(progress);
+    Mockito.when(context.write(PAYLOAD, progress)).thenReturn(progress);
     Mockito.when(context.fireExceptionCaught(WriteTimeoutException.INSTANCE)).thenThrow(failure);
     try {
-      handler.write(context, "payload", completion);
-      channel.advanceTimeBy(301, TimeUnit.SECONDS);
+      handler.write(context, PAYLOAD, completion);
+      channel.advanceTimeBy(AFTER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
       Mockito.verify(context).fireExceptionCaught(failure);
-      assertFalse(completion.isDone(), "reporting a timeout does not invent successful write completion");
+      final boolean done = completion.isDone();
+      assertFalse(done, "reporting a timeout does not invent successful write completion");
+
       progress.setSuccess();
-      assertTrue(completion.isSuccess());
+      final boolean succeeded = completion.isSuccess();
+      assertTrue(succeeded);
     } finally {
       channel.finishAndReleaseAll();
     }
@@ -226,41 +267,58 @@ final class FileDownloadProgressTest {
       while (this.allowance > 0) {
         final Object current = outbound.current();
         if (current instanceof final ByteBuf buffer) {
-          final int written = (int) Math.min(this.allowance, buffer.readableBytes());
-          this.allowance -= written;
-          outbound.removeBytes(written);
-        } else if (current instanceof final FileRegion file) {
-          this.region = file;
-          final WritableByteChannel sink = new WritableByteChannel() {
-            @Override
-            public int write(final ByteBuffer bytes) {
-              final int written = (int) Math.min(SlowSocket.this.allowance, bytes.remaining());
-              bytes.position(bytes.position() + written);
-              SlowSocket.this.allowance -= written;
-              return written;
-            }
+          this.writeBuffer(outbound, buffer);
+          continue;
+        }
 
-            @Override
-            public boolean isOpen() {
-              return true;
-            }
+        if (!(current instanceof final FileRegion file)) {
+          return;
+        }
 
-            @Override
-            public void close() {}
-          };
-          final long written = file.transferTo(sink, file.transferred());
-          this.bodyBytes += written;
-          outbound.progress(written);
-          if (file.transferred() == file.count()) {
-            outbound.remove();
-          }
-          if (written == 0) {
-            return;
-          }
-        } else {
+        final boolean progressed = this.transferRegion(outbound, file);
+        if (!progressed) {
           return;
         }
       }
+    }
+
+    private void writeBuffer(final ChannelOutboundBuffer outbound, final ByteBuf buffer) {
+      final int written = (int) Math.min(this.allowance, buffer.readableBytes());
+      this.allowance -= written;
+      outbound.removeBytes(written);
+    }
+
+    private boolean transferRegion(final ChannelOutboundBuffer outbound, final FileRegion file) throws IOException {
+      this.region = file;
+      final long written = file.transferTo(this.allowanceSink(), file.transferred());
+      this.bodyBytes += written;
+      outbound.progress(written);
+
+      if (file.transferred() == file.count()) {
+        outbound.remove();
+      }
+
+      return written != 0;
+    }
+
+    private WritableByteChannel allowanceSink() {
+      return new WritableByteChannel() {
+        @Override
+        public int write(final ByteBuffer bytes) {
+          final int written = (int) Math.min(SlowSocket.this.allowance, bytes.remaining());
+          bytes.position(bytes.position() + written);
+          SlowSocket.this.allowance -= written;
+          return written;
+        }
+
+        @Override
+        public boolean isOpen() {
+          return true;
+        }
+
+        @Override
+        public void close() {}
+      };
     }
   }
 }

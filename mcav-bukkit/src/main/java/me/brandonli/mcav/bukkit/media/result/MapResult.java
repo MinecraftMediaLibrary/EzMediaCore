@@ -42,6 +42,10 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  * Input buffers remain caller-owned and are consumed synchronously, even when converted display data is applied
  * on a later server tick. Serialize frame delivery with lifecycle operations unless this class explicitly provides
  * locking, and never mutate an input buffer concurrently with conversion.
+ *
+ * <p>Packets are sent directly, so the filter may run on any thread.
+ *
+ * @since 1.0.0
  */
 public class MapResult implements DitherResultStep {
 
@@ -52,9 +56,11 @@ public class MapResult implements DitherResultStep {
    *
    * @param configuration the configuration describing the map grid and the viewers
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   public MapResult(final MapConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Map configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
+
     this.configuration = configuration;
   }
 
@@ -65,11 +71,13 @@ public class MapResult implements DitherResultStep {
    * @param samples   the frame, which is resized in place if resizing is configured
    * @param algorithm the dithering algorithm that converts the frame into map colors
    * @throws NullPointerException if {@code samples} or {@code algorithm} is null
+   * @since 1.0.0
    */
   @Override
   public void process(final ImageBuffer samples, final DitherAlgorithm algorithm) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
-    Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+    Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null!");
+
     this.resizeIfConfigured(samples);
 
     final byte[] dithered = algorithm.ditherIntoBytes(samples);
@@ -79,29 +87,35 @@ public class MapResult implements DitherResultStep {
     final int width = samples.getWidth();
     final int height = samples.getHeight();
     final MapLayout layout = new MapLayout(startMapId, columns, rows, width, height);
-    final List<MapTilePatch> patches = completeGrid(layout, dithered);
+    final List<MapTilePatch> patches = this.completeGrid(layout, dithered);
 
     final Collection<UUID> viewers = this.configuration.getViewers();
     MapPacketFactory.send(viewers, patches);
   }
 
-  private static List<MapTilePatch> completeGrid(final MapLayout layout, final byte[] image) {
+  private List<MapTilePatch> completeGrid(final MapLayout layout, final byte[] image) {
     final int width = layout.getImageWidth();
-    Preconditions.checkArgument(image.length == width * layout.getImageHeight(), "Image size does not match layout");
+    Preconditions.checkArgument(image.length == width * layout.getImageHeight(), "Image size does not match layout!");
+
     final List<MapTilePatch> patches = new ArrayList<>(layout.getMapCount());
     for (int index = 0; index < layout.getMapCount(); index++) {
       final MapRegion region = layout.getRegion(index);
       final byte[] colors = new byte[MapLayout.MAP_SIZE * MapLayout.MAP_SIZE];
       if (!region.isEmpty()) {
-        for (int row = 0; row < region.getHeight(); row++) {
-          final int source = (region.getSourceY() + row) * width + region.getSourceX();
-          final int target = (region.getLocalY() + row) * MapLayout.MAP_SIZE + region.getLocalX();
-          System.arraycopy(image, source, colors, target, region.getWidth());
-        }
+        this.copyRegion(image, width, region, colors);
       }
-      patches.add(new MapTilePatch(layout.getMapId(index), 0, 0, MapLayout.MAP_SIZE, MapLayout.MAP_SIZE, colors));
+      patches.add(MapTilePatch.of(layout.getMapId(index), 0, 0, MapLayout.MAP_SIZE, MapLayout.MAP_SIZE, colors));
     }
+
     return patches;
+  }
+
+  private void copyRegion(final byte[] image, final int width, final MapRegion region, final byte[] colors) {
+    for (int row = 0; row < region.getHeight(); row++) {
+      final int source = (region.getSourceY() + row) * width + region.getSourceX();
+      final int target = (region.getLocalY() + row) * MapLayout.MAP_SIZE + region.getLocalX();
+      System.arraycopy(image, source, colors, target, region.getWidth());
+    }
   }
 
   private void resizeIfConfigured(final ImageBuffer samples) {
@@ -109,6 +123,7 @@ public class MapResult implements DitherResultStep {
     if (!shouldResize) {
       return;
     }
+
     final int targetWidth = this.configuration.getMapWidthResolution();
     final int targetHeight = this.configuration.getMapHeightResolution();
     final ResizeFilter filter = new ResizeFilter(targetWidth, targetHeight);
@@ -117,12 +132,16 @@ public class MapResult implements DitherResultStep {
 
   /**
    * Does nothing, because every frame is sent completely and nothing needs to be prepared.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {}
 
   /**
    * Clears the maps of every viewer.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

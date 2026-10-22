@@ -19,7 +19,6 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import net.kyori.adventure.text.Component;
@@ -59,6 +59,8 @@ final class Mcv2ViewersTest {
   private static final UUID OTHER = UUID.fromString("00000000-0000-0000-0000-00000000bbbb");
 
   private static final UUID PLAYER = UUID.fromString("00000000-0000-0000-0000-000000000021");
+
+  private static final String REFUSED_ONCE_MESSAGE = "the refusal is reported once";
 
   private FakeServer server;
 
@@ -88,27 +90,44 @@ final class Mcv2ViewersTest {
   }
 
   @Test
-  void followsWhatTheClientReports() {
+  void shouldFollowWhatTheClientReports() {
     final Mcv2Viewers viewers = this.viewers();
     final UUID uuid = PLAYER;
-    assertNull(viewers.getState(uuid));
+    final Optional<Mcv2Viewers.PackState> stateBeforeRequest = viewers.getState(uuid);
+    assertTrue(stateBeforeRequest.isEmpty());
+
     viewers.requested(uuid);
-    assertEquals(Mcv2Viewers.PackState.REQUESTED, viewers.getState(uuid));
-    viewers.handleStatus(this.status(PACK, Status.ACCEPTED));
-    viewers.handleStatus(this.status(PACK, Status.DOWNLOADED));
-    assertFalse(viewers.isLoaded(uuid));
-    viewers.handleStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
-    assertTrue(viewers.isLoaded(uuid));
+    final Mcv2Viewers.PackState requestedState = viewers.getState(uuid).orElseThrow();
+    assertEquals(Mcv2Viewers.PackState.REQUESTED, requestedState);
+
+    viewers.onResourcePackStatus(this.status(PACK, Status.ACCEPTED));
+    viewers.onResourcePackStatus(this.status(PACK, Status.DOWNLOADED));
+    final boolean loadedAfterDownload = viewers.isLoaded(uuid);
+    assertFalse(loadedAfterDownload);
+
+    viewers.onResourcePackStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
+    final boolean loaded = viewers.isLoaded(uuid);
+    assertTrue(loaded);
+
     // another pack's answers are not this pack's
-    viewers.handleStatus(this.status(OTHER, Status.DECLINED));
-    assertTrue(viewers.isLoaded(uuid));
-    viewers.handleStatus(this.status(PACK, Status.FAILED_RELOAD));
-    assertEquals(List.of(this.player), this.refused, "the first refusal is reported at once");
-    viewers.handleStatus(this.status(PACK, Status.DISCARDED));
-    assertEquals(Mcv2Viewers.PackState.REFUSED, viewers.getState(uuid));
-    assertEquals(List.of(this.player), this.refused, "the refusal is reported once");
-    viewers.handleQuit(new PlayerQuitEvent(this.player, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED));
-    assertNull(viewers.getState(uuid));
+    viewers.onResourcePackStatus(this.status(OTHER, Status.DECLINED));
+    final boolean loadedAfterOtherPack = viewers.isLoaded(uuid);
+    assertTrue(loadedAfterOtherPack);
+
+    viewers.onResourcePackStatus(this.status(PACK, Status.FAILED_RELOAD));
+    final List<Player> expectedRefused = List.of(this.player);
+    assertEquals(expectedRefused, this.refused, "the first refusal is reported at once");
+
+    viewers.onResourcePackStatus(this.status(PACK, Status.DISCARDED));
+    final Mcv2Viewers.PackState refusedState = viewers.getState(uuid).orElseThrow();
+    assertEquals(Mcv2Viewers.PackState.REFUSED, refusedState);
+
+    final List<Player> expectedRefusedOnce = List.of(this.player);
+    assertEquals(expectedRefusedOnce, this.refused, REFUSED_ONCE_MESSAGE);
+
+    viewers.onPlayerQuit(new PlayerQuitEvent(this.player, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED));
+    final Optional<Mcv2Viewers.PackState> stateAfterQuit = viewers.getState(uuid);
+    assertTrue(stateAfterQuit.isEmpty());
     assertThrows(NullPointerException.class, () -> viewers.requested(null));
     assertThrows(NullPointerException.class, () -> viewers.getState(null));
     assertThrows(NullPointerException.class, () -> new Mcv2Viewers(null, this.refused::add));
@@ -116,35 +135,52 @@ final class Mcv2ViewersTest {
   }
 
   @Test
-  void aClientThatLoadsThePackAnewStartsASession() {
+  void shouldStartASessionWhenAClientLoadsThePackAnew() {
     final Mcv2Viewers viewers = this.viewers();
-    assertEquals(0L, viewers.getSession(PLAYER), "no session before the pack loaded");
-    viewers.handleStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
+    final long sessionBeforeLoad = viewers.getSession(PLAYER);
+    assertEquals(0L, sessionBeforeLoad, "no session before the pack loaded");
+
+    viewers.onResourcePackStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
     final long first = viewers.getSession(PLAYER);
-    assertTrue(first > 0);
-    viewers.handleStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
-    assertEquals(first, viewers.getSession(PLAYER), "the same load reported twice is one session");
+    final boolean firstSessionStarted = first > 0;
+    assertTrue(firstSessionStarted);
+
+    viewers.onResourcePackStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
+    final long sessionAfterSecondReport = viewers.getSession(PLAYER);
+    assertEquals(first, sessionAfterSecondReport, "the same load reported twice is one session");
+
     // the player leaves and joins again: their new client loads the pack anew
-    viewers.handleQuit(new PlayerQuitEvent(this.player, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED));
-    assertEquals(0L, viewers.getSession(PLAYER));
-    viewers.handleStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
+    viewers.onPlayerQuit(new PlayerQuitEvent(this.player, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED));
+    final long sessionAfterQuit = viewers.getSession(PLAYER);
+    assertEquals(0L, sessionAfterQuit);
+
+    viewers.onResourcePackStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
     final long rejoined = viewers.getSession(PLAYER);
-    assertTrue(rejoined > first, "a new session");
+    final boolean newSessionAfterRejoin = rejoined > first;
+    assertTrue(newSessionAfterRejoin, "a new session");
+
     // downloading the pack again before loading it is a new session too
-    viewers.handleStatus(this.status(PACK, Status.DOWNLOADED));
-    viewers.handleStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
+    viewers.onResourcePackStatus(this.status(PACK, Status.DOWNLOADED));
+    viewers.onResourcePackStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
     final long reloaded = viewers.getSession(PLAYER);
-    assertTrue(reloaded > rejoined);
-    viewers.handleStatus(this.status(PACK, Status.FAILED_RELOAD));
-    assertEquals(0L, viewers.getSession(PLAYER), "a client that failed to load the pack has no session");
-    viewers.handleStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
-    assertTrue(viewers.getSession(PLAYER) > reloaded);
+    final boolean newSessionAfterReload = reloaded > rejoined;
+    assertTrue(newSessionAfterReload);
+
+    viewers.onResourcePackStatus(this.status(PACK, Status.FAILED_RELOAD));
+    final long sessionAfterFailure = viewers.getSession(PLAYER);
+    assertEquals(0L, sessionAfterFailure, "a client that failed to load the pack has no session");
+
+    viewers.onResourcePackStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
+    final boolean newSessionAfterFailure = viewers.getSession(PLAYER) > reloaded;
+    assertTrue(newSessionAfterFailure);
+
     viewers.retarget(OTHER);
-    assertEquals(0L, viewers.getSession(PLAYER), "another pack ends every session");
+    final long sessionAfterRetarget = viewers.getSession(PLAYER);
+    assertEquals(0L, sessionAfterRetarget, "another pack ends every session");
   }
 
   @Test
-  void unregistersTheListenerItReplacesOrStops() {
+  void shouldUnregisterTheListenerItReplacesOrStops() {
     try (final MockedStatic<HandlerList> lists = Mockito.mockStatic(HandlerList.class)) {
       final Mcv2Viewers viewers = this.viewers();
       // nothing registered: nothing to unregister
@@ -162,7 +198,7 @@ final class Mcv2ViewersTest {
   }
 
   @Test
-  void listensUntilUnregistered() throws EventException {
+  void shouldListenUntilUnregistered() throws EventException {
     final Mcv2Viewers viewers = this.viewers();
     viewers.unregister();
     viewers.register();
@@ -189,37 +225,57 @@ final class Mcv2ViewersTest {
     final Listener listener = listeners.getValue();
     final EventExecutor quit = quits.getAllValues().get(quitListeners.getAllValues().lastIndexOf(listener));
     executors.getValue().execute(listener, this.status(PACK, Status.SUCCESSFULLY_LOADED));
-    assertTrue(viewers.isLoaded(PLAYER));
+    final boolean loaded = viewers.isLoaded(PLAYER);
+    assertTrue(loaded);
+
     final Event left = new PlayerQuitEvent(this.player, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED);
     quit.execute(listener, left);
-    assertNull(viewers.getState(PLAYER));
+    final Optional<Mcv2Viewers.PackState> stateAfterQuit = viewers.getState(PLAYER);
+    assertTrue(stateAfterQuit.isEmpty());
+
     viewers.unregister();
   }
 
   @Test
-  void aPlayerWhoDeclinedIsNotAskedAgainWhenThePackChanges() {
+  void shouldNotAskAPlayerWhoDeclinedAgainWhenThePackChanges() {
     final Mcv2Viewers viewers = this.viewers();
     final Player other = mock(Player.class);
     final UUID otherId = UUID.fromString("00000000-0000-0000-0000-000000000022");
     when(other.getUniqueId()).thenReturn(otherId);
-    viewers.handleStatus(this.status(PACK, Status.DECLINED));
-    viewers.handleStatus(this.status(PACK, Status.DECLINED));
-    assertEquals(Mcv2Viewers.PackState.DECLINED, viewers.getState(PLAYER));
-    assertEquals(List.of(this.player), this.refused, "the refusal is reported once");
-    viewers.handleStatus(new PlayerResourcePackStatusEvent(other, PACK, Status.SUCCESSFULLY_LOADED));
-    assertTrue(viewers.isLoaded(otherId));
+    viewers.onResourcePackStatus(this.status(PACK, Status.DECLINED));
+    viewers.onResourcePackStatus(this.status(PACK, Status.DECLINED));
+    final Mcv2Viewers.PackState declinedState = viewers.getState(PLAYER).orElseThrow();
+    assertEquals(Mcv2Viewers.PackState.DECLINED, declinedState);
+
+    final List<Player> expectedRefused = List.of(this.player);
+    assertEquals(expectedRefused, this.refused, REFUSED_ONCE_MESSAGE);
+
+    viewers.onResourcePackStatus(new PlayerResourcePackStatusEvent(other, PACK, Status.SUCCESSFULLY_LOADED));
+    final boolean otherLoaded = viewers.isLoaded(otherId);
+    assertTrue(otherLoaded);
 
     viewers.retarget(OTHER);
 
-    assertEquals(OTHER, viewers.getPackId());
-    assertEquals(Mcv2Viewers.PackState.DECLINED, viewers.getState(PLAYER));
-    assertNull(viewers.getState(otherId), "nobody has the new pack until their client says so");
+    final UUID packId = viewers.getPackId();
+    assertEquals(OTHER, packId);
+
+    final Mcv2Viewers.PackState stateAfterRetarget = viewers.getState(PLAYER).orElseThrow();
+    assertEquals(Mcv2Viewers.PackState.DECLINED, stateAfterRetarget);
+
+    final Optional<Mcv2Viewers.PackState> otherState = viewers.getState(otherId);
+    assertTrue(otherState.isEmpty(), "nobody has the new pack until their client says so");
+
     // the old pack's answers no longer count
-    viewers.handleStatus(new PlayerResourcePackStatusEvent(other, PACK, Status.SUCCESSFULLY_LOADED));
-    assertFalse(viewers.isLoaded(otherId));
-    viewers.handleStatus(this.status(OTHER, Status.FAILED_DOWNLOAD));
-    assertEquals(Mcv2Viewers.PackState.REFUSED, viewers.getState(PLAYER));
-    assertEquals(List.of(this.player), this.refused, "a player who declined is not told again");
+    viewers.onResourcePackStatus(new PlayerResourcePackStatusEvent(other, PACK, Status.SUCCESSFULLY_LOADED));
+    final boolean otherLoadedAfterRetarget = viewers.isLoaded(otherId);
+    assertFalse(otherLoadedAfterRetarget);
+
+    viewers.onResourcePackStatus(this.status(OTHER, Status.FAILED_DOWNLOAD));
+    final Mcv2Viewers.PackState refusedState = viewers.getState(PLAYER).orElseThrow();
+    assertEquals(Mcv2Viewers.PackState.REFUSED, refusedState);
+
+    final List<Player> expectedRefusedOnce = List.of(this.player);
+    assertEquals(expectedRefusedOnce, this.refused, "a player who declined is not told again");
     assertThrows(NullPointerException.class, () -> viewers.retarget(null));
   }
 }

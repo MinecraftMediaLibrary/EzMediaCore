@@ -35,12 +35,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Pool;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Pool;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Channel;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Configuration;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.Frame;
-import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2FileEncoder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2PackServer;
 import me.brandonli.mcav.plugin.MCAVSandbox;
@@ -159,7 +158,7 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
    */
   private record StoppableFrames(Mcv2FileEncoder.FrameReader frames, AtomicBoolean stopped) implements Mcv2FileEncoder.FrameReader {
     @Override
-    public boolean read(final byte[] rgb) throws IOException {
+    public boolean read(final byte[] rgb) {
       // before, so a read that waits is interrupted
       this.interruptIfStopped();
       final boolean more = this.frames.read(rgb);
@@ -168,7 +167,7 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
       this.frames.close();
     }
 
@@ -303,7 +302,7 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
       final List<byte[]> frames = read(this.streamFile(file));
       final Frame first = Mcv2Decoder.parse(frames.getFirst());
       return () -> this.open(load, sender, playerSelector, blocks, mapId, frames, first, start);
-    } catch (final IOException | Mcv2Exception | RuntimeException exception) {
+    } catch (final IOException | RuntimeException exception) {
       final Component message = Message.MCV2_FILE_ERROR.build(String.valueOf(exception.getMessage()));
       return () -> this.report(load, sender, message);
     }
@@ -390,7 +389,7 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
     }
     final int width = size.getFirst();
     final int height = size.getSecond();
-    if (width > Mcv2Decoder.MAX_DIMENSION || height > Mcv2Decoder.MAX_DIMENSION) {
+    if (width > Mcv2Decoder.MAXIMUM_DIMENSION || height > Mcv2Decoder.MAXIMUM_DIMENSION) {
       sender.sendMessage(Message.UNSUPPORTED_DIMENSION.build());
       return;
     }
@@ -470,11 +469,12 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
       Files.move(partial, target, StandardCopyOption.REPLACE_EXISTING);
     } catch (final IOException | RuntimeException exception) {
       deleteQuietly(partial);
+      if (exception.getCause() instanceof InterruptedException) {
+        sender.sendMessage(Message.MCV2_ENCODE_CANCELLED.build());
+        return;
+      }
+
       sender.sendMessage(Message.MCV2_ENCODE_ERROR.build(String.valueOf(exception.getMessage())));
-      return;
-    } catch (final InterruptedException exception) {
-      deleteQuietly(partial);
-      sender.sendMessage(Message.MCV2_ENCODE_CANCELLED.build());
       return;
     }
     sender.sendMessage(
@@ -482,8 +482,8 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
         String.format(
           Locale.ROOT,
           "%d frames (%d keyframes) into %s in %.0f s, %.0f ms per frame",
-          result.frames(),
-          result.keyframes(),
+          result.getFrames(),
+          result.getKeyframes(),
           target,
           (System.nanoTime() - started) / NANOSECONDS_PER_SECOND,
           result.millisecondsPerFrame()
@@ -682,7 +682,7 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
       }
       // a record no frame can be is refused before it is copied: records of a few bytes each would make the copies
       // take several times the file's size in memory
-      if (length < Mcv2Decoder.HEADER_BYTES || length > Mcv2Decoder.MAX_FRAME_BYTES) {
+      if (length < Mcv2Decoder.HEADER_BYTES || length > Mcv2Decoder.MAXIMUM_FRAME_BYTES) {
         throw new IOException("Invalid MCV2 frame length: " + length);
       }
       final byte[] frame = new byte[(int) length];

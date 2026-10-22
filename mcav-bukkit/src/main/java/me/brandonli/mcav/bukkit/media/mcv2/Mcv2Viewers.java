@@ -19,6 +19,7 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 
 import com.google.common.base.Preconditions;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -50,20 +51,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * never verifies successful frame decoding. Register/unregister listeners and retarget the pack on the main thread.
  * Reads may occur from media threads. Registration alone does not offer a pack; the caller sends the request and
  * records it with {@link #requested(UUID)}. Unregistering retains recorded state.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Viewers {
 
-  /** What a player's client reported for the pack. */
-  public enum PackState {
-    /** The pack was requested and the client has not finished loading it. */
-    REQUESTED,
-    /** The client loaded the pack. */
-    LOADED,
-    /** The client could not download or apply the pack. */
-    REFUSED,
-    /** The player declined the pack, and is not asked again while online, whichever pack follows. */
-    DECLINED,
-  }
+  private static final String PACK_ID_NULL_MESSAGE = "Pack id must not be null!";
+  private static final String PLAYER_NULL_MESSAGE = "Player must not be null!";
 
   private volatile UUID packId;
 
@@ -85,10 +79,12 @@ public final class Mcv2Viewers {
    * @param onRefused called with a player whose client just refused the pack or failed to load it, for example to
    *                  tell them why they see the dithered maps
    * @throws NullPointerException if {@code packId} or {@code onRefused} is null
+   * @since 1.0.0
    */
   public Mcv2Viewers(final UUID packId, final Consumer<Player> onRefused) {
-    Preconditions.checkNotNull(packId, "Pack id must not be null");
-    Preconditions.checkNotNull(onRefused, "Refused callback must not be null");
+    Preconditions.checkNotNull(packId, PACK_ID_NULL_MESSAGE);
+    Preconditions.checkNotNull(onRefused, "Refused callback must not be null!");
+
     this.packId = packId;
     this.onRefused = onRefused;
     this.states = new ConcurrentHashMap<>();
@@ -101,14 +97,16 @@ public final class Mcv2Viewers {
    * Starts listening to the players' pack status, to the reports of their MCV2 client mod, and to players leaving, who
    * lose their state. Register before players join: a client learns of the plugin channel as it joins, and its mod
    * reports only once it knows the channel.
+   *
    * @throws IllegalStateException if no plugin has been injected
+   * @since 1.0.0
    */
   public synchronized void register() {
     this.unregister();
     final Listener events = new Listener() {};
     final PluginManager manager = Bukkit.getPluginManager();
-    final EventExecutor status = (_, event) -> this.handleStatus((PlayerResourcePackStatusEvent) event);
-    final EventExecutor quit = (_, event) -> this.handleQuit((PlayerQuitEvent) event);
+    final EventExecutor status = (_, event) -> this.onResourcePackStatus((PlayerResourcePackStatusEvent) event);
+    final EventExecutor quit = (_, event) -> this.onPlayerQuit((PlayerQuitEvent) event);
     manager.registerEvent(PlayerResourcePackStatusEvent.class, events, EventPriority.MONITOR, status, BukkitModule.getPlugin());
     manager.registerEvent(PlayerQuitEvent.class, events, EventPriority.MONITOR, quit, BukkitModule.getPlugin());
     Bukkit.getMessenger().registerIncomingPluginChannel(BukkitModule.getPlugin(), Mcv2ShaderReports.CHANNEL, this.shaderReports);
@@ -117,6 +115,8 @@ public final class Mcv2Viewers {
 
   /**
    * Stops listening.
+   *
+   * @since 1.0.0
    */
   public synchronized void unregister() {
     final Listener events = this.listener;
@@ -134,21 +134,14 @@ public final class Mcv2Viewers {
    *
    * @param newPackId the id of the new pack's request
    * @throws NullPointerException if {@code newPackId} is null
+   * @since 1.0.0
    */
   public void retarget(final UUID newPackId) {
-    Preconditions.checkNotNull(newPackId, "Pack id must not be null");
+    Preconditions.checkNotNull(newPackId, PACK_ID_NULL_MESSAGE);
+
     this.packId = newPackId;
     this.states.values().removeIf(state -> state != PackState.DECLINED);
     this.sessions.clear();
-  }
-
-  /**
-   * Gets the id of the pack followed.
-   *
-   * @return the id of the pack's request
-   */
-  public UUID getPackId() {
-    return this.packId;
   }
 
   /**
@@ -156,34 +149,42 @@ public final class Mcv2Viewers {
    *
    * @param player the player's UUID
    * @throws NullPointerException if {@code player} is null
+   * @since 1.0.0
    */
   public void requested(final UUID player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
     this.states.put(player, PackState.REQUESTED);
   }
 
   /**
-   * Gets what a player's client reported.
+   * Returns what a player's client reported.
    *
    * @param player the player's UUID
-   * @return the recorded state, or null when no state is currently tracked, including after quit or retarget
+   * @return the recorded state, or empty when no state is currently tracked, including after quit or retarget
    * @throws NullPointerException if {@code player} is null
+   * @since 1.0.0
    */
-  public @Nullable PackState getState(final UUID player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
-    return this.states.get(player);
+  public Optional<PackState> getState(final UUID player) {
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
+    final @Nullable PackState state = this.states.get(player);
+    return Optional.ofNullable(state);
   }
 
   /**
-   * Checks whether a player's client loaded the pack and can decode with it: one whose MCV2 client mod reports a shader
-   * pack in use, under which MCV2 does not decode, cannot, whatever its pack status.
+   * Returns whether a player's client loaded the pack and can decode with it: one whose MCV2 client mod reports a
+   * shader pack in use, under which MCV2 does not decode, cannot, whatever its pack status.
    *
    * @param player the player's UUID
    * @return true if the tracked client status is LOADED and no report of the client mod rules decoding out; this is not
    *         a playback acknowledgment
+   * @since 1.0.0
    */
   public boolean isLoaded(final UUID player) {
-    return this.getState(player) == PackState.LOADED && !this.shaderReports.blocksDecoding(player);
+    final Optional<PackState> state = this.getState(player);
+    final boolean loaded = state.filter(PackState.LOADED::equals).isPresent();
+    return loaded && !this.shaderReports.blocksDecoding(player);
   }
 
   boolean hasShaderReport(final UUID player) {
@@ -191,23 +192,26 @@ public final class Mcv2Viewers {
   }
 
   /**
-   * Gets the session of a player's client with the pack: a number that changes whenever the client loads the pack
+   * Returns the session of a player's client with the pack: a number that changes whenever the client loads the pack
    * anew, after its player joined again or after another pack. A screen shown to the client of an earlier session is
    * not shown to the client of this one.
    *
    * @param player the player's UUID
    * @return the session, or 0 while the client has not loaded the pack
    * @throws NullPointerException if {@code player} is null
+   * @since 1.0.0
    */
   public long getSession(final UUID player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
     return this.sessions.getOrDefault(player, 0L);
   }
 
-  void handleStatus(final PlayerResourcePackStatusEvent event) {
+  void onResourcePackStatus(final PlayerResourcePackStatusEvent event) {
     if (!this.packId.equals(event.getID())) {
       return;
     }
+
     final Player player = event.getPlayer();
     final UUID viewerId = player.getUniqueId();
     switch (event.getStatus()) {
@@ -233,10 +237,54 @@ public final class Mcv2Viewers {
     }
   }
 
-  void handleQuit(final PlayerQuitEvent event) {
+  void onPlayerQuit(final PlayerQuitEvent event) {
     final UUID player = event.getPlayer().getUniqueId();
     this.states.remove(player);
     this.sessions.remove(player);
     this.shaderReports.forget(player);
+  }
+
+  /**
+   * Returns the id of the pack followed.
+   *
+   * @return the id of the pack's request
+   * @since 1.0.0
+   */
+  public UUID getPackId() {
+    return this.packId;
+  }
+
+  /**
+   * What a player's client reported for the pack.
+   *
+   * <p>This enum is immutable and thread-safe.
+   *
+   * @since 1.0.0
+   */
+  public enum PackState {
+    /**
+     * The pack was requested and the client has not finished loading it.
+     *
+     * @since 1.0.0
+     */
+    REQUESTED,
+    /**
+     * The client loaded the pack.
+     *
+     * @since 1.0.0
+     */
+    LOADED,
+    /**
+     * The client could not download or apply the pack.
+     *
+     * @since 1.0.0
+     */
+    REFUSED,
+    /**
+     * The player declined the pack, and is not asked again while online, whichever pack follows.
+     *
+     * @since 1.0.0
+     */
+    DECLINED,
   }
 }

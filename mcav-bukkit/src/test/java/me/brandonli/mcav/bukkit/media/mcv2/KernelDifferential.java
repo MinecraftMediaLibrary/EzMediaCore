@@ -22,54 +22,19 @@ import java.util.Random;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Kernels;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * One kernel, run by two sets of kernels on the same inputs: the differential test of the native kernels against the
- * Java ones, which the property test drives from seeds and the fuzz test from fuzzed bytes. Every kernel gets inputs
- * in the ranges the encoder gives it - channels 0 to 255, predictions 0 to 255, any record bytes, blocks of
- * every size, the compact grid, limits that stop a candidate part way, pictures whose edges a block or a motion
- * vector crosses - and now and then values far outside a picture's, whose sums overflow an int in the clusterings and
- * that are no bytes in the motion search; every output, integer or floating-point, must be identical to the bit.
- */
 final class KernelDifferential {
 
-  /** The kernels one comparison chooses from. */
   static final int KERNELS = 13;
 
-  /** The widest values a {@link Values} can draw: the range's size must fit an int. */
+  // the widest a Values draws: the size of its range must fit an int
   private static final int EXTREME_LOW = -(1 << 30) + 1;
 
   private static final int EXTREME_HIGH = (1 << 30) - 1;
 
-  /** Where the inputs come from. */
-  interface Values {
-    /**
-     * Gives an int in a range.
-     *
-     * @param low  the least value
-     * @param high the greatest value
-     * @return the value
-     */
-    int next(int low, int high);
-
-    /**
-     * Gives bytes.
-     *
-     * @param count how many
-     * @return the bytes
-     */
-    byte[] bytes(int count);
-  }
-
   private KernelDifferential() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Draws values from a random generator.
-   *
-   * @param random the generator
-   * @return the values
-   */
   static Values of(final Random random) {
     return new Values() {
       @Override
@@ -91,10 +56,10 @@ final class KernelDifferential {
     for (int index = 0; index < count; index++) {
       values[index] = random.next(low, high);
     }
+
     return values;
   }
 
-  /** Floats as the encoder's fits see them, now and then an extreme one. */
   private static float[] floats(final Values random, final int count) {
     final float[] values = new float[count];
     for (int index = 0; index < count; index++) {
@@ -105,10 +70,10 @@ final class KernelDifferential {
         default -> random.next(-1_000_000, 1_000_000) / 3.0f / 1000;
       };
     }
+
     return values;
   }
 
-  /** Nothing when the outputs are equal, else what differed. */
   private static @Nullable String unless(final boolean equal, final String what) {
     return equal ? null : what;
   }
@@ -119,6 +84,7 @@ final class KernelDifferential {
         return false;
       }
     }
+
     return true;
   }
 
@@ -126,34 +92,16 @@ final class KernelDifferential {
     return 8 << random.next(0, 2);
   }
 
-  /**
-   * Runs one kernel, chosen by the values, on inputs from them with both kernels.
-   *
-   * @param random the values
-   * @param java   the kernels the others are compared with
-   * @param other  the kernels compared
-   * @return the name of what differed, or null when nothing did
-   */
   static @Nullable String compare(final Values random, final Kernels java, final Kernels other) {
     return compare(random, java, other, random.next(0, KERNELS - 1));
   }
 
-  /**
-   * Runs one kernel on inputs from the values with both kernels.
-   *
-   * @param random the values
-   * @param java   the kernels the others are compared with
-   * @param other  the kernels compared
-   * @param kernel the kernel, 0 to {@link #KERNELS} - 1
-   * @return the name of what differed, or null when nothing did
-   */
   static @Nullable String compare(final Values random, final Kernels java, final Kernels other, final int kernel) {
     final int size = size(random);
     final int channels = size * size * 3;
     return kernel < 4 ? scored(random, java, other, kernel, size, channels) : unscored(random, java, other, kernel, size, channels);
   }
 
-  /** A scored reconstruction: whether it finished, its distortion and every value it wrote must agree. */
   private static @Nullable String scored(
     final Values random,
     final Kernels java,
@@ -200,12 +148,15 @@ final class KernelDifferential {
         finishedOther = other.compact(prediction, record, quantizer, size, actual);
       }
     }
+
     if (finishedJava != finishedOther) {
       return name + " finished";
     }
+
     if (finishedJava && java.distortion() != other.distortion()) {
       return name + " distortion";
     }
+
     return unless(Arrays.equals(expected, actual), name + " reconstruction");
   }
 
@@ -291,10 +242,12 @@ final class KernelDifferential {
         System.arraycopy(source, 0, source, row * size * 3, size * 3);
       }
     }
+
     final int[] endpoints = new int[6];
     for (int index = 0; index < endpoints.length; index++) {
       endpoints[index] = random.next(0, 255);
     }
+
     final int[] expectedColors = new int[6];
     final int[] actualColors = new int[6];
     final byte[] expected = new byte[size * size];
@@ -304,6 +257,7 @@ final class KernelDifferential {
       other.finishPalette(source, size * size, endpoints, actualColors, actual);
       return unless(Arrays.equals(expectedColors, actualColors) && Arrays.equals(expected, actual), "finishPalette");
     }
+
     final boolean held = java.finishPattern(source, size, endpoints, expectedColors, expected);
     final boolean holds = other.finishPattern(source, size, endpoints, actualColors, actual);
     return unless(held == holds && Arrays.equals(expectedColors, actualColors) && Arrays.equals(expected, actual), "finishPattern");
@@ -320,14 +274,17 @@ final class KernelDifferential {
       // the block itself, so the search has a place to go
       java.loadSource(reference, width, height, blockLeft, blockTop, size, source);
     }
+
     if (random.next(0, 7) == 0) {
       // a channel that is no byte, which the search must cost as an int
       source[random.next(0, channels - 1)] = random.next(EXTREME_LOW, EXTREME_HIGH);
     }
+
     final int[] seeds = new int[random.next(0, 6)];
     for (int seedIndex = 0; seedIndex < seeds.length; seedIndex++) {
       seeds[seedIndex] = (random.next(-40, 40) << 16) | (random.next(-40, 40) & 0xFFFF);
     }
+
     final int range = random.next(0, 24);
     final int expected = java.seeded(reference, width, height, source, blockLeft, blockTop, size, range, seeds);
     final int actual = other.seeded(reference, width, height, source, blockLeft, blockTop, size, range, seeds);
@@ -374,5 +331,11 @@ final class KernelDifferential {
         yield unless(same(expected, actual), "residualTarget");
       }
     };
+  }
+
+  interface Values {
+    int next(int low, int high);
+
+    byte[] bytes(int count);
   }
 }

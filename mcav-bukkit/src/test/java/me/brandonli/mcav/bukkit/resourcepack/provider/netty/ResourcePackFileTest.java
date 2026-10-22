@@ -35,24 +35,25 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 
-/**
- * Tests {@link ResourcePackFile}.
- */
 final class ResourcePackFileTest {
 
   private static final byte[] ORIGINAL = { 1, 2, 3 };
   private static final byte[] SAME_SIZE = { 4, 5, 6 };
   private static final byte[] LONGER = { 7, 8, 9, 10 };
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+  private static final String MISSING_FILE_NAME = "missing.zip";
+  private static final String PRECISE_FILE_NAME = "precise.zip";
+
   @TempDir
   private Path directory;
 
   @Test
-  void readsTheFileOnlyOnceWhileItIsUnchanged() throws IOException {
-    final Path pack = this.directory.resolve("pack.zip");
+  void shouldReadTheFileOnlyOnceWhileItIsUnchanged() throws IOException {
+    final Path pack = this.directory.resolve(PACK_FILE_NAME);
     Files.write(pack, ORIGINAL);
     final ResourcePackFile file = new ResourcePackFile(pack);
 
@@ -64,8 +65,8 @@ final class ResourcePackFileTest {
   }
 
   @Test
-  void readsTheFileAgainWhenItsSizeChanged() throws IOException {
-    final Path pack = this.directory.resolve("pack.zip");
+  void shouldReadTheFileAgainWhenItsSizeChanged() throws IOException {
+    final Path pack = this.directory.resolve(PACK_FILE_NAME);
     Files.write(pack, ORIGINAL);
     final FileTime modified = Files.getLastModifiedTime(pack);
     final ResourcePackFile file = new ResourcePackFile(pack);
@@ -80,8 +81,8 @@ final class ResourcePackFileTest {
   }
 
   @Test
-  void readsTheFileAgainWhenItWasModified() throws IOException {
-    final Path pack = this.directory.resolve("pack.zip");
+  void shouldReadTheFileAgainWhenItWasModified() throws IOException {
+    final Path pack = this.directory.resolve(PACK_FILE_NAME);
     final Instant firstModification = Instant.parse("2024-01-01T00:00:00Z");
     final Instant secondModification = Instant.parse("2024-01-02T00:00:00Z");
     final FileTime firstTime = FileTime.from(firstModification);
@@ -100,21 +101,21 @@ final class ResourcePackFileTest {
   }
 
   @Test
-  void reportsMissingFiles() {
-    final Path missing = this.directory.resolve("missing.zip");
+  void shouldReportMissingFiles() {
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     final ResourcePackFile file = new ResourcePackFile(missing);
 
     assertThrows(NoSuchFileException.class, file::read);
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void detectsSubmillisecondChangesAndReplacements(final boolean replacement) throws IOException {
-    final Path path = this.directory.resolve("precise.zip");
+  @EnumSource(FileChange.class)
+  void shouldDetectSubmillisecondChangesAndReplacements(final FileChange change) throws IOException {
+    final Path path = this.directory.resolve(PRECISE_FILE_NAME);
     final BasicFileAttributes first = mock(BasicFileAttributes.class);
     final BasicFileAttributes second = mock(BasicFileAttributes.class);
     final Instant initial = Instant.parse("2024-01-01T00:00:00.000000001Z");
-    final Instant updated = replacement ? initial : initial.plusNanos(1);
+    final Instant updated = change == FileChange.REPLACED ? initial : initial.plusNanos(1);
     final FileTime firstTime = FileTime.from(initial);
     final FileTime secondTime = FileTime.from(updated);
     when(first.lastModifiedTime()).thenReturn(firstTime);
@@ -122,7 +123,7 @@ final class ResourcePackFileTest {
     when(first.size()).thenReturn(3L);
     when(second.size()).thenReturn(3L);
     when(first.fileKey()).thenReturn("inode-one");
-    when(second.fileKey()).thenReturn(replacement ? "inode-two" : "inode-one");
+    when(second.fileKey()).thenReturn(change == FileChange.REPLACED ? "inode-two" : "inode-one");
     try (final MockedStatic<Files> files = mockStatic(Files.class)) {
       files.when(() -> Files.readAttributes(path, BasicFileAttributes.class)).thenReturn(first, second);
       files.when(() -> Files.readAllBytes(path)).thenReturn(ORIGINAL, SAME_SIZE);
@@ -132,5 +133,10 @@ final class ResourcePackFileTest {
       assertArrayEquals(ORIGINAL, original);
       assertArrayEquals(SAME_SIZE, changed);
     }
+  }
+
+  private enum FileChange {
+    MODIFIED,
+    REPLACED,
   }
 }

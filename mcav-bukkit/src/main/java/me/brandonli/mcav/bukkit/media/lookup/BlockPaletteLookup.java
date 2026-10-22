@@ -41,12 +41,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>The block palette is loaded from the {@code mcav/bukkit/blocks.json} resource, which maps the names of full blocks to
  * their average texture color. Most of them are solid, but a few are translucent, such as stained glass. Images are
- * first dithered to the colors of that palette with {@link #getDitheringImpl()}, and every resulting color is then
+ * first dithered to the colors of that palette with {@link #getDither()}, and every resulting color is then
  * converted back into its block with {@link #getMaterial(int)} or {@link #getBlockData(int)}.
  *
  * <p>The palette is loaded lazily the first time it is needed, which takes a moment because the color lookup
- * tables have to be built. Call {@link #init()} during startup to do that work ahead of time. All methods are
+ * tables have to be built. Call {@link #initialize()} during startup to do that work ahead of time. All methods are
  * thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class BlockPaletteLookup {
 
@@ -54,24 +56,33 @@ public final class BlockPaletteLookup {
   private static final int RGB_MASK = 0xFFFFFF;
   private static final int RGB_COMPONENTS = 3;
 
+  private static final int GREEN_INDEX = 1;
+  private static final int BLUE_INDEX = 2;
+
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
   private BlockPaletteLookup() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
    * Loads the block palette and builds all lookup tables. Calling this method is optional, but it avoids a delay
    * the first time a block display is used.
+   *
+   * @since 1.0.0
    */
-  public static void init() {
+  public static void initialize() {
     Holder.initialize();
   }
 
   /**
-   * Gets the block whose average color is the given palette color.
+   * Returns the block whose average color is the given palette color.
    *
-   * @param color the RGB color, which should be one of the colors produced by {@link #getDitheringImpl()}; the
+   * @param color the RGB color, which should be one of the colors produced by {@link #getDither()}; the
    *              alpha channel is ignored
    * @return the block with the given average color, or {@link Material#AIR} if no block has that color
+   * @since 1.0.0
    */
   public static Material getMaterial(final int color) {
     final int rgb = color & RGB_MASK;
@@ -79,16 +90,18 @@ public final class BlockPaletteLookup {
     if (material == null) {
       return Material.AIR;
     }
+
     return material;
   }
 
   /**
-   * Gets the default block data of the block whose average color is the given palette color. The block data is
+   * Returns the default block data of the block whose average color is the given palette color. The block data is
    * cached and shared, so it must not be modified.
    *
-   * @param color the RGB color, which should be one of the colors produced by {@link #getDitheringImpl()}; the
+   * @param color the RGB color, which should be one of the colors produced by {@link #getDither()}; the
    *              alpha channel is ignored
    * @return the block data with the given average color, or air if no block has that color
+   * @since 1.0.0
    */
   public static BlockData getBlockData(final int color) {
     final int rgb = color & RGB_MASK;
@@ -96,25 +109,69 @@ public final class BlockPaletteLookup {
     if (data == null) {
       return Holder.AIR;
     }
+
     return data;
   }
 
   /**
-   * Gets the dithering algorithm that reduces images to the colors of the block palette.
+   * Returns the dithering algorithm that reduces images to the colors of the block palette.
    *
    * <p>The instance and its lookup tables are shared. Treat its exposed palette arrays as read-only and
    * use independently owned input buffers for concurrent calls.
    *
    * @return the dithering algorithm for the block palette
+   * @since 1.0.0
    */
-  public static FilterLiteDither getDitheringImpl() {
+  public static FilterLiteDither getDither() {
     return Holder.DITHERING;
   }
 
-  /**
-   * Holds the lookup tables. The tables are built when this class is first accessed, which the JVM guarantees to
-   * happen exactly once and in a thread-safe way.
-   */
+  @VisibleForTesting
+  static Map<String, int @Nullable []> parsePalette(final Reader reader) {
+    final Gson gson = GsonProvider.getSimple();
+    final TypeToken<LinkedHashMap<String, int[]>> typeToken = new TypeToken<>() {};
+    final Type type = typeToken.getType();
+    try (reader) {
+      final Map<String, int @Nullable []> palette = gson.fromJson(reader, type);
+      if (palette == null || palette.isEmpty()) {
+        final String message = "Block palette resource is empty!";
+        final IOException emptyPalette = new IOException(message);
+        throw new UncheckedIOException(message, emptyPalette);
+      }
+
+      return palette;
+    } catch (final IOException exception) {
+      final String message = exception.getMessage();
+      throw new UncheckedIOException(message, exception);
+    }
+  }
+
+  // skips bad entries, so a broken palette cannot break class initialization
+  @VisibleForTesting
+  static Map<Integer, Material> resolveMaterials(final Map<String, int @Nullable []> palette) {
+    final Map<Integer, Material> materials = new HashMap<>();
+    for (final Map.Entry<String, int @Nullable []> entry : palette.entrySet()) {
+      final String name = entry.getKey();
+      final int @Nullable [] rgb = entry.getValue();
+      if (rgb == null || rgb.length < RGB_COMPONENTS) {
+        continue;
+      }
+
+      final Material material = Material.matchMaterial(name);
+      if (material == null || !material.isBlock()) {
+        continue;
+      }
+
+      final int red = rgb[0];
+      final int green = rgb[GREEN_INDEX];
+      final int blue = rgb[BLUE_INDEX];
+      final int color = (red << RED_SHIFT) | (green << GREEN_SHIFT) | blue;
+      materials.put(color, material);
+    }
+
+    return Map.copyOf(materials);
+  }
+
   private static final class Holder {
 
     private static final Map<Integer, Material> MATERIALS;
@@ -145,6 +202,7 @@ public final class BlockPaletteLookup {
         final BlockData data = material.createBlockData();
         blockData.put(color, data);
       }
+
       return Map.copyOf(blockData);
     }
 
@@ -161,64 +219,5 @@ public final class BlockPaletteLookup {
       final DitherPalette ditherPalette = DitherPalette.colors(colors);
       return new FilterLiteDither(ditherPalette);
     }
-  }
-
-  /**
-   * Reads a block palette, which maps block names to their average color as an array of red, green, and blue.
-   * The reader is closed afterward.
-   *
-   * @param reader the reader of the palette JSON
-   * @return the palette in the order of the JSON object, whose colors are null where the JSON has {@code null}
-   * @throws UncheckedIOException if the palette is empty or cannot be read
-   */
-  @VisibleForTesting
-  static Map<String, int @Nullable []> parsePalette(final Reader reader) {
-    final Gson gson = GsonProvider.getSimple();
-    final TypeToken<LinkedHashMap<String, int[]>> typeToken = new TypeToken<>() {};
-    final Type type = typeToken.getType();
-    try (reader) {
-      final Map<String, int @Nullable []> palette = gson.fromJson(reader, type);
-      if (palette == null || palette.isEmpty()) {
-        final String message = "Block palette resource is empty";
-        final IOException emptyPalette = new IOException(message);
-        throw new UncheckedIOException(message, emptyPalette);
-      }
-      return palette;
-    } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new UncheckedIOException(message, exception);
-    }
-  }
-
-  /**
-   * Resolves the blocks of a palette. Names that are unknown or do not name a block are skipped, and so are
-   * malformed entries whose color is missing or has fewer than three components, so a broken palette can never
-   * break the initialization of the lookup tables.
-   *
-   * @param palette the palette, mapping block names to their average color as an array of red, green, and blue
-   * @return an immutable map from the RGB color to its block
-   */
-  @VisibleForTesting
-  static Map<Integer, Material> resolveMaterials(final Map<String, int @Nullable []> palette) {
-    final Map<Integer, Material> materials = new HashMap<>();
-    for (final Map.Entry<String, int @Nullable []> entry : palette.entrySet()) {
-      final String name = entry.getKey();
-      final int @Nullable [] rgb = entry.getValue();
-      if (rgb == null || rgb.length < RGB_COMPONENTS) {
-        continue;
-      }
-
-      final Material material = Material.matchMaterial(name);
-      if (material == null || !material.isBlock()) {
-        continue;
-      }
-
-      final int red = rgb[0];
-      final int green = rgb[1];
-      final int blue = rgb[2];
-      final int color = (red << 16) | (green << 8) | blue;
-      materials.put(color, material);
-    }
-    return Map.copyOf(materials);
   }
 }

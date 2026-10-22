@@ -41,10 +41,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link MainThreadRenderer}.
- */
 final class MainThreadRendererTest {
+
+  private static final String FRAME = "frame";
+  private static final String DROPPED_FRAME = "dropped";
+  private static final String PLUGIN_NAME = "MCAV";
+
+  private static final String DISCARDED_MESSAGE = "the pending frame was discarded";
 
   private FakeServer server;
 
@@ -60,22 +63,23 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void keepsApplyingFramesForARendererThatDoesNotOverrideOnTick() {
+  void shouldKeepApplyingFramesForARendererThatDoesNotOverrideOnTick() {
     final PlainRenderer renderer = new PlainRenderer();
     renderer.startRendering();
-    renderer.submit("frame");
+    renderer.submit(FRAME);
 
     this.server.runTasks();
     this.server.runTasks();
 
     final List<String> applied = renderer.getAppliedFrames();
-    final List<String> expected = List.of("frame");
+    final List<String> expected = List.of(FRAME);
     assertEquals(expected, applied, "a renderer without an onTick of its own still applies its frames");
+
     renderer.stopRendering();
   }
 
   @Test
-  void startsOneTaskThatRunsEveryTick() {
+  void shouldStartOneTaskThatRunsEveryTick() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
     renderer.startRendering();
@@ -87,7 +91,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void appliesOnlyTheLatestFrameAndOnlyOnce() {
+  void shouldApplyOnlyTheLatestFrameAndOnlyOnce() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
     renderer.submit("first");
@@ -100,7 +104,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void acceptsFramesFromOtherThreads() throws InterruptedException {
+  void shouldAcceptFramesFromOtherThreads() throws InterruptedException {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
     final Thread decoder = new Thread(() -> renderer.submit("decoded"));
@@ -113,16 +117,16 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void rejectsMissingFrames() {
+  void shouldRejectMissingFrames() {
     final RecordingRenderer renderer = new RecordingRenderer();
     assertThrows(NullPointerException.class, () -> renderer.submit(null));
   }
 
   @Test
-  void stoppingCancelsTheTaskAndDiscardsThePendingFrame() {
+  void shouldCancelTheTaskAndDiscardThePendingFrameWhenStopping() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
-    renderer.submit("dropped");
+    renderer.submit(DROPPED_FRAME);
     renderer.stopRendering();
     final int taskCount = this.server.getScheduledTaskCount();
     renderer.startRendering();
@@ -131,24 +135,24 @@ final class MainThreadRendererTest {
     final BukkitScheduler scheduler = this.server.getScheduler();
     final boolean nothingApplied = applied.isEmpty();
     assertEquals(0, taskCount);
-    assertTrue(nothingApplied, "the pending frame was discarded");
+    assertTrue(nothingApplied, DISCARDED_MESSAGE);
     verify(scheduler, times(2)).runTaskTimer(any(Plugin.class), any(Runnable.class), eq(0L), eq(1L));
   }
 
   @Test
-  void stoppingARendererThatNeverStartedOnlyDiscardsThePendingFrame() {
+  void shouldOnlyDiscardThePendingFrameWhenStoppingARendererThatNeverStarted() {
     final RecordingRenderer renderer = new RecordingRenderer();
-    renderer.submit("dropped");
+    renderer.submit(DROPPED_FRAME);
     renderer.stopRendering();
     renderer.startRendering();
     this.server.runTasks();
     final List<String> applied = renderer.getAppliedFrames();
     final boolean nothingApplied = applied.isEmpty();
-    assertTrue(nothingApplied, "the pending frame was discarded");
+    assertTrue(nothingApplied, DISCARDED_MESSAGE);
   }
 
   @Test
-  void runsTasksImmediatelyOnTheMainThread() {
+  void shouldRunTasksImmediatelyOnTheMainThread() {
     final AtomicInteger runs = new AtomicInteger();
     MainThreadRenderer.runOnMainThread(runs::incrementAndGet);
     final int count = runs.get();
@@ -158,7 +162,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void schedulesTasksForTheNextTickOffTheMainThread() {
+  void shouldScheduleTasksForTheNextTickOffTheMainThread() {
     this.server.setPrimaryThread(false);
     final AtomicInteger runs = new AtomicInteger();
     final Runnable task = runs::incrementAndGet;
@@ -175,25 +179,25 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void callsTheTickHookEveryTickWithOrWithoutAFrame() {
+  void shouldCallTheTickHookEveryTickWithOrWithoutAFrame() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
-    renderer.submit("frame");
+    renderer.submit(FRAME);
     this.server.runTasks();
     this.server.runTasks();
     final List<String> applied = renderer.getAppliedFrames();
     final int ticks = renderer.getTicks();
-    final List<String> expected = List.of("frame");
+    final List<String> expected = List.of(FRAME);
     assertEquals(expected, applied);
     assertEquals(2, ticks);
   }
 
   @Test
-  void skipsTasksFromOtherThreadsWithAWarningOnceThePluginIsDisabled() {
+  void shouldSkipTasksFromOtherThreadsWithAWarningOnceThePluginIsDisabled() {
     this.server.setPrimaryThread(false);
     final Plugin plugin = this.server.getPlugin();
     when(plugin.isEnabled()).thenReturn(false);
-    when(plugin.getName()).thenReturn("MCAV");
+    when(plugin.getName()).thenReturn(PLUGIN_NAME);
     final AtomicInteger runs = new AtomicInteger();
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(MainThreadRenderer.class)) {
@@ -201,6 +205,7 @@ final class MainThreadRendererTest {
       this.server.runTasks();
       events = logs.getEvents();
     }
+
     final int count = runs.get();
     final BukkitScheduler scheduler = this.server.getScheduler();
     final LogCapture.RecordedEvent event = events.getFirst();
@@ -211,11 +216,11 @@ final class MainThreadRendererTest {
     verify(scheduler, never()).runTask(any(Plugin.class), any(Runnable.class));
     assertEquals(1, eventCount);
     assertEquals(Level.WARN, level);
-    assertEquals("Skipped a task because the plugin MCAV is disabled; release displays on the main thread during shutdown", message);
+    assertEquals("Skipped a task because the plugin MCAV is disabled; release displays on the main thread during shutdown.", message);
   }
 
   @Test
-  void appliesOnlyTheLatestQueuedVisibilityRequest() {
+  void shouldApplyOnlyTheLatestQueuedVisibilityRequest() {
     final RecordingRenderer renderer = new RecordingRenderer();
     final AtomicInteger created = new AtomicInteger();
     final AtomicInteger removed = new AtomicInteger();
@@ -234,7 +239,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void doesNotRestartRenderingWhenInitializationSynchronouslyHidesIt() {
+  void shouldNotRestartRenderingWhenInitializationSynchronouslyHidesIt() {
     final RecordingRenderer renderer = new RecordingRenderer();
     final AtomicInteger removed = new AtomicInteger();
     renderer.showDisplay(() -> renderer.hideDisplay(removed::incrementAndGet));
@@ -246,29 +251,34 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void skipsSchedulingWithAWarningIfDisableRacesTheEnabledCheck() {
+  void shouldSkipSchedulingWithAWarningWhenDisablingRacesTheEnabledCheck() {
     this.server.setPrimaryThread(false);
     final Plugin plugin = this.server.getPlugin();
     when(plugin.isEnabled()).thenReturn(true);
-    when(plugin.getName()).thenReturn("MCAV");
+    when(plugin.getName()).thenReturn(PLUGIN_NAME);
     final BukkitScheduler scheduler = this.server.getScheduler();
-    when(scheduler.runTask(any(Plugin.class), any(Runnable.class))).thenThrow(new IllegalPluginAccessException("disabled after check"));
+    when(scheduler.runTask(any(Plugin.class), any(Runnable.class))).thenThrow(new IllegalPluginAccessException("Disabled after check!"));
     final AtomicInteger runs = new AtomicInteger();
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(MainThreadRenderer.class)) {
       assertDoesNotThrow(() -> MainThreadRenderer.runOnMainThread(runs::incrementAndGet));
+
       events = logs.getEvents();
     }
+
     final int count = runs.get();
     assertEquals(0, count);
-    assertEquals(1, events.size());
+
+    final int eventCount = events.size();
+    assertEquals(1, eventCount);
+
     final LogCapture.RecordedEvent event = events.getFirst();
     final Level level = event.getLevel();
     assertEquals(Level.WARN, level);
   }
 
   @Test
-  void stillRunsTasksOnTheMainThreadOnceThePluginIsDisabled() {
+  void shouldStillRunTasksOnTheMainThreadOnceThePluginIsDisabled() {
     final Plugin plugin = this.server.getPlugin();
     when(plugin.isEnabled()).thenReturn(false);
     final AtomicInteger runs = new AtomicInteger();
@@ -277,9 +287,6 @@ final class MainThreadRendererTest {
     assertEquals(1, count);
   }
 
-  /**
-   * A renderer that overrides nothing but {@link MainThreadRenderer#apply}, so the default {@code onTick} runs.
-   */
   private static final class PlainRenderer extends MainThreadRenderer<String> {
 
     private final List<String> appliedFrames = new CopyOnWriteArrayList<>();
@@ -294,9 +301,6 @@ final class MainThreadRendererTest {
     }
   }
 
-  /**
-   * Records every frame it applies and counts the ticks.
-   */
   private static final class RecordingRenderer extends MainThreadRenderer<String> {
 
     private final List<String> appliedFrames = new CopyOnWriteArrayList<>();

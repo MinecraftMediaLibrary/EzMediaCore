@@ -42,25 +42,28 @@ import org.slf4j.LoggerFactory;
  * is disabled, Bukkit no longer runs such work, so it is skipped with a warning. During shutdown, release displays
  * on the main thread, for example in {@code onDisable}, so the original state is restored right away.
  *
- * @param <T> the type of frame that is applied on the main thread
+ * @param <FrameType> the type of frame that is applied on the main thread
+ * @since 1.0.0
  */
-public abstract class MainThreadRenderer<T> {
+public abstract class MainThreadRenderer<FrameType> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MainThreadRenderer.class);
   private static final String TASK_SKIPPED_WHILE_DISABLED =
-    "Skipped a task because the plugin {} is disabled; release displays on the main thread during shutdown";
+    "Skipped a task because the plugin {} is disabled; release displays on the main thread during shutdown.";
   private static final String TASK_SKIPPED_BEFORE_SCHEDULING =
-    "Skipped a task because the plugin {} became disabled before scheduling; release displays on the main thread during shutdown";
+    "Skipped a task because the plugin {} became disabled before scheduling; release displays on the main thread during shutdown.";
   private static final long START_DELAY_TICKS = 0L;
   private static final long PERIOD_TICKS = 1L;
 
-  private final AtomicReference<@Nullable T> pendingFrame;
+  private final AtomicReference<@Nullable FrameType> pendingFrame;
 
   private @Nullable BukkitTask task;
   private long visibilityGeneration;
 
   /**
    * Constructs a new renderer. Nothing is scheduled until {@link #startRendering()} is called.
+   *
+   * @since 1.0.0
    */
   protected MainThreadRenderer() {
     this.pendingFrame = new AtomicReference<>();
@@ -70,26 +73,32 @@ public abstract class MainThreadRenderer<T> {
    * Applies a frame. This method is always called on the main thread, at most once per server tick.
    *
    * @param frame the frame to apply
+   * @since 1.0.0
    */
-  protected abstract void apply(final T frame);
+  protected abstract void apply(final FrameType frame);
 
   /**
-   * Called on the main thread once per server tick while the renderer is running, right after the pending frame,
-   * if there was one, was applied. Subclasses can override this method for work that does not depend on new
-   * frames, such as updating viewers who just started watching. Does nothing by default.
+   * Runs on the main thread once per server tick while the renderer is running, right after the pending frame, if there
+   * was one, was applied. Subclasses can override this method for work that does not depend on new frames, such as
+   * updating viewers who just started watching. Does nothing by default.
+   *
+   * @since 1.0.0
    */
   protected void onTick() {}
 
   /**
    * Starts applying submitted frames once per server tick. Calling this method again while the renderer is
    * running has no effect. May be called from any thread.
-   * @throws IllegalStateException if no plugin has been injected
+   *
+   * @throws IllegalStateException        if no plugin has been injected
    * @throws IllegalPluginAccessException if the injected plugin cannot schedule tasks
+   * @since 1.0.0
    */
   protected synchronized void startRendering() {
     if (this.task != null) {
       return;
     }
+
     final Plugin plugin = BukkitModule.getPlugin();
     final BukkitScheduler scheduler = Bukkit.getScheduler();
     this.task = scheduler.runTaskTimer(plugin, this::applyPendingFrame, START_DELAY_TICKS, PERIOD_TICKS);
@@ -101,25 +110,29 @@ public abstract class MainThreadRenderer<T> {
    *
    * @param initialize the main-thread display initialization, which may leave an existing display in place
    * @throws NullPointerException if {@code initialize} is null
+   * @since 1.0.0
    */
   protected final void showDisplay(final Runnable initialize) {
-    Preconditions.checkNotNull(initialize, "Initialization must not be null");
+    Preconditions.checkNotNull(initialize, "Initialization must not be null!");
+
     final long generation;
     synchronized (this) {
       generation = ++this.visibilityGeneration;
     }
-    runOnMainThread(() -> {
-      synchronized (this) {
-        if (generation != this.visibilityGeneration) {
-          return;
-        }
-        initialize.run();
-        // An initialization callback may synchronously request hide on this same main thread.
-        if (generation == this.visibilityGeneration) {
-          this.startRendering();
-        }
-      }
-    });
+
+    runOnMainThread(() -> this.showIfCurrent(generation, initialize));
+  }
+
+  private synchronized void showIfCurrent(final long generation, final Runnable initialize) {
+    if (generation != this.visibilityGeneration) {
+      return;
+    }
+
+    initialize.run();
+    // An initialization callback may synchronously request hide on this same main thread.
+    if (generation == this.visibilityGeneration) {
+      this.startRendering();
+    }
   }
 
   /**
@@ -128,21 +141,24 @@ public abstract class MainThreadRenderer<T> {
    *
    * @param remove the main-thread display removal, which may do nothing for a hidden display
    * @throws NullPointerException if {@code remove} is null
+   * @since 1.0.0
    */
   protected final void hideDisplay(final Runnable remove) {
-    Preconditions.checkNotNull(remove, "Removal must not be null");
+    Preconditions.checkNotNull(remove, "Removal must not be null!");
+
     final long generation;
     synchronized (this) {
       generation = ++this.visibilityGeneration;
       this.stopRendering();
     }
-    runOnMainThread(() -> {
-      synchronized (this) {
-        if (generation == this.visibilityGeneration) {
-          remove.run();
-        }
-      }
-    });
+
+    runOnMainThread(() -> this.hideIfCurrent(generation, remove));
+  }
+
+  private synchronized void hideIfCurrent(final long generation, final Runnable remove) {
+    if (generation == this.visibilityGeneration) {
+      remove.run();
+    }
   }
 
   /**
@@ -154,22 +170,27 @@ public abstract class MainThreadRenderer<T> {
    *
    * @param frame the frame to apply
    * @throws NullPointerException if {@code frame} is null
+   * @since 1.0.0
    */
-  protected void submit(final T frame) {
-    Preconditions.checkNotNull(frame, "Frame must not be null");
+  protected void submit(final FrameType frame) {
+    Preconditions.checkNotNull(frame, "Frame must not be null!");
+
     this.pendingFrame.set(frame);
   }
 
   private void applyPendingFrame() {
-    final T frame = this.pendingFrame.getAndSet(null);
+    final FrameType frame = this.pendingFrame.getAndSet(null);
     if (frame != null) {
       this.apply(frame);
     }
+
     this.onTick();
   }
 
   /**
    * Stops applying frames and discards the pending frame, if any. May be called from any thread.
+   *
+   * @since 1.0.0
    */
   protected synchronized void stopRendering() {
     final BukkitTask currentTask = this.task;
@@ -177,6 +198,7 @@ public abstract class MainThreadRenderer<T> {
       currentTask.cancel();
       this.task = null;
     }
+
     this.pendingFrame.set(null);
   }
 
@@ -192,15 +214,18 @@ public abstract class MainThreadRenderer<T> {
    *
    * @param task the task to run
    * @throws IllegalStateException if called off the main thread before a plugin has been injected
-   * @throws NullPointerException if {@code task} is null
+   * @throws NullPointerException  if {@code task} is null
+   * @since 1.0.0
    */
   public static void runOnMainThread(final Runnable task) {
-    Preconditions.checkNotNull(task, "Task must not be null");
+    Preconditions.checkNotNull(task, "Task must not be null!");
+
     final boolean onMainThread = Bukkit.isPrimaryThread();
     if (onMainThread) {
       task.run();
       return;
     }
+
     final Plugin plugin = BukkitModule.getPlugin();
     final boolean enabled = plugin.isEnabled();
     if (!enabled) {
@@ -208,6 +233,7 @@ public abstract class MainThreadRenderer<T> {
       LOGGER.warn(TASK_SKIPPED_WHILE_DISABLED, pluginName);
       return;
     }
+
     final BukkitScheduler scheduler = Bukkit.getScheduler();
     try {
       scheduler.runTask(plugin, task);

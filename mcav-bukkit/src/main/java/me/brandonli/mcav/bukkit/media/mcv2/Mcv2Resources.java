@@ -21,11 +21,19 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 
-/** Computes hexadecimal digests for MCV2 resources. */
+/**
+ * Computes hexadecimal digests for MCV2 resources.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
+ */
 public final class Mcv2Resources {
 
+  private static final String SHA_256_ALGORITHM = "SHA-256";
+
   private Mcv2Resources() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -34,19 +42,12 @@ public final class Mcv2Resources {
    * @param bytes the bytes
    * @return the lowercase hexadecimal SHA-256
    * @throws NullPointerException if bytes is null
+   * @since 1.0.0
    */
   public static String sha256(final byte[] bytes) {
-    return digest(bytes, "SHA-256");
+    return digest(bytes, SHA_256_ALGORITHM);
   }
 
-  /**
-   * Hashes bytes with a named algorithm.
-   *
-   * @param bytes     the bytes
-   * @param algorithm the algorithm
-   * @return the lowercase hexadecimal digest
-   * @throws IllegalStateException if the algorithm does not exist
-   */
   static String digest(final byte[] bytes, final String algorithm) {
     try {
       return HexFormat.of().formatHex(MessageDigest.getInstance(algorithm).digest(bytes));

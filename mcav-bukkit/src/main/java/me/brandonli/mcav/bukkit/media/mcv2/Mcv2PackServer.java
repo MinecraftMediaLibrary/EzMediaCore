@@ -81,7 +81,7 @@ import org.slf4j.LoggerFactory;
  * else the spare slot of its size a playing screen left, so while screens of sizes the pack already has start and
  * stop, the pack stays the same and no client reloads its resources, a hitch of a second or more. Only a screen of a
  * new size changes the pack: it gets a free slot of another size, else a new slot, else, in a full pack of
- * {@link Mcv2Pack#MAX_SCREENS}, the spare slot a playing screen left. A screen that changes size keeps the slot of the
+ * {@link Mcv2Pack#MAXIMUM_SCREENS}, the spare slot a playing screen left. A screen that changes size keeps the slot of the
  * size it left as its spare while it plays, so stepping back changes nothing, unless a new screen took the spare: one
  * of that size at once, one of another size in a full pack. The slots of a screen that stopped stay in the pack, free,
  * for a minute, then leave it, and once no slot is left the players are asked to remove the pack. A changed pack is
@@ -98,16 +98,32 @@ import org.slf4j.LoggerFactory;
  * instances, generated packs, listeners and leases, but does not release the caller's results or screen entities.
  * Stop and release those results before closing their leases or shutting down this server. Offered/refused
  * callbacks run with player events or offers on the main thread and should return promptly.
+ *
+ * {@snippet :
+ * final String packFolderName = "mcv2-pack";
+ * final Path packFolder = dataFolder.resolve(packFolderName);
+ * final Mcv2Pack.DebugView debugView = Mcv2Pack.DebugView.HIDDEN;
+ * final Mcv2PackServer packs = new Mcv2PackServer(packFolder, PackHosting::injector, debugView, onOffered, onRefused);
+ * packs.start();
+ * // for every screen that starts
+ * final Mcv2PackServer.Lease lease = packs.open(requested);
+ * // in onDisable, after every result is released and its lease closed
+ * packs.shutdown();
+ * }
+ *
+ * @since 1.0.0
  */
 public final class Mcv2PackServer {
 
+  private static final String CONFIGURATION_NULL_MESSAGE = "Configuration must not be null!";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(Mcv2PackServer.class);
 
-  private static final String PACK_SERVED = "Serving the MCV2 pack {} with {} at {}";
+  private static final String PACK_SERVED = "Serving the MCV2 pack {} with {} at {} to the online players.";
 
-  private static final String PACK_FAILED = "Cannot serve the MCV2 pack with {}";
+  private static final String PACK_FAILED = "Cannot serve the MCV2 pack with {}.";
 
-  private static final String PACK_LOADED = "{} loaded the MCV2 pack {} {} ms after it was offered";
+  private static final String PACK_LOADED = "{} loaded the MCV2 pack {} {} ms after it was offered.";
 
   private static final String MODDED_CLIENT_LOADED =
     "MCV2 pack loaded by {} (client brand {}) without the MCAV MCV2 Client mod, so active shaders cannot be verified. " +
@@ -118,15 +134,25 @@ public final class Mcv2PackServer {
     "mod, which shows you the dithered maps while Iris shaders are on, or turn off Iris shaders. Without the mod, MCAV " +
     "cannot detect active shader settings.";
 
-  private static final String NO_SLOT = "No MCV2 slot is free for a {}x{} video: the screen is dithered at that size";
+  private static final String NO_SLOT = "No MCV2 slot is free for a {}x{} video: the screen is dithered at that size.";
 
-  private static final String FOLDER_FAILED = "Cannot clear the old MCV2 packs from {}";
+  private static final String FOLDER_FAILED = "Cannot clear the old MCV2 packs from {}.";
 
-  private static final String PACK_WITHDRAWN = "No MCV2 screen plays any more: the players remove the MCV2 pack {}";
+  private static final String PACK_WITHDRAWN = "No MCV2 screen plays any more: the players remove the MCV2 pack {}.";
 
   private static final String FILE_PREFIX = "mcav-mcv2-";
 
   private static final String FILE_SUFFIX = ".zip";
+
+  private static final String GLOB_WILDCARD = "*";
+
+  private static final String SHA_1_ALGORITHM = "SHA-1";
+
+  private static final String PACK_ID_PREFIX = "mcav-mcv2:";
+
+  private static final String VANILLA_BRAND = "vanilla";
+
+  private static final String LIST_SEPARATOR = ", ";
 
   private static final int HASH_BUFFER = 8192;
 
@@ -138,7 +164,7 @@ public final class Mcv2PackServer {
 
   private static final UUID NO_PACK = new UUID(0, 0);
 
-  private static final int PAGE_MAPS = Mcv2Pack.MAX_SCREENS * Mcv2Configuration.MAX_PAGE_SLOTS;
+  private static final int PAGE_MAPS = Mcv2Pack.MAXIMUM_SCREENS * Mcv2Configuration.MAXIMUM_PAGE_SLOTS;
 
   // A reused slot must start ahead of the ids sent by its previous screen.
   private static final long FRAME_ID_INTERVAL_MILLISECONDS = 10;
@@ -147,7 +173,7 @@ public final class Mcv2PackServer {
 
   private final Function<Path, PackHosting> hosting;
 
-  private final boolean showsDebugView;
+  private final Mcv2Pack.DebugView debugView;
 
   private final Consumer<Player> onOffered;
 
@@ -180,6 +206,588 @@ public final class Mcv2PackServer {
   private volatile boolean stopped;
 
   private @Nullable Listener listener;
+
+  /**
+   * Constructs a server that writes the pack into a folder of its own and hosts it with the given strategy. Nothing is
+   * written or served before {@link #start()} and the first {@link #open(Mcv2Configuration)}.
+   *
+   * @param folder    where the pack is written; files of earlier runs left there are deleted
+   * @param hosting   hosts a written pack, for example {@code PackHosting::injector}; called off the main thread, once for
+   *                  every change of the pack
+   * @param debugView whether the pack also draws every slot's decoded picture one to one below the strip, for testing
+   * @param onOffered called with a player who is about to be asked to load the pack, for example to say why
+   * @param onRefused called with a player whose client declined the pack or failed to load it, who keeps the dithered
+   *                  maps
+   * @throws NullPointerException if any argument is null
+   * @since 1.0.0
+   */
+  public Mcv2PackServer(
+    final Path folder,
+    final Function<Path, PackHosting> hosting,
+    final Mcv2Pack.DebugView debugView,
+    final Consumer<Player> onOffered,
+    final Consumer<Player> onRefused
+  ) {
+    this(
+      folder,
+      hosting,
+      debugView,
+      onOffered,
+      onRefused,
+      Executors.newSingleThreadExecutor(Thread.ofPlatform().daemon().name("mcav-mcv2-pack").factory()),
+      System::currentTimeMillis
+    );
+  }
+
+  Mcv2PackServer(
+    final Path folder,
+    final Function<Path, PackHosting> hosting,
+    final Mcv2Pack.DebugView debugView,
+    final Consumer<Player> onOffered,
+    final Consumer<Player> onRefused,
+    final ExecutorService writer,
+    final LongSupplier millisecondClock
+  ) {
+    Preconditions.checkNotNull(folder, "Folder must not be null!");
+    Preconditions.checkNotNull(hosting, "Hosting must not be null!");
+    Preconditions.checkNotNull(debugView, "Debug view must not be null!");
+    Preconditions.checkNotNull(onOffered, "Offered callback must not be null!");
+    Preconditions.checkNotNull(onRefused, "Refused callback must not be null!");
+
+    this.folder = folder;
+    this.hosting = hosting;
+    this.debugView = debugView;
+    this.onOffered = onOffered;
+    this.writer = writer;
+    this.millisecondClock = millisecondClock;
+
+    this.viewers = new Mcv2Viewers(NO_PACK, onRefused);
+    this.nobody = new Mcv2Viewers(NO_PACK, onRefused);
+    this.slots = new ArrayList<>();
+    this.leases = new LinkedHashSet<>();
+    this.offered = new HashMap<>();
+    this.running = new CopyOnWriteArrayList<>();
+    this.generation = new AtomicInteger();
+  }
+
+  /**
+   * Starts listening to the players' pack status, and to players who join or change world, and deletes the packs an
+   * earlier run left in the folder.
+   *
+   * @since 1.0.0
+   */
+  public synchronized void start() {
+    this.viewers.register();
+    final Listener events = new Listener() {};
+    final PluginManager manager = Bukkit.getPluginManager();
+    final EventExecutor join = (_, event) -> this.offerLater(((PlayerJoinEvent) event).getPlayer());
+    final EventExecutor world = (_, event) -> this.offerLater(((PlayerChangedWorldEvent) event).getPlayer());
+    final EventExecutor status = (_, event) -> this.onResourcePackStatus((PlayerResourcePackStatusEvent) event);
+    final EventExecutor quit = (_, event) -> this.forget(((PlayerQuitEvent) event).getPlayer().getUniqueId());
+    manager.registerEvent(PlayerJoinEvent.class, events, EventPriority.MONITOR, join, BukkitModule.getPlugin());
+    manager.registerEvent(PlayerChangedWorldEvent.class, events, EventPriority.MONITOR, world, BukkitModule.getPlugin());
+    manager.registerEvent(PlayerResourcePackStatusEvent.class, events, EventPriority.MONITOR, status, BukkitModule.getPlugin());
+    manager.registerEvent(PlayerQuitEvent.class, events, EventPriority.MONITOR, quit, BukkitModule.getPlugin());
+    this.listener = events;
+    this.writer.execute(this::clearFolder);
+  }
+
+  /**
+   * Gives a screen a slot of the pack: a free slot of its video size and page slots when there is one, which leaves
+   * the pack as it is, otherwise a new slot or a free slot of another size, which changes the pack. The screen's
+   * viewers are offered the pack if they do not have it yet; after a change, once the new pack is hosted.
+   *
+   * @param requested the screen
+   * @return the screen's lease, which holds its slots until it is closed
+   * @throws IllegalStateException    if every slot plays another screen, or the server was shut down
+   * @throws IllegalArgumentException if the outline color differs from active screens, or the page-map range
+   *                                  cannot accommodate every pack slot without overflowing or overlapping the wall
+   * @throws NullPointerException     if {@code requested} is null
+   * @since 1.0.0
+   */
+  public synchronized Lease open(final Mcv2Configuration requested) {
+    Preconditions.checkNotNull(requested, CONFIGURATION_NULL_MESSAGE);
+    Preconditions.checkState(!this.stopped, "The MCV2 pack server was shut down!");
+    Preconditions.checkArgument(
+      requested.getPageMap() <= Integer.MAX_VALUE - PAGE_MAPS,
+      "The first page map must be at most %s, so that the page maps of every slot of the pack are ints!",
+      Integer.MAX_VALUE - PAGE_MAPS
+    );
+    final boolean sameColour = this.slots.isEmpty() || this.slots.getFirst().template.getOutlineColor().equals(requested.getOutlineColor());
+    Preconditions.checkArgument(sameColour || this.leases.isEmpty(), "The screens of a pack share one outline colour!");
+
+    if (!sameColour) {
+      this.slots.clear();
+    }
+
+    final Slot slot = this.acquire(requested);
+    if (slot == null) {
+      final String message = "Every one of the %s MCV2 slots plays a screen!".formatted(Mcv2Pack.MAXIMUM_SCREENS);
+      throw new IllegalStateException(message);
+    }
+
+    final Lease lease = new Lease(
+      requested,
+      (this.millisecondClock.getAsLong() / FRAME_ID_INTERVAL_MILLISECONDS) & Mcv2Decoder.MAXIMUM_UNSIGNED_INT,
+      slot
+    );
+    slot.holder = lease;
+    this.leases.add(lease);
+    Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.offerViewers(lease));
+    return lease;
+  }
+
+  private synchronized void offerViewers(final Lease lease) {
+    final Published pack = this.current;
+    if (lease.closed || pack == null || pack.generation() != this.generation.get()) {
+      return;
+    }
+
+    for (final UUID viewer : lease.requested.getViewers()) {
+      final Player player = Bukkit.getPlayer(viewer);
+      if (player != null) {
+        this.offer(player, pack);
+      }
+    }
+  }
+
+  private static int pageMapOf(final Mcv2Configuration configuration, final Slot slot) {
+    return configuration.getPageMap() + (int) (slot.streamId - 1) * Mcv2Configuration.MAXIMUM_PAGE_SLOTS;
+  }
+
+  private @Nullable Slot acquire(final Mcv2Configuration configuration) {
+    final Geometry geometry = Geometry.of(configuration);
+    Slot spareOfThatSize = null;
+    Slot oldestFree = null;
+    Slot oldestSpare = null;
+    for (final Slot slot : this.slots) {
+      if (slot.holder != null) {
+        continue;
+      }
+      final boolean free = slot.spareOf == null;
+      final boolean sameSize = slot.geometry.equals(geometry);
+      if (sameSize && free) {
+        return slot;
+      }
+      if (sameSize) {
+        spareOfThatSize = slot;
+      } else if (free) {
+        oldestFree = oldestFree == null || slot.released < oldestFree.released ? slot : oldestFree;
+      } else {
+        oldestSpare = oldestSpare == null || slot.released < oldestSpare.released ? slot : oldestSpare;
+      }
+    }
+
+    if (spareOfThatSize != null) {
+      spareOfThatSize.spareOf = null;
+      return spareOfThatSize;
+    }
+
+    // Every allocated slot consumes strip rows on every viewer's screen, so a free slot is reshaped before the pack grows.
+    final Slot changed;
+    if (oldestFree != null) {
+      changed = oldestFree;
+      changed.reshape(configuration);
+    } else if (this.slots.size() < Mcv2Pack.MAXIMUM_SCREENS) {
+      changed = new Slot(this.unusedStreamId(), configuration);
+      this.slots.add(changed);
+    } else if (oldestSpare != null) {
+      changed = oldestSpare;
+      changed.spareOf = null;
+      changed.reshape(configuration);
+    } else {
+      return null;
+    }
+
+    this.publish();
+
+    return changed;
+  }
+
+  private long unusedStreamId() {
+    long streamId = 1;
+    while (this.hasStreamId(streamId)) {
+      streamId++;
+    }
+
+    return streamId;
+  }
+
+  private boolean hasStreamId(final long streamId) {
+    for (final Slot slot : this.slots) {
+      if (slot.streamId == streamId) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private void free(final Slot slot) {
+    slot.holder = null;
+    slot.spareOf = null;
+    slot.released = ++this.releases;
+    slot.releasedAt = this.millisecondClock.getAsLong();
+    this.trimLater(GRACE_MILLISECONDS);
+  }
+
+  private void trimLater(final long delayMilliseconds) {
+    if (this.trimming || this.stopped) {
+      return;
+    }
+
+    final Plugin plugin = BukkitModule.getPlugin();
+    if (!plugin.isEnabled()) {
+      return;
+    }
+
+    this.trimming = true;
+    final long ticks = Math.max(1, (delayMilliseconds + MILLISECONDS_PER_TICK - 1) / MILLISECONDS_PER_TICK);
+    Bukkit.getScheduler().runTaskLater(plugin, this::trim, ticks);
+  }
+
+  private synchronized void trim() {
+    this.trimming = false;
+
+    if (this.stopped) {
+      return;
+    }
+
+    final long now = this.millisecondClock.getAsLong();
+    boolean removed = false;
+    long nextDue = Long.MAX_VALUE;
+    for (final Iterator<Slot> remaining = this.slots.iterator(); remaining.hasNext(); ) {
+      final Slot slot = remaining.next();
+      if (!slot.isFree()) {
+        continue;
+      }
+      final long due = slot.releasedAt + GRACE_MILLISECONDS;
+      if (due <= now) {
+        remaining.remove();
+        removed = true;
+      } else {
+        nextDue = Math.min(nextDue, due);
+      }
+    }
+
+    if (nextDue != Long.MAX_VALUE) {
+      this.trimLater(nextDue - now);
+    }
+
+    if (removed) {
+      this.publish();
+    }
+  }
+
+  private void publish() {
+    this.generation.incrementAndGet();
+
+    if (!this.flushing) {
+      this.flushing = true;
+      Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), this::flush);
+    }
+  }
+
+  private synchronized void flush() {
+    this.flushing = false;
+
+    if (this.stopped) {
+      return;
+    }
+
+    if (this.slots.isEmpty()) {
+      this.withdraw();
+      return;
+    }
+
+    final int wanted = this.generation.get();
+    final List<Mcv2Configuration> screens = this.slots
+      .stream()
+      .map(slot -> slot.template)
+      .toList();
+    this.writer.execute(() -> this.write(wanted, screens));
+  }
+
+  private void write(final int wanted, final List<Mcv2Configuration> screens) {
+    if (this.stopped || wanted != this.generation.get()) {
+      return;
+    }
+
+    final String description = describe(screens);
+    final Path archivePath = this.folder.resolve(FILE_PREFIX + wanted + FILE_SUFFIX);
+    final Published published;
+    try {
+      Mcv2Pack.write(screens, this.debugView, archivePath);
+      // The client checks a downloaded pack against its SHA-1.
+      final String archiveHash = hash(archivePath, SHA_1_ALGORITHM);
+      final UUID packId = UUID.nameUUIDFromBytes((PACK_ID_PREFIX + archiveHash).getBytes(StandardCharsets.UTF_8));
+      final PackHosting host = this.host(archivePath);
+      final ResourcePackInfo pack = ResourcePackInfo.resourcePackInfo(packId, URI.create(host.getRawUrl()), archiveHash);
+      final ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().packs(pack).required(false).replace(false).build();
+      published = new Published(wanted, packId, host, request, description);
+    } catch (final RuntimeException exception) {
+      LOGGER.error(PACK_FAILED, description, exception);
+      this.deleteQuietly(archivePath);
+      return;
+    }
+
+    if (this.stopped) {
+      this.retire(published);
+      return;
+    }
+
+    Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.serve(published));
+  }
+
+  private PackHosting host(final Path archivePath) {
+    final PackHosting host = this.hosting.apply(archivePath);
+    if (host instanceof HttpHosting) {
+      // The previous HTTP host still holds the port.
+      this.stopRunning();
+    }
+
+    host.start();
+    this.running.add(host);
+    return host;
+  }
+
+  private synchronized void serve(final Published published) {
+    if (this.stopped || published.generation() != this.generation.get()) {
+      this.retireLater(published);
+      return;
+    }
+
+    final Published previousPack = this.current;
+    this.current = published;
+    this.viewers.retarget(published.packId());
+    this.offered.clear();
+    LOGGER.info(PACK_SERVED, published.packId(), published.screens(), published.request().packs().getFirst().uri());
+    for (final Player player : Bukkit.getOnlinePlayers()) {
+      if (previousPack != null) {
+        player.removeResourcePacks(previousPack.packId());
+      }
+      if (this.isWatching(player.getUniqueId())) {
+        this.offer(player, published);
+      }
+    }
+
+    if (previousPack != null) {
+      this.retireLater(previousPack);
+    }
+  }
+
+  private void withdraw() {
+    final Published previousPack = this.current;
+    if (previousPack == null) {
+      return;
+    }
+
+    this.current = null;
+    this.viewers.retarget(NO_PACK);
+    this.offered.clear();
+    LOGGER.info(PACK_WITHDRAWN, previousPack.packId());
+    for (final Player player : Bukkit.getOnlinePlayers()) {
+      player.removeResourcePacks(previousPack.packId());
+    }
+
+    this.retireLater(previousPack);
+  }
+
+  private void offer(final Player player, final Published pack) {
+    final UUID viewerId = player.getUniqueId();
+    if (this.viewers.getState(viewerId).isPresent()) {
+      return;
+    }
+
+    this.viewers.requested(viewerId);
+    this.offered.put(viewerId, this.millisecondClock.getAsLong());
+    this.onOffered.accept(player);
+    player.sendResourcePacks(pack.request());
+  }
+
+  private synchronized void forget(final UUID player) {
+    this.offered.remove(player);
+  }
+
+  private void offerLater(final Player player) {
+    Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.offerIfWatching(player));
+  }
+
+  private synchronized void offerIfWatching(final Player player) {
+    final Published pack = this.current;
+    if (pack != null && player.isOnline() && this.isWatching(player.getUniqueId())) {
+      this.offer(player, pack);
+    }
+  }
+
+  private boolean isWatching(final UUID player) {
+    for (final Lease lease : this.leases) {
+      if (lease.requested.getViewers().contains(player)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  synchronized long onResourcePackStatus(final PlayerResourcePackStatusEvent event) {
+    final Published pack = this.current;
+    if (
+      pack == null || !pack.packId().equals(event.getID()) || event.getStatus() != PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED
+    ) {
+      return -1;
+    }
+
+    final Player player = event.getPlayer();
+    final Long since = this.offered.remove(player.getUniqueId());
+    if (since == null) {
+      return -1;
+    }
+
+    final long took = this.millisecondClock.getAsLong() - since;
+    LOGGER.debug(PACK_LOADED, player.getName(), pack.packId(), took);
+    this.adviseModdedViewer(player);
+
+    return took;
+  }
+
+  private void adviseModdedViewer(final Player player) {
+    final String brand = player.getClientBrandName();
+    if (brand == null || VANILLA_BRAND.equals(brand) || this.viewers.hasShaderReport(player.getUniqueId())) {
+      return;
+    }
+
+    LOGGER.warn(MODDED_CLIENT_LOADED, player.getName(), brand);
+    player.sendMessage(Component.text(MODDED_CLIENT_ADVISORY, NamedTextColor.YELLOW));
+  }
+
+  private void retireLater(final Published published) {
+    try {
+      this.writer.execute(() -> this.retire(published));
+    } catch (final RejectedExecutionException exception) {
+      this.retire(published);
+    }
+  }
+
+  private void retire(final Published published) {
+    final PackHosting host = published.hosting();
+
+    if (this.running.remove(host)) {
+      host.shutdown();
+      this.deleteQuietly(host.getZip());
+    }
+  }
+
+  private void stopRunning() {
+    for (final PackHosting host : this.running) {
+      host.shutdown();
+      this.deleteQuietly(host.getZip());
+    }
+
+    this.running.clear();
+  }
+
+  private void clearFolder() {
+    try {
+      Files.createDirectories(this.folder);
+      this.deletePreviousArchives();
+    } catch (final IOException exception) {
+      LOGGER.warn(FOLDER_FAILED, this.folder, exception);
+    }
+  }
+
+  private void deletePreviousArchives() throws IOException {
+    try (final DirectoryStream<Path> previousArchives = Files.newDirectoryStream(this.folder, FILE_PREFIX + GLOB_WILDCARD + FILE_SUFFIX)) {
+      for (final Path file : previousArchives) {
+        Files.deleteIfExists(file);
+      }
+    }
+  }
+
+  /**
+   * Stops listening and hosting, and closes every lease. The players keep the pack they loaded, which a removal would
+   * make them reload.
+   *
+   * <p>Hosting cleanup runs on the writer executor and is awaited for a bounded time. If interrupted, the
+   * interrupt flag is restored; this method does not guarantee all background cleanup has finished before return.
+   *
+   * @since 1.0.0
+   */
+  public synchronized void shutdown() {
+    if (this.stopped) {
+      return;
+    }
+
+    this.stopped = true;
+    this.viewers.unregister();
+    final Listener events = this.listener;
+    if (events != null) {
+      HandlerList.unregisterAll(events);
+      this.listener = null;
+    }
+
+    for (final Lease lease : List.copyOf(this.leases)) {
+      lease.close();
+    }
+
+    this.current = null;
+    this.writer.execute(this::stopRunning);
+    this.writer.shutdown();
+    try {
+      this.writer.awaitTermination(SHUTDOWN_SECONDS, TimeUnit.SECONDS);
+    } catch (final InterruptedException exception) {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  static String describe(final List<Mcv2Configuration> screens) {
+    return screens
+      .stream()
+      .map(screen ->
+        String.format(
+          Locale.getDefault(Locale.Category.FORMAT),
+          "%d: %dx%d",
+          screen.getStreamId(),
+          screen.getVideoWidth(),
+          screen.getVideoHeight()
+        )
+      )
+      .collect(Collectors.joining(LIST_SEPARATOR, "slots ", ""));
+  }
+
+  static String hash(final Path file, final String algorithm) {
+    try (final InputStream input = Files.newInputStream(file)) {
+      final MessageDigest digest = MessageDigest.getInstance(algorithm);
+      final byte[] buffer = new byte[HASH_BUFFER];
+      for (int read = input.read(buffer); read >= 0; read = input.read(buffer)) {
+        digest.update(buffer, 0, read);
+      }
+
+      return HexFormat.of().formatHex(digest.digest());
+    } catch (final IOException exception) {
+      throw new UncheckedIOException("Cannot hash the MCV2 pack!", exception);
+    } catch (final NoSuchAlgorithmException exception) {
+      throw new IllegalStateException(algorithm + " is not available", exception);
+    }
+  }
+
+  private void deleteQuietly(final Path file) {
+    try {
+      Files.deleteIfExists(file);
+    } catch (final IOException exception) {
+      // Startup clears this folder if deletion fails.
+    }
+  }
+
+  /**
+   * Returns who loaded the pack, which every screen of the server shares: a new pack starts with nobody.
+   *
+   * @return the viewers
+   * @since 1.0.0
+   */
+  public Mcv2Viewers getViewers() {
+    return this.viewers;
+  }
 
   private record Geometry(int width, int height, int pageSlots) {
     private static Geometry of(final Mcv2Configuration configuration) {
@@ -222,542 +830,15 @@ public final class Mcv2PackServer {
   }
 
   /**
-   * Constructs a server that writes the pack into a folder of its own and hosts it with the given strategy. Nothing is
-   * written or served before {@link #start()} and the first {@link #open(Mcv2Configuration)}.
-   *
-   * @param folder         where the pack is written; files of earlier runs left there are deleted
-   * @param hosting        hosts a written pack, for example {@code PackHosting::injector}; called off the main thread, once
-   *                       for every change of the pack
-   * @param showsDebugView whether the pack also draws every slot's decoded picture one to one below the strip, for
-   *                       testing
-   * @param onOffered      called with a player who is about to be asked to load the pack, for example to say why
-   * @param onRefused      called with a player whose client declined the pack or failed to load it, who keeps the dithered
-   *                       maps
-   * @throws NullPointerException if any argument other than the primitive flag is null
-   */
-  public Mcv2PackServer(
-    final Path folder,
-    final Function<Path, PackHosting> hosting,
-    final boolean showsDebugView,
-    final Consumer<Player> onOffered,
-    final Consumer<Player> onRefused
-  ) {
-    this(
-      folder,
-      hosting,
-      showsDebugView,
-      onOffered,
-      onRefused,
-      Executors.newSingleThreadExecutor(Thread.ofPlatform().daemon().name("mcav-mcv2-pack").factory()),
-      System::currentTimeMillis
-    );
-  }
-
-  Mcv2PackServer(
-    final Path folder,
-    final Function<Path, PackHosting> hosting,
-    final boolean showsDebugView,
-    final Consumer<Player> onOffered,
-    final Consumer<Player> onRefused,
-    final ExecutorService writer,
-    final LongSupplier millisecondClock
-  ) {
-    Preconditions.checkNotNull(folder, "Folder must not be null");
-    Preconditions.checkNotNull(hosting, "Hosting must not be null");
-    Preconditions.checkNotNull(onOffered, "Offered callback must not be null");
-    Preconditions.checkNotNull(onRefused, "Refused callback must not be null");
-    this.folder = folder;
-    this.hosting = hosting;
-    this.showsDebugView = showsDebugView;
-    this.onOffered = onOffered;
-    this.writer = writer;
-    this.millisecondClock = millisecondClock;
-
-    this.viewers = new Mcv2Viewers(NO_PACK, onRefused);
-    this.nobody = new Mcv2Viewers(NO_PACK, onRefused);
-    this.slots = new ArrayList<>();
-    this.leases = new LinkedHashSet<>();
-    this.offered = new HashMap<>();
-    this.running = new CopyOnWriteArrayList<>();
-    this.generation = new AtomicInteger();
-  }
-
-  /**
-   * Gets who loaded the pack, which every screen of the server shares: a new pack starts with nobody.
-   *
-   * @return the viewers
-   */
-  public Mcv2Viewers getViewers() {
-    return this.viewers;
-  }
-
-  /**
-   * Starts listening to the players' pack status, and to players who join or change world, and deletes the packs an
-   * earlier run left in the folder.
-   */
-  public synchronized void start() {
-    this.viewers.register();
-    final Listener events = new Listener() {};
-    final PluginManager manager = Bukkit.getPluginManager();
-    final EventExecutor join = (_, event) -> this.offerLater(((PlayerJoinEvent) event).getPlayer());
-    final EventExecutor world = (_, event) -> this.offerLater(((PlayerChangedWorldEvent) event).getPlayer());
-    final EventExecutor status = (_, event) -> this.handleStatus((PlayerResourcePackStatusEvent) event);
-    final EventExecutor quit = (_, event) -> this.forget(((PlayerQuitEvent) event).getPlayer().getUniqueId());
-    manager.registerEvent(PlayerJoinEvent.class, events, EventPriority.MONITOR, join, BukkitModule.getPlugin());
-    manager.registerEvent(PlayerChangedWorldEvent.class, events, EventPriority.MONITOR, world, BukkitModule.getPlugin());
-    manager.registerEvent(PlayerResourcePackStatusEvent.class, events, EventPriority.MONITOR, status, BukkitModule.getPlugin());
-    manager.registerEvent(PlayerQuitEvent.class, events, EventPriority.MONITOR, quit, BukkitModule.getPlugin());
-    this.listener = events;
-    this.writer.execute(this::clearFolder);
-  }
-
-  /**
-   * Gives a screen a slot of the pack: a free slot of its video size and page slots when there is one, which leaves
-   * the pack as it is, otherwise a new slot or a free slot of another size, which changes the pack. The screen's
-   * viewers are offered the pack if they do not have it yet; after a change, once the new pack is hosted.
-   *
-   * @param requested the screen
-   * @return the screen's lease, which holds its slots until it is closed
-   * @throws IllegalStateException    if every slot plays another screen, or the server was shut down
-   * @throws IllegalArgumentException if the outline color differs from active screens, or the page-map range
-   *         cannot accommodate every pack slot without overflowing or overlapping the wall
-   * @throws NullPointerException if {@code requested} is null
-   */
-  public synchronized Lease open(final Mcv2Configuration requested) {
-    Preconditions.checkNotNull(requested, "Configuration must not be null");
-    Preconditions.checkState(!this.stopped, "The MCV2 pack server was shut down");
-    Preconditions.checkArgument(
-      requested.getPageMap() <= Integer.MAX_VALUE - PAGE_MAPS,
-      "The page maps of every slot of the pack must be ints: the first page map is at most %s",
-      Integer.MAX_VALUE - PAGE_MAPS
-    );
-    final boolean sameColour = this.slots.isEmpty() || this.slots.getFirst().template.getOutlineColor().equals(requested.getOutlineColor());
-    Preconditions.checkArgument(sameColour || this.leases.isEmpty(), "The screens of a pack share one outline colour");
-    if (!sameColour) {
-      this.slots.clear();
-    }
-    final Slot slot = this.acquire(requested);
-    if (slot == null) {
-      throw new IllegalStateException(
-        String.format(Locale.getDefault(Locale.Category.FORMAT), "Every one of the %d MCV2 slots plays a screen", Mcv2Pack.MAX_SCREENS)
-      );
-    }
-    final Lease lease = new Lease(
-      requested,
-      (this.millisecondClock.getAsLong() / FRAME_ID_INTERVAL_MILLISECONDS) & Mcv2Decoder.MAX_U32,
-      slot
-    );
-    slot.holder = lease;
-    this.leases.add(lease);
-    Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.offerViewers(lease));
-    return lease;
-  }
-
-  private synchronized void offerViewers(final Lease lease) {
-    final Published pack = this.current;
-    if (lease.closed || pack == null || pack.generation() != this.generation.get()) {
-      return;
-    }
-    for (final UUID viewer : lease.requested.getViewers()) {
-      final Player player = Bukkit.getPlayer(viewer);
-      if (player != null) {
-        this.offer(player, pack);
-      }
-    }
-  }
-
-  private static int pageMapOf(final Mcv2Configuration configuration, final Slot slot) {
-    return configuration.getPageMap() + (int) (slot.streamId - 1) * Mcv2Configuration.MAX_PAGE_SLOTS;
-  }
-
-  private @Nullable Slot acquire(final Mcv2Configuration configuration) {
-    final Geometry geometry = Geometry.of(configuration);
-    Slot spareOfThatSize = null;
-    Slot oldestFree = null;
-    Slot oldestSpare = null;
-    for (final Slot slot : this.slots) {
-      if (slot.holder != null) {
-        continue;
-      }
-      final boolean free = slot.spareOf == null;
-      if (slot.geometry.equals(geometry)) {
-        if (free) {
-          return slot;
-        }
-        spareOfThatSize = slot;
-      } else if (free) {
-        oldestFree = oldestFree == null || slot.released < oldestFree.released ? slot : oldestFree;
-      } else {
-        oldestSpare = oldestSpare == null || slot.released < oldestSpare.released ? slot : oldestSpare;
-      }
-    }
-    if (spareOfThatSize != null) {
-      spareOfThatSize.spareOf = null;
-      return spareOfThatSize;
-    }
-    // Every allocated slot consumes strip rows on every viewer's screen, so a free slot is reshaped before the pack grows.
-    final Slot changed;
-    if (oldestFree != null) {
-      changed = oldestFree;
-      changed.reshape(configuration);
-    } else if (this.slots.size() < Mcv2Pack.MAX_SCREENS) {
-      changed = new Slot(this.unusedStreamId(), configuration);
-      this.slots.add(changed);
-    } else if (oldestSpare != null) {
-      changed = oldestSpare;
-      changed.spareOf = null;
-      changed.reshape(configuration);
-    } else {
-      return null;
-    }
-    this.publish();
-    return changed;
-  }
-
-  private long unusedStreamId() {
-    long streamId = 1;
-    while (this.hasStreamId(streamId)) {
-      streamId++;
-    }
-    return streamId;
-  }
-
-  private boolean hasStreamId(final long streamId) {
-    for (final Slot slot : this.slots) {
-      if (slot.streamId == streamId) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private void free(final Slot slot) {
-    slot.holder = null;
-    slot.spareOf = null;
-    slot.released = ++this.releases;
-    slot.releasedAt = this.millisecondClock.getAsLong();
-    this.trimLater(GRACE_MILLISECONDS);
-  }
-
-  private void trimLater(final long delayMilliseconds) {
-    if (this.trimming || this.stopped) {
-      return;
-    }
-    final Plugin plugin = BukkitModule.getPlugin();
-    if (!plugin.isEnabled()) {
-      return;
-    }
-    this.trimming = true;
-    final long ticks = Math.max(1, (delayMilliseconds + MILLISECONDS_PER_TICK - 1) / MILLISECONDS_PER_TICK);
-    Bukkit.getScheduler().runTaskLater(plugin, this::trim, ticks);
-  }
-
-  private synchronized void trim() {
-    this.trimming = false;
-    if (this.stopped) {
-      return;
-    }
-    final long now = this.millisecondClock.getAsLong();
-    boolean removed = false;
-    long nextDue = Long.MAX_VALUE;
-    for (final Iterator<Slot> remaining = this.slots.iterator(); remaining.hasNext(); ) {
-      final Slot slot = remaining.next();
-      if (!slot.isFree()) {
-        continue;
-      }
-      final long due = slot.releasedAt + GRACE_MILLISECONDS;
-      if (due <= now) {
-        remaining.remove();
-        removed = true;
-      } else {
-        nextDue = Math.min(nextDue, due);
-      }
-    }
-    if (nextDue != Long.MAX_VALUE) {
-      this.trimLater(nextDue - now);
-    }
-    if (removed) {
-      this.publish();
-    }
-  }
-
-  private void publish() {
-    this.generation.incrementAndGet();
-    if (!this.flushing) {
-      this.flushing = true;
-      Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), this::flush);
-    }
-  }
-
-  private synchronized void flush() {
-    this.flushing = false;
-    if (this.stopped) {
-      return;
-    }
-    if (this.slots.isEmpty()) {
-      this.withdraw();
-      return;
-    }
-    final int wanted = this.generation.get();
-    final List<Mcv2Configuration> screens = this.slots
-      .stream()
-      .map(slot -> slot.template)
-      .toList();
-    this.writer.execute(() -> this.write(wanted, screens));
-  }
-
-  private void write(final int wanted, final List<Mcv2Configuration> screens) {
-    if (this.stopped || wanted != this.generation.get()) {
-      return;
-    }
-    final String description = describe(screens);
-    final Path archivePath = this.folder.resolve(FILE_PREFIX + wanted + FILE_SUFFIX);
-    final Published published;
-    try {
-      Mcv2Pack.write(screens, this.showsDebugView, archivePath);
-      // The client checks a downloaded pack against its SHA-1.
-      final String archiveHash = hash(archivePath, "SHA-1");
-      final UUID packId = UUID.nameUUIDFromBytes(("mcav-mcv2:" + archiveHash).getBytes(StandardCharsets.UTF_8));
-      final PackHosting host = this.host(archivePath);
-      final ResourcePackInfo pack = ResourcePackInfo.resourcePackInfo(packId, URI.create(host.getRawUrl()), archiveHash);
-      final ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().packs(pack).required(false).replace(false).build();
-      published = new Published(wanted, packId, host, request, description);
-    } catch (final RuntimeException exception) {
-      LOGGER.error(PACK_FAILED, description, exception);
-      deleteQuietly(archivePath);
-      return;
-    }
-    if (this.stopped) {
-      this.retire(published);
-      return;
-    }
-    Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.serve(published));
-  }
-
-  private PackHosting host(final Path archivePath) {
-    final PackHosting host = this.hosting.apply(archivePath);
-    if (host instanceof HttpHosting) {
-      // The previous HTTP host still holds the port.
-      this.stopRunning();
-    }
-    host.start();
-    this.running.add(host);
-    return host;
-  }
-
-  private synchronized void serve(final Published published) {
-    if (this.stopped || published.generation() != this.generation.get()) {
-      this.retireLater(published);
-      return;
-    }
-    final Published previousPack = this.current;
-    this.current = published;
-    this.viewers.retarget(published.packId());
-    this.offered.clear();
-    LOGGER.info(PACK_SERVED, published.packId(), published.screens(), published.request().packs().getFirst().uri());
-    for (final Player player : Bukkit.getOnlinePlayers()) {
-      if (previousPack != null) {
-        player.removeResourcePacks(previousPack.packId());
-      }
-      if (this.isWatching(player.getUniqueId())) {
-        this.offer(player, published);
-      }
-    }
-    if (previousPack != null) {
-      this.retireLater(previousPack);
-    }
-  }
-
-  private void withdraw() {
-    final Published previousPack = this.current;
-    if (previousPack == null) {
-      return;
-    }
-    this.current = null;
-    this.viewers.retarget(NO_PACK);
-    this.offered.clear();
-    LOGGER.info(PACK_WITHDRAWN, previousPack.packId());
-    for (final Player player : Bukkit.getOnlinePlayers()) {
-      player.removeResourcePacks(previousPack.packId());
-    }
-    this.retireLater(previousPack);
-  }
-
-  private void offer(final Player player, final Published pack) {
-    final UUID viewerId = player.getUniqueId();
-    if (this.viewers.getState(viewerId) != null) {
-      return;
-    }
-    this.viewers.requested(viewerId);
-    this.offered.put(viewerId, this.millisecondClock.getAsLong());
-    this.onOffered.accept(player);
-    player.sendResourcePacks(pack.request());
-  }
-
-  private synchronized void forget(final UUID player) {
-    this.offered.remove(player);
-  }
-
-  private void offerLater(final Player player) {
-    Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.offerIfWatching(player));
-  }
-
-  private synchronized void offerIfWatching(final Player player) {
-    final Published pack = this.current;
-    if (pack != null && player.isOnline() && this.isWatching(player.getUniqueId())) {
-      this.offer(player, pack);
-    }
-  }
-
-  private boolean isWatching(final UUID player) {
-    for (final Lease lease : this.leases) {
-      if (lease.requested.getViewers().contains(player)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  synchronized long handleStatus(final PlayerResourcePackStatusEvent event) {
-    final Published pack = this.current;
-    if (
-      pack == null || !pack.packId().equals(event.getID()) || event.getStatus() != PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED
-    ) {
-      return -1;
-    }
-    final Player player = event.getPlayer();
-    final Long since = this.offered.remove(player.getUniqueId());
-    if (since == null) {
-      return -1;
-    }
-    final long took = this.millisecondClock.getAsLong() - since;
-    LOGGER.info(PACK_LOADED, player.getName(), pack.packId(), took);
-    this.adviseModdedViewer(player);
-    return took;
-  }
-
-  private void adviseModdedViewer(final Player player) {
-    final String brand = player.getClientBrandName();
-    if (brand == null || "vanilla".equals(brand) || this.viewers.hasShaderReport(player.getUniqueId())) {
-      return;
-    }
-    LOGGER.warn(MODDED_CLIENT_LOADED, player.getName(), brand);
-    player.sendMessage(Component.text(MODDED_CLIENT_ADVISORY, NamedTextColor.YELLOW));
-  }
-
-  private void retireLater(final Published published) {
-    try {
-      this.writer.execute(() -> this.retire(published));
-    } catch (final RejectedExecutionException shutDown) {
-      this.retire(published);
-    }
-  }
-
-  private void retire(final Published published) {
-    final PackHosting host = published.hosting();
-
-    if (this.running.remove(host)) {
-      host.shutdown();
-      deleteQuietly(host.getZip());
-    }
-  }
-
-  private void stopRunning() {
-    for (final PackHosting host : this.running) {
-      host.shutdown();
-      deleteQuietly(host.getZip());
-    }
-    this.running.clear();
-  }
-
-  private void clearFolder() {
-    try {
-      Files.createDirectories(this.folder);
-      try (final DirectoryStream<Path> previousArchives = Files.newDirectoryStream(this.folder, FILE_PREFIX + "*" + FILE_SUFFIX)) {
-        for (final Path file : previousArchives) {
-          Files.deleteIfExists(file);
-        }
-      }
-    } catch (final IOException exception) {
-      LOGGER.warn(FOLDER_FAILED, this.folder, exception);
-    }
-  }
-
-  /**
-   * Stops listening and hosting, and closes every lease. The players keep the pack they loaded, which a removal would
-   * make them reload.
-   *
-   * <p>Hosting cleanup runs on the writer executor and is awaited for a bounded time. If interrupted, the
-   * interrupt flag is restored; this method does not guarantee all background cleanup has finished before return.
-   */
-  public synchronized void shutdown() {
-    if (this.stopped) {
-      return;
-    }
-    this.stopped = true;
-    this.viewers.unregister();
-    final Listener events = this.listener;
-    if (events != null) {
-      HandlerList.unregisterAll(events);
-      this.listener = null;
-    }
-    for (final Lease lease : List.copyOf(this.leases)) {
-      lease.close();
-    }
-    this.current = null;
-    this.writer.execute(this::stopRunning);
-    this.writer.shutdown();
-    try {
-      this.writer.awaitTermination(SHUTDOWN_SECONDS, TimeUnit.SECONDS);
-    } catch (final InterruptedException exception) {
-      Thread.currentThread().interrupt();
-    }
-  }
-
-  static String describe(final List<Mcv2Configuration> screens) {
-    return screens
-      .stream()
-      .map(screen ->
-        String.format(
-          Locale.getDefault(Locale.Category.FORMAT),
-          "%d: %dx%d",
-          screen.getStreamId(),
-          screen.getVideoWidth(),
-          screen.getVideoHeight()
-        )
-      )
-      .collect(Collectors.joining(", ", "slots ", ""));
-  }
-
-  static String hash(final Path file, final String algorithm) {
-    try (final InputStream input = Files.newInputStream(file)) {
-      final MessageDigest digest = MessageDigest.getInstance(algorithm);
-      final byte[] buffer = new byte[HASH_BUFFER];
-      for (int read = input.read(buffer); read >= 0; read = input.read(buffer)) {
-        digest.update(buffer, 0, read);
-      }
-      return HexFormat.of().formatHex(digest.digest());
-    } catch (final IOException exception) {
-      throw new UncheckedIOException("Cannot hash the MCV2 pack", exception);
-    } catch (final NoSuchAlgorithmException exception) {
-      throw new IllegalStateException(algorithm + " is not available", exception);
-    }
-  }
-
-  private static void deleteQuietly(final Path file) {
-    try {
-      Files.deleteIfExists(file);
-    } catch (final IOException exception) {
-      // Startup clears this folder if deletion fails.
-    }
-  }
-
-  /**
    * A screen's hold on the pack: the slot of the video size it plays at, and, while it plays, the slot of the size it
    * left last as its spare, until it is closed. It is the screen's {@link Mcv2Result.Resizer}: a size it has no slot
    * for gets one, which may change the pack once, and stepping back to the size it left last changes nothing, unless
    * a new screen took that spare: a screen of that size takes it at once, as the pack has its size, and a screen of
    * another size only in a full pack.
+   *
+   * <p>This class is thread-safe: it locks its pack server.
+   *
+   * @since 1.0.0
    */
   public final class Lease implements Mcv2Result.Resizer {
 
@@ -786,62 +867,68 @@ public final class Mcv2PackServer {
     }
 
     /**
-     * Gets the screen as it plays in its slot: the requested screen with the slot's stream id, and the frame id its
-     * first frame gets.
-     *
-     * @return the configuration to create the screen's result or channel with
-     */
-    public Mcv2Configuration getConfiguration() {
-      return this.configuration;
-    }
-
-    /**
-     * Gets the channel of the screen at another video size, in the slot of that size. The channel's stream id and page
+     * Returns the channel of the screen at another video size, in the slot of that size. The channel's stream id and page
      * maps are the slot's, counted from the first page map the lease was opened with: the stream id and page map of
      * {@code resized} are not used, so the configuration of the lease or of any of its channels may be resized.
      *
      * @param resized the screen at the other size
      * @return its channel, not opened yet; one whose viewers all see the dithered maps if no slot is free
      * @throws IllegalStateException if the lease was closed
-     * @throws NullPointerException if {@code resized} is null
+     * @throws NullPointerException  if {@code resized} is null
+     * @since 1.0.0
      */
     @Override
     public Mcv2Channel resize(final Mcv2Configuration resized) {
-      Preconditions.checkNotNull(resized, "Configuration must not be null");
+      Preconditions.checkNotNull(resized, CONFIGURATION_NULL_MESSAGE);
+
       synchronized (Mcv2PackServer.this) {
-        Preconditions.checkState(!this.closed, "The lease was closed");
-        final Geometry geometry = Geometry.of(resized);
-        if (!this.playing.geometry.equals(geometry)) {
-          final Slot left = this.ownSpare();
-          final Slot slot;
-          if (left != null && left.geometry.equals(geometry)) {
-            slot = left;
-          } else {
-            if (left != null) {
-              Mcv2PackServer.this.free(left);
-            }
-            this.spare = null;
-            slot = Mcv2PackServer.this.acquire(resized);
-            if (slot == null) {
-              LOGGER.warn(NO_SLOT, resized.getVideoWidth(), resized.getVideoHeight());
-              return new Mcv2Channel(resized, Mcv2PackServer.this.nobody);
-            }
-          }
-          slot.spareOf = null;
-          slot.holder = this;
-          // Returning to this size must work without another pack reload.
-          this.playing.holder = null;
-          this.playing.spareOf = this;
-          this.playing.released = ++Mcv2PackServer.this.releases;
-          this.spare = this.playing;
-          this.playing = slot;
+        return this.switchTo(resized);
+      }
+    }
+
+    private Mcv2Channel switchTo(final Mcv2Configuration resized) {
+      Preconditions.checkState(!this.closed, "The lease was closed!");
+
+      final Geometry geometry = Geometry.of(resized);
+      if (!this.playing.geometry.equals(geometry)) {
+        final Slot slot = this.findSlot(resized, geometry);
+        if (slot == null) {
+          LOGGER.warn(NO_SLOT, resized.getVideoWidth(), resized.getVideoHeight());
+          return new Mcv2Channel(resized, Mcv2PackServer.this.nobody);
         }
 
-        return new Mcv2Channel(
-          resized.withSlot(this.playing.streamId, pageMapOf(this.requested, this.playing), this.firstFrameId),
-          Mcv2PackServer.this.viewers
-        );
+        this.play(slot);
       }
+
+      return new Mcv2Channel(
+        resized.withSlot(this.playing.streamId, pageMapOf(this.requested, this.playing), this.firstFrameId),
+        Mcv2PackServer.this.viewers
+      );
+    }
+
+    private @Nullable Slot findSlot(final Mcv2Configuration resized, final Geometry geometry) {
+      final Slot left = this.ownSpare();
+      if (left != null && left.geometry.equals(geometry)) {
+        return left;
+      }
+
+      if (left != null) {
+        Mcv2PackServer.this.free(left);
+      }
+
+      this.spare = null;
+      return Mcv2PackServer.this.acquire(resized);
+    }
+
+    private void play(final Slot slot) {
+      slot.spareOf = null;
+      slot.holder = this;
+      // Returning to this size must work without another pack reload.
+      this.playing.holder = null;
+      this.playing.spareOf = this;
+      this.playing.released = ++Mcv2PackServer.this.releases;
+      this.spare = this.playing;
+      this.playing = slot;
     }
 
     /**
@@ -850,21 +937,36 @@ public final class Mcv2PackServer {
      *
      * <p>Closing is idempotent and releases only slot ownership. Release the associated result or channel
      * first; closing the lease does not stop encoding or remove entities.
+     *
+     * @since 1.0.0
      */
     public void close() {
       synchronized (Mcv2PackServer.this) {
         if (this.closed) {
           return;
         }
+
         this.closed = true;
         final Slot left = this.ownSpare();
         if (left != null) {
           Mcv2PackServer.this.free(left);
         }
+
         this.spare = null;
         Mcv2PackServer.this.free(this.playing);
         Mcv2PackServer.this.leases.remove(this);
       }
+    }
+
+    /**
+     * Returns the screen as it plays in its slot: the requested screen with the slot's stream id, and the frame id its
+     * first frame gets.
+     *
+     * @return the configuration to create the screen's result or channel with
+     * @since 1.0.0
+     */
+    public Mcv2Configuration getConfiguration() {
+      return this.configuration;
     }
   }
 }

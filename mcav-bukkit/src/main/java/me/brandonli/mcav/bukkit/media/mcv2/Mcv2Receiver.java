@@ -30,6 +30,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>This receiver retains only the immediately preceding decoded picture. A stream referencing an older
  * keyframe needs a caller-managed reference strategy with {@link Mcv2Decoder}, even if that keyframe was received.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Receiver {
 
@@ -43,6 +45,8 @@ public final class Mcv2Receiver {
 
   /**
    * Constructs a receiver that holds no frame yet, so it accepts a keyframe first.
+   *
+   * @since 1.0.0
    */
   public Mcv2Receiver() {}
 
@@ -52,30 +56,35 @@ public final class Mcv2Receiver {
    * @param data the frame bytes
    * @return the decoded row-major RGB picture, retained as this receiver's next reference; do not mutate
    *         it while the receiver may use it, and copy it for independently mutable storage
-   * @throws Mcv2Exception if the frame is invalid, not newer than the last one, or predicts from a frame this receiver
-   *                       does not hold; the state is unchanged then
+   * @throws Mcv2Exception        if the frame is invalid, not newer than the last one, or predicts from a frame this receiver
+   *                              does not hold; the state is unchanged then
    * @throws NullPointerException if the frame bytes are null
+   * @since 1.0.0
    */
-  public byte[] accept(final byte[] data) throws Mcv2Exception {
+  public byte[] accept(final byte[] data) {
     final Frame frame = Mcv2Decoder.parse(data);
     if (this.frameId >= 0 && !Mcv2Decoder.follows(frame.getFrameId(), this.frameId)) {
-      throw new Mcv2Exception("Stale or ambiguous frame number");
+      throw new Mcv2Exception("Stale or ambiguous frame number!");
     }
+
     if (!frame.isKeyframe() && (frame.getWidth() != this.width || frame.getHeight() != this.height)) {
-      throw new Mcv2Exception("Reference frame dimensions mismatch");
+      throw new Mcv2Exception("Reference frame dimensions mismatch!");
     }
+
     final byte[] result = Mcv2Decoder.decode(frame, this.reference, this.frameId);
     this.reference = result;
     this.frameId = frame.getFrameId();
     this.width = frame.getWidth();
     this.height = frame.getHeight();
+
     return result;
   }
 
   /**
-   * Gets the id of the last committed frame.
+   * Returns the id of the last committed frame.
    *
    * @return the frame id, or -1 before the first frame
+   * @since 1.0.0
    */
   public long getFrameId() {
     return this.frameId;

@@ -19,10 +19,13 @@
  * Checks the Minecraft version expected by the Bukkit integration before server internals are used.
  *
  * <p>{@link me.brandonli.mcav.bukkit.utils.versioning.ServerEnvironment#checkSupported()} is invoked during
- * module injection and reports unsupported versions with an unchecked state exception. Compatibility is an
+ * module injection and reports unsupported versions with an
+ * {@link me.brandonli.mcav.bukkit.utils.versioning.UnsupportedServerVersionException}. Compatibility is an
  * exact-version or dotted-prefix string check; it does not test individual server capabilities.
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
+ *
+ * @since 1.0.0
  */
 package me.brandonli.mcav.bukkit.utils.versioning;

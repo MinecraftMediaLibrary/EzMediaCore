@@ -17,12 +17,9 @@
  */
 package me.brandonli.mcav.bukkit.media.config;
 
-import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import org.bukkit.Location;
-import org.bukkit.World;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /**
  * Describes a wall of blocks that shows an image, for use with the block image and block result.
@@ -36,176 +33,86 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
  *
  * <p>The position is retained by reference. Finish setting it before creating the display and do not
  * mutate it while rendering. {@link #getPosition()} returns that same mutable location.
+ *
+ * <p>This class is immutable and thread-safe, except for the viewer collection and the position, which it shares with
+ * the caller instead of copying.
+ *
+ * {@snippet :
+ * final int blockWidth = 64;
+ * final int blockHeight = 36;
+ * final BlockConfigurationBuilder builder = BlockConfiguration.builder();
+ * final BlockConfiguration configuration = builder
+ *   .viewers(viewers)
+ *   .position(position)
+ *   .blockWidth(blockWidth)
+ *   .blockHeight(blockHeight)
+ *   .build();
+ * }
+ *
+ * @since 1.0.0
  */
-public class BlockConfiguration {
+public final class BlockConfiguration {
 
   private final Collection<UUID> viewers;
   private final int blockWidth;
   private final int blockHeight;
   private final Location position;
 
-  private BlockConfiguration(final Builder<?> builder, final Collection<UUID> viewers, final Location position) {
+  BlockConfiguration(final Collection<UUID> viewers, final int blockWidth, final int blockHeight, final Location position) {
     this.viewers = viewers;
-    this.blockWidth = builder.blockWidth;
-    this.blockHeight = builder.blockHeight;
+    this.blockWidth = blockWidth;
+    this.blockHeight = blockHeight;
     this.position = position;
-  }
-
-  /**
-   * Gets the players who see the block wall.
-   *
-   * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
-   *         concurrent collection if another thread changes membership during rendering
-   */
-  public Collection<UUID> getViewers() {
-    return this.viewers;
-  }
-
-  /**
-   * Gets the width of the wall in blocks.
-   *
-   * @return the width in blocks
-   */
-  public int getBlockWidth() {
-    return this.blockWidth;
-  }
-
-  /**
-   * Gets the height of the wall in blocks.
-   *
-   * @return the height in blocks
-   */
-  public int getBlockHeight() {
-    return this.blockHeight;
-  }
-
-  /**
-   * Gets the bottom center of the wall.
-   *
-   * @return the original location supplied to the builder, without a defensive copy
-   */
-  public Location getPosition() {
-    return this.position;
-  }
-
-  /**
-   * The builder returned by {@link #builder()}.
-   */
-  public static final class BlockResultBuilder extends Builder<BlockResultBuilder> {
-
-    BlockResultBuilder() {}
-
-    /**
-     * Returns this builder with its concrete type.
-     *
-     * @return this builder
-     */
-    @Override
-    protected BlockResultBuilder self() {
-      return this;
-    }
   }
 
   /**
    * Creates a new builder for a block configuration.
    *
    * @return a new builder
+   * @since 1.0.0
    */
-  public static Builder<?> builder() {
-    return new BlockResultBuilder();
+  public static BlockConfigurationBuilder builder() {
+    return new DefaultBlockConfigurationBuilder();
   }
 
   /**
-   * Builds block configurations. Every value is required.
+   * Returns the players who see the block wall.
    *
-   * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
-   * required fields are checked by {@link #build()}, which may be called again to create another configuration.
-   *
-   * @param <T> the type of the builder
+   * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
+   *         concurrent collection if another thread changes membership during rendering
+   * @since 1.0.0
    */
-  public abstract static class Builder<T extends Builder<T>> {
+  public Collection<UUID> getViewers() {
+    return this.viewers;
+  }
 
-    private @MonotonicNonNull Collection<UUID> viewers;
-    private int blockWidth;
-    private int blockHeight;
-    private @MonotonicNonNull Location position;
+  /**
+   * Returns the width of the wall in blocks.
+   *
+   * @return the width in blocks
+   * @since 1.0.0
+   */
+  public int getBlockWidth() {
+    return this.blockWidth;
+  }
 
-    Builder() {}
+  /**
+   * Returns the height of the wall in blocks.
+   *
+   * @return the height in blocks
+   * @since 1.0.0
+   */
+  public int getBlockHeight() {
+    return this.blockHeight;
+  }
 
-    /**
-     * Returns this builder with its concrete type, so the setters can be chained.
-     *
-     * @return this builder
-     */
-    abstract T self();
-
-    /**
-     * Sets the players who see the block wall. The collection is not copied, see {@link BlockConfiguration}.
-     *
-     * @param viewers the UUIDs of the viewers
-     * @return this builder
-     * @throws NullPointerException if the viewers are null
-     */
-    public T viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null");
-      this.viewers = viewers;
-      return this.self();
-    }
-
-    /**
-     * Sets the bottom center of the wall.
-     *
-     * <p>The location is stored without copying. Its world is checked when {@link #build()} is called.
-     *
-     * @param position the position of the wall, which must have a world
-     * @return this builder
-     * @throws NullPointerException if the position is null
-     */
-    public T position(final Location position) {
-      Preconditions.checkNotNull(position, "Position must not be null");
-      this.position = position;
-      return this.self();
-    }
-
-    /**
-     * Sets the width of the wall in blocks.
-     *
-     * @param blockWidth the width in blocks, which must be positive
-     * @return this builder
-     */
-    public T blockWidth(final int blockWidth) {
-      this.blockWidth = blockWidth;
-      return this.self();
-    }
-
-    /**
-     * Sets the height of the wall in blocks.
-     *
-     * @param blockHeight the height in blocks, which must be positive
-     * @return this builder
-     */
-    public T blockHeight(final int blockHeight) {
-      this.blockHeight = blockHeight;
-      return this.self();
-    }
-
-    /**
-     * Builds the block configuration.
-     *
-     * @return the block configuration
-     * @throws IllegalArgumentException if a size is not positive or the position has no world
-     * @throws NullPointerException     if the viewers or the position were not set
-     */
-    public BlockConfiguration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set");
-      final Location configuredPosition = Preconditions.checkNotNull(this.position, "Position must be set");
-
-      final World world = configuredPosition.getWorld();
-      Preconditions.checkArgument(world != null, "Position must have a world");
-      Preconditions.checkArgument(this.blockWidth > 0, "Block width must be positive");
-      Preconditions.checkArgument(this.blockHeight > 0, "Block height must be positive");
-
-      return new BlockConfiguration(this, configuredViewers, configuredPosition);
-    }
+  /**
+   * Returns the bottom center of the wall.
+   *
+   * @return the original location supplied to the builder, without a defensive copy
+   * @since 1.0.0
+   */
+  public Location getPosition() {
+    return this.position;
   }
 }

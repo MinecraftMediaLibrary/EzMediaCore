@@ -68,13 +68,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * may resize the caller-owned image synchronously; the scheduled task retains only converted frame data. At most
  * the latest submitted frame is applied per tick, so intermediate frames may be dropped. Do not concurrently
  * write to the same input buffer. Hiding clears pending work; the renderer can subsequently be shown again.
+ *
+ * @since 1.0.0
  */
 public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
 
-  /**
-   * The number of server ticks between two complete sends of the wall to every viewer.
-   */
   static final int FULL_RESEND_INTERVAL_TICKS = 20;
+
+  private static final int CENTERING_DIVISOR = 2;
 
   private final BlockConfiguration configuration;
   private final Set<UUID> activeViewers;
@@ -91,9 +92,11 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    *
    * @param configuration the configuration describing the viewers, position, and size of the block wall
    * @throws NullPointerException if the configuration is null
+   * @since 1.0.0
    */
   public BlockRenderer(final BlockConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+
     this.configuration = configuration;
     this.activeViewers = new HashSet<>();
   }
@@ -103,7 +106,8 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    * rendering frames. May be called from any thread.
    *
    * @throws IllegalStateException if no plugin was injected, or if initialization runs on the calling thread
-   *         and the configured position no longer has a world
+   *                               and the configured position no longer has a world
+   * @since 1.0.0
    */
   public void show() {
     this.showDisplay(this::captureBlocks);
@@ -113,11 +117,13 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    * Converts the image into blocks and schedules them for display. May be called from any thread.
    *
    * @param image the image to render, which is resized to the wall dimensions in place
-   * @throws NullPointerException if the image is null
+   * @throws NullPointerException  if the image is null
    * @throws IllegalStateException if the image has been released
+   * @since 1.0.0
    */
   public void render(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
+
     final int width = this.configuration.getBlockWidth();
     final int height = this.configuration.getBlockHeight();
     final ResizeFilter resize = new ResizeFilter(width, height);
@@ -125,7 +131,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
 
     final int[] sourcePixels = image.getPixels();
     final int[] pixels = sourcePixels.clone();
-    final FilterLiteDither dither = BlockPaletteLookup.getDitheringImpl();
+    final FilterLiteDither dither = BlockPaletteLookup.getDither();
     dither.dither(pixels, width);
 
     final BlockData[] blocks = new BlockData[pixels.length];
@@ -133,12 +139,15 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
       final int color = pixels[index];
       blocks[index] = BlockPaletteLookup.getBlockData(color);
     }
+
     this.submit(blocks);
   }
 
   /**
    * Stops rendering frames and shows the original blocks to the viewers again. May be called from any thread, but
    * call it on the main thread during shutdown, because a disabled plugin cannot schedule the restore anymore.
+   *
+   * @since 1.0.0
    */
   public void hide() {
     this.hideDisplay(this::restoreBlocks);
@@ -152,7 +161,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     final Location origin = this.configuration.getPosition();
     final World world = origin.getWorld();
     if (world == null) {
-      throw new IllegalStateException("Block position has no world");
+      throw new IllegalStateException("Block position has no world!");
     }
 
     final int blockCount = this.getBlockCount();
@@ -174,33 +183,23 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     this.displayedBlocks = null;
   }
 
-  /** Whether a player is in the world of the wall, the only one whose client shows it. */
   private boolean isInWallWorld(final Player player) {
     return player.getWorld().getUID().equals(this.worldId);
   }
 
-  /**
-   * Gets the number of blocks of the wall.
-   */
   private int getBlockCount() {
     final int width = this.configuration.getBlockWidth();
     final int height = this.configuration.getBlockHeight();
     return width * height;
   }
 
-  /**
-   * Gets the x coordinate of a block of the screen, which is centered on the origin horizontally.
-   */
   private int getBlockX(final int originX, final int index) {
     final int width = this.configuration.getBlockWidth();
-    final int leftX = originX - width / 2;
+    final int leftX = originX - width / CENTERING_DIVISOR;
     final int column = index % width;
     return leftX + column;
   }
 
-  /**
-   * Gets the y coordinate of a block of the screen, whose bottom row is at the height of the origin.
-   */
   private int getBlockY(final int originY, final int index) {
     final int width = this.configuration.getBlockWidth();
     final int height = this.configuration.getBlockHeight();
@@ -208,12 +207,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     return originY + (height - 1 - row);
   }
 
-  /**
-   * Sends the blocks that changed since the previous frame to the viewers who already see the wall. Viewers who
-   * just started watching receive the complete wall in {@link #onTick()}, which runs right afterward.
-   *
-   * @param blocks the blocks of the new frame
-   */
+  // new viewers get the whole wall from onTick(), which runs next
   @Override
   protected void apply(final BlockData[] blocks) {
     final Position[] currentPositions = this.positions;
@@ -222,8 +216,9 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     }
 
     final BlockData[] previousBlocks = this.displayedBlocks;
-    final Map<Position, BlockData> changes = collectChanges(currentPositions, previousBlocks, blocks);
+    final Map<Position, BlockData> changes = this.collectChanges(currentPositions, previousBlocks, blocks);
     this.displayedBlocks = blocks;
+
     if (changes.isEmpty()) {
       return;
     }
@@ -231,10 +226,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     this.sendToActiveViewers(changes);
   }
 
-  /**
-   * Collects the blocks of a frame that differ from the previous frame, or every block if there is none.
-   */
-  private static Map<Position, BlockData> collectChanges(
+  private Map<Position, BlockData> collectChanges(
     final Position[] positions,
     final BlockData @Nullable [] previousBlocks,
     final BlockData[] blocks
@@ -248,6 +240,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
         changes.put(position, block);
       }
     }
+
     return changes;
   }
 
@@ -262,11 +255,6 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     }
   }
 
-  /**
-   * Sends the complete wall to viewers who just started watching, and to every viewer once every
-   * {@value #FULL_RESEND_INTERVAL_TICKS} ticks. Viewers who were removed from the viewers while online receive
-   * the original blocks again.
-   */
   @Override
   protected void onTick() {
     final Position[] currentPositions = this.positions;
@@ -275,11 +263,11 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
       return;
     }
 
-    final boolean shouldResendToEveryone = this.advanceResendCounter();
+    final WallRecipients recipients = this.advanceResendCounter();
     final Set<UUID> watchingViewers = new HashSet<>();
-    final List<Player> playersWithoutWall = this.updateActiveViewers(watchingViewers, shouldResendToEveryone);
+    final List<Player> playersWithoutWall = this.updateActiveViewers(watchingViewers, recipients);
     if (!playersWithoutWall.isEmpty()) {
-      final Map<Position, BlockData> wall = createBlockMap(currentPositions, blocks);
+      final Map<Position, BlockData> wall = this.createBlockMap(currentPositions, blocks);
       for (final Player player : playersWithoutWall) {
         player.sendMultiBlockChange(wall);
       }
@@ -288,25 +276,18 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     this.restoreRemovedViewers(currentPositions, watchingViewers);
   }
 
-  /**
-   * Counts the tick and checks whether the complete wall is due for every viewer, starting the count over if so.
-   */
-  private boolean advanceResendCounter() {
+  private WallRecipients advanceResendCounter() {
     this.ticksSinceFullResend++;
-    final boolean shouldResendToEveryone = this.ticksSinceFullResend >= FULL_RESEND_INTERVAL_TICKS;
-    if (shouldResendToEveryone) {
-      this.ticksSinceFullResend = 0;
+    if (this.ticksSinceFullResend < FULL_RESEND_INTERVAL_TICKS) {
+      return WallRecipients.NEW_VIEWERS;
     }
-    return shouldResendToEveryone;
+
+    this.ticksSinceFullResend = 0;
+
+    return WallRecipients.EVERY_VIEWER;
   }
 
-  /**
-   * Adds every online viewer in the world of the wall to the watching viewers and marks them as active. A viewer in
-   * another world is not watching: coming back, they receive the complete wall again.
-   *
-   * @return the online viewers who need the complete wall, because they just started watching or it is due
-   */
-  private List<Player> updateActiveViewers(final Set<UUID> watchingViewers, final boolean shouldResendToEveryone) {
+  private List<Player> updateActiveViewers(final Set<UUID> watchingViewers, final WallRecipients recipients) {
     final List<Player> playersWithoutWall = new ArrayList<>();
     final Collection<UUID> viewers = this.configuration.getViewers();
     for (final UUID viewer : viewers) {
@@ -316,19 +297,18 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
       }
       watchingViewers.add(viewer);
       final boolean startedWatching = this.activeViewers.add(viewer);
-      if (startedWatching || shouldResendToEveryone) {
+      if (startedWatching || recipients == WallRecipients.EVERY_VIEWER) {
         playersWithoutWall.add(player);
       }
     }
+
     return playersWithoutWall;
   }
 
-  /**
-   * Sends the original blocks to the active viewers who are no longer watching, and forgets them.
-   */
   private void restoreRemovedViewers(final Position[] currentPositions, final Set<UUID> watchingViewers) {
     final List<UUID> removedViewers = new ArrayList<>(this.activeViewers);
     removedViewers.removeAll(watchingViewers);
+
     if (removedViewers.isEmpty()) {
       return;
     }
@@ -360,8 +340,8 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
   }
 
   private Map<Position, BlockData> createOriginalBlockMap(final Position[] currentPositions) {
-    final BlockData[] original = Objects.requireNonNull(this.originalBlocks, "Original blocks were not captured");
-    return createBlockMap(currentPositions, original);
+    final BlockData[] original = Objects.requireNonNull(this.originalBlocks, "Original blocks were not captured!");
+    return this.createBlockMap(currentPositions, original);
   }
 
   // a player in another world has nothing of the wall to restore; their client dropped this world's blocks when they left
@@ -374,13 +354,19 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     }
   }
 
-  private static Map<Position, BlockData> createBlockMap(final Position[] positions, final BlockData[] blocks) {
+  private Map<Position, BlockData> createBlockMap(final Position[] positions, final BlockData[] blocks) {
     final Map<Position, BlockData> map = new HashMap<>();
     for (int index = 0; index < positions.length; index++) {
       final Position position = positions[index];
       final BlockData block = blocks[index];
       map.put(position, block);
     }
+
     return map;
+  }
+
+  private enum WallRecipients {
+    NEW_VIEWERS,
+    EVERY_VIEWER,
   }
 }

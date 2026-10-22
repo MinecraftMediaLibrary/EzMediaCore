@@ -33,29 +33,43 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Natives;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Natives;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 final class Mcv2ToolsTest {
 
+  private static final String BENCH_COMMAND = "bench";
+  private static final String DIGESTS_COMMAND = "digests";
+
+  private static final String CROP_SOURCE_PATH = "encoder/crop-320x180x4.rgb";
+  private static final String CROP_DEFAULT_PATH = "encoder/crop-default.mcs";
+  private static final String PROXY_DEFAULT_PATH = "conformance/proxy-default.mcs";
+  private static final String PROXY_DEFAULT_STREAM = "proxy-default.mcs";
+  private static final String POST_SHADER_FOLDER = "assets/mcav/shaders/post";
+
+  private static final String ARCHIVE_EXTENSION = ".mcs";
+  private static final String STREAM_FILE_NAME = "stream.mcs";
+  private static final String REJECTED_FILE_NAME = "rejected.mcs";
+  private static final String CLASSPATH_FILE_NAME = "mcv2-tools-classpath.txt";
+
   @TempDir
   Path folder;
 
   @AfterEach
   void restoreNatives() {
-    MCV2.installNatives(NativeTesting.FOLDER, MCV2.NATIVE_AUTO);
+    Mcv2.installNatives(NativeTesting.FOLDER, Mcv2.NATIVE_AUTO);
   }
 
   @Test
-  void benchmarkWritesTheGoldenStreamAndReportsTheKernels() throws Exception {
+  void shouldWriteTheGoldenStreamAndReportTheKernelsOnBenchmark() throws Exception {
     final Path source = folder.resolve("source.rgb");
-    Files.write(source, Mcv2Fixtures.read("encoder/crop-320x180x4.rgb"));
+    Files.write(source, Mcv2Fixtures.read(CROP_SOURCE_PATH));
     for (final String mode : List.of("off", "auto")) {
-      final Path archive = folder.resolve(mode + ".mcs");
-      final String output = run(
-        "bench",
+      final Path archive = folder.resolve(mode + ARCHIVE_EXTENSION);
+      final String output = this.run(
+        BENCH_COMMAND,
         "source=" + source,
         "width=320",
         "height=180",
@@ -66,20 +80,33 @@ final class Mcv2ToolsTest {
         mode.equals("off") ? "natives=off" : "profile=DEFAULT",
         "out=" + archive
       );
-      assertArrayEquals(Mcv2Fixtures.read("encoder/crop-default.mcs"), Files.readAllBytes(archive));
+      final byte[] expectedArchive = Mcv2Fixtures.read(CROP_DEFAULT_PATH);
+      final byte[] archiveBytes = Files.readAllBytes(archive);
+      assertArrayEquals(expectedArchive, archiveBytes);
+
       final List<String> lines = output.lines().toList();
       final JsonObject result = JsonParser.parseString(lines.getLast()).getAsJsonObject();
-      assertFalse(lines.getLast().contains("\\u003d"));
-      assertEquals(4, result.get("frames").getAsInt());
-      assertEquals(3, result.get("warm").getAsInt());
-      assertEquals(1, result.get("keyframes").getAsInt());
-      assertEquals(MCV2.describeNatives(), result.get("natives").getAsString());
-      if (mode.equals("off") && System.getProperty(MCV2.NATIVE_PROPERTY) == null) {
-        assertTrue(result.get("natives").getAsString().startsWith("Java,"));
+      final boolean escaped = lines.getLast().contains("\\u003d");
+      assertFalse(escaped);
+      final int frames = result.get("frames").getAsInt();
+      assertEquals(4, frames);
+      final int warm = result.get("warm").getAsInt();
+      assertEquals(3, warm);
+      final int keyframes = result.get("keyframes").getAsInt();
+      assertEquals(1, keyframes);
+      final String expectedNatives = Mcv2.describeNatives();
+      final String natives = result.get("natives").getAsString();
+      assertEquals(expectedNatives, natives);
+      if (mode.equals("off") && System.getProperty(Mcv2.NATIVE_PROPERTY) == null) {
+        final boolean describesJava = result.get("natives").getAsString().startsWith("Java,");
+        assertTrue(describesJava);
       }
-      if (mode.equals("auto") && NativeTesting.expected() && System.getProperty(MCV2.NATIVE_PROPERTY) == null) {
-        assertTrue(result.get("natives").getAsString().startsWith("native "));
-        assertTrue(Natives.resolved().binding() != null);
+      if (mode.equals("auto") && NativeTesting.expected() && System.getProperty(Mcv2.NATIVE_PROPERTY) == null) {
+        final boolean describesNative = result.get("natives").getAsString().startsWith("native ");
+        assertTrue(describesNative);
+
+        final boolean bound = Natives.resolved().binding() != null;
+        assertTrue(bound);
       }
       for (final String field : List.of(
         "mean_ms",
@@ -98,53 +125,65 @@ final class Mcv2ToolsTest {
         "processors",
         "encoder_heap_mb"
       )) {
-        assertTrue(result.has(field), field);
+        final boolean present = result.has(field);
+        assertTrue(present, field);
       }
     }
   }
 
   @Test
-  void digestsPrintTheReferenceDigestsAndWriteTheDecodedPictures() throws Exception {
-    final Path archive = folder.resolve("stream.mcs");
+  void shouldPrintTheReferenceDigestsAndWriteTheDecodedPicturesOnDigests() throws Exception {
+    final Path archive = folder.resolve(STREAM_FILE_NAME);
     final Path pictures = folder.resolve("pictures.rgb");
-    Files.write(archive, Mcv2Fixtures.read("conformance/proxy-default.mcs"));
-    final List<String> expected = Mcv2Fixtures.digests("conformance").get("proxy-default.mcs");
-    assertEquals(archive + " " + String.join(" ", expected), run("digests", "--rgb", pictures.toString(), archive.toString()).strip());
+    Files.write(archive, Mcv2Fixtures.read(PROXY_DEFAULT_PATH));
+    final List<String> expected = Mcv2Fixtures.digests("conformance").get(PROXY_DEFAULT_STREAM);
+    final String expectedOutput = archive + " " + String.join(" ", expected);
+    final String output = this.run(DIGESTS_COMMAND, "--rgb", pictures.toString(), archive.toString()).strip();
+    assertEquals(expectedOutput, output);
+
     final Mcv2Receiver receiver = new Mcv2Receiver();
     final ByteArrayOutputStream decoded = new ByteArrayOutputStream();
-    for (final byte[] frame : Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/proxy-default.mcs"))) {
+    for (final byte[] frame : Mcv2Fixtures.frames(Mcv2Fixtures.read(PROXY_DEFAULT_PATH))) {
       decoded.writeBytes(receiver.accept(frame));
     }
-    assertArrayEquals(decoded.toByteArray(), Files.readAllBytes(pictures));
+
+    final byte[] expectedPictures = decoded.toByteArray();
+    final byte[] writtenPictures = Files.readAllBytes(pictures);
+    assertArrayEquals(expectedPictures, writtenPictures);
   }
 
   @Test
-  void rejectsUnknownCommandsAndNativeModes() {
+  void shouldRejectUnknownCommandsAndNativeModes() {
     assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[0]));
     assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[] { "unknown" }));
-    assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[] { "bench", "natives=unknown" }));
+    assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[] { BENCH_COMMAND, "natives=unknown" }));
   }
 
   @Test
-  void digestsDistinguishRejectedFramesFromTruncatedArchives() throws Exception {
-    final Path archive = folder.resolve("rejected.mcs");
-    final byte[] frame = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/proxy-default.mcs")).getFirst();
+  void shouldDistinguishRejectedFramesFromTruncatedArchivesOnDigests() throws Exception {
+    final Path archive = folder.resolve(REJECTED_FILE_NAME);
+    final byte[] frame = Mcv2Fixtures.frames(Mcv2Fixtures.read(PROXY_DEFAULT_PATH)).getFirst();
     final byte[] stream = new byte[Integer.BYTES + frame.length];
     Mcv2Decoder.putU32(stream, 0, frame.length);
     System.arraycopy(frame, 0, stream, Integer.BYTES, frame.length);
     stream[Integer.BYTES] = 0;
     Files.write(archive, stream);
-    assertEquals(archive + " reject", run("digests", archive.toString()).strip());
+    final String expectedRejection = archive + " reject";
+    final String rejection = this.run(DIGESTS_COMMAND, archive.toString()).strip();
+    assertEquals(expectedRejection, rejection);
+
     for (final byte[] truncated : List.of(new byte[] { 1 }, Arrays.copyOf(stream, stream.length - 1))) {
       Files.write(archive, truncated);
-      assertEquals(archive + " truncated", run("digests", archive.toString()).strip());
+      final String expectedTruncation = archive + " truncated";
+      final String truncation = this.run(DIGESTS_COMMAND, archive.toString()).strip();
+      assertEquals(expectedTruncation, truncation);
     }
   }
 
   @Test
-  void shaderCompilerPreservesSamplerNamesAndReturnsFailedStageCount() throws Exception {
+  void shouldPreserveSamplerNamesAndReturnTheFailedStageCountInTheShaderCompiler() throws Exception {
     final Path pack = folder.resolve("pack");
-    final Path post = Files.createDirectories(pack.resolve("assets/mcav/shaders/post"));
+    final Path post = Files.createDirectories(pack.resolve(POST_SHADER_FOLDER));
     final Path generated = Files.createDirectories(folder.resolve("generated"));
     final Path output = folder.resolve("compiled");
     Files.writeString(
@@ -157,21 +196,32 @@ final class Mcv2ToolsTest {
       """
     );
     final String[] arguments = { pack.toString(), generated.toString(), output.toString(), "--post-only" };
-    assertEquals(0, compileShaders(arguments));
+    final int validFailures = this.compileShaders(arguments);
+    assertEquals(0, validFailures);
+
     final String glsl = Files.readString(output.resolve("sampler.fsh"));
-    assertTrue(glsl.contains("uniform sampler2D Sampler0;"));
-    assertFalse(glsl.contains("_uniform_00_03"));
+    final boolean keepsSampler = glsl.contains("uniform sampler2D Sampler0;");
+    assertTrue(keepsSampler);
+
+    final boolean renamesSampler = glsl.contains("_uniform_00_03");
+    assertFalse(renamesSampler);
+
     Files.writeString(post.resolve("invalid.fsh"), "#version 330\nvoid main() { invalid shader; }\n");
-    assertEquals(1, compileShaders(arguments));
-    assertFalse(Files.exists(output.resolve("invalid.fsh")));
-    assertEquals(glsl, Files.readString(output.resolve("sampler.fsh")));
+    final int invalidFailures = this.compileShaders(arguments);
+    assertEquals(1, invalidFailures);
+
+    final boolean invalidWritten = Files.exists(output.resolve("invalid.fsh"));
+    assertFalse(invalidWritten);
+
+    final String samplerAfterFailure = Files.readString(output.resolve("sampler.fsh"));
+    assertEquals(glsl, samplerAfterFailure);
   }
 
-  private static int compileShaders(final String[] arguments) throws Exception {
+  private int compileShaders(final String[] arguments) throws Exception {
     // JaCoCo's synthetic methods on LWJGL interfaces confuse its FFM callback selection.
     final String executable = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
     final Path java = Path.of(System.getProperty("java.home"), "bin", executable);
-    final String classpath = Files.readString(Path.of("build", "mcv2-tools-classpath.txt"));
+    final String classpath = Files.readString(Path.of("build", CLASSPATH_FILE_NAME));
     final List<String> command = new ArrayList<>(
       List.of(java.toString(), "--enable-native-access=ALL-UNNAMED", "-cp", classpath, Mcv2Tools.class.getName(), "shader-compile")
     );
@@ -181,14 +231,17 @@ final class Mcv2ToolsTest {
     try (final var stream = process.getInputStream()) {
       output = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
     }
+
     System.out.print(output);
     final int failures = process.waitFor();
     final String summary = failures == 0 ? "every stage compiled" : failures + " stages failed";
-    assertTrue(output.lines().anyMatch(summary::equals), output);
+    final boolean summarized = output.lines().anyMatch(summary::equals);
+    assertTrue(summarized, output);
+
     return failures;
   }
 
-  private static String run(final String... arguments) throws Exception {
+  private String run(final String... arguments) throws Exception {
     final PrintStream original = System.out;
     final ByteArrayOutputStream output = new ByteArrayOutputStream();
     try (final PrintStream captured = new PrintStream(output, true, StandardCharsets.UTF_8)) {
@@ -197,6 +250,7 @@ final class Mcv2ToolsTest {
     } finally {
       System.setOut(original);
     }
+
     return output.toString(StandardCharsets.UTF_8);
   }
 }

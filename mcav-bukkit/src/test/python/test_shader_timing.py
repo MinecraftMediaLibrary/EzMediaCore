@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 """Checks mcv2_tools shader_timing without a GPU: its main() runs on a fake GL context, with a fake post chain
 that decodes as each test says, so what the run counts as a failure is tested on any machine.
 
@@ -33,19 +34,171 @@ from io import StringIO
 from pathlib import Path
 from unittest import mock
 
+import mcv2_reference
 import mcv2_tools
 
+PROGRAM = "mcv2_tools.py shader_timing"
+STREAM_NAME = "stream.mcs"
+TIMINGS_NAME = "timings.json"
+BASELINE_NAME = "baseline.json"
+JSON_OPTION = "--json"
 
-def frame(keyframe, version=3):
-    """The header of a 64x32 frame, which is all shader_timing reads of a frame itself."""
-    if version == 3:
-        return struct.pack("<4sIHHII", b"MCV2", 3, 64, 32, 1 if keyframe else 2, 1)
-    data = bytearray(32)
-    data[:4] = b"MCV2"
-    data[4] = version
-    data[6] = int(keyframe)
-    struct.pack_into("<HH", data, 8, 64, 32)
-    return bytes(data)
+WIDTH = 64
+HEIGHT = 32
+KEYFRAME_ID = 1
+PREDICTED_FRAME_ID = 2
+
+VERSION_TWO = 2
+VERSION_TWO_HEADER_BYTES = 32
+VERSION_TWO_FLAGS_OFFSET = 6
+DIMENSIONS = struct.Struct("<HH")
+
+DECODE_MILLISECONDS = 1.0
+SCREEN_MILLISECONDS = 2.0
+
+MODERNGL_MODULE = "moderngl"
+GL_VERSION = "3.3"
+
+STREAMS_KEY = "streams"
+NEW_KEYFRAME_KEY = "new_keyframe"
+NEW_PREDICTED_KEY = "new_p"
+TOTAL_KEY = "total"
+COUNT_KEY = "n"
+
+PACKAGE = "mcvideo"
+PACKAGE_INIT = "__init__.py"
+TRANSPORT_MODULE = "transport.py"
+
+
+class ExitCodeTest(unittest.TestCase):
+    def test_should_pass_a_run_whose_frames_all_decode_once_to_the_same_pictures(self):
+        status = run()
+        self.assertEqual(0, status)
+
+    def test_should_fail_the_run_when_the_pages_of_a_frame_do_not_decode_it(self):
+        status = run(missed={(1, 1)})
+        self.assertEqual(1, status)
+
+    def test_should_fail_the_run_when_a_frame_decodes_again_from_the_same_pages(self):
+        status = run(again={(0, 0)})
+        self.assertEqual(1, status)
+
+    def test_should_fail_the_run_when_a_later_round_decodes_another_picture(self):
+        status = run(changed={(2, 1)})
+        self.assertEqual(1, status)
+
+    def test_should_refuse_a_run_that_would_time_nothing(self):
+        # the first round only warms the GPU up
+        for options in (("--rounds", "1"), ("--repeats", "0"), ("--slots", "0")):
+            with self.subTest(options=options):
+                status = run(*options)
+                self.assertEqual(2, status)
+
+
+class TimerAccountingTest(unittest.TestCase):
+    def test_should_count_each_copy_and_not_time_the_vanilla_outline_blit(self):
+        steps = [
+            ("mcv2_copy", "copy", {}, "mcav:mcv2_previous_0"),
+            ("mcv2_copy", "copy", {}, "mcav:mcv2_state_0"),
+            ("blit swap -> entity_outline", "vanilla", {}, "minecraft:entity_outline"),
+        ]
+        chain = object.__new__(mcv2_tools.TimedShaderChain)
+        chain.context = types.SimpleNamespace(query=lambda **_: FakeQuery())
+        chain.queries = {}
+        chain.warm = lambda: None
+        chain.steps = lambda: steps
+        drawn = []
+        chain.draw = lambda program, inputs, output: drawn.append(output)
+        chain.target = lambda name: types.SimpleNamespace(read=lambda: b"\x01\x00\x00\x00")
+        decoded, times = chain.timed_frame(5)
+        self.assertTrue(decoded)
+
+        self.assertEqual({"mcv2_copy -> previous_0": 2.0, "mcv2_copy -> state_0": 2.0}, times)
+
+        total = sum(times.values())
+        self.assertEqual(4.0, total)
+
+        self.assertEqual(["mcav:mcv2_previous_0", "mcav:mcv2_state_0", "minecraft:entity_outline"], drawn)
+
+    def test_should_classify_keyframes_and_predicted_frames_separately_by_their_version_three_ids(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / TIMINGS_NAME
+            status = run(JSON_OPTION, str(path))
+            self.assertEqual(0, status)
+
+            stream = json.loads(path.read_text())[STREAMS_KEY][STREAM_NAME]
+            keyframes = stream[NEW_KEYFRAME_KEY][TOTAL_KEY][COUNT_KEY]
+            self.assertEqual(2, keyframes)
+
+            predicted_frames = stream[NEW_PREDICTED_KEY][TOTAL_KEY][COUNT_KEY]
+            self.assertEqual(2, predicted_frames)
+
+            idle = stream["idle"][TOTAL_KEY][COUNT_KEY]
+            self.assertEqual(4, idle)
+
+    def test_should_still_classify_frames_by_the_flags_of_the_archived_version_two_baseline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / BASELINE_NAME
+            status = run(JSON_OPTION, str(path), version=VERSION_TWO)
+            self.assertEqual(0, status)
+
+            stream = json.loads(path.read_text())[STREAMS_KEY][STREAM_NAME]
+            keyframes = stream[NEW_KEYFRAME_KEY][TOTAL_KEY][COUNT_KEY]
+            self.assertEqual(2, keyframes)
+
+            predicted_frames = stream[NEW_PREDICTED_KEY][TOTAL_KEY][COUNT_KEY]
+            self.assertEqual(2, predicted_frames)
+
+    def test_should_import_the_transport_of_the_reference_option_from_the_archived_package_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = Path(directory) / PACKAGE
+            package.mkdir()
+            (package / PACKAGE_INIT).write_text("")
+            (package / TRANSPORT_MODULE).write_text(
+                "def make_pages(data, stream_id, symbol_bits):\n"
+                "    return [b'archived-v2:' + bytes((stream_id, symbol_bits)) + data]\n"
+            )
+            received = []
+            with mock.patch.object(sys, "path", sys.path.copy()), mock.patch.dict(sys.modules):
+                sys.modules.pop(PACKAGE, None)
+                sys.modules.pop(f"{PACKAGE}.transport", None)
+                status = run("--reference", directory, version=VERSION_TWO, received=received)
+                self.assertEqual(0, status)
+
+            keyframe_pages = [b"archived-v2:\x07\x06" + keyframe(VERSION_TWO)]
+            predicted_pages = [b"archived-v2:\x07\x06" + predicted_frame(VERSION_TWO)]
+            expected = [keyframe_pages, keyframe_pages, predicted_pages, predicted_pages]
+            self.assertEqual(expected * 3, received)
+
+
+def run(*options, missed=(), again=(), changed=(), version=mcv2_reference.VERSION, received=None):
+    """Runs main() on a stream of a keyframe and a P frame, and returns its exit code; 0 when it returns."""
+    context = types.SimpleNamespace(info={"GL_RENDERER": "fake", "GL_VERSION": GL_VERSION})
+    moderngl = types.ModuleType(MODERNGL_MODULE)
+    moderngl.create_standalone_context = lambda **_: context
+    chain = type(
+        "Chain",
+        (FakeChain,),
+        dict(missed=frozenset(missed), again=frozenset(again), changed=frozenset(changed), received=received),
+    )
+    argv = [PROGRAM, STREAM_NAME, *options]
+    with (
+        mock.patch.dict(sys.modules, {MODERNGL_MODULE: moderngl}),
+        mock.patch.object(sys, "argv", argv),
+        mock.patch.object(mcv2_tools, "make_pages", lambda data, stream_id, symbol_bits: [data]),
+        mock.patch.object(mcv2_tools, "TimedShaderChain", chain),
+        mock.patch.object(
+            mcv2_tools, "read_archive", lambda stream: [keyframe(version), predicted_frame(version)]
+        ),
+        redirect_stdout(StringIO()),
+        redirect_stderr(StringIO()),
+    ):
+        try:
+            mcv2_tools.shader_timing_main()
+        except SystemExit as exception:
+            return exception.code
+
+    return 0
 
 
 class FakeChain:
@@ -74,11 +227,13 @@ class FakeChain:
     def timed_frame(self, repeats):
         # each frame is shown twice: with its new pages, which decode it, then with the same pages again
         key = (self.round, self.index)
-        times = {"mcv2_decode": 1.0, "mcv2_screen": 2.0}
+        times = {"mcv2_decode": DECODE_MILLISECONDS, "mcv2_screen": SCREEN_MILLISECONDS}
         if self.first:
             self.first = False
             return key not in self.missed, times
+
         self.first = True
+
         return key in self.again, times
 
     def target(self, name):
@@ -88,119 +243,35 @@ class FakeChain:
         return types.SimpleNamespace(read=lambda: picture)
 
 
-def run(*options, missed=(), again=(), changed=(), version=3, received=None):
-    """Runs main() on a stream of a keyframe and a P frame, and returns its exit code; 0 when it returns."""
-    context = types.SimpleNamespace(info={"GL_RENDERER": "fake", "GL_VERSION": "3.3"})
-    moderngl = types.ModuleType("moderngl")
-    moderngl.create_standalone_context = lambda **_: context
-    chain = type(
-        "Chain",
-        (FakeChain,),
-        dict(missed=frozenset(missed), again=frozenset(again), changed=frozenset(changed), received=received),
-    )
-    argv = ["mcv2_tools.py shader_timing", "stream.mcs", *options]
-    with (
-        mock.patch.dict(sys.modules, {"moderngl": moderngl}),
-        mock.patch.object(sys, "argv", argv),
-        mock.patch.object(mcv2_tools, "make_pages", lambda data, stream_id, symbol_bits: [data]),
-        mock.patch.object(mcv2_tools, "TimedShaderChain", chain),
-        mock.patch.object(
-            mcv2_tools, "read_archive", lambda stream: [frame(True, version), frame(False, version)]
-        ),
-        redirect_stdout(StringIO()),
-        redirect_stderr(StringIO()),
-    ):
-        try:
-            mcv2_tools.shader_timing_main()
-        except SystemExit as exit:
-            return exit.code
-    return 0
+def keyframe(version):
+    return frame(KEYFRAME_ID, version)
 
 
-class ExitCodeTest(unittest.TestCase):
-    def test_a_run_whose_frames_all_decode_once_to_the_same_pictures_passes(self):
-        self.assertEqual(0, run())
+def frame(frame_id, version):
+    """The header of a 64x32 frame, which is all shader_timing reads of a frame itself."""
+    if version == mcv2_reference.VERSION:
+        return mcv2_reference.HEADER.pack(mcv2_reference.MAGIC, mcv2_reference.VERSION, WIDTH, HEIGHT, frame_id, KEYFRAME_ID)
 
-    def test_a_frame_its_pages_did_not_decode_fails_the_run(self):
-        self.assertEqual(1, run(missed={(1, 1)}))
-
-    def test_a_frame_decoded_again_from_the_same_pages_fails_the_run(self):
-        self.assertEqual(1, run(again={(0, 0)}))
-
-    def test_another_picture_in_a_later_round_fails_the_run(self):
-        self.assertEqual(1, run(changed={(2, 1)}))
-
-    def test_a_run_that_would_time_nothing_is_refused(self):
-        # the first round only warms the GPU up
-        for options in (("--rounds", "1"), ("--repeats", "0"), ("--slots", "0")):
-            with self.subTest(options=options):
-                self.assertEqual(2, run(*options))
+    data = bytearray(VERSION_TWO_HEADER_BYTES)
+    data[:len(mcv2_reference.MAGIC)] = mcv2_reference.MAGIC
+    data[mcv2_reference.VERSION_OFFSET] = version
+    data[VERSION_TWO_FLAGS_OFFSET] = int(frame_id == KEYFRAME_ID)
+    DIMENSIONS.pack_into(data, mcv2_reference.WIDTH_OFFSET, WIDTH, HEIGHT)
+    return bytes(data)
 
 
-class TimerAccountingTest(unittest.TestCase):
-    def test_each_copy_is_counted_and_vanilla_outline_blit_is_not_timed(self):
-        class Query:
-            elapsed = 2_000_000
+def predicted_frame(version):
+    return frame(PREDICTED_FRAME_ID, version)
 
-            def __enter__(self):
-                return self
 
-            def __exit__(self, *unused):
-                pass
+class FakeQuery:
+    elapsed = 2_000_000
 
-        chain = object.__new__(mcv2_tools.TimedShaderChain)
-        chain.context = types.SimpleNamespace(query=lambda **_: Query())
-        chain.queries = {}
-        chain.warm = lambda: None
-        chain.steps = lambda: [
-            ("mcv2_copy", "copy", {}, "mcav:mcv2_previous_0"),
-            ("mcv2_copy", "copy", {}, "mcav:mcv2_state_0"),
-            ("blit swap -> entity_outline", "vanilla", {}, "minecraft:entity_outline"),
-        ]
-        drawn = []
-        chain.draw = lambda program, inputs, output: drawn.append(output)
-        chain.target = lambda name: types.SimpleNamespace(read=lambda: b"\x01\x00\x00\x00")
-        decoded, times = chain.timed_frame(5)
-        self.assertTrue(decoded)
-        self.assertEqual({"mcv2_copy -> previous_0": 2.0, "mcv2_copy -> state_0": 2.0}, times)
-        self.assertEqual(4.0, sum(times.values()))
-        self.assertEqual(["mcav:mcv2_previous_0", "mcav:mcv2_state_0", "minecraft:entity_outline"], drawn)
+    def __enter__(self):
+        return self
 
-    def test_version_three_ids_classify_keyframes_and_p_frames_separately(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "timings.json"
-            self.assertEqual(0, run("--json", str(path)))
-            stream = json.loads(path.read_text())["streams"]["stream.mcs"]
-            self.assertEqual(2, stream["new_keyframe"]["total"]["n"])
-            self.assertEqual(2, stream["new_p"]["total"]["n"])
-            self.assertEqual(4, stream["idle"]["total"]["n"])
-
-    def test_archived_version_two_baseline_flags_still_classify_frames(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "baseline.json"
-            self.assertEqual(0, run("--json", str(path), version=2))
-            stream = json.loads(path.read_text())["streams"]["stream.mcs"]
-            self.assertEqual(2, stream["new_keyframe"]["total"]["n"])
-            self.assertEqual(2, stream["new_p"]["total"]["n"])
-
-    def test_reference_option_imports_transport_from_the_archived_package_directory(self):
-        with tempfile.TemporaryDirectory() as directory:
-            package = Path(directory) / "mcvideo"
-            package.mkdir()
-            (package / "__init__.py").write_text("")
-            (package / "transport.py").write_text(
-                "def make_pages(data, stream_id, symbol_bits):\n"
-                "    return [b'archived-v2:' + bytes((stream_id, symbol_bits)) + data]\n"
-            )
-            received = []
-            with mock.patch.object(sys, "path", sys.path.copy()), mock.patch.dict(sys.modules):
-                sys.modules.pop("mcvideo", None)
-                sys.modules.pop("mcvideo.transport", None)
-                self.assertEqual(0, run("--reference", directory, version=2, received=received))
-            expected = [
-                [b"archived-v2:\x07\x06" + frame(keyframe, 2)] for keyframe in (True, True, False, False)
-            ]
-            self.assertEqual(expected * 3, received)
+    def __exit__(self, *unused):
+        pass
 
 
 if __name__ == "__main__":

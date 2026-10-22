@@ -110,7 +110,7 @@ final class MessageTest {
   void namesTheLineLimitOfScoreboards() {
     final Component component = Message.SCOREBOARD_LINES.build();
     final String text = Components.plain(component);
-    final String limit = String.valueOf(ScoreboardConfiguration.MAX_LINES);
+    final String limit = String.valueOf(ScoreboardConfiguration.MAXIMUM_LINES);
     assertEquals("A scoreboard shows at most " + limit + " lines! Use a height from 1 to " + limit + ", like 24x" + limit, text);
   }
 }

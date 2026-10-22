@@ -33,14 +33,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Decoder conformance: every frame of the committed streams decodes to exactly the RGB the Python reference decoder
- * produced, compared by SHA-256.
- *
- * <p>The {@code conformance} streams are real crops encoded with the v3 live encoder; each is at most 1 MB. The {@code edge} streams are
- * random trees built with the reference's own serializer to reach every leaf mode, quantizers 0..2, cropped edges and the derived index. Old v2 frames belong to the rejection corpus.
- */
 final class ConformanceTest {
+
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String REJECTED_STREAMS_PATH = "edge/rejected.json";
 
   private static Stream<Arguments> streams() {
     final List<Arguments> arguments = new ArrayList<>();
@@ -49,37 +46,45 @@ final class ConformanceTest {
         arguments.add(Arguments.of(folder, entry.getKey(), entry.getValue()));
       }
     }
+
     return arguments.stream();
   }
 
   @ParameterizedTest(name = "{0}/{1}")
   @MethodSource("streams")
-  void decodesEveryFrameBitExactly(final String folder, final String stream, final List<String> digests) throws Mcv2Exception {
-    final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + "/" + stream));
-    assertEquals(digests.size(), frames.size(), "frame count");
+  void shouldDecodeEveryFrameBitExactly(final String folder, final String stream, final List<String> digests) {
+    final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + PATH_SEPARATOR + stream));
+    final int expectedFrameCount = digests.size();
+    final int frameCount = frames.size();
+    assertEquals(expectedFrameCount, frameCount, "frame count");
+
     final Mcv2Receiver receiver = new Mcv2Receiver();
     for (int frameIndex = 0; frameIndex < frames.size(); frameIndex++) {
       final byte[] data = frames.get(frameIndex);
       final byte[] picture = receiver.accept(data);
-      assertEquals(digests.get(frameIndex), Mcv2Fixtures.sha256(picture), "frame " + frameIndex);
+      final String expectedDigest = digests.get(frameIndex);
+      final String digest = Mcv2Fixtures.sha256(picture);
+      assertEquals(expectedDigest, digest, "frame " + frameIndex);
     }
   }
 
   private static Stream<Arguments> rejected() {
-    final String text = new String(Mcv2Fixtures.read("edge/rejected.json"), StandardCharsets.UTF_8);
+    final String text = new String(Mcv2Fixtures.read(REJECTED_STREAMS_PATH), StandardCharsets.UTF_8);
     final JsonObject root = JsonParser.parseString(text).getAsJsonObject();
     final List<Arguments> arguments = new ArrayList<>();
     for (final Map.Entry<String, JsonElement> entry : root.entrySet()) {
       arguments.add(Arguments.of(entry.getKey(), HexFormat.of().parseHex(entry.getValue().getAsJsonObject().get("frame").getAsString())));
     }
-    assertEquals(78, arguments.size());
+
+    final int argumentCount = arguments.size();
+    assertEquals(78, argumentCount);
+
     return arguments.stream();
   }
 
-  /** Every invalid frame in the reference rejection corpus is refused. */
   @ParameterizedTest(name = "{0}")
   @MethodSource("rejected")
-  void refusesEveryFrameOfTheRejectionCorpus(final String name, final byte[] frame) {
+  void shouldRefuseEveryFrameOfTheRejectionCorpus(final String name, final byte[] frame) {
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(frame), name);
   }
 }

@@ -24,12 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Mcv2LatestFrame} on one thread and with an encoder thread that waits; {@code LatestFrameRace} and
- * {@code LatestFrameCloseRace} in the jcstress module race them.
- */
+// jcstress races these in LatestFrameRace and LatestFrameCloseRace
 final class Mcv2LatestFrameTest {
 
   private static final long TIMEOUT_SECONDS = 10L;
@@ -37,7 +35,7 @@ final class Mcv2LatestFrameTest {
   private final Mcv2LatestFrame<String> slot = new Mcv2LatestFrame<>();
 
   @Test
-  void aNewerFrameReplacesOneNotTakenAndEveryFrameIsTakenOnce() {
+  void shouldReplaceAFrameNotTakenWithANewerOneAndTakeEveryFrameOnce() {
     this.slot.offer("first");
     this.slot.offer("second");
     final String taken = this.slot.poll();
@@ -48,32 +46,35 @@ final class Mcv2LatestFrameTest {
   }
 
   @Test
-  void aDroppedFrameIsNotTaken() {
+  void shouldNotTakeADroppedFrame() {
     this.slot.offer("dropped");
     this.slot.clear();
-    assertNull(this.slot.poll());
+    final @Nullable String taken = this.slot.poll();
+    assertNull(taken);
   }
 
   @Test
-  void anOpenSlotWaitsForTheNextFrame() throws Exception {
+  void shouldWaitForTheNextFrameWhenTheSlotIsOpen() throws Exception {
     this.slot.open();
     final CompletableFuture<String> taken = CompletableFuture.supplyAsync(this::takeQuietly);
     this.slot.offer("next");
 
-    assertEquals("next", taken.get(TIMEOUT_SECONDS, TimeUnit.SECONDS));
+    final String next = taken.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    assertEquals("next", next);
   }
 
   @Test
-  void closingWakesAnEncoderThatWaitsWithNothing() throws Exception {
+  void shouldWakeAnEncoderThatWaitsWithNothingWhenClosing() throws Exception {
     this.slot.open();
     final CompletableFuture<String> taken = CompletableFuture.supplyAsync(this::takeQuietly);
     this.slot.close();
 
-    assertNull(taken.get(TIMEOUT_SECONDS, TimeUnit.SECONDS));
+    final @Nullable String woken = taken.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    assertNull(woken);
   }
 
   @Test
-  void aClosedSlotTakesNothingAtOnceEvenWithAFrame() throws InterruptedException {
+  void shouldTakeNothingAtOnceFromAClosedSlotEvenWithAFrame() throws InterruptedException {
     this.slot.offer("left over");
     final String taken = this.slot.take();
     this.slot.open();
@@ -85,12 +86,14 @@ final class Mcv2LatestFrameTest {
   }
 
   @Test
-  void anInterruptedTakeThrows() {
+  void shouldThrowWhenATakeIsInterrupted() {
     this.slot.open();
     final Thread currentThread = Thread.currentThread();
     currentThread.interrupt();
     assertThrows(InterruptedException.class, this.slot::take);
-    assertFalse(Thread.interrupted(), "the interrupt was thrown");
+
+    final boolean interrupted = Thread.interrupted();
+    assertFalse(interrupted, "the interrupt was thrown");
   }
 
   private String takeQuietly() {

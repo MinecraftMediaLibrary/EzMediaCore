@@ -25,29 +25,46 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/** The six-bit map alphabet: symbol s is map colour s + 4, padded to whole rows with symbol 0. */
 final class MapAlphabetTest {
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(MapAlphabet.class);
   }
 
   @Test
-  void mapsSymbolsToColoursAndBack() throws Mcv2Exception {
+  void shouldMapSymbolsToColoursAndBack() {
     final byte[] colors = MapAlphabet.toMapColors(new byte[] { 0, 63, 1 });
-    assertEquals(128, colors.length);
-    assertEquals(4, colors[0]);
-    assertEquals(67, colors[1]);
-    assertEquals(5, colors[2]);
-    assertEquals(4, colors[127]);
-    assertArrayEquals(new byte[] { 0, 63 }, MapAlphabet.fromMapColors(new byte[] { 4, 67 }));
-    assertEquals(0, MapAlphabet.toMapColors(new byte[0]).length);
-    assertEquals(16384, MapAlphabet.toMapColors(new byte[16384]).length);
+    final int colorCount = colors.length;
+    assertEquals(128, colorCount);
+
+    final byte firstColor = colors[0];
+    assertEquals(4, firstColor);
+
+    final byte secondColor = colors[1];
+    assertEquals(67, secondColor);
+
+    final byte thirdColor = colors[2];
+    assertEquals(5, thirdColor);
+
+    final byte lastColor = colors[127];
+    assertEquals(4, lastColor);
+
+    final byte[] expectedSymbols = new byte[] { 0, 63 };
+    final byte[] symbols = MapAlphabet.fromMapColors(new byte[] { 4, 67 });
+    assertArrayEquals(expectedSymbols, symbols);
+
+    final byte[] emptyColors = MapAlphabet.toMapColors(new byte[0]);
+    final int emptyColorCount = emptyColors.length;
+    assertEquals(0, emptyColorCount);
+
+    final byte[] fullColors = MapAlphabet.toMapColors(new byte[16384]);
+    final int fullColorCount = fullColors.length;
+    assertEquals(16384, fullColorCount);
   }
 
   @Test
-  void refusesSymbolsAndColoursOutsideTheAlphabet() {
+  void shouldRefuseSymbolsAndColoursOutsideTheAlphabet() {
     assertThrows(IllegalArgumentException.class, () -> MapAlphabet.toMapColors(new byte[] { 64 }));
     assertThrows(IllegalArgumentException.class, () -> MapAlphabet.toMapColors(new byte[16385]));
     assertThrows(Mcv2Exception.class, () -> MapAlphabet.fromMapColors(new byte[] { 3 }));

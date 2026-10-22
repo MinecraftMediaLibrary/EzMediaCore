@@ -34,19 +34,30 @@ import org.checkerframework.checker.initialization.qual.UnderInitialization;
  *
  * <p>Odd centering differences use integer division toward zero, so opposite margins or crop amounts may
  * differ by one pixel. Extracted patches own copied color arrays and do not retain the source image array.
+ *
+ * @since 1.0.0
  */
 public final class MapLayout {
 
+  private static final String IMAGE_NULL_MESSAGE = "Image must not be null!";
+  private static final String IMAGE_SIZE_MISMATCH_MESSAGE = "Image size does not match layout!";
+
   /**
    * The width and height of a single map in pixels.
+   *
+   * @since 1.0.0
    */
   public static final int MAP_SIZE = 128;
 
   /**
    * An estimate of the per-patch overhead of a map data packet in bytes. It covers the packet id, the map id, the
    * scale, the lock flag, the empty decoration list, and the rectangle header.
+   *
+   * @since 1.0.0
    */
   public static final int PATCH_OVERHEAD = 16;
+
+  private static final int CENTERING_DIVISOR = 2;
 
   private final int startMapId;
   private final int columns;
@@ -60,14 +71,15 @@ public final class MapLayout {
   /**
    * Constructs a new layout.
    *
-   * @param startMapId the nonnegative id of the top left map
-   * @param columns the strictly positive number of maps horizontally
-   * @param rows the strictly positive number of maps vertically
-   * @param imageWidth the strictly positive width of the image in pixels
+   * @param startMapId  the nonnegative id of the top left map
+   * @param columns     the strictly positive number of maps horizontally
+   * @param rows        the strictly positive number of maps vertically
+   * @param imageWidth  the strictly positive width of the image in pixels
    * @param imageHeight the strictly positive height of the image in pixels
    * @throws IllegalArgumentException if any argument is out of range, the map count, last map id or the size of the
    *                                  grid in pixels would exceed {@link Integer#MAX_VALUE}, or the image has more
    *                                  than {@link Integer#MAX_VALUE} pixels
+   * @since 1.0.0
    */
   public MapLayout(final int startMapId, final int columns, final int rows, final int imageWidth, final int imageHeight) {
     validateDimensions(startMapId, columns, rows, imageWidth, imageHeight);
@@ -80,8 +92,8 @@ public final class MapLayout {
 
     final int gridWidth = columns * MAP_SIZE;
     final int gridHeight = rows * MAP_SIZE;
-    this.offsetX = (gridWidth - imageWidth) / 2;
-    this.offsetY = (gridHeight - imageHeight) / 2;
+    this.offsetX = (gridWidth - imageWidth) / CENTERING_DIVISOR;
+    this.offsetY = (gridHeight - imageHeight) / CENTERING_DIVISOR;
     this.regions = this.computeRegions();
   }
 
@@ -92,22 +104,23 @@ public final class MapLayout {
     final int imageWidth,
     final int imageHeight
   ) {
-    Preconditions.checkArgument(startMapId >= 0, "Map id must be non-negative");
-    Preconditions.checkArgument(columns > 0 && rows > 0, "Map grid must be at least 1x1");
-    Preconditions.checkArgument(imageWidth > 0 && imageHeight > 0, "Image must not be empty");
+    Preconditions.checkArgument(startMapId >= 0, "Map id must be non-negative!");
+    Preconditions.checkArgument(columns > 0 && rows > 0, "Map grid must be at least 1x1!");
+    Preconditions.checkArgument(imageWidth > 0 && imageHeight > 0, "Image must not be empty!");
 
     final long longMapCount = (long) columns * rows;
-    Preconditions.checkArgument(longMapCount <= Integer.MAX_VALUE, "Map grid of %sx%s maps has too many maps", columns, rows);
+    Preconditions.checkArgument(longMapCount <= Integer.MAX_VALUE, "Map grid of %sx%s maps has too many maps!", columns, rows);
+
     final long lastMapId = startMapId + longMapCount - 1;
-    Preconditions.checkArgument(lastMapId <= Integer.MAX_VALUE, "Map ids %s to %s exceed the largest map id", startMapId, lastMapId);
+    Preconditions.checkArgument(lastMapId <= Integer.MAX_VALUE, "Map ids %s to %s exceed the largest map id!", startMapId, lastMapId);
 
     final long longGridWidth = (long) columns * MAP_SIZE;
     final long longGridHeight = (long) rows * MAP_SIZE;
     final long largestGridSide = Math.max(longGridWidth, longGridHeight);
-    Preconditions.checkArgument(largestGridSide <= Integer.MAX_VALUE, "Map grid of %sx%s maps is too large", columns, rows);
+    Preconditions.checkArgument(largestGridSide <= Integer.MAX_VALUE, "Map grid of %sx%s maps is too large!", columns, rows);
 
     final long pixelCount = (long) imageWidth * imageHeight;
-    Preconditions.checkArgument(pixelCount <= Integer.MAX_VALUE, "Image of %sx%s pixels is too large", imageWidth, imageHeight);
+    Preconditions.checkArgument(pixelCount <= Integer.MAX_VALUE, "Image of %sx%s pixels is too large!", imageWidth, imageHeight);
   }
 
   private MapRegion[] computeRegions(@UnderInitialization MapLayout this) {
@@ -116,6 +129,7 @@ public final class MapLayout {
     for (int index = 0; index < mapCount; index++) {
       computed[index] = this.computeRegion(index);
     }
+
     return computed;
   }
 
@@ -138,62 +152,39 @@ public final class MapLayout {
     final int coveredHeight = Math.min(remainingMapHeight, remainingImageHeight);
     final int width = Math.max(0, coveredWidth);
     final int height = Math.max(0, coveredHeight);
-    return new MapRegion(localX, localY, width, height, sourceX, sourceY);
+    return MapRegion.of(localX, localY, width, height, sourceX, sourceY);
   }
 
   /**
-   * Gets the number of maps in the grid.
-   *
-   * @return the number of maps
-   */
-  public int getMapCount() {
-    return this.regions.length;
-  }
-
-  /**
-   * Gets the id of the map at the specified index.
+   * Returns the id of the map at the specified index.
    *
    * @param index the index of the map, counted row by row from the top left
    * @return the map id
    * @throws IndexOutOfBoundsException if the map index is outside of the grid
+   * @since 1.0.0
    */
   public int getMapId(final int index) {
     Preconditions.checkElementIndex(index, this.regions.length, "Map index");
+
     return this.startMapId + index;
   }
 
   /**
-   * Gets the width of the image in pixels.
-   *
-   * @return the image width
-   */
-  public int getImageWidth() {
-    return this.imageWidth;
-  }
-
-  /**
-   * Gets the height of the image in pixels.
-   *
-   * @return the image height
-   */
-  public int getImageHeight() {
-    return this.imageHeight;
-  }
-
-  /**
-   * Gets the part of the map at the specified index that is covered by the image.
+   * Returns the part of the map at the specified index that is covered by the image.
    *
    * @param index the index of the map, counted row by row from the top left
    * @return the covered region, which is empty if the image does not reach this map
    * @throws IndexOutOfBoundsException if the map index is outside of the grid
+   * @since 1.0.0
    */
   public MapRegion getRegion(final int index) {
     Preconditions.checkElementIndex(index, this.regions.length, "Map index");
+
     return this.regions[index];
   }
 
   /**
-   * Checks whether this layout was created with exactly the specified grid and image dimensions.
+   * Returns whether this layout was created with exactly the specified grid and image dimensions.
    *
    * @param startMapId  the id of the top left map
    * @param columns     the number of maps horizontally
@@ -201,6 +192,7 @@ public final class MapLayout {
    * @param imageWidth  the width of the image in pixels
    * @param imageHeight the height of the image in pixels
    * @return true if the layout is identical
+   * @since 1.0.0
    */
   public boolean matches(final int startMapId, final int columns, final int rows, final int imageWidth, final int imageHeight) {
     final boolean sameGrid = this.startMapId == startMapId && this.columns == columns && this.rows == rows;
@@ -222,16 +214,18 @@ public final class MapLayout {
    * @throws IndexOutOfBoundsException if the map index is outside of the grid
    * @throws IllegalArgumentException  if the image size does not match the layout, or the rectangle is empty or
    *                                   not inside the region of the map
-   * @throws NullPointerException if {@code image} is null
+   * @throws NullPointerException      if {@code image} is null
+   * @since 1.0.0
    */
   public MapTilePatch extractPatch(final byte[] image, final int index, final int left, final int top, final int width, final int height) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, IMAGE_NULL_MESSAGE);
     Preconditions.checkElementIndex(index, this.regions.length, "Map index");
+
     final int expectedLength = this.imageWidth * this.imageHeight;
-    Preconditions.checkArgument(image.length == expectedLength, "Image size does not match layout");
+    Preconditions.checkArgument(image.length == expectedLength, IMAGE_SIZE_MISMATCH_MESSAGE);
 
     final MapRegion region = this.regions[index];
-    checkInsideRegion(region, index, left, top, width, height);
+    this.checkInsideRegion(region, index, left, top, width, height);
 
     final int sourceX = region.getSourceX() + (left - region.getLocalX());
     final int sourceY = region.getSourceY() + (top - region.getLocalY());
@@ -243,10 +237,10 @@ public final class MapLayout {
     }
 
     final int mapId = this.getMapId(index);
-    return new MapTilePatch(mapId, left, top, width, height, colors);
+    return MapTilePatch.of(mapId, left, top, width, height, colors);
   }
 
-  private static void checkInsideRegion(
+  private void checkInsideRegion(
     final MapRegion region,
     final int index,
     final int left,
@@ -263,7 +257,7 @@ public final class MapLayout {
     final boolean insideVertically = top >= regionY && height > 0 && height <= regionY + regionHeight - top;
     Preconditions.checkArgument(
       insideHorizontally && insideVertically,
-      "Rectangle of %sx%s pixels at (%s, %s) is not inside the region of map %s",
+      "Rectangle of %sx%s pixels at (%s, %s) in map %s is outside its region!",
       width,
       height,
       left,
@@ -278,12 +272,14 @@ public final class MapLayout {
    * @param image the image as map palette indices, laid out row by row
    * @return the patches for the entire image
    * @throws IllegalArgumentException if the image size does not match the layout
-   * @throws NullPointerException if {@code image} is null
+   * @throws NullPointerException     if {@code image} is null
+   * @since 1.0.0
    */
   public List<MapTilePatch> extractAll(final byte[] image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, IMAGE_NULL_MESSAGE);
+
     final int expectedLength = this.imageWidth * this.imageHeight;
-    Preconditions.checkArgument(image.length == expectedLength, "Image size does not match layout");
+    Preconditions.checkArgument(image.length == expectedLength, IMAGE_SIZE_MISMATCH_MESSAGE);
 
     final List<MapTilePatch> patches = new ArrayList<>(this.regions.length);
     for (int index = 0; index < this.regions.length; index++) {
@@ -299,6 +295,37 @@ public final class MapLayout {
       final MapTilePatch patch = this.extractPatch(image, index, localX, localY, width, height);
       patches.add(patch);
     }
+
     return patches;
+  }
+
+  /**
+   * Returns the number of maps in the grid.
+   *
+   * @return the number of maps
+   * @since 1.0.0
+   */
+  public int getMapCount() {
+    return this.regions.length;
+  }
+
+  /**
+   * Returns the width of the image in pixels.
+   *
+   * @return the image width
+   * @since 1.0.0
+   */
+  public int getImageWidth() {
+    return this.imageWidth;
+  }
+
+  /**
+   * Returns the height of the image in pixels.
+   *
+   * @return the image height
+   * @since 1.0.0
+   */
+  public int getImageHeight() {
+    return this.imageHeight;
   }
 }

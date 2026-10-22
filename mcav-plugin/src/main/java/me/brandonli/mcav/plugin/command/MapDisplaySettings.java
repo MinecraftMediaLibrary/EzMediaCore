@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
+import me.brandonli.mcav.bukkit.media.config.MapConfigurationBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.DitherAlgorithm;
 import me.brandonli.mcav.plugin.utils.DitheringArgument;
 import me.brandonli.mcav.utils.immutable.Pair;
@@ -68,7 +69,7 @@ public final class MapDisplaySettings {
     final int blockHeight = blocks.getSecond();
     final int resolutionWidth = resolution.getFirst();
     final int resolutionHeight = resolution.getSecond();
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
     builder.viewers(players);
     builder.map(mapId);
     builder.mapBlockWidth(blockWidth);

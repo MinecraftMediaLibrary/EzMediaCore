@@ -23,20 +23,16 @@ import java.lang.foreign.FunctionDescriptor;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Binding;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Binding;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
 import me.brandonli.mcav.bukkit.media.mcv2.NativeTesting.NativeKernels;
 import org.junit.jupiter.api.Test;
 
-/**
- * The vector loops of the native halve kernel need power-of-two blocks, so Java refuses every other size before any
- * native call; checked on a simulated library that fails every call.
- */
 final class NativeHalveDomainTest {
 
   @Test
-  void unsupportedSimdRowsAreRefusedBeforeNativeDispatch() {
-    final NativeKernels kernels = NativeTesting.kernels(new Binding(Level.AVX2, (_, descriptor) -> failingBoundary(descriptor)));
+  void shouldRefuseUnsupportedSimdRowsBeforeNativeDispatch() {
+    final NativeKernels kernels = NativeTesting.kernels(new Binding(Level.AVX2, (_, descriptor) -> this.failingBoundary(descriptor)));
     assertThrows(IllegalArgumentException.class, () -> kernels.halve(new int[18 * 18 * 3], 18, new int[9 * 9 * 3]));
     // every even size that is no power of two leaves a part of a row to a vector loop of some level
     for (int size = 6; size < 32; size += 2) {
@@ -51,12 +47,12 @@ final class NativeHalveDomainTest {
     }
   }
 
-  private static MethodHandle failingBoundary(final FunctionDescriptor descriptor) {
+  private MethodHandle failingBoundary(final FunctionDescriptor descriptor) {
     final MethodType type = descriptor.toMethodType();
     final MethodHandle failure = MethodHandles.insertArguments(
       MethodHandles.throwException(type.returnType(), IllegalStateException.class),
       0,
-      new IllegalStateException("unexpected simulated native dispatch")
+      new IllegalStateException("unexpected simulated native dispatch!")
     );
     return MethodHandles.dropArguments(failure, 0, type.parameterList());
   }

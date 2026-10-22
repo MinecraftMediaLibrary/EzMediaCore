@@ -56,7 +56,7 @@ compile_direct_test() {
     [ "$unit" != "$unit_name" ] && instruction_flags=${unit#*:}
     local source_file=$native_sources/$unit_name.cpp
     [ "$unit_name" = test ] && source_file=$script_directory/kernels_test.cpp
-    # shellcheck disable=SC2086
+    # shellcheck disable=SC2086 # instruction_flags holds several compiler flags that must split into words
     "$compiler" "${resource_options[@]}" "${kernel_flags[@]}" -DMCV2_TEST_DIRECT "$@" $instruction_flags -c "$source_file" -o "$test_directory/$name-$unit_name.o"
     object_files+=("$test_directory/$name-$unit_name.o")
   done
@@ -111,7 +111,7 @@ check_symbols() {
   for unit in "${units[@]}"; do
     local unit_name=${unit%%:*} instruction_flags=""
     [ "$unit" != "$unit_name" ] && instruction_flags=${unit#*:}
-    # shellcheck disable=SC2086
+    # shellcheck disable=SC2086 # instruction_flags holds several compiler flags that must split into words
     "$compiler" "${resource_options[@]}" "${kernel_flags[@]}" -O0 "$@" $instruction_flags -c "$native_sources/$unit_name.cpp" -o "$test_directory/symbols.o"
     if "$llvm_tools/llvm-nm" --defined-only --extern-only "$test_directory/symbols.o" | awk '{print $3}' | grep -v '^mcv2_' | grep -q .; then
       echo "$unit_name ($label) defines a shared symbol:" >&2

@@ -31,18 +31,9 @@ import io.netty.util.concurrent.Future;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.file.Path;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * A tiny HTTP server that serves exactly one file on its own port.
- *
- * <p>The server uses one thread to accept connections and two threads to serve them. Files are sent with zero-copy
- * transfers, so even large resource packs are served without loading them into memory. The server binds
- * synchronously, which means {@link #start()} fails immediately with an exception if the port is already in use.
- * This class is thread-safe.
- */
 final class FileHttpServer {
 
   private static final int ACCEPTOR_THREADS = 1;
@@ -57,23 +48,11 @@ final class FileHttpServer {
   private @Nullable EventLoopGroup workerGroup;
   private @Nullable Channel serverChannel;
 
-  /**
-   * Constructs a new server. Nothing is bound until {@link #start()} is called.
-   *
-   * @param port     the port to listen on
-   * @param filePath the file to serve
-   */
   FileHttpServer(final int port, final Path filePath) {
     this.port = port;
     this.filePath = filePath;
   }
 
-  /**
-   * Binds the server to its port and starts serving the file. Calling this method while the server is running has
-   * no effect.
-   *
-   * @throws HttpServerException if the server cannot bind to the port
-   */
   synchronized void start() {
     if (this.serverChannel != null) {
       return;
@@ -87,14 +66,10 @@ final class FileHttpServer {
     final ChannelFuture bindFuture = this.bind(acceptors, workers);
     final boolean bound = bindFuture.isSuccess();
     if (!bound) {
-      terminate(acceptors);
-      terminate(workers);
+      this.terminate(acceptors);
+      this.terminate(workers);
       final Throwable cause = bindFuture.cause();
-      final String message = String.format(
-        Locale.getDefault(Locale.Category.FORMAT),
-        "Failed to start the resource pack server on port %d",
-        this.port
-      );
+      final String message = "Port %s could not be bound for the resource pack server!".formatted(this.port);
       throw new HttpServerException(message, cause);
     }
 
@@ -114,27 +89,18 @@ final class FileHttpServer {
     return bindFuture;
   }
 
-  /**
-   * Gets the port the server is bound to. This is the configured port, unless the server was configured with port
-   * {@code 0}, in which case the operating system picked a free port.
-   *
-   * @return the bound port
-   * @throws IllegalStateException if the server is not running
-   */
   @VisibleForTesting
   synchronized int getLocalPort() {
     final Channel channel = this.serverChannel;
     if (channel == null) {
-      throw new IllegalStateException("The resource pack server is not running");
+      throw new IllegalStateException("The resource pack server is not running!");
     }
+
     final SocketAddress address = channel.localAddress();
     final InetSocketAddress socketAddress = (InetSocketAddress) address;
     return socketAddress.getPort();
   }
 
-  /**
-   * Stops the server and releases its threads. Calling this method while the server is stopped has no effect.
-   */
   synchronized void stop() {
     final Channel channel = this.serverChannel;
     if (channel != null) {
@@ -142,23 +108,22 @@ final class FileHttpServer {
       closeFuture.awaitUninterruptibly();
       this.serverChannel = null;
     }
+
     final EventLoopGroup acceptors = this.acceptorGroup;
     if (acceptors != null) {
-      terminate(acceptors);
+      this.terminate(acceptors);
       this.acceptorGroup = null;
     }
+
     final EventLoopGroup workers = this.workerGroup;
     if (workers != null) {
-      terminate(workers);
+      this.terminate(workers);
       this.workerGroup = null;
     }
   }
 
-  /**
-   * Shuts the threads down without a quiet period and waits until they are gone. The listening socket is only
-   * released once its event loop has finished, so waiting here lets the port be bound again right away.
-   */
-  private static void terminate(final EventLoopGroup group) {
+  // waits, so the port can be bound again at once
+  private void terminate(final EventLoopGroup group) {
     final Future<?> termination = group.shutdownGracefully(0, SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     termination.awaitUninterruptibly();
   }

@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
+import me.brandonli.mcav.bukkit.media.config.MapConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.map.MapLayout;
 import me.brandonli.mcav.bukkit.media.map.MapRegion;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
@@ -52,13 +53,6 @@ import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 
-/**
- * Properties of {@link CompressedMapResult} for sequences of frames whose size changes, while a second viewer comes and
- * goes, checked on the packets the viewers actually receive: once the picture stops changing, every pixel the current
- * frame covers shows that frame, and every other pixel of the grid is transparent or was never sent anything. No pixel
- * keeps the colors of an earlier frame, not even on the maps a shrinking picture leaves. After a release, every map of
- * the grid is transparent.
- */
 final class CompressedMapResultPropertyTest {
 
   private static final String SEED = "20260925";
@@ -66,8 +60,10 @@ final class CompressedMapResultPropertyTest {
   private static final UUID SECOND = UUID.fromString("00000000-0000-0000-0000-000000000002");
   private static final int START_MAP_ID = 3;
   private static final int MAP_SIZE = MapLayout.MAP_SIZE;
-  private static final int MAX_QUIET_FRAMES = 7;
+  private static final int MAXIMUM_QUIET_FRAMES = 7;
   private static final short NEVER_SENT = -1;
+
+  private static final int PER_MILLE = 1000;
 
   private FakeServer server;
 
@@ -83,23 +79,20 @@ final class CompressedMapResultPropertyTest {
     this.server.close();
   }
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  // jqwik 1.10 shares a range between derived arbitraries, so each range starts from a fresh one
+  private Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
   @Provide
   Arbitrary<ResizeScenario> scenarios() {
-    final Arbitrary<Integer> columns = between(1, 3);
-    final Arbitrary<Integer> rows = between(1, 3);
-    final Arbitrary<Integer> smallBudgets = between(1, 20_000);
-    final Arbitrary<Integer> largeBudgets = between(20_000, 1 << 20);
+    final Arbitrary<Integer> columns = this.between(1, 3);
+    final Arbitrary<Integer> rows = this.between(1, 3);
+    final Arbitrary<Integer> smallBudgets = this.between(1, 20_000);
+    final Arbitrary<Integer> largeBudgets = this.between(20_000, 1 << 20);
     final Arbitrary<Integer> budgets = Arbitraries.oneOf(smallBudgets, largeBudgets);
-    final Arbitrary<Step> step = steps();
+    final Arbitrary<Step> step = this.steps();
     final ListArbitrary<Step> stepList = step.list();
     final ListArbitrary<Step> someSteps = stepList.ofMinSize(1);
     final ListArbitrary<Step> boundedSteps = someSteps.ofMaxSize(8);
@@ -112,52 +105,54 @@ final class CompressedMapResultPropertyTest {
     return scenarios.as(ResizeScenario::new);
   }
 
-  /**
-   * A frame of some size and color, or the second viewer joining or leaving. Sizes are thousandths of a little more
-   * than the grid, so the picture is sometimes larger than the grid and sometimes much smaller.
-   */
-  private static Arbitrary<Step> steps() {
-    final Arbitrary<Integer> shares = between(1, 1000);
-    final Arbitrary<Integer> colors = between(1, 60);
+  private Arbitrary<Step> steps() {
+    final Arbitrary<Integer> shares = this.between(1, PER_MILLE);
+    final Arbitrary<Integer> colors = this.between(1, 60);
     final Arbitrary<Integer> kinds = Arbitraries.of(Step.FRAME, Step.FRAME, Step.FRAME, Step.JOIN, Step.LEAVE);
     final Combinators.Combinator4<Integer, Integer, Integer, Integer> combined = Combinators.combine(kinds, shares, shares, colors);
     return combined.as(Step::new);
   }
 
   @Property(seed = SEED, tries = 40)
-  void noViewerKeepsThePictureOfAnEarlierFrame(@ForAll("scenarios") final ResizeScenario scenario) {
+  void shouldNotLetAnyViewerKeepThePictureOfAnEarlierFrame(@ForAll("scenarios") final ResizeScenario scenario) {
     final List<UUID> viewers = new CopyOnWriteArrayList<>(List.of(FIRST, SECOND));
     final MapConfiguration configuration = scenario.createConfiguration(viewers);
     final CompressedMapResult result = new CompressedMapResult(configuration, scenario.getBudget());
     final FrameSource frames = new FrameSource();
     final ViewerModels models = new ViewerModels(scenario);
 
-    Step lastFrame = null;
+    final Step lastFrame = scenario
+      .getSteps()
+      .stream()
+      .filter(step -> step.getKind() != Step.JOIN && step.getKind() != Step.LEAVE)
+      .reduce((earlier, later) -> later)
+      .orElse(null);
     for (final Step step : scenario.getSteps()) {
       switch (step.getKind()) {
         case Step.JOIN -> this.connectSecondViewer(models);
         case Step.LEAVE -> this.disconnectSecondViewer(models);
-        default -> {
-          frames.process(result, scenario, step);
-          lastFrame = step;
-        }
+        default -> frames.process(result, scenario, step);
       }
+
       models.receive(this.server);
     }
+
     if (lastFrame == null) {
       return;
     }
 
     int quietFrames = 0;
     int extraFrames = 0;
-    final int frameLimit = MAX_QUIET_FRAMES * (scenario.getMapCount() * 65) + MAX_QUIET_FRAMES;
-    while (quietFrames < MAX_QUIET_FRAMES) {
-      assertTrue(extraFrames < frameLimit, "the viewers did not catch up");
+    final int frameLimit = MAXIMUM_QUIET_FRAMES * (scenario.getMapCount() * 65) + MAXIMUM_QUIET_FRAMES;
+    while (quietFrames < MAXIMUM_QUIET_FRAMES) {
+      final boolean withinLimit = extraFrames < frameLimit;
+      assertTrue(withinLimit, "the viewers did not catch up");
       frames.process(result, scenario, lastFrame);
       final boolean sent = models.receive(this.server);
       quietFrames = sent ? 0 : quietFrames + 1;
       extraFrames++;
     }
+
     final byte[] picture = scenario.createPicture(lastFrame);
     final MapLayout layout = scenario.createLayout(lastFrame);
     models.assertShow(layout, picture);
@@ -172,8 +167,9 @@ final class CompressedMapResultPropertyTest {
     if (online) {
       return;
     }
+
     this.server.addPlayer(SECOND);
-    PacketUtils.init();
+    PacketUtils.initialize();
     models.connect(SECOND);
   }
 
@@ -182,14 +178,12 @@ final class CompressedMapResultPropertyTest {
     if (!online) {
       return;
     }
+
     this.server.removePlayer(SECOND);
-    PacketUtils.init();
+    PacketUtils.initialize();
     models.disconnect(SECOND);
   }
 
-  /**
-   * Hands frames to the result the way a player does, with the dithering replaced by the palette indices of the scenario.
-   */
   private static final class FrameSource {
 
     private final DitherAlgorithm algorithm;
@@ -212,9 +206,6 @@ final class CompressedMapResultPropertyTest {
     }
   }
 
-  /**
-   * One step of a scenario.
-   */
   private static final class Step {
 
     private static final int FRAME = 0;
@@ -247,9 +238,6 @@ final class CompressedMapResultPropertyTest {
     }
   }
 
-  /**
-   * A grid, a byte budget and the steps played on it.
-   */
   private static final class ResizeScenario {
 
     private final int columns;
@@ -265,13 +253,43 @@ final class CompressedMapResultPropertyTest {
     }
 
     private MapConfiguration createConfiguration(final List<UUID> viewers) {
-      final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
+      final MapConfigurationBuilder builder = MapConfiguration.builder();
       builder.viewers(viewers);
       builder.map(START_MAP_ID);
       builder.mapBlockWidth(this.columns);
       builder.mapBlockHeight(this.rows);
       builder.resize(false);
       return builder.build();
+    }
+
+    private int widthOf(final Step step) {
+      final int maximum = this.columns * MAP_SIZE + 60;
+      return Math.max(1, (step.widthShare * maximum) / PER_MILLE);
+    }
+
+    private int heightOf(final Step step) {
+      final int maximum = this.rows * MAP_SIZE + 60;
+      return Math.max(1, (step.heightShare * maximum) / PER_MILLE);
+    }
+
+    private MapLayout createLayout(final Step step) {
+      final int width = this.widthOf(step);
+      final int height = this.heightOf(step);
+      return new MapLayout(START_MAP_ID, this.columns, this.rows, width, height);
+    }
+
+    // never 0, the transparent index, so a cleared pixel stands out
+    private byte[] createPicture(final Step step) {
+      final int width = this.widthOf(step);
+      final int height = this.heightOf(step);
+      final byte[] picture = new byte[width * height];
+      for (int index = 0; index < picture.length; index++) {
+        final int row = index / width;
+        final int stripe = (row / 8) % 2;
+        picture[index] = (byte) (step.color + stripe * 64);
+      }
+
+      return picture;
     }
 
     private int getBudget() {
@@ -286,48 +304,12 @@ final class CompressedMapResultPropertyTest {
       return this.columns * this.rows;
     }
 
-    private int widthOf(final Step step) {
-      final int maximum = this.columns * MAP_SIZE + 60;
-      return Math.max(1, (step.widthShare * maximum) / 1000);
-    }
-
-    private int heightOf(final Step step) {
-      final int maximum = this.rows * MAP_SIZE + 60;
-      return Math.max(1, (step.heightShare * maximum) / 1000);
-    }
-
-    private MapLayout createLayout(final Step step) {
-      final int width = this.widthOf(step);
-      final int height = this.heightOf(step);
-      return new MapLayout(START_MAP_ID, this.columns, this.rows, width, height);
-    }
-
-    /**
-     * Creates the palette indices of a frame: the color of the step, with a stripe every eight rows, never 0, the
-     * transparent index, so a pixel that was cleared can always be told from a pixel of a picture.
-     */
-    private byte[] createPicture(final Step step) {
-      final int width = this.widthOf(step);
-      final int height = this.heightOf(step);
-      final byte[] picture = new byte[width * height];
-      for (int index = 0; index < picture.length; index++) {
-        final int row = index / width;
-        final int stripe = (row / 8) % 2;
-        picture[index] = (byte) (step.color + stripe * 64);
-      }
-      return picture;
-    }
-
     @Override
     public String toString() {
       return "maps " + this.columns + "x" + this.rows + ", budget " + this.budget + ", steps " + this.steps;
     }
   }
 
-  /**
-   * What every connected viewer displays, rebuilt from the map data packets the viewer received, in order. A viewer who
-   * connects starts with maps that were never sent anything, as a client that joins does.
-   */
   private static final class ViewerModels {
 
     private final ResizeScenario scenario;
@@ -348,11 +330,6 @@ final class CompressedMapResultPropertyTest {
       this.viewers.removeIf(viewer -> viewer.uuid.equals(uuid));
     }
 
-    /**
-     * Applies the packets every viewer received since the last call.
-     *
-     * @return whether any viewer received anything
-     */
     private boolean receive(final FakeServer server) {
       boolean received = false;
       for (final Viewer viewer : this.viewers) {
@@ -365,52 +342,59 @@ final class CompressedMapResultPropertyTest {
         }
         viewer.applied = count;
       }
+
       return received;
     }
 
     private void assertShow(final MapLayout layout, final byte[] picture) {
-      final int imageWidth = layout.getImageWidth();
       for (final Viewer viewer : this.viewers) {
         for (int index = 0; index < viewer.maps.length; index++) {
-          final MapRegion region = layout.getRegion(index);
-          final short[] map = viewer.maps[index];
-          for (int row = 0; row < MAP_SIZE; row++) {
-            for (int column = 0; column < MAP_SIZE; column++) {
-              final short shown = map[row * MAP_SIZE + column];
-              final int regionX = column - region.getLocalX();
-              final int regionY = row - region.getLocalY();
-              final boolean covered = regionX >= 0 && regionY >= 0 && regionX < region.getWidth() && regionY < region.getHeight();
-              final String where = "viewer " + viewer.uuid + ", map " + index + " at " + column + "," + row;
-              if (covered) {
-                final short expected = picture[(region.getSourceY() + regionY) * imageWidth + region.getSourceX() + regionX];
-                assertEquals(expected, shown, () -> where + " shows the current frame");
-              } else {
-                final boolean clean = shown == 0 || shown == NEVER_SENT;
-                assertTrue(clean, () -> where + " keeps color " + shown + " of an earlier frame");
-              }
-            }
-          }
+          this.assertMapShows(layout, picture, viewer, index);
         }
+      }
+    }
+
+    private void assertMapShows(final MapLayout layout, final byte[] picture, final Viewer viewer, final int index) {
+      final int imageWidth = layout.getImageWidth();
+      final MapRegion region = layout.getRegion(index);
+      final short[] map = viewer.maps[index];
+      for (int pixel = 0; pixel < MAP_SIZE * MAP_SIZE; pixel++) {
+        final int row = pixel / MAP_SIZE;
+        final int column = pixel % MAP_SIZE;
+        final short shown = map[pixel];
+        final int regionX = column - region.getLocalX();
+        final int regionY = row - region.getLocalY();
+        final boolean covered = regionX >= 0 && regionY >= 0 && regionX < region.getWidth() && regionY < region.getHeight();
+        final String where = "viewer " + viewer.uuid + ", map " + index + " at " + column + "," + row;
+        if (covered) {
+          final short expected = picture[(region.getSourceY() + regionY) * imageWidth + region.getSourceX() + regionX];
+          assertEquals(expected, shown, () -> where + " shows the current frame");
+          continue;
+        }
+
+        final boolean clean = shown == 0 || shown == NEVER_SENT;
+        assertTrue(clean, () -> where + " keeps color " + shown + " of an earlier frame");
       }
     }
 
     private void assertTransparent() {
       for (final Viewer viewer : this.viewers) {
         for (int index = 0; index < viewer.maps.length; index++) {
-          final short[] map = viewer.maps[index];
-          for (int pixel = 0; pixel < map.length; pixel++) {
-            final short shown = map[pixel];
-            final String where = "viewer " + viewer.uuid + ", map " + index + " pixel " + pixel;
-            assertEquals(0, shown, () -> where + " is transparent after the release");
-          }
+          this.assertMapTransparent(viewer, index);
         }
+      }
+    }
+
+    private void assertMapTransparent(final Viewer viewer, final int index) {
+      final short[] map = viewer.maps[index];
+      for (int pixel = 0; pixel < map.length; pixel++) {
+        final short shown = map[pixel];
+        final String where = "viewer " + viewer.uuid + ", map " + index + " pixel " + pixel;
+        assertEquals(0, shown, () -> where + " is transparent after the release");
       }
     }
   }
 
-  /**
-   * The maps of one viewer.
-   */
   private static final class Viewer {
 
     private final UUID uuid;
@@ -434,13 +418,16 @@ final class CompressedMapResultPropertyTest {
         assertTrue(inGrid, () -> "a packet for map " + id.id() + ", outside of the grid");
         final Optional<MapItemSavedData.MapPatch> colorPatch = mapPacket.colorPatch();
         final MapItemSavedData.MapPatch patch = colorPatch.orElseThrow();
-        final short[] map = this.maps[index];
-        final byte[] colors = patch.mapColors();
-        final int width = patch.width();
-        for (int row = 0; row < patch.height(); row++) {
-          for (int column = 0; column < width; column++) {
-            map[(patch.startY() + row) * MAP_SIZE + patch.startX() + column] = colors[row * width + column];
-          }
+        this.paint(this.maps[index], patch);
+      }
+    }
+
+    private void paint(final short[] map, final MapItemSavedData.MapPatch patch) {
+      final byte[] colors = patch.mapColors();
+      final int width = patch.width();
+      for (int row = 0; row < patch.height(); row++) {
+        for (int column = 0; column < width; column++) {
+          map[(patch.startY() + row) * MAP_SIZE + patch.startX() + column] = colors[row * width + column];
         }
       }
     }

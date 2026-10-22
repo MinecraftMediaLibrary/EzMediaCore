@@ -22,7 +22,11 @@
  * using displays or packet helpers. Stop and release each owned player, display and hosting service during
  * plugin shutdown. Module shutdown unregisters its packet listeners but does not close those objects.
  *
+ * <p>Every exception of the module extends {@link me.brandonli.mcav.bukkit.BukkitException}.
+ *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
+ *
+ * @since 1.0.0
  */
 package me.brandonli.mcav.bukkit;

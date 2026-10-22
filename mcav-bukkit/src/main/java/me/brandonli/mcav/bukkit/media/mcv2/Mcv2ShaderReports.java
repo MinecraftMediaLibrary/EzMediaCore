@@ -36,7 +36,7 @@ final class Mcv2ShaderReports implements PluginMessageListener {
 
   static final int VERSION = 1;
 
-  static final int MAX_BYTES = 64;
+  static final int MAXIMUM_BYTES = 64;
 
   static final int BURST = 5;
 
@@ -44,21 +44,25 @@ final class Mcv2ShaderReports implements PluginMessageListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Mcv2ShaderReports.class);
 
-  private static final String TOO_LONG = "Ignoring an MCV2 client report of {} bytes from {}: a report has at most {}";
+  private static final String TOO_LONG = "Ignoring an MCV2 client report of {} bytes from {}: a report has at most {} bytes.";
 
-  private static final String TOO_OFTEN = "Ignoring an MCV2 client report from {}: more than one a second";
+  private static final String TOO_OFTEN = "Ignoring an MCV2 client report from {}: more than one a second.";
 
-  private static final String UNKNOWN_VERSION = "Ignoring an MCV2 client report of version {} from {}";
+  private static final String UNKNOWN_VERSION = "Ignoring an MCV2 client report of version {} from {}.";
 
-  private static final String MALFORMED = "Ignoring a malformed MCV2 client report from {}";
+  private static final String MALFORMED = "Ignoring a malformed MCV2 client report from {}.";
 
-  private static final String REPORTED = "The MCV2 client mod of {} reports {}: MCV2 screens show them {}";
+  private static final String REPORTED = "The MCV2 client mod of {} reports {}: MCV2 screens show them {}.";
 
   private static final String DITHERED_MAPS = "the dithered maps";
 
   private static final String VIDEO = "the video";
 
   private static final int REPORT_BYTES = 4;
+
+  private static final int IRIS_PRESENT_INDEX = 1;
+  private static final int SHADER_PACK_INDEX = 2;
+  private static final int DECODES_UNDER_SHADERS_INDEX = 3;
 
   private static final int NO_SHADER_PACK = 0;
 
@@ -83,22 +87,25 @@ final class Mcv2ShaderReports implements PluginMessageListener {
   @Override
   public synchronized void onPluginMessageReceived(final String channel, final Player player, final byte[] message) {
     final String name = player.getName();
-    if (message.length > MAX_BYTES) {
-      LOGGER.debug(TOO_LONG, message.length, name, MAX_BYTES);
+    if (message.length > MAXIMUM_BYTES) {
+      LOGGER.debug(TOO_LONG, message.length, name, MAXIMUM_BYTES);
       return;
     }
+
     final UUID viewerId = player.getUniqueId();
     if (!this.admit(viewerId)) {
       LOGGER.debug(TOO_OFTEN, name);
       return;
     }
+
     final Report report = parse(message, name);
     if (report == null) {
       return;
     }
+
     final Report before = this.reports.put(viewerId, report);
     if (!Objects.equals(before, report)) {
-      LOGGER.info(REPORTED, name, report.describe(), report.blocksDecoding() ? DITHERED_MAPS : VIDEO);
+      LOGGER.debug(REPORTED, name, report.describe(), report.blocksDecoding() ? DITHERED_MAPS : VIDEO);
     }
   }
 
@@ -109,7 +116,9 @@ final class Mcv2ShaderReports implements PluginMessageListener {
     if (next - now > BURST_NANOSECONDS) {
       return false;
     }
+
     this.allowances.put(player, next + INTERVAL_NANOSECONDS);
+
     return true;
   }
 
@@ -118,18 +127,27 @@ final class Mcv2ShaderReports implements PluginMessageListener {
       LOGGER.debug(UNKNOWN_VERSION, message[0], name);
       return null;
     }
-    if (message.length != REPORT_BYTES || !isFlag(message[1]) || !isFlag(message[3]) || !isShaderPack(message[2], message[1] == 1)) {
+
+    if (
+      message.length != REPORT_BYTES ||
+      !isFlag(message[IRIS_PRESENT_INDEX]) ||
+      !isFlag(message[DECODES_UNDER_SHADERS_INDEX]) ||
+      !hasValidShaderPack(message)
+    ) {
       LOGGER.debug(MALFORMED, name);
       return null;
     }
-    return new Report(message[1] == 1, message[2], message[3] == 1);
+
+    return new Report(message[IRIS_PRESENT_INDEX] == 1, message[SHADER_PACK_INDEX], message[DECODES_UNDER_SHADERS_INDEX] == 1);
   }
 
   private static boolean isFlag(final byte value) {
     return value == 0 || value == 1;
   }
 
-  private static boolean isShaderPack(final byte value, final boolean irisPresent) {
+  private static boolean hasValidShaderPack(final byte[] message) {
+    final byte value = message[SHADER_PACK_INDEX];
+    final boolean irisPresent = message[IRIS_PRESENT_INDEX] == 1;
     return value == NO_SHADER_PACK || (irisPresent && (value == SHADER_PACK_IN_USE || value == SHADER_PACK_UNKNOWN));
   }
 
@@ -156,6 +174,7 @@ final class Mcv2ShaderReports implements PluginMessageListener {
       if (!this.irisPresent) {
         return "no Iris";
       }
+
       return switch (this.shaderPack) {
         case NO_SHADER_PACK -> "Iris without a shader pack";
         case SHADER_PACK_IN_USE -> this.decodesUnderShaders

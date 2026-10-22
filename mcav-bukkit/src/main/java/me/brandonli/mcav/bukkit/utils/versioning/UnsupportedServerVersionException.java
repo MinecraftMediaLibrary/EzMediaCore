@@ -18,20 +18,26 @@
 package me.brandonli.mcav.bukkit.utils.versioning;
 
 import java.io.Serial;
+import me.brandonli.mcav.bukkit.BukkitException;
 
 /**
  * Thrown when the Bukkit module is loaded on a Minecraft version it does not support. See
  * {@link ServerEnvironment#SUPPORTED_MINECRAFT_VERSION} for the supported version.
  *
- * <p>The exception is unchecked and an {@link IllegalStateException}, so plugins can catch it together with other
- * exceptions to disable themselves cleanly.
+ * <p>Plugins catch it to disable themselves cleanly.
+ *
+ * @since 1.0.0
  */
-public class UnsupportedServerVersionException extends IllegalStateException {
+public final class UnsupportedServerVersionException extends BukkitException {
 
   @Serial
   private static final long serialVersionUID = -2349087124389011253L;
 
   UnsupportedServerVersionException(final String message) {
     super(message);
+  }
+
+  UnsupportedServerVersionException(final String message, final Throwable cause) {
+    super(message, cause);
   }
 }

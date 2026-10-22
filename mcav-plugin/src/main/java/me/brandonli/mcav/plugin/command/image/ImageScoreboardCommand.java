@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.ScoreboardConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ScoreboardConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.image.DisplayableImage;
 import me.brandonli.mcav.plugin.MCAVSandbox;
 import me.brandonli.mcav.plugin.command.ScoreboardArguments;
@@ -41,7 +42,7 @@ import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
 
 /**
  * {@code /mcav image scoreboard}: shows an image to the selected players. The height of the resolution is the
- * number of lines, at most {@value ScoreboardConfiguration#MAX_LINES}.
+ * number of lines, at most {@value ScoreboardConfiguration#MAXIMUM_LINES}.
  */
 public final class ImageScoreboardCommand extends AbstractImageCommand {
 
@@ -63,7 +64,7 @@ public final class ImageScoreboardCommand extends AbstractImageCommand {
    * is shown at a time; a new image command replaces the current image, whatever its type.
    *
    * <p>Requires the permission {@code mcav.command.image.scoreboard}; players and the console can run it. A height
-   * above {@value ScoreboardConfiguration#MAX_LINES} lines is rejected with an error message before anything loads.
+   * above {@value ScoreboardConfiguration#MAXIMUM_LINES} lines is rejected with an error message before anything loads.
    * Otherwise the sender is told "Loading image..." while the image downloads or loads from disk in the background,
    * and "Image loaded!" once it is shown. An invalid resolution, a source that cannot be found or loaded, or an
    * animated GIF is reported with an error message instead.
@@ -72,7 +73,7 @@ public final class ImageScoreboardCommand extends AbstractImageCommand {
    * @param playerSelector  the players whose sidebar shows the image, such as a player name or {@code @a}; only
    *                        those online when the image appears see it
    * @param imageResolution the size as {@code <width>x<height>}, in characters per line and lines, such as
-   *                        {@code 24x15}; the height is at most {@value ScoreboardConfiguration#MAX_LINES}
+   *                        {@code 24x15}; the height is at most {@value ScoreboardConfiguration#MAXIMUM_LINES}
    * @param character       the character every pixel is drawn with, in quotes if it is not a single word; a full
    *                        block {@code █} gives the most solid picture
    * @param mrl             the image to show: a path to a file on the server or an {@code http} or {@code https}
@@ -129,7 +130,7 @@ public final class ImageScoreboardCommand extends AbstractImageCommand {
   ) {
     final int width = resolution.getFirst();
     final int height = resolution.getSecond();
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
     builder.viewers(players);
     builder.width(width);
     builder.lines(height);

@@ -38,14 +38,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the handler mcav puts in front of Minecraft on its own port. Its bytes come from anyone who can open a TCP
- * connection, before any Minecraft handshake, and arrive split into reads wherever the network splits them. Whatever the
- * bytes and the splits: a request for the pack of this handler is answered and nothing of it reaches Minecraft; the
- * start of such a request waits for more; everything else reaches Minecraft byte for byte, in order; and no buffer is
- * leaked. The first byte of an input is the number of splits, the next bytes are where they fall, and the rest is what
- * the connection sends. The seeds are a real handshake of a client, real pack downloads, and their prefixes.
- */
 @Tag("fuzz")
 final class ResourcePackHttpHandlerFuzzTest {
 
@@ -53,13 +45,15 @@ final class ResourcePackHttpHandlerFuzzTest {
   private static final String REQUEST_PATH = "/pack/0123456789abcdef.zip";
   private static final byte[] GET_PREFIX = ("GET " + REQUEST_PATH + " ").getBytes(StandardCharsets.US_ASCII);
   private static final byte[] HEAD_PREFIX = ("HEAD " + REQUEST_PATH + " ").getBytes(StandardCharsets.US_ASCII);
-  private static final int MAX_SPLITS = 8;
+  private static final int MAXIMUM_SPLITS = 8;
   private static final Path PACK_FILE = writePack();
+
+  private static final String PACK_FILE_NAME = "pack.zip";
 
   private static Path writePack() {
     try {
       final Path directory = Files.createTempDirectory("mcav-pack-fuzz");
-      final Path pack = directory.resolve("pack.zip");
+      final Path pack = directory.resolve(PACK_FILE_NAME);
       Files.write(pack, PACK);
       pack.toFile().deleteOnExit();
       directory.toFile().deleteOnExit();
@@ -70,8 +64,8 @@ final class ResourcePackHttpHandlerFuzzTest {
   }
 
   @FuzzTest(maxDuration = "30s")
-  void answersItsRequestsAndPassesEverythingElseOnUnchanged(final byte[] input) {
-    final List<byte[]> reads = splitIntoReads(input);
+  void shouldAnswerItsRequestsAndPassEverythingElseOnUnchanged(final byte[] input) {
+    final List<byte[]> reads = this.splitIntoReads(input);
     final byte[] stream = join(reads);
     final ResourcePackFile file = new ResourcePackFile(PACK_FILE);
     final ResourcePackHttpHandler handler = new ResourcePackHttpHandler(file, REQUEST_PATH);
@@ -92,57 +86,70 @@ final class ResourcePackHttpHandlerFuzzTest {
       final ByteBuf buffer = Unpooled.copiedBuffer(read);
       written.add(buffer);
       channel.writeInbound(buffer);
-      drain(channel, forwarded, answered);
+      this.drain(channel, forwarded, answered);
     }
+
     channel.finishAndReleaseAll();
 
-    assertBehaviour(stream, forwarded.toByteArray(), answered.toByteArray());
+    this.assertBehaviour(stream, forwarded.toByteArray(), answered.toByteArray());
+
     for (final ByteBuf buffer : written) {
       final int references = buffer.refCnt();
       assertEquals(0, references, "a buffer the connection sent was never released");
     }
   }
 
-  private static void assertBehaviour(final byte[] stream, final byte[] forwarded, final byte[] answered) {
-    final boolean isGetRequest = startsWith(stream, GET_PREFIX);
-    final boolean isHeadRequest = startsWith(stream, HEAD_PREFIX);
-    final boolean waiting = isProperPrefix(stream, GET_PREFIX) || isProperPrefix(stream, HEAD_PREFIX);
+  private void assertBehaviour(final byte[] stream, final byte[] forwarded, final byte[] answered) {
+    final boolean isGetRequest = this.startsWith(stream, GET_PREFIX);
+    final boolean isHeadRequest = this.startsWith(stream, HEAD_PREFIX);
+    final boolean waiting = this.isProperPrefix(stream, GET_PREFIX) || this.isProperPrefix(stream, HEAD_PREFIX);
     if (isGetRequest || isHeadRequest) {
-      assertEquals(0, forwarded.length, "nothing of a pack request reaches Minecraft");
+      final int forwardedLength = forwarded.length;
+      assertEquals(0, forwardedLength, "nothing of a pack request reaches Minecraft");
+
       final String response = new String(answered, StandardCharsets.US_ASCII);
-      assertTrue(response.startsWith("HTTP/1.1 200 OK\r\n"), () -> "a pack request is answered: " + response);
+      final boolean answeredWithSuccess = response.startsWith("HTTP/1.1 200 OK\r\n");
+      assertTrue(answeredWithSuccess, () -> "a pack request is answered: " + response);
+
       final byte[] tail = Arrays.copyOfRange(answered, Math.max(0, answered.length - PACK.length), answered.length);
       if (isGetRequest) {
         assertArrayEquals(PACK, tail, "a GET request receives the pack");
       } else {
         final int headerEnd = response.indexOf("\r\n\r\n");
-        assertTrue(headerEnd >= 0, "HEAD has complete response headers");
-        assertEquals(headerEnd + 4, answered.length, "HEAD has no response body");
+        final boolean hasCompleteHeaders = headerEnd >= 0;
+        assertTrue(hasCompleteHeaders, "HEAD has complete response headers");
+
+        final int expectedLength = headerEnd + 4;
+        final int answeredLength = answered.length;
+        assertEquals(expectedLength, answeredLength, "HEAD has no response body");
+
         final String headers = response.substring(0, headerEnd);
-        assertEquals(
-          1L,
-          headers
-            .lines()
-            .filter(line -> line.equals("Content-Length: " + PACK.length))
-            .count(),
-          headers
-        );
+        final long contentLengthCount = headers
+          .lines()
+          .filter(line -> line.equals("Content-Length: " + PACK.length))
+          .count();
+        assertEquals(1L, contentLengthCount, headers);
       }
+
       return;
     }
+
     if (waiting) {
-      assertEquals(0, forwarded.length, "the start of a pack request waits for the rest");
-      assertEquals(0, answered.length, "the start of a pack request is not answered yet");
+      final int forwardedLength = forwarded.length;
+      assertEquals(0, forwardedLength, "the start of a pack request waits for the rest");
+
+      final int answeredLength = answered.length;
+      assertEquals(0, answeredLength, "the start of a pack request is not answered yet");
+
       return;
     }
-    assertEquals(0, answered.length, "only a request for the pack is answered");
+
+    final int answeredLength = answered.length;
+    assertEquals(0, answeredLength, "only a request for the pack is answered");
     assertArrayEquals(stream, forwarded, "everything else reaches Minecraft byte for byte");
   }
 
-  /**
-   * Moves what the handler passed on and what it answered out of the channel, releasing the buffers.
-   */
-  private static void drain(final EmbeddedChannel channel, final ByteArrayOutputStream forwarded, final ByteArrayOutputStream answered) {
+  private void drain(final EmbeddedChannel channel, final ByteArrayOutputStream forwarded, final ByteArrayOutputStream answered) {
     Object inbound = channel.readInbound();
     while (inbound != null) {
       final ByteBuf buffer = (ByteBuf) inbound;
@@ -151,6 +158,7 @@ final class ResourcePackHttpHandlerFuzzTest {
       buffer.release();
       inbound = channel.readInbound();
     }
+
     Object outbound = channel.readOutbound();
     while (outbound != null) {
       final ByteBuf buffer = (ByteBuf) outbound;
@@ -161,17 +169,19 @@ final class ResourcePackHttpHandlerFuzzTest {
     }
   }
 
-  private static List<byte[]> splitIntoReads(final byte[] input) {
+  private List<byte[]> splitIntoReads(final byte[] input) {
     if (input.length == 0) {
       return List.of();
     }
-    final int splits = Math.min((input[0] & 0xFF) % (MAX_SPLITS + 1), input.length - 1);
+
+    final int splits = Math.min((input[0] & 0xFF) % (MAXIMUM_SPLITS + 1), input.length - 1);
     final int start = 1 + splits;
     final byte[] stream = Arrays.copyOfRange(input, start, input.length);
     final int[] cuts = new int[splits];
     for (int index = 0; index < splits; index++) {
       cuts[index] = stream.length == 0 ? 0 : (input[1 + index] & 0xFF) % (stream.length + 1);
     }
+
     Arrays.sort(cuts);
     final List<byte[]> reads = new ArrayList<>();
     int from = 0;
@@ -179,6 +189,7 @@ final class ResourcePackHttpHandlerFuzzTest {
       reads.add(Arrays.copyOfRange(stream, from, cut));
       from = cut;
     }
+
     reads.add(Arrays.copyOfRange(stream, from, stream.length));
     return reads;
   }
@@ -188,21 +199,24 @@ final class ResourcePackHttpHandlerFuzzTest {
     for (final byte[] read : reads) {
       joined.writeBytes(read);
     }
+
     return joined.toByteArray();
   }
 
-  private static boolean startsWith(final byte[] stream, final byte[] prefix) {
+  private boolean startsWith(final byte[] stream, final byte[] prefix) {
     if (stream.length < prefix.length) {
       return false;
     }
+
     final byte[] start = Arrays.copyOf(stream, prefix.length);
     return Arrays.equals(start, prefix);
   }
 
-  private static boolean isProperPrefix(final byte[] stream, final byte[] prefix) {
+  private boolean isProperPrefix(final byte[] stream, final byte[] prefix) {
     if (stream.length >= prefix.length) {
       return false;
     }
+
     final byte[] start = Arrays.copyOf(prefix, stream.length);
     return Arrays.equals(start, stream);
   }

@@ -47,9 +47,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link BukkitModule}.
- */
 final class BukkitModuleTest {
 
   private static final UUID PLAYER = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -80,7 +77,7 @@ final class BukkitModuleTest {
   }
 
   @Test
-  void injectingThePluginRegistersListenersAndCachesOnlinePlayers() {
+  void shouldRegisterListenersAndCacheOnlinePlayersWhenInjectingThePlugin() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     module.inject(plugin);
@@ -88,31 +85,33 @@ final class BukkitModuleTest {
     final boolean connected = PacketUtils.isConnected(PLAYER);
     assertSame(plugin, injected);
     assertTrue(connected);
+
     this.verifyConnectionTrackingRegistered(1);
   }
 
   @Test
-  void failsDuringInjectionWhenPaletteWarmupCannotComplete() {
+  void shouldFailDuringInjectionWhenPaletteWarmupCannotComplete() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
-    final IllegalStateException unavailable = new IllegalStateException("palette unavailable");
+    final IllegalStateException unavailable = new IllegalStateException("Palette unavailable!");
     try (final MockedStatic<BlockPaletteLookup> lookup = Mockito.mockStatic(BlockPaletteLookup.class)) {
-      lookup.when(BlockPaletteLookup::init).thenThrow(unavailable);
+      lookup.when(BlockPaletteLookup::initialize).thenThrow(unavailable);
       final IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> module.inject(plugin));
       assertSame(unavailable, thrown);
     }
+
     final PluginManager manager = this.server.getPluginManager();
     verifyNoInteractions(manager);
   }
 
   @Test
-  void rejectsMissingPlugins() {
+  void shouldRejectMissingPlugins() {
     final BukkitModule module = new BukkitModule();
     assertThrows(NullPointerException.class, () -> module.inject(null));
   }
 
   @Test
-  void refusesUnsupportedServersBeforeInjectingAnything() {
+  void shouldRefuseUnsupportedServersBeforeInjectingAnything() {
     final MockedStatic<Bukkit> bukkit = this.server.getBukkit();
     bukkit.when(Bukkit::getMinecraftVersion).thenReturn("1.20.1");
     final BukkitModule module = new BukkitModule();
@@ -120,18 +119,19 @@ final class BukkitModuleTest {
     final PluginManager pluginManager = this.server.getPluginManager();
     assertThrows(UnsupportedServerVersionException.class, () -> module.inject(plugin));
     assertThrows(IllegalStateException.class, BukkitModule::getPlugin);
+
     verifyNoInteractions(pluginManager);
   }
 
   @Test
-  void failsToProvideThePluginBeforeItWasInjected() {
+  void shouldFailToProvideThePluginBeforeItWasInjected() {
     final IllegalStateException exception = assertThrows(IllegalStateException.class, BukkitModule::getPlugin);
     final String message = exception.getMessage();
-    assertEquals("No plugin has been injected, call BukkitModule#inject(Plugin) first", message);
+    assertEquals("No plugin has been injected, call BukkitModule#inject(Plugin) first!", message);
   }
 
   @Test
-  void startingAgainAfterStoppingRegistersTheListenersAgain() {
+  void shouldRegisterTheListenersAgainWhenStartingAgainAfterStopping() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     module.inject(plugin);
@@ -141,11 +141,12 @@ final class BukkitModuleTest {
     final boolean connectedAfterRestart = PacketUtils.isConnected(PLAYER);
     assertFalse(connectedWhileStopped);
     assertTrue(connectedAfterRestart, "a restarted module can send packets again");
+
     this.verifyConnectionTrackingRegistered(2);
   }
 
   @Test
-  void startingWhileThePluginIsDisabledDoesNothing() {
+  void shouldDoNothingWhenStartingWhileThePluginIsDisabled() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     module.inject(plugin);
@@ -154,22 +155,24 @@ final class BukkitModuleTest {
     module.start();
     final boolean connected = PacketUtils.isConnected(PLAYER);
     assertFalse(connected);
+
     this.verifyConnectionTrackingRegistered(1);
   }
 
   @Test
-  void startingBeforeThePluginIsInjectedDoesNothing() {
+  void shouldDoNothingWhenStartingBeforeThePluginIsInjected() {
     final BukkitModule module = new BukkitModule();
     final PluginManager pluginManager = this.server.getPluginManager();
     module.start();
     final String name = module.getModuleName();
     assertEquals("bukkit", name);
+
     verifyNoInteractions(pluginManager);
     assertThrows(IllegalStateException.class, BukkitModule::getPlugin);
   }
 
   @Test
-  void stoppingClearsTheConnectionsButKeepsThePlugin() {
+  void shouldClearTheConnectionsButKeepThePluginWhenStopping() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     module.inject(plugin);
@@ -181,7 +184,7 @@ final class BukkitModuleTest {
   }
 
   @Test
-  void stoppingWithoutAPluginDoesNothing() {
+  void shouldDoNothingWhenStoppingWithoutAPlugin() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     module.inject(plugin);

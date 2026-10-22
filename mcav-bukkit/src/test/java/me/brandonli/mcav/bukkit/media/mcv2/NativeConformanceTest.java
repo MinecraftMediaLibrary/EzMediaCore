@@ -28,20 +28,27 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.Frame;
 import me.brandonli.mcav.bukkit.media.mcv2.NativeTesting.NativeKernels;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/** Native encoders reproduce the Java bytes on every fixture at every level this processor runs. */
 final class NativeConformanceTest {
 
   private static final int WIDTH = 320;
 
   private static final int HEIGHT = 180;
+
+  private static final String CROP_SOURCE_PATH = "encoder/crop-320x180x4.rgb";
+  private static final String CROP_DEFAULT_STREAM = "crop-default.mcs";
+  private static final String CROP_FAST_STREAM = "crop-fast.mcs";
+
+  private static final String ENCODER_FOLDER = "encoder/";
+  private static final String EDGE_FOLDER = "edge/";
+  private static final String CONFORMANCE_FOLDER = "conformance/";
 
   private static Stream<Arguments> levels() {
     return NativeTesting.levels().stream().map(Arguments::of);
@@ -62,98 +69,140 @@ final class NativeConformanceTest {
         arguments.add(Arguments.of(level, stream));
       }
     }
+
     return arguments.stream();
   }
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("levels")
-  void keepsNoFrameOnceItIsEncoded(final Level level) {
+  void shouldKeepNoFrameOnceItIsEncoded(final Level level) {
     final Supplier<?> factory = NativeTesting.factory(level);
     final List<NativeKernels> made = new CopyOnWriteArrayList<>();
-    final MCV2 encoder = NativeTesting.encoder(Settings.DEFAULT, 2, false, () -> {
+    final Mcv2 encoder = NativeTesting.encoder(Settings.DEFAULT, 2, Mcv2.Verification.UNVERIFIED, () -> {
       final Object kernels = factory.get();
       made.add(NativeTesting.view(kernels));
       return kernels;
     });
-    final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");
+    final byte[] source = Mcv2Fixtures.read(CROP_SOURCE_PATH);
     final int frameBytes = WIDTH * HEIGHT * 3;
     for (int frameIndex = 0; frameIndex < 2; frameIndex++) {
       final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
       encoder.encode(rgb, WIDTH, HEIGHT, frameIndex);
-      assertFalse(made.isEmpty());
-      assertTrue(made.stream().noneMatch(kernels -> kernels.keeps(rgb)), "frame " + frameIndex);
+      final boolean noneMade = made.isEmpty();
+      assertFalse(noneMade);
+      final boolean keepsNoFrame = made.stream().noneMatch(kernels -> kernels.keeps(rgb));
+      assertTrue(keepsNoFrame, "frame " + frameIndex);
     }
   }
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("levels")
-  void encodesEverySourceFixtureAsJavaDoes(final Level level) {
-    final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");
+  void shouldEncodeEverySourceFixtureAsJavaDoes(final Level level) {
+    final byte[] source = Mcv2Fixtures.read(CROP_SOURCE_PATH);
     final int frameBytes = WIDTH * HEIGHT * 3;
-    assertEquals(4 * frameBytes, source.length);
+    final int expectedLength = 4 * frameBytes;
+    final int sourceLength = source.length;
+    assertEquals(expectedLength, sourceLength);
+
     for (final Settings settings : List.of(Settings.DEFAULT, Settings.FAST)) {
       for (int threads = 1; threads <= 4; threads++) {
-        final MCV2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());
-        final MCV2 other = NativeTesting.encoder(settings, threads, true, NativeTesting.factory(level));
-        for (int frameIndex = 0; frameIndex < 4; frameIndex++) {
-          final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
-          final String context = settings + " frame " + frameIndex + " threads " + threads + " level " + level;
-          assertArrayEquals(java.encode(rgb, WIDTH, HEIGHT, frameIndex), other.encode(rgb, WIDTH, HEIGHT, frameIndex), context);
-          assertArrayEquals(java.getReference(), other.getReference(), context);
-        }
+        this.assertEncodesAsJava(level, settings, threads, source);
       }
+    }
+  }
+
+  private void assertEncodesAsJava(final Level level, final Settings settings, final int threads, final byte[] source) {
+    final int frameBytes = WIDTH * HEIGHT * 3;
+    final Mcv2 java = NativeTesting.encoder(settings, threads, Mcv2.Verification.VERIFIED, NativeTesting.javaFactory());
+    final Mcv2 other = NativeTesting.encoder(settings, threads, Mcv2.Verification.VERIFIED, NativeTesting.factory(level));
+    for (int frameIndex = 0; frameIndex < 4; frameIndex++) {
+      final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
+      final String context = settings + " frame " + frameIndex + " threads " + threads + " level " + level;
+      final byte[] expectedEncoded = java.encode(rgb, WIDTH, HEIGHT, frameIndex);
+      final byte[] encoded = other.encode(rgb, WIDTH, HEIGHT, frameIndex);
+      assertArrayEquals(expectedEncoded, encoded, context);
+
+      final byte[] expectedReference = java.getReference().orElseThrow();
+      final byte[] reference = other.getReference().orElseThrow();
+      assertArrayEquals(expectedReference, reference, context);
     }
   }
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("levels")
-  void pinsTheOutputOfTheLiveProfiles(final Level level) {
-    final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");
+  void shouldPinTheOutputOfTheLiveProfiles(final Level level) {
+    final byte[] source = Mcv2Fixtures.read(CROP_SOURCE_PATH);
     final int frameBytes = WIDTH * HEIGHT * 3;
-    for (final String stream : List.of("crop-default.mcs", "crop-fast.mcs")) {
-      final Settings settings = stream.equals("crop-default.mcs") ? Settings.DEFAULT : Settings.FAST;
-      final List<byte[]> expected = Mcv2Fixtures.frames(Mcv2Fixtures.read("encoder/" + stream));
-      assertEquals(expected.size() * frameBytes, source.length);
+    for (final String stream : List.of(CROP_DEFAULT_STREAM, CROP_FAST_STREAM)) {
+      final Settings settings = stream.equals(CROP_DEFAULT_STREAM) ? Settings.DEFAULT : Settings.FAST;
+      final List<byte[]> expected = Mcv2Fixtures.frames(Mcv2Fixtures.read(ENCODER_FOLDER + stream));
+      final int expectedLength = expected.size() * frameBytes;
+      final int sourceLength = source.length;
+      assertEquals(expectedLength, sourceLength);
       for (int threads = 1; threads <= 4; threads++) {
-        final MCV2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());
-        final MCV2 other = NativeTesting.encoder(settings, threads, true, NativeTesting.factory(level));
-        for (int frameIndex = 0; frameIndex < expected.size(); frameIndex++) {
-          final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
-          final String context = stream + " frame " + frameIndex + " threads " + threads + " level " + level;
-          assertArrayEquals(expected.get(frameIndex), java.encode(rgb, WIDTH, HEIGHT, frameIndex), context);
-          assertArrayEquals(expected.get(frameIndex), other.encode(rgb, WIDTH, HEIGHT, frameIndex), context);
-          assertArrayEquals(java.getReference(), other.getReference(), context);
-        }
+        this.assertPinnedOutput(level, settings, threads, source, stream, expected);
       }
+    }
+  }
+
+  private void assertPinnedOutput(
+    final Level level,
+    final Settings settings,
+    final int threads,
+    final byte[] source,
+    final String stream,
+    final List<byte[]> expected
+  ) {
+    final int frameBytes = WIDTH * HEIGHT * 3;
+    final Mcv2 java = NativeTesting.encoder(settings, threads, Mcv2.Verification.VERIFIED, NativeTesting.javaFactory());
+    final Mcv2 other = NativeTesting.encoder(settings, threads, Mcv2.Verification.VERIFIED, NativeTesting.factory(level));
+    for (int frameIndex = 0; frameIndex < expected.size(); frameIndex++) {
+      final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
+      final String context = stream + " frame " + frameIndex + " threads " + threads + " level " + level;
+      final byte[] expectedFrame = expected.get(frameIndex);
+      final byte[] javaEncoded = java.encode(rgb, WIDTH, HEIGHT, frameIndex);
+      assertArrayEquals(expectedFrame, javaEncoded, context);
+
+      final byte[] expectedFrameForOther = expected.get(frameIndex);
+      final byte[] otherEncoded = other.encode(rgb, WIDTH, HEIGHT, frameIndex);
+      assertArrayEquals(expectedFrameForOther, otherEncoded, context);
+
+      final byte[] expectedReference = java.getReference().orElseThrow();
+      final byte[] reference = other.getReference().orElseThrow();
+      assertArrayEquals(expectedReference, reference, context);
     }
   }
 
   @ParameterizedTest(name = "{0} {1}")
   @MethodSource("levelsAndStreams")
-  void reencodesTheEdgeCorpusAsJavaDoes(final Level level, final String stream) throws Mcv2Exception {
-    reencode(level, "edge/" + stream);
+  void shouldReencodeTheEdgeCorpusAsJavaDoes(final Level level, final String stream) {
+    this.reencode(level, EDGE_FOLDER + stream);
   }
 
   @ParameterizedTest(name = "{0} {1}")
   @MethodSource("levelsAndConformanceStreams")
-  void reencodesTheConformanceCorpusAsJavaDoes(final Level level, final String stream) throws Mcv2Exception {
-    reencode(level, "conformance/" + stream);
+  void shouldReencodeTheConformanceCorpusAsJavaDoes(final Level level, final String stream) {
+    this.reencode(level, CONFORMANCE_FOLDER + stream);
   }
 
-  private static void reencode(final Level level, final String stream) throws Mcv2Exception {
+  private void reencode(final Level level, final String stream) {
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(stream));
     for (final Settings settings : List.of(Settings.DEFAULT, Settings.FAST)) {
       final Mcv2Receiver receiver = new Mcv2Receiver();
-      final MCV2 java = NativeTesting.encoder(settings, 2, true, NativeTesting.javaFactory());
-      final MCV2 other = NativeTesting.encoder(settings, 3, true, NativeTesting.factory(level));
+      final Mcv2 java = NativeTesting.encoder(settings, 2, Mcv2.Verification.VERIFIED, NativeTesting.javaFactory());
+      final Mcv2 other = NativeTesting.encoder(settings, 3, Mcv2.Verification.VERIFIED, NativeTesting.factory(level));
       for (int frameIndex = 0; frameIndex < frames.size(); frameIndex++) {
         final Frame frame = Mcv2Decoder.parse(frames.get(frameIndex));
         final byte[] picture = receiver.accept(frames.get(frameIndex));
         final int width = frame.getWidth();
         final int height = frame.getHeight();
         final String context = stream + " frame " + frameIndex + " settings " + settings;
-        assertArrayEquals(java.encode(picture, width, height, frameIndex), other.encode(picture, width, height, frameIndex), context);
-        assertArrayEquals(java.getReference(), other.getReference(), context);
+        final byte[] expectedEncoded = java.encode(picture, width, height, frameIndex);
+        final byte[] encoded = other.encode(picture, width, height, frameIndex);
+        assertArrayEquals(expectedEncoded, encoded, context);
+        final byte[] expectedReference = java.getReference().orElseThrow();
+        final byte[] reference = other.getReference().orElseThrow();
+        assertArrayEquals(expectedReference, reference, context);
       }
     }
   }

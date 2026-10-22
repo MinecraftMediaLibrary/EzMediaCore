@@ -38,14 +38,21 @@ final class NettyHostingLocaleTest {
 
   private static final int PORT = 25673;
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+
+  private static final String DOWNLOAD_PATH_PATTERN = "/mcav/resourcepack_[0-9]+\\.zip";
+
   @ParameterizedTest
   @ValueSource(strings = { "ar-EG", "fa-IR", "bn-BD" })
-  void listenerKeysRemainValidInEveryFormattingLocale(final String languageTag) {
+  void shouldKeepListenerKeysValidInEveryFormattingLocale(final String languageTag) {
     final Locale previous = Locale.getDefault(Locale.Category.FORMAT);
     try {
       Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag(languageTag));
-      final NettyHosting hosting = assertDoesNotThrow(() -> new NettyHosting(Path.of("pack.zip")), "listener keys must use ASCII digits");
-      assertDownloadAddress(hosting);
+      final NettyHosting hosting = assertDoesNotThrow(
+        () -> new NettyHosting(Path.of(PACK_FILE_NAME)),
+        "listener keys must use ASCII digits"
+      );
+      this.assertDownloadAddress(hosting);
     } finally {
       Locale.setDefault(Locale.Category.FORMAT, previous);
     }
@@ -53,29 +60,33 @@ final class NettyHostingLocaleTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "ar-EG", "fa-IR", "bn-BD" })
-  void downloadPortsRemainAsciiAfterTheFormattingLocaleChanges(final String languageTag) {
+  void shouldKeepDownloadPortsAsciiAfterTheFormattingLocaleChanges(final String languageTag) {
     final Locale previous = Locale.getDefault(Locale.Category.FORMAT);
     try {
       Locale.setDefault(Locale.Category.FORMAT, Locale.ROOT);
-      final NettyHosting hosting = new NettyHosting(Path.of("pack.zip"));
+      final NettyHosting hosting = new NettyHosting(Path.of(PACK_FILE_NAME));
       Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag(languageTag));
-      assertDownloadAddress(hosting);
+      this.assertDownloadAddress(hosting);
     } finally {
       Locale.setDefault(Locale.Category.FORMAT, previous);
     }
   }
 
-  private static void assertDownloadAddress(final NettyHosting hosting) {
+  private void assertDownloadAddress(final NettyHosting hosting) {
     try (
       final MockedStatic<Bukkit> server = Mockito.mockStatic(Bukkit.class);
       final MockedStatic<ServerAddress> address = Mockito.mockStatic(ServerAddress.class)
     ) {
       server.when(Bukkit::getPort).thenReturn(PORT);
-      address.when(ServerAddress::getPublicIPAddress).thenReturn("127.0.0.1");
+      address.when(ServerAddress::getPublicIpAddress).thenReturn("127.0.0.1");
       final URI uri = URI.create(hosting.getRawUrl());
-      assertEquals(PORT, uri.getPort(), "resource-pack URLs must keep a parseable ASCII port");
-      assertEquals("127.0.0.1", uri.getHost());
-      assertTrue(uri.getRawPath().matches("/mcav/resourcepack_[0-9]+\\.zip"));
+
+      final int port = uri.getPort();
+      assertEquals(PORT, port, "resource-pack URLs must keep a parseable ASCII port");
+      final String host = uri.getHost();
+      assertEquals("127.0.0.1", host);
+      final boolean packPath = uri.getRawPath().matches(DOWNLOAD_PATH_PATTERN);
+      assertTrue(packPath);
     }
   }
 }

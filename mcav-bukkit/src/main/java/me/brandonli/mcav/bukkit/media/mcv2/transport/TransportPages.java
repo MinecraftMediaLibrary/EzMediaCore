@@ -40,21 +40,46 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
  *
  * <p>Conversion methods allocate independent arrays and do not retain caller buffers. Static operations can
  * run concurrently when inputs are not mutated. Assembly state belongs to a separate {@link PageAssembler}.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class TransportPages {
 
+  private static final String SYMBOLS_NULL_MESSAGE = "Symbols must not be null!";
+  private static final String FRAME_NULL_MESSAGE = "Frame must not be null!";
+  private static final String STREAM_ID_RANGE_MESSAGE = "Stream id must be an unsigned 32-bit value!";
+  private static final String PAGES_NULL_MESSAGE = "Pages must not be null!";
+
   static final int MAP_SIDE = 128;
 
-  /** Symbols of one page: a full 128x128 map. */
+  /**
+   * Symbols of one page: a full 128x128 map.
+   *
+   * @since 1.0.0
+   */
   public static final int PAGE_SYMBOLS = MAP_SIDE * MAP_SIDE;
 
-  /** Logical bytes of the page header. */
+  /**
+   * Logical bytes of the page header.
+   *
+   * @since 1.0.0
+   */
   public static final int HEADER_BYTES = 32;
 
-  /** The page magic, {@code MCP1}. */
+  /**
+   * The page magic, {@code MCP1}.
+   *
+   * @since 1.0.0
+   */
   public static final int MAGIC = 0x3150434D;
 
-  /** Bytes charged per map packet by the reference's wire model. */
+  /**
+   * Bytes charged per map packet by the reference's wire model.
+   *
+   * @since 1.0.0
+   */
   public static final int PACKET_OVERHEAD = 18;
 
   private static final int VERSION = 1;
@@ -82,7 +107,7 @@ public final class TransportPages {
   private static final int CRC_OFFSET = 28;
 
   private TransportPages() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   private static long symbolCount(final long bytes) {
@@ -90,20 +115,22 @@ public final class TransportPages {
   }
 
   /**
-   * The payload capacity of one page, after its header.
+   * Returns the payload capacity of one page, after its header.
    *
    * @return the capacity in logical bytes: 12,256
+   * @since 1.0.0
    */
   public static int capacity() {
     return (PAGE_SYMBOLS * SYMBOL_BITS) / Byte.SIZE - HEADER_BYTES;
   }
 
   /**
-   * The number of pages a frame of some length needs.
+   * Returns the number of pages a frame of some length needs.
    *
-   * @param frameBytes the nonnegative frame length in bytes, within {@link Mcv2Decoder#MAX_FRAME_BYTES};
+   * @param frameBytes the nonnegative frame length in bytes, within {@link Mcv2Decoder#MAXIMUM_FRAME_BYTES};
    *                   this helper does not validate the length
    * @return the page count
+   * @since 1.0.0
    */
   public static int pageCount(final int frameBytes) {
     final int capacity = capacity();
@@ -113,12 +140,14 @@ public final class TransportPages {
   /**
    * Packs bytes into symbols, least significant bit first, zero-filling the last symbol.
    *
-   * @param data       the bytes
+   * @param data the bytes
    * @return one symbol per byte of the result
    * @throws NullPointerException if {@code data} is null
+   * @since 1.0.0
    */
   public static byte[] toSymbols(final byte[] data) {
-    Preconditions.checkNotNull(data, "Data must not be null");
+    Preconditions.checkNotNull(data, "Data must not be null!");
+
     final byte[] symbols = new byte[(int) symbolCount(data.length)];
     long buffer = 0;
     int held = 0;
@@ -132,26 +161,31 @@ public final class TransportPages {
         held -= SYMBOL_BITS;
       }
     }
+
     if (held > 0) {
       symbols[written] = (byte) buffer;
     }
+
     return symbols;
   }
 
   /**
    * Unpacks symbols into bytes, rejecting symbols outside the alphabet, a wrong symbol count and nonzero padding.
    *
-   * @param symbols    the symbols, exactly {@code ceil(byteCount * 8 / SYMBOL_BITS)} of them
-   * @param byteCount  the number of bytes the symbols carry
+   * @param symbols   the symbols, exactly {@code ceil(byteCount * 8 / SYMBOL_BITS)} of them
+   * @param byteCount the number of bytes the symbols carry
    * @return the bytes
-   * @throws Mcv2Exception if the symbols do not carry exactly that many bytes with zero padding
+   * @throws Mcv2Exception        if the symbols do not carry exactly that many bytes with zero padding
    * @throws NullPointerException if {@code symbols} is null
+   * @since 1.0.0
    */
-  public static byte[] fromSymbols(final byte[] symbols, final int byteCount) throws Mcv2Exception {
-    Preconditions.checkNotNull(symbols, "Symbols must not be null");
+  public static byte[] fromSymbols(final byte[] symbols, final int byteCount) {
+    Preconditions.checkNotNull(symbols, SYMBOLS_NULL_MESSAGE);
+
     if (byteCount < 0 || symbols.length != symbolCount(byteCount)) {
-      throw new Mcv2Exception("Invalid symbol extent");
+      throw new Mcv2Exception("Invalid symbol extent!");
     }
+
     final byte[] data = new byte[byteCount];
     long buffer = 0;
     int held = 0;
@@ -159,7 +193,7 @@ public final class TransportPages {
     for (final byte symbol : symbols) {
       final int value = Byte.toUnsignedInt(symbol);
       if (value >= 1 << SYMBOL_BITS) {
-        throw new Mcv2Exception("Out-of-alphabet symbol");
+        throw new Mcv2Exception("Out-of-alphabet symbol!");
       }
       buffer |= (long) value << held;
       held += SYMBOL_BITS;
@@ -169,40 +203,46 @@ public final class TransportPages {
         held -= Byte.SIZE;
       }
     }
+
     if (buffer != 0) {
-      throw new Mcv2Exception("Nonzero symbol padding");
+      throw new Mcv2Exception("Nonzero symbol padding!");
     }
+
     return data;
   }
 
   /**
    * Splits a frame into pages. The frame is validated first, so only a valid frame can be sent.
    *
-   * @param frame      the frame bytes
-   * @param streamId   the unsigned 32-bit stream id
+   * @param frame    the frame bytes
+   * @param streamId the unsigned 32-bit stream id
    * @return the pages, each as its symbols
-   * @throws Mcv2Exception if the bytes are not a valid frame
+   * @throws Mcv2Exception            if the bytes are not a valid frame
    * @throws IllegalArgumentException if the stream id is outside unsigned 32-bit range
-   * @throws NullPointerException if {@code frame} is null
+   * @throws NullPointerException     if {@code frame} is null
+   * @since 1.0.0
    */
-  public static List<byte[]> makePages(final byte[] frame, final long streamId) throws Mcv2Exception {
-    Preconditions.checkNotNull(frame, "Frame must not be null");
-    Preconditions.checkArgument(streamId >= 0 && streamId <= Mcv2Decoder.MAX_U32, "Stream id must be an unsigned 32-bit value");
+  public static List<byte[]> makePages(final byte[] frame, final long streamId) {
+    Preconditions.checkNotNull(frame, FRAME_NULL_MESSAGE);
+    Preconditions.checkArgument(streamId >= 0 && streamId <= Mcv2Decoder.MAXIMUM_UNSIGNED_INT, STREAM_ID_RANGE_MESSAGE);
+
     return makePages(Mcv2Decoder.parse(frame), streamId);
   }
 
   /**
    * Splits an already validated frame into six-bit pages.
    *
-   * @param parsed immutable validated frame
+   * @param parsed   immutable validated frame
    * @param streamId unsigned 32-bit stream id
    * @return pages as symbols
-   * @throws NullPointerException if parsed is null
+   * @throws NullPointerException     if parsed is null
    * @throws IllegalArgumentException if streamId is outside the unsigned 32-bit range
+   * @since 1.0.0
    */
   public static List<byte[]> makePages(final Frame parsed, final long streamId) {
-    Preconditions.checkNotNull(parsed, "Frame must not be null");
-    Preconditions.checkArgument(streamId >= 0 && streamId <= Mcv2Decoder.MAX_U32, "Stream id must be an unsigned 32-bit value");
+    Preconditions.checkNotNull(parsed, FRAME_NULL_MESSAGE);
+    Preconditions.checkArgument(streamId >= 0 && streamId <= Mcv2Decoder.MAXIMUM_UNSIGNED_INT, STREAM_ID_RANGE_MESSAGE);
+
     final byte[] frame = parsed.getData();
     final int capacity = capacity();
     final int count = pageCount(frame.length);
@@ -227,33 +267,38 @@ public final class TransportPages {
       Mcv2Decoder.putU32(page, CRC_OFFSET, checksum.getValue());
       pages.add(toSymbols(page));
     }
+
     return pages;
   }
 
   /**
-   * The number of useful symbols of a page, derived from its header. A map carries whole rows, so the symbols after
-   * this count are padding and not part of the page.
+   * Returns the number of useful symbols of a page, derived from its header. A map carries whole rows, so the symbols
+   * after this count are padding and not part of the page.
    *
-   * @param symbols    at least the header's symbols
+   * @param symbols at least the header's symbols
    * @return the useful symbol count
-   * @throws Mcv2Exception if the header is truncated, malformed or inconsistent
+   * @throws Mcv2Exception        if the header is truncated, malformed or inconsistent
    * @throws NullPointerException if the symbol array is null
+   * @since 1.0.0
    */
-  public static int usefulSymbols(final byte[] symbols) throws Mcv2Exception {
+  public static int usefulSymbols(final byte[] symbols) {
     final byte[] header = readHeader(symbols);
     final int size = checkHeader(header);
     return (int) symbolCount(HEADER_BYTES + size);
   }
 
-  private static byte[] readHeader(final byte[] symbols) throws Mcv2Exception {
-    Preconditions.checkNotNull(symbols, "Symbols must not be null");
+  private static byte[] readHeader(final byte[] symbols) {
+    Preconditions.checkNotNull(symbols, SYMBOLS_NULL_MESSAGE);
+
     if (symbols.length > PAGE_SYMBOLS) {
-      throw new Mcv2Exception("Oversize map page");
+      throw new Mcv2Exception("Oversize map page!");
     }
+
     final int headerSymbols = (int) symbolCount(HEADER_BYTES);
     if (symbols.length < headerSymbols) {
-      throw new Mcv2Exception("Truncated page header");
+      throw new Mcv2Exception("Truncated page header!");
     }
+
     final byte[] header = new byte[HEADER_BYTES];
     long buffer = 0;
     int held = 0;
@@ -267,10 +312,11 @@ public final class TransportPages {
         held -= Byte.SIZE;
       }
     }
+
     return header;
   }
 
-  private static int checkHeader(final byte[] header) throws Mcv2Exception {
+  private static int checkHeader(final byte[] header) {
     final int capacity = capacity();
     if (
       Mcv2Decoder.u32(header, MAGIC_OFFSET) != MAGIC ||
@@ -278,19 +324,21 @@ public final class TransportPages {
       Byte.toUnsignedInt(header[SYMBOL_BITS_OFFSET]) != SYMBOL_BITS ||
       Mcv2Decoder.u16(header, TYPE_OFFSET) > 1
     ) {
-      throw new Mcv2Exception("Unsupported page header");
+      throw new Mcv2Exception("Unsupported page header!");
     }
+
     final long total = Mcv2Decoder.u32(header, LENGTH_OFFSET);
     final int number = Mcv2Decoder.u16(header, NUMBER_OFFSET);
     final int count = Mcv2Decoder.u16(header, COUNT_OFFSET);
     if (
       total < Mcv2Decoder.HEADER_BYTES ||
-      total > Mcv2Decoder.MAX_FRAME_BYTES ||
+      total > Mcv2Decoder.MAXIMUM_FRAME_BYTES ||
       count != (total + capacity - 1) / capacity ||
       number >= count
     ) {
-      throw new Mcv2Exception("Invalid page metadata");
+      throw new Mcv2Exception("Invalid page metadata!");
     }
+
     return (int) Math.min(capacity, total - (long) number * capacity);
   }
 
@@ -298,12 +346,13 @@ public final class TransportPages {
    * Validates a page before it is stored, exactly as the reference's {@code read_page}: the symbols must be exactly
    * the page's useful symbols, every symbol inside the alphabet, the padding zero and the CRC correct.
    *
-   * @param symbols    the page's useful symbols
+   * @param symbols the page's useful symbols
    * @return the page
-   * @throws Mcv2Exception if the page is malformed or its CRC does not match
+   * @throws Mcv2Exception        if the page is malformed or its CRC does not match
    * @throws NullPointerException if the symbol array is null
+   * @since 1.0.0
    */
-  public static TransportPage readPage(final byte[] symbols) throws Mcv2Exception {
+  public static TransportPage readPage(final byte[] symbols) {
     final byte[] header = readHeader(symbols);
     final int size = checkHeader(header);
     final byte[] pageBytes = fromSymbols(symbols, HEADER_BYTES + size);
@@ -311,9 +360,11 @@ public final class TransportPages {
     Mcv2Decoder.putU32(pageBytes, CRC_OFFSET, 0);
     final CRC32 checksum = new CRC32();
     checksum.update(pageBytes);
+
     if (checksum.getValue() != stored) {
-      throw new Mcv2Exception("Page CRC mismatch");
+      throw new Mcv2Exception("Page CRC mismatch!");
     }
+
     final byte[] payload = new byte[size];
     System.arraycopy(pageBytes, HEADER_BYTES, payload, 0, size);
     return new TransportPage(
@@ -330,21 +381,41 @@ public final class TransportPages {
   }
 
   /**
-   * The reference's conservative, uncompressed Map Data wire model: every page is sent as whole 128-symbol rows plus
-   * a fixed per-packet envelope.
+   * Returns the bytes the pages take on the wire under the reference's conservative, uncompressed Map Data model:
+   * every page is sent as whole 128-symbol rows plus a fixed per-packet envelope.
    *
    * @param pages          the pages, each as its useful symbols
-   * @param fullMaps       whether every page is sent as a complete map instead of whole rows
    * @param packetOverhead the nonnegative estimated bytes charged per packet; not validated here
    * @return the modeled wire bytes
    * @throws NullPointerException if {@code pages} is null
+   * @see #fullMapWireBytes(List, int)
+   * @since 1.0.0
    */
-  public static long wireBytes(final List<byte[]> pages, final boolean fullMaps, final int packetOverhead) {
-    Preconditions.checkNotNull(pages, "Pages must not be null");
+  public static long wireBytes(final List<byte[]> pages, final int packetOverhead) {
+    Preconditions.checkNotNull(pages, PAGES_NULL_MESSAGE);
+
     long total = 0;
     for (final byte[] page : pages) {
-      total += (fullMaps ? PAGE_SYMBOLS : (long) Math.ceilDiv(page.length, MAP_SIDE) * MAP_SIDE) + packetOverhead;
+      total += (long) Math.ceilDiv(page.length, MAP_SIDE) * MAP_SIDE + packetOverhead;
     }
+
     return total;
+  }
+
+  /**
+   * Returns the bytes the pages take on the wire under the model of {@link #wireBytes(List, int)}, with every page
+   * sent as a complete map instead of whole rows.
+   *
+   * @param pages          the pages, each as its useful symbols
+   * @param packetOverhead the nonnegative estimated bytes charged per packet; not validated here
+   * @return the modeled wire bytes
+   * @throws NullPointerException if {@code pages} is null
+   * @since 1.0.0
+   */
+  public static long fullMapWireBytes(final List<byte[]> pages, final int packetOverhead) {
+    Preconditions.checkNotNull(pages, PAGES_NULL_MESSAGE);
+
+    final long pageBytes = (long) PAGE_SYMBOLS + packetOverhead;
+    return pages.size() * pageBytes;
   }
 }

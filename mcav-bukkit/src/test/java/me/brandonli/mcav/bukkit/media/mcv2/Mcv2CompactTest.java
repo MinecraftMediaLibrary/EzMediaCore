@@ -26,39 +26,51 @@ import org.junit.jupiter.api.Test;
 
 final class Mcv2CompactTest {
 
+  private static final int RECORD_LENGTH = 10;
+
   @Test
-  void storesBothWholePixelVectorsInEveryTenByteRecord() throws Mcv2Exception {
+  void shouldStoreBothWholePixelVectorsInEveryTenByteRecord() {
     for (final int motionX : new int[] { -128, -7, 0, 7, 127 }) {
       for (final int motionY : new int[] { -128, -1, 0, 7, 127 }) {
         final byte[] record = { (byte) motionX, (byte) motionY, -128, 127, -1, 0, 0x18, 0x72, 0x4E, 0x5A };
-        final byte[] data = Mcv2WireFrames.block(32, 5, 2, record, false);
+        final byte[] data = Mcv2WireFrames.block(32, 5, 2, record, Mcv2FrameKind.PREDICTED);
         final int offset = Mcv2Decoder.parse(data).getLeaf(0).offset();
-        assertEquals(motionX, data[offset]);
-        assertEquals(motionY, data[offset + 1]);
-        assertEquals(10, data.length - offset);
-        assertArrayEquals(record, Arrays.copyOfRange(data, offset, data.length));
+        final byte storedX = data[offset];
+        assertEquals(motionX, storedX);
+        final byte storedY = data[offset + 1];
+        assertEquals(motionY, storedY);
+        final int recordLength = data.length - offset;
+        assertEquals(RECORD_LENGTH, recordLength);
+        final byte[] storedRecord = Arrays.copyOfRange(data, offset, data.length);
+        assertArrayEquals(record, storedRecord);
       }
     }
   }
 
   @Test
-  void requiresExactlyTenBytesForEveryBlockSize() throws Mcv2Exception {
+  void shouldRequireExactlyTenBytesForEveryBlockSize() {
     for (final int size : new int[] { 8, 16, 32 }) {
       for (int length = 0; length <= 20; length++) {
-        final byte[] data = Mcv2WireFrames.block(size, 5, 0, new byte[length], false);
-        if (length == 10) {
-          assertEquals(10, data.length - Mcv2Decoder.parse(data).getPayloadStart());
-        } else {
-          assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
-        }
+        this.assertRecordLengthChecked(size, length);
       }
     }
   }
 
+  private void assertRecordLengthChecked(final int size, final int length) {
+    final byte[] data = Mcv2WireFrames.block(size, 5, 0, new byte[length], Mcv2FrameKind.PREDICTED);
+    if (length != RECORD_LENGTH) {
+      assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
+      return;
+    }
+
+    final int payloadLength = data.length - Mcv2Decoder.parse(data).getPayloadStart();
+    assertEquals(RECORD_LENGTH, payloadLength);
+  }
+
   @Test
-  void refusesEveryQuantizerAboveTwo() {
+  void shouldRefuseEveryQuantizerAboveTwo() {
     for (int quantizer = 3; quantizer < 8; quantizer++) {
-      final byte[] data = Mcv2WireFrames.block(32, 5, quantizer, new byte[10], false);
+      final byte[] data = Mcv2WireFrames.block(32, 5, quantizer, new byte[RECORD_LENGTH], Mcv2FrameKind.PREDICTED);
       assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
     }
   }

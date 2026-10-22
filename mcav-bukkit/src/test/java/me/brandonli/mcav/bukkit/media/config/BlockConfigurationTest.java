@@ -30,9 +30,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link BlockConfiguration}.
- */
 final class BlockConfigurationTest {
 
   // a location refers to its world only weakly, so the test keeps the world itself
@@ -40,9 +37,9 @@ final class BlockConfigurationTest {
   private static final Location POSITION = new Location(WORLD, 1, 2, 3);
 
   @Test
-  void rejectsPositionsWithoutAWorld() {
+  void shouldRejectPositionsWithoutAWorld() {
     final Location nowhere = new Location(null, 1, 2, 3);
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     builder.viewers(List.of());
     builder.position(nowhere);
     builder.blockWidth(1);
@@ -51,13 +48,13 @@ final class BlockConfigurationTest {
     final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, builder::build);
 
     final String message = exception.getMessage();
-    assertEquals("Position must have a world", message);
+    assertEquals("Position must have a world!", message);
   }
 
   @Test
-  void buildsAConfigurationWithEveryValue() {
+  void shouldBuildAConfigurationWithEveryValue() {
     final List<UUID> viewers = new ArrayList<>();
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     builder.viewers(viewers);
     builder.position(POSITION);
     builder.blockWidth(4);
@@ -78,15 +75,15 @@ final class BlockConfigurationTest {
   }
 
   @Test
-  void settersReturnTheSameBuilder() {
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+  void shouldReturnTheSameBuilderFromSetters() {
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
     final Object afterPosition = builder.position(POSITION);
     final Object afterWidth = builder.blockWidth(1);
     final Object afterHeight = builder.blockHeight(1);
 
-    assertInstanceOf(BlockConfiguration.BlockResultBuilder.class, builder);
+    assertInstanceOf(DefaultBlockConfigurationBuilder.class, builder);
     assertSame(builder, afterViewers);
     assertSame(builder, afterPosition);
     assertSame(builder, afterWidth);
@@ -94,39 +91,40 @@ final class BlockConfigurationTest {
   }
 
   @Test
-  void settersRejectNull() {
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+  void shouldRejectNullInSetters() {
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
 
     assertThrows(NullPointerException.class, () -> builder.viewers(null));
     assertThrows(NullPointerException.class, () -> builder.position(null));
   }
 
   @Test
-  void rejectsMissingOrInvalidValues() {
-    final BlockConfiguration.Builder<?> noViewers = BlockConfiguration.builder();
+  void shouldRejectMissingOrInvalidValues() {
+    final BlockConfigurationBuilder noViewers = BlockConfiguration.builder();
     noViewers.position(POSITION);
     noViewers.blockWidth(1);
     noViewers.blockHeight(1);
-    final BlockConfiguration.Builder<?> noPosition = BlockConfiguration.builder();
+    final BlockConfigurationBuilder noPosition = BlockConfiguration.builder();
     noPosition.viewers(List.of());
     noPosition.blockWidth(1);
     noPosition.blockHeight(1);
-    final BlockConfiguration.Builder<?> noWidth = BlockConfiguration.builder();
+    final BlockConfigurationBuilder noWidth = BlockConfiguration.builder();
     noWidth.viewers(List.of());
     noWidth.position(POSITION);
     noWidth.blockHeight(1);
-    final BlockConfiguration.Builder<?> noHeight = BlockConfiguration.builder();
+    final BlockConfigurationBuilder noHeight = BlockConfiguration.builder();
     noHeight.viewers(List.of());
     noHeight.position(POSITION);
     noHeight.blockWidth(1);
 
     assertThrows(NullPointerException.class, noViewers::build);
     assertThrows(NullPointerException.class, noPosition::build);
+
     final IllegalArgumentException noWidthException = assertThrows(IllegalArgumentException.class, noWidth::build);
     final IllegalArgumentException noHeightException = assertThrows(IllegalArgumentException.class, noHeight::build);
     final String noWidthMessage = noWidthException.getMessage();
     final String noHeightMessage = noHeightException.getMessage();
-    assertEquals("Block width must be positive", noWidthMessage);
-    assertEquals("Block height must be positive", noHeightMessage);
+    assertEquals("Block width must be positive!", noWidthMessage);
+    assertEquals("Block height must be positive!", noHeightMessage);
   }
 }

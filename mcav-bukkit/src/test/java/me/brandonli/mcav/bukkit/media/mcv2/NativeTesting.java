@@ -20,6 +20,7 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 import java.lang.foreign.Arena;
 import java.lang.foreign.SymbolLookup;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -27,74 +28,63 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Binding;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Natives;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Resolution;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Binding;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Natives;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Resolution;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Kernels;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * The native kernels for the tests: the library of this platform, loaded once from the jar's resources into the build
- * folder, and its kernels at every level this processor runs. Where the jar ships a library for the platform it must
- * load, or every test that asks for it fails; only a platform recorded as running Java runs the tests with
- * {@code -Dmcv2.native.expect=java}, and there, as where the jar has no library, there are no levels to test.
- */
 final class NativeTesting {
 
-  /** The system property that records a platform whose library does not load, so its tests expect Java. */
+  private static final String OS_NAME_PROPERTY = "os.name";
+  private static final String OS_ARCHITECTURE_PROPERTY = "os.arch";
+
+  private static final String NATIVES_RESOURCE_FOLDER = "/mcav/mcv2/natives/";
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String NATIVE_KERNELS_CLASS = "NativeKernels";
+
+  // names a platform whose library does not load, so its tests expect Java
   private static final String EXPECT = "mcv2.native.expect";
 
-  /** Where the tests extract the library: the module's build folder. */
   static final Path FOLDER = Path.of("build", "mcv2-natives");
 
   private static @Nullable Resolution loaded;
 
   private NativeTesting() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Gets whether this platform should run the native kernels: the jar has its library, and no one recorded it as a Java
-   * platform.
-   *
-   * @return whether the native kernels must load
-   */
   static boolean expected() {
-    final String platform = Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", ""));
-    return !"java".equals(System.getProperty(EXPECT)) && platform != null && MCV2.NATIVE_DIGESTS.containsKey(platform);
+    final String platform = Natives.platform(System.getProperty(OS_NAME_PROPERTY, ""), System.getProperty(OS_ARCHITECTURE_PROPERTY, ""));
+    return !"java".equals(System.getProperty(EXPECT)) && platform != null && Mcv2.NATIVE_DIGESTS.containsKey(platform);
   }
 
-  /**
-   * Loads the library of this platform once, failing where it should load and does not.
-   *
-   * @return the resolution, native where expected, else Java
-   * @throws IllegalStateException if the library should load and did not
-   */
   static synchronized Resolution resolution() {
-    Resolution current = loaded;
-    if (current == null) {
-      current = Natives.resolve(
-        MCV2.NATIVE_AUTO,
-        Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", "")),
-        FOLDER,
-        platform -> Natives.read(MCV2.class.getResourceAsStream("/mcav/mcv2/natives/" + platform + "/" + Natives.libraryName(platform))),
-        null
-      );
-      if (expected() && current.binding() == null) {
-        throw new IllegalStateException("The MCV2 native kernels must load here and did not: " + current.description());
-      }
-      loaded = current;
+    final Resolution previous = loaded;
+    if (previous != null) {
+      return previous;
     }
+
+    final String platform = Natives.platform(System.getProperty(OS_NAME_PROPERTY, ""), System.getProperty(OS_ARCHITECTURE_PROPERTY, ""));
+    final Resolution current = Natives.resolve(Mcv2.NATIVE_AUTO, platform, FOLDER, NativeTesting::readLibrary, null);
+    if (expected() && current.binding() == null) {
+      final String message = "The MCV2 native kernels must load here and did not (%s)!".formatted(current.description());
+      throw new IllegalStateException(message);
+    }
+
+    loaded = current;
+
     return current;
   }
 
-  /**
-   * Gets the levels this processor runs, best first, or none where no library loads.
-   *
-   * @return the levels
-   */
+  private static byte @Nullable [] readLibrary(final String platform) {
+    final String resource = NATIVES_RESOURCE_FOLDER + platform + PATH_SEPARATOR + Natives.libraryName(platform);
+    return Natives.read(Mcv2.class.getResourceAsStream(resource));
+  }
+
   static List<Level> levels() {
     final Resolution resolution = resolution();
     final List<Level> levels = new ArrayList<>();
@@ -103,31 +93,23 @@ final class NativeTesting {
         levels.add(level);
       }
     }
+
     return levels;
   }
 
-  /**
-   * Gets the loaded library.
-   *
-   * @return its symbols
-   * @throws IllegalStateException if no library loads here
-   */
-  @SuppressWarnings("restricted")
+  @SuppressWarnings("restricted") // a library lookup is a restricted method of the foreign function API
   static SymbolLookup library() {
     if (resolution().binding() == null) {
-      throw new IllegalStateException("No MCV2 native library loads on this platform");
+      throw new IllegalStateException("No MCV2 native library loads on this platform!");
     }
-    final String platform = Objects.requireNonNull(Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", "")));
-    final String digest = MCV2.NATIVE_DIGESTS.get(platform);
+
+    final String platform = Objects.requireNonNull(
+      Natives.platform(System.getProperty(OS_NAME_PROPERTY, ""), System.getProperty(OS_ARCHITECTURE_PROPERTY, ""))
+    );
+    final String digest = Mcv2.NATIVE_DIGESTS.get(platform);
     return SymbolLookup.libraryLookup(FOLDER.resolve("mcv2kernels-" + digest + "-" + Natives.libraryName(platform)), Arena.global());
   }
 
-  /**
-   * Makes kernels at one level.
-   *
-   * @param level a level the processor runs
-   * @return the kernels
-   */
   static NativeKernels kernels(final Level level) {
     return kernels(Binding.of(library(), level));
   }
@@ -137,15 +119,9 @@ final class NativeTesting {
   }
 
   private static Object create(final Binding binding) {
-    return Mcv2Internals.construct(Mcv2Internals.nested("NativeKernels"), new Class<?>[] { Binding.class }, binding);
+    return Mcv2Internals.construct(Mcv2Internals.nested(NATIVE_KERNELS_CLASS), new Class<?>[] { Binding.class }, binding);
   }
 
-  /**
-   * Gets the factory of the kernels at one level, for an encoder.
-   *
-   * @param level a level the processor runs
-   * @return the factory
-   */
   static Supplier<?> factory(final Level level) {
     final Binding binding = Binding.of(library(), level);
     return () -> create(binding);
@@ -156,48 +132,52 @@ final class NativeTesting {
   }
 
   static Supplier<?> javaFactory() {
-    return factory(Resolution.java("test", false));
-  }
-
-  interface NativeKernels extends Kernels {
-    Level level();
-    boolean keeps(Object array);
+    return factory(Resolution.java("test"));
   }
 
   static NativeKernels view(final Object kernels) {
-    final Class<?> type = Mcv2Internals.nested("NativeKernels");
+    final Class<?> type = Mcv2Internals.nested(NATIVE_KERNELS_CLASS);
     return (NativeKernels) Proxy.newProxyInstance(
       NativeKernels.class.getClassLoader(),
       new Class<?>[] { NativeKernels.class },
-      (_, method, arguments) -> {
-        if (method.getName().equals("level")) {
-          return ((Binding) Mcv2Internals.field(type, kernels, "binding")).level();
-        }
-        if (method.getName().equals("keeps")) {
-          final Object array = Objects.requireNonNull(arguments)[0];
-          final int slot = (int) Mcv2Internals.invoke(type, null, "slot", new Class<?>[] { Object.class }, array);
-          return Mcv2Internals.invoke(type, kernels, "remembers", new Class<?>[] { int.class, Object.class }, slot, array);
-        }
-        return Mcv2Internals.call(
-          type,
-          kernels,
-          method.getName(),
-          method.getParameterTypes(),
-          arguments == null ? new Object[0] : arguments
-        );
-      }
+      (_, method, arguments) -> invokeView(type, kernels, method, arguments)
     );
   }
 
-  static MCV2 encoder(final Settings settings, final int threads, final boolean verify, final Supplier<?> factory) {
-    final MCV2 encoder = new MCV2(settings, ForkJoinPool.commonPool(), threads, verify);
+  private static @Nullable Object invokeView(
+    final Class<?> type,
+    final Object kernels,
+    final Method method,
+    final @Nullable Object @Nullable [] arguments
+  ) {
+    if (method.getName().equals("level")) {
+      return ((Binding) Mcv2Internals.field(type, kernels, "binding")).level();
+    }
+
+    if (method.getName().equals("keeps")) {
+      final Object array = Objects.requireNonNull(arguments)[0];
+      final int slot = (int) Mcv2Internals.invoke(type, null, "slot", new Class<?>[] { Object.class }, array);
+      return Mcv2Internals.invoke(type, kernels, "remembers", new Class<?>[] { int.class, Object.class }, slot, array);
+    }
+
+    return Mcv2Internals.call(type, kernels, method.getName(), method.getParameterTypes(), arguments == null ? new Object[0] : arguments);
+  }
+
+  static Mcv2 encoder(final Settings settings, final int threads, final Mcv2.Verification verification, final Supplier<?> factory) {
+    final Mcv2 encoder = new Mcv2(settings, ForkJoinPool.commonPool(), threads, verification);
     try {
-      final Field kernels = MCV2.class.getDeclaredField("kernels");
+      final Field kernels = Mcv2.class.getDeclaredField("kernels");
       kernels.setAccessible(true);
       kernels.set(encoder, factory);
     } catch (final ReflectiveOperationException exception) {
       throw new LinkageError(exception.getMessage(), exception);
     }
+
     return encoder;
+  }
+
+  interface NativeKernels extends Kernels {
+    Level level();
+    boolean keeps(Object array);
   }
 }

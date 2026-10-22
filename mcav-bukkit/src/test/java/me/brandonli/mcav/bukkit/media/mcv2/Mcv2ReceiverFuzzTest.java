@@ -30,26 +30,15 @@ import java.util.stream.IntStream;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes a receiver with whole streams, the way a client sees them: frames that arrive in any order, repeat, go
- * missing, predict from a frame of another size or id, or are damaged. Whatever the frames, the receiver commits a frame
- * only when it decodes, to a picture of the frame's size, and otherwise throws {@link Mcv2Exception} and keeps its state
- * - so a second receiver that sees only the frames the first one committed decodes the very same pictures. The decoder
- * on several workers, writing into the picture it predicts from, decodes the same pictures as well.
- *
- * <p>An input is a research archive: every frame is preceded by its length as four little-endian bytes, cut short where
- * the input ends. The seeds include every committed edge stream, which together use every v3 mode and boundary
- * geometry, the tiny one with its six frames in their order, and the first three frames of every conformance stream.
- */
 @Tag("fuzz")
 final class Mcv2ReceiverFuzzTest {
 
-  private static final int MAX_FRAMES = 8;
+  private static final int MAXIMUM_FRAMES = 8;
   private static final int THREADS = 3;
   private static final ForkJoinPool POOL = new ForkJoinPool(THREADS);
 
   @FuzzTest(maxDuration = "30s")
-  void commitsOnlyFramesThatDecodeAndDecodesThemAlikeOnAnyWorkers(final byte[] archive) throws Mcv2Exception {
+  void shouldCommitOnlyFramesThatDecodeAndDecodeThemAlikeOnAnyWorkers(final byte[] archive) {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     final Mcv2Receiver committedOnly = new Mcv2Receiver();
     byte @Nullable [] parallelPicture = null;
@@ -59,26 +48,26 @@ final class Mcv2ReceiverFuzzTest {
       final byte[] picture;
       try {
         picture = receiver.accept(frame);
-      } catch (final Mcv2Exception refused) {
-        assertEquals(lastId, receiver.getFrameId(), "a refused frame keeps the last frame");
+      } catch (final Mcv2Exception exception) {
+        final long frameIdAfterRefusal = receiver.getFrameId();
+        assertEquals(lastId, frameIdAfterRefusal, "a refused frame keeps the last frame");
+
         continue;
       }
       final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
-      assertEquals(parsed.getWidth() * parsed.getHeight() * 3, picture.length, "the picture has the size of its frame");
-      assertEquals(parsed.getFrameId(), receiver.getFrameId(), "a committed frame is the last frame");
-      assertArrayEquals(picture, committedOnly.accept(frame), "a refused frame left nothing behind in the receiver");
+      final int expectedLength = parsed.getWidth() * parsed.getHeight() * 3;
+      final int pictureLength = picture.length;
+      assertEquals(expectedLength, pictureLength, "the picture has the size of its frame");
+      final long expectedFrameId = parsed.getFrameId();
+      final long frameId = receiver.getFrameId();
+      assertEquals(expectedFrameId, frameId, "a committed frame is the last frame");
+      final byte[] committedPicture = committedOnly.accept(frame);
+      assertArrayEquals(picture, committedPicture, "a refused frame left nothing behind in the receiver");
+
       final byte[] prediction = parallelPicture;
       final byte[] rows = new byte[picture.length];
       final long predictsId = parallelId;
-      POOL.submit(() ->
-        IntStream.range(0, THREADS)
-          .parallel()
-          .forEach(band -> {
-            final int from = (band * parsed.getHeight()) / THREADS;
-            final int to = ((band + 1) * parsed.getHeight()) / THREADS;
-            assertDoesNotThrow(() -> Mcv2Decoder.decodeRows(parsed, prediction, predictsId, rows, from, to));
-          })
-      ).join();
+      POOL.submit(() -> this.decodeBands(parsed, prediction, predictsId, rows)).join();
       assertArrayEquals(picture, rows, "parallel bands decode the same picture");
       if (parallelPicture == null || parallelPicture.length != picture.length) {
         parallelPicture = new byte[picture.length];
@@ -89,16 +78,35 @@ final class Mcv2ReceiverFuzzTest {
     }
   }
 
+  private void decodeBands(final Mcv2Decoder.Frame parsed, final byte @Nullable [] prediction, final long predictsId, final byte[] rows) {
+    IntStream.range(0, THREADS)
+      .parallel()
+      .forEach(band -> this.decodeBand(parsed, prediction, predictsId, rows, band));
+  }
+
+  private void decodeBand(
+    final Mcv2Decoder.Frame parsed,
+    final byte @Nullable [] prediction,
+    final long predictsId,
+    final byte[] rows,
+    final int band
+  ) {
+    final int from = (band * parsed.getHeight()) / THREADS;
+    final int to = ((band + 1) * parsed.getHeight()) / THREADS;
+    assertDoesNotThrow(() -> Mcv2Decoder.decodeRows(parsed, prediction, predictsId, rows, from, to));
+  }
+
   private static List<byte[]> frames(final byte[] archive) {
     final List<byte[]> frames = new ArrayList<>();
     int offset = 0;
-    while (offset + 4 <= archive.length && frames.size() < MAX_FRAMES) {
+    while (offset + 4 <= archive.length && frames.size() < MAXIMUM_FRAMES) {
       final long length = Mcv2Decoder.u32(archive, offset);
       final int start = offset + 4;
       final int end = (int) Math.min(archive.length, start + length);
       frames.add(Arrays.copyOfRange(archive, start, end));
       offset = end;
     }
+
     return frames;
   }
 }

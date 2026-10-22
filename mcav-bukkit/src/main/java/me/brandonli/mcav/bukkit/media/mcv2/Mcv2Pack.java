@@ -45,7 +45,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Builds the resource pack that decodes MCV2 screens on vanilla clients: one pack for every screen of the server, so
- * any number of screens up to {@link #MAX_SCREENS} play at once.
+ * any number of screens up to {@link #MAXIMUM_SCREENS} play at once.
  *
  * <p>The pack overrides the core text shaders, which draw maps, so the maps that carry pages and anchors are moved into
  * a strip at the top of the screen: each screen owns a run of page slots there, found by the stream id its pages and
@@ -58,20 +58,32 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>Writing performs synchronous resource reads and archive creation. Run it off the main thread with stable
  * configuration inputs, and keep the resulting file available for the chosen hosting strategy.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Pack {
 
-  /** The resource pack format of Minecraft 26.3. */
+  /**
+   * The resource pack format of Minecraft 26.3.
+   *
+   * @since 1.0.0
+   */
   public static final int PACK_FORMAT = 97;
 
-  /** The gpu-codec commit recorded in the pack manifest. */
+  /**
+   * The gpu-codec commit recorded in the pack manifest.
+   *
+   * @since 1.0.0
+   */
   public static final String CODEC_COMMIT = "85445433aeb9f8a35a5ce528d47d8829976d1401";
 
   /**
    * The most screens one pack decodes: each costs the client its decode passes on every frame the chain runs, and its
    * page slots a band of the top of the window.
+   *
+   * @since 1.0.0
    */
-  public static final int MAX_SCREENS = 8;
+  public static final int MAXIMUM_SCREENS = 8;
 
   private static final String ROOT = "/mcav/mcv2/pack/";
 
@@ -88,6 +100,32 @@ public final class Mcv2Pack {
   private static final String POST = "assets/mcav/shaders/post/";
 
   private static final String SCREEN_INCLUDE = "#include <mcav:mcv2_screen.glsl>";
+
+  private static final String INCLUDE_DIRECTIVE_PREFIX = "#include <mcav:";
+  private static final String INCLUDE_DIRECTIVE_SUFFIX = ">";
+
+  private static final String SCREEN_INCLUDE_PREFIX = "mcv2_screen_";
+  private static final String GLSL_EXTENSION = ".glsl";
+
+  private static final String CONFIG_INCLUDE = "mcv2_config.glsl";
+
+  private static final String ALPHABET_INCLUDE = "mcv2_alphabet.glsl";
+
+  private static final String MANIFEST_FILE = "mcav_mcv2.json";
+
+  private static final String SCREEN_DIRECTORY_PREFIX = "s";
+
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String CONFIG_GUARD = "MCAV_MCV2_CONFIG_GLSL";
+
+  private static final String SCREEN_GUARD = "MCAV_MCV2_SCREEN_GLSL";
+
+  private static final String ALPHABET_GUARD = "MCAV_MCV2_ALPHABET_GLSL";
+
+  private static final String TARGETS_KEY = "targets";
+
+  private static final String CODEC = "MCV2";
 
   private static final List<String> FILES = List.of(
     "assets/minecraft/shaders/core/text.vsh",
@@ -130,83 +168,120 @@ public final class Mcv2Pack {
   private static final int NO_SYMBOL = -1;
 
   // The map palette needs a multiplier of about 83,000.
-  private static final int MAX_SYMBOL_HASH = 1 << 24;
+  private static final int MAXIMUM_SYMBOL_HASH = 1 << 24;
+
+  private static final int ENTRIES_PER_LINE = 8;
+
+  private static final String LINE_INDENT = "    ";
+
+  private static final String ENTRY_GAP = " ";
+
+  private static final String ENTRY_SEPARATOR = ",";
+
+  private static final int MULTIPLIER_STEP = 2;
+
+  private static final char UNSIGNED_SUFFIX = 'u';
+
+  private static final String LINE_SEPARATOR = "\n";
+
+  private static final String LIST_SEPARATOR = ", ";
+
+  private static final String SIZE_SEPARATOR = "x";
+
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
+  private static final int CHANNEL_MASK = 255;
+
+  private static final int RGB_MASK = 0xFFFFFF;
 
   private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
   private Mcv2Pack() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
    * Writes the pack of one screen.
    *
-   * @param configuration  the screen
-   * @param showsDebugView whether the pack also draws the decoded picture one to one below the strip, for testing
-   * @param archivePath    where the pack is written, atomically
+   * @param configuration the screen
+   * @param debugView     whether the pack also draws the decoded picture one to one below the strip, for testing
+   * @param archivePath   where the pack is written, atomically
    * @throws UncheckedIOException if the pack cannot be written
-   * @throws NullPointerException if {@code configuration} or {@code archivePath} is null
+   * @throws NullPointerException if {@code configuration}, {@code debugView} or {@code archivePath} is null
+   * @since 1.0.0
    */
-  public static void write(final Mcv2Configuration configuration, final boolean showsDebugView, final Path archivePath) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
-    write(List.of(configuration), showsDebugView, archivePath);
+  public static void write(final Mcv2Configuration configuration, final DebugView debugView, final Path archivePath) {
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+
+    write(List.of(configuration), debugView, archivePath);
   }
 
   /**
    * Writes the pack of every screen of the server.
    *
-   * @param screens        the screens, in the order of their place in the strip; their stream ids must differ, and they
-   *                       share the outline colour of the first
-   * @param showsDebugView whether the pack also draws every screen's decoded picture one to one below the strip, for
-   *                       testing
-   * @param archivePath    where the pack is written, atomically
-   * @throws IllegalArgumentException if there are no screens or more than {@link #MAX_SCREENS}, two share a stream
+   * @param screens     the screens, in the order of their place in the strip; their stream ids must differ, and they
+   *                    share the outline colour of the first
+   * @param debugView   whether the pack also draws every screen's decoded picture one to one below the strip, for
+   *                    testing
+   * @param archivePath where the pack is written, atomically
+   * @throws IllegalArgumentException if there are no screens or more than {@link #MAXIMUM_SCREENS}, two share a stream
    *                                  id, or their outline colours differ
    * @throws UncheckedIOException     if the pack cannot be written
-   * @throws NullPointerException if {@code screens} or {@code archivePath} is null
+   * @throws NullPointerException     if {@code screens}, {@code debugView} or {@code archivePath} is null
+   * @since 1.0.0
    */
-  public static void write(final List<Mcv2Configuration> screens, final boolean showsDebugView, final Path archivePath) {
-    Preconditions.checkNotNull(screens, "Screens must not be null");
-    Preconditions.checkNotNull(archivePath, "Zip must not be null");
+  public static void write(final List<Mcv2Configuration> screens, final DebugView debugView, final Path archivePath) {
+    Preconditions.checkNotNull(screens, "Screens must not be null!");
+    Preconditions.checkNotNull(debugView, "Debug view must not be null!");
+    Preconditions.checkNotNull(archivePath, "Zip must not be null!");
     checkScreens(screens);
+
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     pack.meta(PACK_FORMAT, describe(screens));
     for (final String file : FILES) {
       pack.data(file, resource(file));
     }
+
     int firstSlot = 0;
     int debugTop = 0;
     for (int screen = 0; screen < screens.size(); screen++) {
       final Mcv2Configuration configuration = screens.get(screen);
       for (final String file : SCREEN_FILES) {
-        pack.data(POST + "s" + screen + "/" + file, screenCopy(resource(POST + file), screen).getBytes(StandardCharsets.UTF_8));
+        pack.data(
+          POST + SCREEN_DIRECTORY_PREFIX + screen + PATH_SEPARATOR + file,
+          screenCopy(resource(POST + file), screen).getBytes(StandardCharsets.UTF_8)
+        );
       }
       final String include = screenConstants(configuration, screen, firstSlot, debugTop);
       pack.data(INCLUDE + screenInclude(screen), include.getBytes(StandardCharsets.UTF_8));
       firstSlot += configuration.getPageSlots();
       debugTop += Math.max(configuration.getVideoHeight(), DEBUG_SQUARES) + DEBUG_GAP;
     }
+
     pack.data(POST_CHAIN, postChain(screens).getBytes(StandardCharsets.UTF_8));
-    pack.data(INCLUDE + "mcv2_config.glsl", packConstants(screens, showsDebugView).getBytes(StandardCharsets.UTF_8));
-    pack.data(INCLUDE + "mcv2_alphabet.glsl", alphabet(palette()).getBytes(StandardCharsets.UTF_8));
-    pack.data("mcav_mcv2.json", manifest(screens).getBytes(StandardCharsets.UTF_8));
+    pack.data(INCLUDE + CONFIG_INCLUDE, packConstants(screens, debugView).getBytes(StandardCharsets.UTF_8));
+    pack.data(INCLUDE + ALPHABET_INCLUDE, alphabet(palette()).getBytes(StandardCharsets.UTF_8));
+    pack.data(MANIFEST_FILE, manifest(screens).getBytes(StandardCharsets.UTF_8));
     pack.zip(archivePath);
   }
 
   private static void checkScreens(final List<Mcv2Configuration> screens) {
-    Preconditions.checkArgument(!screens.isEmpty() && screens.size() <= MAX_SCREENS, "A pack has 1 to %s screens", MAX_SCREENS);
+    Preconditions.checkArgument(!screens.isEmpty() && screens.size() <= MAXIMUM_SCREENS, "A pack has 1 to %s screens!", MAXIMUM_SCREENS);
+
     final Set<Long> streams = screens.stream().map(Mcv2Configuration::getStreamId).collect(Collectors.toSet());
-    Preconditions.checkArgument(streams.size() == screens.size(), "Every screen of a pack needs its own stream id");
+    Preconditions.checkArgument(streams.size() == screens.size(), "Every screen of a pack needs its own stream id!");
+
     final NamedTextColor outline = screens.getFirst().getOutlineColor();
     final boolean oneOutline = screens.stream().allMatch(screen -> screen.getOutlineColor().equals(outline));
-    Preconditions.checkArgument(oneOutline, "The screens of a pack share one outline colour");
+    Preconditions.checkArgument(oneOutline, "The screens of a pack share one outline colour!");
   }
 
   static String describe(final List<Mcv2Configuration> screens) {
     final String sizes = screens
       .stream()
-      .map(screen -> screen.getVideoWidth() + "x" + screen.getVideoHeight())
-      .collect(Collectors.joining(", "));
+      .map(screen -> screen.getVideoWidth() + SIZE_SEPARATOR + screen.getVideoHeight())
+      .collect(Collectors.joining(LIST_SEPARATOR));
     return String.format(
       Locale.getDefault(Locale.Category.FORMAT),
       "mcav MCV2 decoder, %d %s: %s",
@@ -222,23 +297,27 @@ public final class Mcv2Pack {
 
   static byte[] read(final @Nullable InputStream stream, final String file) {
     if (stream == null) {
-      throw new IllegalStateException("Missing MCV2 pack resource " + file);
+      final String message = "MCV2 pack resource %s is missing!".formatted(file);
+      throw new IllegalStateException(message);
     }
+
     try (stream) {
       return stream.readAllBytes();
     } catch (final IOException exception) {
-      throw new UncheckedIOException("Cannot read MCV2 pack resource " + file, exception);
+      final String message = "MCV2 pack resource %s cannot be read!".formatted(file);
+      throw new UncheckedIOException(message, exception);
     }
   }
 
   private static String screenInclude(final int screen) {
-    return "mcv2_screen_" + screen + ".glsl";
+    return SCREEN_INCLUDE_PREFIX + screen + GLSL_EXTENSION;
   }
 
   static String screenCopy(final byte[] source, final int screen) {
     final String text = new String(source, StandardCharsets.UTF_8);
-    Preconditions.checkState(text.contains(SCREEN_INCLUDE), "A screen's pass must include mcv2_screen.glsl");
-    return text.replace(SCREEN_INCLUDE, "#include <mcav:" + screenInclude(screen) + ">");
+    Preconditions.checkState(text.contains(SCREEN_INCLUDE), "A screen's pass must include mcv2_screen.glsl!");
+
+    return text.replace(SCREEN_INCLUDE, INCLUDE_DIRECTIVE_PREFIX + screenInclude(screen) + INCLUDE_DIRECTIVE_SUFFIX);
   }
 
   private static String postChain(final List<Mcv2Configuration> screens) {
@@ -256,15 +335,17 @@ public final class Mcv2Pack {
       decoding.addAll(chain.getAsJsonArray("decode"));
       drawing.addAll(chain.getAsJsonArray("draw"));
     }
-    for (final Map.Entry<String, JsonElement> target : shared.getAsJsonObject("targets").entrySet()) {
+
+    for (final Map.Entry<String, JsonElement> target : shared.getAsJsonObject(TARGETS_KEY).entrySet()) {
       targets.add(target.getKey(), target.getValue());
     }
+
     final JsonArray passes = new JsonArray();
     passes.addAll(decoding);
     passes.addAll(drawing);
     passes.addAll(shared.getAsJsonArray("tail"));
     final JsonObject chain = new JsonObject();
-    chain.add("targets", targets);
+    chain.add(TARGETS_KEY, targets);
     chain.add("passes", passes);
     return GSON.toJson(chain);
   }
@@ -296,7 +377,7 @@ public final class Mcv2Pack {
     return (configuration.getVideoHeight() + CELL_PIXELS - 1) / CELL_PIXELS;
   }
 
-  static String packConstants(final List<Mcv2Configuration> screens, final boolean showsDebugView) {
+  static String packConstants(final List<Mcv2Configuration> screens, final DebugView debugView) {
     final int count = screens.size();
     final int color = screens.getFirst().getOutlineColor().value();
     final StringBuilder streams = new StringBuilder();
@@ -305,28 +386,29 @@ public final class Mcv2Pack {
     int total = 0;
     for (int screen = 0; screen < count; screen++) {
       final Mcv2Configuration configuration = screens.get(screen);
-      final String separator = screen == 0 ? "" : ", ";
-      streams.append(separator).append(configuration.getStreamId()).append('u');
+      final String separator = screen == 0 ? "" : LIST_SEPARATOR;
+      streams.append(separator).append(configuration.getStreamId()).append(UNSIGNED_SUFFIX);
       slots.append(separator).append(configuration.getPageSlots());
       firsts.append(separator).append(total);
       total += configuration.getPageSlots();
     }
+
     return guarded(
-      "MCAV_MCV2_CONFIG_GLSL",
+      CONFIG_GUARD,
       String.join(
-        "\n",
+        LINE_SEPARATOR,
         String.format(Locale.ROOT, "const int MCV2_SCREENS = %d;", count),
         String.format(Locale.ROOT, "const int MCV2_TOTAL_SLOTS = %d;", total),
         String.format(Locale.ROOT, "const uint MCV2_SCREEN_STREAMS[%d] = uint[%d](%s);", count, count, streams),
         String.format(Locale.ROOT, "const int MCV2_SCREEN_SLOTS[%d] = int[%d](%s);", count, count, slots),
         String.format(Locale.ROOT, "const int MCV2_SCREEN_FIRST_SLOTS[%d] = int[%d](%s);", count, count, firsts),
-        String.format(Locale.ROOT, "const bool MCV2_DEBUG_VIEW = %s;", showsDebugView),
+        String.format(Locale.ROOT, "const bool MCV2_DEBUG_VIEW = %s;", debugView == DebugView.SHOWN),
         String.format(
           Locale.ROOT,
           "const ivec3 MCV2_OUTLINE_COLOR = ivec3(%d, %d, %d);",
-          (color >> 16) & 255,
-          (color >> 8) & 255,
-          color & 255
+          (color >> RED_SHIFT) & CHANNEL_MASK,
+          (color >> GREEN_SHIFT) & CHANNEL_MASK,
+          color & CHANNEL_MASK
         ),
         ""
       )
@@ -335,9 +417,9 @@ public final class Mcv2Pack {
 
   private static String screenConstants(final Mcv2Configuration configuration, final int screen, final int firstSlot, final int debugTop) {
     return guarded(
-      "MCAV_MCV2_SCREEN_GLSL",
+      SCREEN_GUARD,
       String.join(
-        "\n",
+        LINE_SEPARATOR,
         String.format(Locale.ROOT, "const int MCV2_SCREEN_INDEX = %d;", screen),
         String.format(Locale.ROOT, "const int MCV2_PAGE_SLOTS = %d;", configuration.getPageSlots()),
         String.format(Locale.ROOT, "const int MCV2_FIRST_SLOT = %d;", firstSlot),
@@ -357,46 +439,47 @@ public final class Mcv2Pack {
   static int[] palette() {
     final int[] colors = new int[MapAlphabet.SIZE];
     for (int symbol = 0; symbol < colors.length; symbol++) {
-      colors[symbol] = MapColor.getColorFromPackedId(symbol + MapAlphabet.FIRST_COLOR) & 0xFFFFFF;
+      colors[symbol] = MapColor.getColorFromPackedId(symbol + MapAlphabet.FIRST_COLOR) & RGB_MASK;
     }
+
     return colors;
   }
 
   static String alphabet(final int[] colors) {
-    return alphabet(colors, MAX_SYMBOL_HASH);
+    return alphabet(colors, MAXIMUM_SYMBOL_HASH);
   }
 
   // A table read per symbol, not a search of the 64 colours: the text shaders read up to 55 symbols for each vertex of a
   // map and 4 for each pixel of the strip, and the search made a wall of page frames cost an integrated GPU 50 ms a frame.
-  static String alphabet(final int[] colors, final int maxMultiplier) {
+  static String alphabet(final int[] colors, final int maximumMultiplier) {
     final Set<Integer> seen = new HashSet<>();
     for (int symbol = 0; symbol < colors.length; symbol++) {
       if (!seen.add(colors[symbol])) {
-        throw new IllegalStateException(
-          String.format(
-            Locale.getDefault(Locale.Category.FORMAT),
-            "Map colours %d and another symbol are the same RGB",
-            symbol + MapAlphabet.FIRST_COLOR
-          )
-        );
+        final String message = "Map colours %s and another symbol are the same RGB!".formatted(symbol + MapAlphabet.FIRST_COLOR);
+        throw new IllegalStateException(message);
       }
     }
-    final int multiplier = symbolHash(colors, maxMultiplier);
+
+    final int multiplier = symbolHash(colors, maximumMultiplier);
     final int[] entries = new int[SYMBOL_ENTRIES];
     Arrays.fill(entries, NO_SYMBOL);
     for (int symbol = 0; symbol < colors.length; symbol++) {
       entries[symbolEntry(colors[symbol], multiplier)] = (colors[symbol] << MapAlphabet.SYMBOL_BITS) | symbol;
     }
+
     final StringBuilder table = new StringBuilder();
     for (int entry = 0; entry < entries.length; entry++) {
       table
-        .append(entry % 8 == 0 ? "    " : " ")
+        .append(entry % ENTRIES_PER_LINE == 0 ? LINE_INDENT : ENTRY_GAP)
         .append(Integer.toUnsignedString(entries[entry]))
-        .append('u');
-      table.append(entry < entries.length - 1 ? "," : "").append(entry % 8 == 7 ? "\n" : "");
+        .append(UNSIGNED_SUFFIX);
+      table
+        .append(entry < entries.length - 1 ? ENTRY_SEPARATOR : "")
+        .append(entry % ENTRIES_PER_LINE == ENTRIES_PER_LINE - 1 ? LINE_SEPARATOR : "");
     }
+
     return guarded(
-      "MCAV_MCV2_ALPHABET_GLSL",
+      ALPHABET_GUARD,
       String.format(
         Locale.ROOT,
         "const uint MCV2_SYMBOL_HASH = %du;\nconst uint MCV2_SYMBOL_SHIFT = %du;\nconst uint MCV2_SYMBOLS[%d] = uint[%d](\n%s);\n",
@@ -414,9 +497,9 @@ public final class Mcv2Pack {
     return (color * multiplier) >>> SYMBOL_SHIFT;
   }
 
-  private static int symbolHash(final int[] colors, final int maxMultiplier) {
+  private static int symbolHash(final int[] colors, final int maximumMultiplier) {
     final boolean[] taken = new boolean[SYMBOL_ENTRIES];
-    for (int multiplier = 1; multiplier <= maxMultiplier; multiplier += 2) {
+    for (int multiplier = 1; multiplier <= maximumMultiplier; multiplier += MULTIPLIER_STEP) {
       Arrays.fill(taken, false);
       boolean distinct = true;
       for (int symbol = 0; symbol < colors.length && distinct; symbol++) {
@@ -428,9 +511,13 @@ public final class Mcv2Pack {
         return multiplier;
       }
     }
-    throw new IllegalStateException(
-      String.format(Locale.ROOT, "No odd multiplier up to %d gives the map colours distinct symbol entries", maxMultiplier)
+
+    final String message = String.format(
+      Locale.ROOT,
+      "No odd multiplier up to %d gives the map colours distinct symbol entries!",
+      maximumMultiplier
     );
+    throw new IllegalStateException(message);
   }
 
   // Minecraft's shaderc inserts an include every time it is named, including through another include.
@@ -440,8 +527,8 @@ public final class Mcv2Pack {
 
   private static String manifest(final List<Mcv2Configuration> screens) {
     final JsonObject manifest = new JsonObject();
-    manifest.addProperty("codec", "MCV2");
-    manifest.addProperty("version", 3);
+    manifest.addProperty("codec", CODEC);
+    manifest.addProperty("version", Mcv2Decoder.VERSION);
     manifest.addProperty("gpu_codec_commit", CODEC_COMMIT);
     final JsonArray list = new JsonArray();
     for (final Mcv2Configuration configuration : screens) {
@@ -452,7 +539,31 @@ public final class Mcv2Pack {
       screen.addProperty("page_slots", configuration.getPageSlots());
       list.add(screen);
     }
+
     manifest.add("screens", list);
     return GSON.toJson(manifest);
+  }
+
+  /**
+   * Whether a pack also draws every screen's decoded picture one to one below the strip, for testing.
+   *
+   * <p>This enum is immutable and thread-safe.
+   *
+   * @since 1.0.0
+   */
+  public enum DebugView {
+    /**
+     * The pack draws the decoded pictures below the strip.
+     *
+     * @since 1.0.0
+     */
+    SHOWN,
+
+    /**
+     * The pack draws only the screens.
+     *
+     * @since 1.0.0
+     */
+    HIDDEN,
   }
 }

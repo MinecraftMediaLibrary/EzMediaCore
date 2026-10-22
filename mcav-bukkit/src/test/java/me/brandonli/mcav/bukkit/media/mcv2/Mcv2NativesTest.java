@@ -61,9 +61,10 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Natives;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Resolution;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Binding;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Natives;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Resolution;
 import me.brandonli.mcav.bukkit.testing.LogCapture;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -71,97 +72,160 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * The loading of the native kernels: which platform names a library, the libraries the jar ships against the digests
- * generated with them, each way a library can fail to load - off, unknown, missing, unreadable, altered, without a folder,
- * unextractable, unloadable, the wrong interface, a kernel short - running Java with the reason, the extraction under
- * the digest that a second load reuses, the level chosen, and the path the live encoders take.
- */
 final class Mcv2NativesTest {
 
   private static final byte[] NOT_A_LIBRARY = "not a library".getBytes(StandardCharsets.US_ASCII);
+
+  private static final String LEVEL_PROPERTY = "mcv2.native.level";
+
+  private static final String LINUX_PLATFORM = "linux-x86_64";
+
+  private static final String DIGESTS_RESOURCE = "/mcav/mcv2/natives/SHA256SUMS";
+  private static final String NATIVES_RESOURCE_FOLDER = "/mcav/mcv2/natives/";
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String AUXILIARY_VECTOR_PATH = "/proc/self/auxv";
+  private static final String CPU_INFO_PATH = "/proc/cpuinfo";
+
+  private static final String UNREADABLE_MESSAGE = "unreadable!";
+  private static final String NO_LIBRARY_MESSAGE = "no library loads here!";
+
+  private static final int DIGEST_LENGTH = 64;
+
+  private static final String OFF_DESCRIPTION = "Java, turned off by mcv2.native=off";
+  private static final String NATIVE_DESCRIPTION_PREFIX = "native ";
+
+  private static final String UNKNOWN_SETTING = "sometimes";
+
+  private static final String BLOCKING_FILE_NAME = "a file";
+  private static final String BLOCKING_FILE_TEXT = "in the way";
+
+  private static final String AVX2_LEVEL = "avx2";
+  private static final String SSE2_LEVEL = "sse2";
+  private static final String SCALAR_LEVEL = "scalar";
+
+  private static final String NATIVE_KERNELS_CLASS = "NativeKernels";
 
   @TempDir
   Path folder;
 
   @AfterEach
   void restore() {
-    System.clearProperty(MCV2.NATIVE_PROPERTY);
-    System.clearProperty("mcv2.native.level");
-    Natives.install(NativeTesting.FOLDER, MCV2.NATIVE_AUTO);
+    System.clearProperty(Mcv2.NATIVE_PROPERTY);
+    System.clearProperty(LEVEL_PROPERTY);
+    Natives.install(NativeTesting.FOLDER, Mcv2.NATIVE_AUTO);
   }
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(Natives.class);
   }
 
   @Test
-  void namesThePlatformsTheJarHasLibrariesFor() {
-    assertEquals("linux-x86_64", Natives.platform("Linux", "amd64"));
-    assertEquals("linux-x86_64", Natives.platform("linux", "x86_64"));
-    assertEquals("linux-aarch64", Natives.platform("Linux", "aarch64"));
-    assertEquals("windows-x86_64", Natives.platform("Windows 11", "amd64"));
-    assertEquals("windows-aarch64", Natives.platform("Windows 11", "aarch64"));
-    assertEquals("macos-x86_64", Natives.platform("Mac OS X", "x86_64"));
-    assertEquals("macos-aarch64", Natives.platform("Mac OS X", "arm64"));
-    assertNull(Natives.platform("FreeBSD", "amd64"));
-    assertNull(Natives.platform("Linux", "ppc64le"));
-    assertEquals("mcv2kernels.dll", Natives.libraryName("windows-x86_64"));
-    assertEquals("libmcv2kernels.dylib", Natives.libraryName("macos-aarch64"));
-    assertEquals("libmcv2kernels.so", Natives.libraryName("linux-aarch64"));
+  void shouldNameThePlatformsTheJarHasLibrariesFor() {
+    final @Nullable String linuxAmd64 = Natives.platform("Linux", "amd64");
+    assertEquals(LINUX_PLATFORM, linuxAmd64);
+
+    final @Nullable String linuxLowerCase = Natives.platform("linux", "x86_64");
+    assertEquals(LINUX_PLATFORM, linuxLowerCase);
+
+    final @Nullable String linuxAarch64 = Natives.platform("Linux", "aarch64");
+    assertEquals("linux-aarch64", linuxAarch64);
+
+    final @Nullable String windowsAmd64 = Natives.platform("Windows 11", "amd64");
+    assertEquals("windows-x86_64", windowsAmd64);
+
+    final @Nullable String windowsAarch64 = Natives.platform("Windows 11", "aarch64");
+    assertEquals("windows-aarch64", windowsAarch64);
+
+    final @Nullable String macosX86 = Natives.platform("Mac OS X", "x86_64");
+    assertEquals("macos-x86_64", macosX86);
+
+    final @Nullable String macosArm64 = Natives.platform("Mac OS X", "arm64");
+    assertEquals("macos-aarch64", macosArm64);
+
+    final @Nullable String freeBsd = Natives.platform("FreeBSD", "amd64");
+    assertNull(freeBsd);
+
+    final @Nullable String linuxPowerPc = Natives.platform("Linux", "ppc64le");
+    assertNull(linuxPowerPc);
+
+    final String windowsLibrary = Natives.libraryName("windows-x86_64");
+    assertEquals("mcv2kernels.dll", windowsLibrary);
+
+    final String macosLibrary = Natives.libraryName("macos-aarch64");
+    assertEquals("libmcv2kernels.dylib", macosLibrary);
+
+    final String linuxLibrary = Natives.libraryName("linux-aarch64");
+    assertEquals("libmcv2kernels.so", linuxLibrary);
   }
 
   @Test
-  void shipsTheLibrariesItsDigestsName() throws IOException {
+  void shouldShipTheLibrariesItsDigestsName() throws IOException {
     final Map<String, String> listed = new HashMap<>();
-    try (final InputStream sums = MCV2.class.getResourceAsStream("/mcav/mcv2/natives/SHA256SUMS")) {
+    try (final InputStream sums = Mcv2.class.getResourceAsStream(DIGESTS_RESOURCE)) {
       assertNotNull(sums);
+
       for (final String line : new String(sums.readAllBytes(), StandardCharsets.US_ASCII).lines().toList()) {
         final List<String> fields = Splitter.on(' ').omitEmptyStrings().splitToList(line);
         listed.put(fields.get(1).substring(0, fields.get(1).indexOf('/')), fields.get(0));
       }
     }
-    assertEquals(MCV2.NATIVE_DIGESTS, listed);
-    for (final Map.Entry<String, String> library : MCV2.NATIVE_DIGESTS.entrySet()) {
+
+    assertEquals(Mcv2.NATIVE_DIGESTS, listed);
+
+    for (final Map.Entry<String, String> library : Mcv2.NATIVE_DIGESTS.entrySet()) {
       final String platform = library.getKey();
       final byte[] bytes = Natives.read(
-        MCV2.class.getResourceAsStream("/mcav/mcv2/natives/" + platform + "/" + Natives.libraryName(platform))
+        Mcv2.class.getResourceAsStream(NATIVES_RESOURCE_FOLDER + platform + PATH_SEPARATOR + Natives.libraryName(platform))
       );
       assertNotNull(bytes, platform);
-      assertEquals(library.getValue(), Mcv2Resources.sha256(bytes), platform);
+      final String expectedDigest = library.getValue();
+      final String digest = Mcv2Resources.sha256(bytes);
+      assertEquals(expectedDigest, digest, platform);
       // the one megabyte a native library may take in the jar
-      assertTrue(bytes.length < 1_000_000, platform);
+      final boolean small = bytes.length < 1_000_000;
+      assertTrue(small, platform);
     }
   }
 
   @Test
-  void readsALibraryOrNothing() {
-    assertNull(Natives.read(null));
-    assertArrayEquals(new byte[] { 1, 2 }, Natives.read(new ByteArrayInputStream(new byte[] { 1, 2 })));
+  void shouldReadALibraryOrNothing() {
+    final byte @Nullable [] nothing = Natives.read(null);
+    assertNull(nothing);
+
+    final byte[] expected = { 1, 2 };
+    final byte @Nullable [] bytes = Natives.read(new ByteArrayInputStream(new byte[] { 1, 2 }));
+    assertArrayEquals(expected, bytes);
+
     final InputStream failing = new InputStream() {
       @Override
       public int read() throws IOException {
-        throw new IOException("unreadable");
+        throw new IOException(UNREADABLE_MESSAGE);
       }
 
       @Override
       public int read(final byte[] buffer, final int offset, final int length) throws IOException {
-        throw new IOException("unreadable");
+        throw new IOException(UNREADABLE_MESSAGE);
       }
     };
     assertThrows(UncheckedIOException.class, () -> Natives.read(failing));
   }
 
   @Test
-  void readsGeneratedDigestsAndRefusesMalformedManifests() {
-    final String digest = "a".repeat(64);
+  void shouldReadGeneratedDigestsAndRefuseMalformedManifests() {
+    final String digest = "a".repeat(DIGEST_LENGTH);
     final String entry = digest + "  linux-x86_64/libmcv2kernels.so\n";
-    assertEquals(Map.of("linux-x86_64", digest), Natives.digests(new ByteArrayInputStream(entry.getBytes(StandardCharsets.US_ASCII))));
+    final Map<String, String> expected = Map.of(LINUX_PLATFORM, digest);
+    final Map<String, String> digests = Natives.digests(new ByteArrayInputStream(entry.getBytes(StandardCharsets.US_ASCII)));
+    assertEquals(expected, digests);
+
     assertThrows(UnsupportedOperationException.class, () ->
       Natives.digests(new ByteArrayInputStream(entry.getBytes(StandardCharsets.US_ASCII))).clear()
     );
-    assertEquals(Map.of(), Natives.digests(null));
+    final Map<String, String> nothing = Natives.digests(null);
+    assertEquals(Map.of(), nothing);
+
     for (final String invalid : List.of(
       "",
       "garbage",
@@ -171,144 +235,241 @@ final class Mcv2NativesTest {
       digest + "  linux-x86_64/wrong.so",
       digest + "  linux-ppc64/libmcv2kernels.so"
     )) {
-      assertEquals(Map.of(), Natives.digests(new ByteArrayInputStream(invalid.getBytes(StandardCharsets.US_ASCII))));
+      final Map<String, String> invalidDigests = Natives.digests(new ByteArrayInputStream(invalid.getBytes(StandardCharsets.US_ASCII)));
+      assertEquals(Map.of(), invalidDigests);
     }
+
     final InputStream failing = new InputStream() {
       @Override
       public int read() throws IOException {
-        throw new IOException("unreadable manifest");
+        throw new IOException("unreadable manifest!");
       }
 
       @Override
       public int read(final byte[] buffer, final int offset, final int length) throws IOException {
-        throw new IOException("unreadable manifest");
+        throw new IOException("unreadable manifest!");
       }
     };
-    assertEquals(Map.of(), Natives.digests(failing));
+    final Map<String, String> failingDigests = Natives.digests(failing);
+    assertEquals(Map.of(), failingDigests);
   }
 
-  private static byte @Nullable [] unexpected(final String platform) {
-    throw new AssertionError("no library should be read for " + platform);
+  private byte @Nullable [] unexpected(final String platform) {
+    final String message = "No library should be read for %s!".formatted(platform);
+    throw new AssertionError(message);
   }
 
   @Test
-  void runsJavaWhenOffUnknownOrWithoutALibrary() {
-    final Resolution off = Natives.resolve(MCV2.NATIVE_OFF, "linux-x86_64", this.folder, Mcv2NativesTest::unexpected, null);
-    assertNull(off.binding());
-    assertFalse(off.failed());
-    assertEquals("Java, turned off by mcv2.native=off", off.description());
-    assertSame(NativeTesting.javaFactory(), NativeTesting.factory(off));
-    final Resolution unknown = Natives.resolve("sometimes", "linux-x86_64", this.folder, Mcv2NativesTest::unexpected, null);
-    assertTrue(unknown.failed());
-    assertEquals("Java, unknown mode mcv2.native=sometimes", unknown.description());
-    final Resolution nowhere = Natives.resolve(MCV2.NATIVE_AUTO, null, this.folder, Mcv2NativesTest::unexpected, null);
-    assertFalse(nowhere.failed());
-    assertEquals("Java, no library for this operating system and processor", nowhere.description());
-    final Resolution unlisted = Natives.resolve(MCV2.NATIVE_AUTO, "solaris-sparc", this.folder, Mcv2NativesTest::unexpected, null);
-    assertFalse(unlisted.failed());
-    assertEquals("Java, no library for solaris-sparc", unlisted.description());
-    final Resolution missing = Natives.resolve(MCV2.NATIVE_AUTO, "linux-x86_64", this.folder, platform -> null, null);
-    assertFalse(missing.failed());
-    assertEquals("Java, no library for linux-x86_64", missing.description());
+  void shouldRunJavaWhenOffUnknownOrWithoutALibrary() {
+    final Resolution off = Natives.resolve(Mcv2.NATIVE_OFF, LINUX_PLATFORM, this.folder, this::unexpected, null);
+    final @Nullable Binding offBinding = off.binding();
+    assertNull(offBinding);
+
+    final boolean offFailed = off.failed();
+    assertFalse(offFailed);
+
+    final String offDescription = off.description();
+    assertEquals(OFF_DESCRIPTION, offDescription);
+
+    final Supplier<?> expectedFactory = NativeTesting.javaFactory();
+    final Supplier<?> offFactory = NativeTesting.factory(off);
+    assertSame(expectedFactory, offFactory);
+
+    final Resolution unknown = Natives.resolve(UNKNOWN_SETTING, LINUX_PLATFORM, this.folder, this::unexpected, null);
+    final boolean unknownFailed = unknown.failed();
+    assertTrue(unknownFailed);
+
+    final String unknownDescription = unknown.description();
+    assertEquals("Java, unknown mode mcv2.native=sometimes", unknownDescription);
+
+    final Resolution nowhere = Natives.resolve(Mcv2.NATIVE_AUTO, null, this.folder, this::unexpected, null);
+    final boolean nowhereFailed = nowhere.failed();
+    assertFalse(nowhereFailed);
+
+    final String nowhereDescription = nowhere.description();
+    assertEquals("Java, no library for this operating system and processor", nowhereDescription);
+
+    final Resolution unlisted = Natives.resolve(Mcv2.NATIVE_AUTO, "solaris-sparc", this.folder, this::unexpected, null);
+    final boolean unlistedFailed = unlisted.failed();
+    assertFalse(unlistedFailed);
+
+    final String unlistedDescription = unlisted.description();
+    assertEquals("Java, no library for solaris-sparc", unlistedDescription);
+
+    final Resolution missing = Natives.resolve(Mcv2.NATIVE_AUTO, LINUX_PLATFORM, this.folder, platform -> null, null);
+    final boolean missingFailed = missing.failed();
+    assertFalse(missingFailed);
+
+    final String missingDescription = missing.description();
+    assertEquals("Java, no library for linux-x86_64", missingDescription);
+
     final Resolution unreadable = Natives.resolve(
-      MCV2.NATIVE_AUTO,
-      "linux-x86_64",
+      Mcv2.NATIVE_AUTO,
+      LINUX_PLATFORM,
       this.folder,
       platform -> {
-        throw new UncheckedIOException(new IOException("unreadable"));
+        throw new UncheckedIOException(new IOException(UNREADABLE_MESSAGE));
       },
       null
     );
-    assertTrue(unreadable.failed());
-    assertTrue(unreadable.description().startsWith("Java, the library could not be read"));
+    final boolean unreadableFailed = unreadable.failed();
+    assertTrue(unreadableFailed);
+
+    final boolean unreadableDescribed = unreadable.description().startsWith("Java, the library could not be read");
+    assertTrue(unreadableDescribed);
   }
 
   @Test
-  void refusesALibraryThatDoesNotMatchOrCannotBePlaced() throws IOException {
+  void shouldRefuseALibraryThatDoesNotMatchOrCannotBePlaced() throws IOException {
     final String digest = Mcv2Resources.sha256(NOT_A_LIBRARY);
-    final Resolution altered = Natives.load("linux-x86_64", "0".repeat(64), NOT_A_LIBRARY, this.folder, null);
-    assertTrue(altered.failed());
-    assertEquals("Java, the library for linux-x86_64 does not match its SHA-256", altered.description());
-    final Resolution homeless = Natives.load("linux-x86_64", digest, NOT_A_LIBRARY, null, null);
-    assertTrue(homeless.failed());
-    assertEquals("Java, no folder was given to extract the library into", homeless.description());
-    final Path file = Files.writeString(this.folder.resolve("a file"), "in the way");
-    final Resolution blocked = Natives.load("linux-x86_64", digest, NOT_A_LIBRARY, file, null);
-    assertTrue(blocked.failed());
-    assertTrue(blocked.description().startsWith("Java, the library could not be extracted"));
-    final Resolution unloadable = Natives.load("linux-x86_64", digest, NOT_A_LIBRARY, this.folder, null);
-    assertTrue(unloadable.failed());
-    assertTrue(unloadable.description().startsWith("Java, the library could not be loaded"));
+    final Resolution altered = Natives.load(LINUX_PLATFORM, "0".repeat(DIGEST_LENGTH), NOT_A_LIBRARY, this.folder, null);
+    final boolean alteredFailed = altered.failed();
+    assertTrue(alteredFailed);
+
+    final String alteredDescription = altered.description();
+    assertEquals("Java, the library for linux-x86_64 does not match its SHA-256", alteredDescription);
+
+    final Resolution homeless = Natives.load(LINUX_PLATFORM, digest, NOT_A_LIBRARY, null, null);
+    final boolean homelessFailed = homeless.failed();
+    assertTrue(homelessFailed);
+
+    final String homelessDescription = homeless.description();
+    assertEquals("Java, no folder was given to extract the library into", homelessDescription);
+
+    final Path file = Files.writeString(this.folder.resolve(BLOCKING_FILE_NAME), BLOCKING_FILE_TEXT);
+    final Resolution blocked = Natives.load(LINUX_PLATFORM, digest, NOT_A_LIBRARY, file, null);
+    final boolean blockedFailed = blocked.failed();
+    assertTrue(blockedFailed);
+
+    final boolean blockedDescribed = blocked.description().startsWith("Java, the library could not be extracted");
+    assertTrue(blockedDescribed);
+
+    final Resolution unloadable = Natives.load(LINUX_PLATFORM, digest, NOT_A_LIBRARY, this.folder, null);
+    final boolean unloadableFailed = unloadable.failed();
+    assertTrue(unloadableFailed);
+
+    final boolean unloadableDescribed = unloadable.description().startsWith("Java, the library could not be loaded");
+    assertTrue(unloadableDescribed);
   }
 
   @Test
-  void extractsOnceUnderItsDigestAndReplacesAnythingElse() throws IOException {
+  void shouldExtractOnceUnderItsDigestAndReplaceAnythingElse() throws IOException {
     final String digest = Mcv2Resources.sha256(NOT_A_LIBRARY);
     final Path folder = this.folder.resolve("created");
     final Path file = Natives.extract(folder, "library", NOT_A_LIBRARY, digest);
-    assertArrayEquals(NOT_A_LIBRARY, Files.readAllBytes(file));
+    final byte[] extracted = Files.readAllBytes(file);
+    assertArrayEquals(NOT_A_LIBRARY, extracted);
+
     final FileTime longAgo = FileTime.fromMillis(0);
     Files.setLastModifiedTime(file, longAgo);
-    assertEquals(file, Natives.extract(folder, "library", NOT_A_LIBRARY, digest));
-    assertEquals(longAgo, Files.getLastModifiedTime(file));
+    final Path again = Natives.extract(folder, "library", NOT_A_LIBRARY, digest);
+    assertEquals(file, again);
+
+    final FileTime modified = Files.getLastModifiedTime(file);
+    assertEquals(longAgo, modified);
+
     Files.writeString(file, "changed");
     Natives.extract(folder, "library", NOT_A_LIBRARY, digest);
-    assertArrayEquals(NOT_A_LIBRARY, Files.readAllBytes(file));
+    final byte[] replaced = Files.readAllBytes(file);
+    assertArrayEquals(NOT_A_LIBRARY, replaced);
+
     final Path taken = Files.createDirectories(folder.resolve("taken"));
     Files.writeString(taken.resolve("inside"), "keeps the folder non-empty");
     assertThrows(IOException.class, () -> Natives.extract(folder, "taken", NOT_A_LIBRARY, digest));
+
     try (final Stream<Path> files = Files.list(folder)) {
-      assertEquals(2, files.count());
+      final long fileCount = files.count();
+      assertEquals(2, fileCount);
     }
   }
 
   @Test
-  void choosesTheBestLevelAtMostTheHighestAsked() {
+  void shouldChooseTheBestLevelAtMostTheHighestAsked() {
     // an Ice Lake: scalar, sse2, sse41, avx2 and avx512
     final int iceLake = 1 | 16 | 2 | 4 | 32;
-    assertEquals(Level.AVX512, Natives.level(iceLake, null));
-    assertEquals(Level.AVX2, Natives.level(iceLake, "avx2"));
-    assertEquals(Level.SSE41, Natives.level(iceLake, "sse41"));
-    assertEquals(Level.SSE2, Natives.level(iceLake, "sse2"));
-    assertEquals(Level.SCALAR, Natives.level(iceLake, "scalar"));
-    assertEquals(Level.SCALAR, Natives.level(iceLake, "unknown"));
+    final Level iceLakeBest = Natives.level(iceLake, null);
+    assertEquals(Level.AVX512, iceLakeBest);
+
+    final Level iceLakeAvx2 = Natives.level(iceLake, AVX2_LEVEL);
+    assertEquals(Level.AVX2, iceLakeAvx2);
+
+    final Level iceLakeSse41 = Natives.level(iceLake, "sse41");
+    assertEquals(Level.SSE41, iceLakeSse41);
+
+    final Level iceLakeSse2 = Natives.level(iceLake, SSE2_LEVEL);
+    assertEquals(Level.SSE2, iceLakeSse2);
+
+    final Level iceLakeScalar = Natives.level(iceLake, SCALAR_LEVEL);
+    assertEquals(Level.SCALAR, iceLakeScalar);
+
+    final Level iceLakeUnknown = Natives.level(iceLake, "unknown");
+    assertEquals(Level.SCALAR, iceLakeUnknown);
     // a Core 2 without SSE4.1, a Haswell
-    assertEquals(Level.SSE2, Natives.level(1 | 16, null));
-    assertEquals(Level.SSE2, Natives.level(1 | 16, "avx2"));
-    assertEquals(Level.AVX2, Natives.level(1 | 16 | 2 | 4, "avx512"));
+    final Level coreTwoBest = Natives.level(1 | 16, null);
+    assertEquals(Level.SSE2, coreTwoBest);
+
+    final Level coreTwoAvx2 = Natives.level(1 | 16, AVX2_LEVEL);
+    assertEquals(Level.SSE2, coreTwoAvx2);
+
+    final Level haswellAvx512 = Natives.level(1 | 16 | 2 | 4, "avx512");
+    assertEquals(Level.AVX2, haswellAvx512);
     // AArch64 without SVE, with 256-bit and with 512-bit SVE
-    assertEquals(Level.NEON, Natives.level(1 | 8, null));
-    assertEquals(Level.SVE256, Natives.level(1 | 8 | 64, null));
-    assertEquals(Level.SVE512, Natives.level(1 | 8 | 128, null));
-    assertEquals(Level.NEON, Natives.level(1 | 8 | 128, "neon"));
-    assertEquals(Level.SCALAR, Natives.level(1, null));
-    assertTrue(Level.AVX512.isIn(iceLake));
-    assertFalse(Level.NEON.isIn(iceLake));
+    final Level aarch64Best = Natives.level(1 | 8, null);
+    assertEquals(Level.NEON, aarch64Best);
+
+    final Level sve256Best = Natives.level(1 | 8 | 64, null);
+    assertEquals(Level.SVE256, sve256Best);
+
+    final Level sve512Best = Natives.level(1 | 8 | 128, null);
+    assertEquals(Level.SVE512, sve512Best);
+
+    final Level sve512Neon = Natives.level(1 | 8 | 128, "neon");
+    assertEquals(Level.NEON, sve512Neon);
+
+    final Level scalarOnly = Natives.level(1, null);
+    assertEquals(Level.SCALAR, scalarOnly);
+
+    final boolean iceLakeHasAvx512 = Level.AVX512.isIn(iceLake);
+    assertTrue(iceLakeHasAvx512);
+
+    final boolean iceLakeHasNeon = Level.NEON.isIn(iceLake);
+    assertFalse(iceLakeHasNeon);
   }
 
   @Test
-  void readsTheProcessorFeaturesLinuxGives() throws IOException {
-    assertEquals(0, Natives.hardwareCapabilities(this.folder.resolve("missing")));
+  void shouldReadTheProcessorFeaturesLinuxGives() throws IOException {
+    final long missingCapabilities = Natives.hardwareCapabilities(this.folder.resolve("missing"));
+    assertEquals(0, missingCapabilities);
+
     // AT_PAGESZ, AT_HWCAP, AT_NULL, and the start of another entry
     final ByteBuffer vector = ByteBuffer.allocate(56).order(ByteOrder.nativeOrder());
     vector.putLong(6).putLong(4096).putLong(16).putLong(0x40_0000L).putLong(0).putLong(0).putInt(16);
     final Path given = Files.write(this.folder.resolve("auxv"), vector.array());
-    assertEquals(0x40_0000L, Natives.hardwareCapabilities(given));
+    final long givenCapabilities = Natives.hardwareCapabilities(given);
+    assertEquals(0x40_0000L, givenCapabilities);
+
     final Path without = Files.write(this.folder.resolve("without"), Arrays.copyOfRange(vector.array(), 0, 16));
-    assertEquals(0, Natives.hardwareCapabilities(without));
+    final long withoutCapabilities = Natives.hardwareCapabilities(without);
+    assertEquals(0, withoutCapabilities);
+
     final Path truncated = Files.write(this.folder.resolve("truncated"), Arrays.copyOfRange(vector.array(), 0, 24));
-    assertEquals(0, Natives.hardwareCapabilities(truncated));
+    final long truncatedCapabilities = Natives.hardwareCapabilities(truncated);
+    assertEquals(0, truncatedCapabilities);
+
     final ByteBuffer last = ByteBuffer.allocate(16).order(ByteOrder.nativeOrder());
     last.putLong(16).putLong(0x40_0000L);
-    assertEquals(0x40_0000L, Natives.hardwareCapabilities(Files.write(this.folder.resolve("last"), last.array())));
+    final long lastCapabilities = Natives.hardwareCapabilities(Files.write(this.folder.resolve("last"), last.array()));
+    assertEquals(0x40_0000L, lastCapabilities);
   }
 
   @Test
-  @SuppressWarnings("restricted")
-  void passesLinuxFeatureBitsToTheNativeLevelQuery() throws ReflectiveOperationException {
-    assumeTrue(NativeTesting.expected(), "no library loads here");
-    final long features = Natives.hardwareCapabilities(Path.of("/proc/self/auxv"));
-    assumeTrue(features != 0, "Linux must supply processor feature bits");
+  @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
+  void shouldPassLinuxFeatureBitsToTheNativeLevelQuery() throws ReflectiveOperationException {
+    assumeTrue(NativeTesting.expected(), NO_LIBRARY_MESSAGE);
+
+    final long features = Natives.hardwareCapabilities(Path.of(AUXILIARY_VECTOR_PATH));
+    assumeTrue(features != 0, "Linux must supply processor feature bits!");
+
     final AtomicLong received = new AtomicLong(-1);
     final MethodHandle capture = MethodHandles.lookup()
       .findVirtual(AtomicLong.class, "getAndSet", MethodType.methodType(long.class, long.class))
@@ -319,48 +480,62 @@ final class Mcv2NativesTest {
       final MemorySegment entry = Linker.nativeLinker().upcallStub(query, FunctionDescriptor.of(JAVA_INT, JAVA_LONG), arena);
       final SymbolLookup original = NativeTesting.library();
       final SymbolLookup library = name -> name.equals("mcv2_cpu_levels") ? Optional.of(entry) : original.find(name);
-      assertFalse(Natives.bind(library, "linux-test", null, Natives.ABI_VERSION).failed());
-      assertEquals(features, received.get());
-      assertFalse(Natives.bind(library, "other-test", null, Natives.ABI_VERSION).failed());
-      assertEquals(0, received.get());
+      final boolean linuxFailed = Natives.bind(library, "linux-test", null, Natives.ABI_VERSION).failed();
+      assertFalse(linuxFailed);
+
+      final long linuxFeatures = received.get();
+      assertEquals(features, linuxFeatures);
+
+      final boolean otherFailed = Natives.bind(library, "other-test", null, Natives.ABI_VERSION).failed();
+      assertFalse(otherFailed);
+
+      final long otherFeatures = received.get();
+      assertEquals(0, otherFeatures);
     }
   }
 
   @Test
-  void warnsOnlyWhenNativeResolutionFails() {
-    Natives.install(this.folder, MCV2.NATIVE_OFF);
-    try (final LogCapture logs = LogCapture.capture(MCV2.class)) {
-      assertFalse(Natives.resolved().failed());
-      assertEquals(
-        List.of("INFO"),
-        logs
-          .getEvents()
-          .stream()
-          .map(event -> event.getLevel().name())
-          .toList()
-      );
+  void shouldWarnOnlyWhenNativeResolutionFails() {
+    Natives.install(this.folder, Mcv2.NATIVE_OFF);
+    try (final LogCapture logs = LogCapture.capture(Mcv2.class)) {
+      final boolean failed = Natives.resolved().failed();
+      assertFalse(failed);
+
+      final List<String> expectedLevels = List.of("INFO");
+      final List<String> levels = logs
+        .getEvents()
+        .stream()
+        .map(event -> event.getLevel().name())
+        .toList();
+      assertEquals(expectedLevels, levels);
     }
-    System.setProperty(MCV2.NATIVE_PROPERTY, "sometimes");
-    Natives.install(this.folder, MCV2.NATIVE_AUTO);
-    try (final LogCapture logs = LogCapture.capture(MCV2.class)) {
-      assertTrue(Natives.resolved().failed());
-      assertEquals(
-        List.of("WARN", "INFO"),
-        logs
-          .getEvents()
-          .stream()
-          .map(event -> event.getLevel().name())
-          .toList()
-      );
-      assertTrue(logs.getEvents().getFirst().getMessage().contains("MCV2 native kernels did not load"));
+
+    System.setProperty(Mcv2.NATIVE_PROPERTY, UNKNOWN_SETTING);
+    Natives.install(this.folder, Mcv2.NATIVE_AUTO);
+    try (final LogCapture logs = LogCapture.capture(Mcv2.class)) {
+      final boolean failed = Natives.resolved().failed();
+      assertTrue(failed);
+
+      final List<String> expectedLevels = List.of("WARN", "INFO");
+      final List<String> levels = logs
+        .getEvents()
+        .stream()
+        .map(event -> event.getLevel().name())
+        .toList();
+      assertEquals(expectedLevels, levels);
+
+      final boolean reportsTheFailure = logs.getEvents().getFirst().getMessage().contains("MCV2 native kernels did not load");
+      assertTrue(reportsTheFailure);
     }
   }
 
   @Test
-  void runsTheLevelsProcCpuinfoListsTheFeaturesOf() throws IOException {
-    assumeTrue(NativeTesting.expected(), "no library loads here");
-    final Path cpuinfo = Path.of("/proc/cpuinfo");
-    assumeTrue(Files.isReadable(cpuinfo), "no /proc/cpuinfo here");
+  void shouldRunTheLevelsProcCpuinfoListsTheFeaturesOf() throws IOException {
+    assumeTrue(NativeTesting.expected(), NO_LIBRARY_MESSAGE);
+
+    final Path cpuinfo = Path.of(CPU_INFO_PATH);
+    assumeTrue(Files.isReadable(cpuinfo), "no /proc/cpuinfo here!");
+
     final Set<String> flags = new HashSet<>();
     for (final String line : Files.readAllLines(cpuinfo)) {
       // x86-64 lists its features as flags, AArch64 as Features
@@ -373,12 +548,23 @@ final class Mcv2NativesTest {
         break;
       }
     }
+
     final int levels = NativeTesting.resolution().levels();
-    final boolean isX86 = flags.contains("sse2");
-    assertTrue(Level.SCALAR.isIn(levels));
-    assertEquals(isX86, Level.SSE2.isIn(levels));
-    assertEquals(flags.contains("sse4_1"), Level.SSE41.isIn(levels));
-    assertEquals(flags.contains("avx2"), Level.AVX2.isIn(levels));
+    final boolean isX86 = flags.contains(SSE2_LEVEL);
+    final boolean scalar = Level.SCALAR.isIn(levels);
+    assertTrue(scalar);
+
+    final boolean sse2 = Level.SSE2.isIn(levels);
+    assertEquals(isX86, sse2);
+
+    final boolean expectedSse41 = flags.contains("sse4_1");
+    final boolean sse41 = Level.SSE41.isIn(levels);
+    assertEquals(expectedSse41, sse41);
+
+    final boolean expectedAvx2 = flags.contains(AVX2_LEVEL);
+    final boolean avx2 = Level.AVX2.isIn(levels);
+    assertEquals(expectedAvx2, avx2);
+
     final List<String> iceLake = List.of(
       "avx512f",
       "avx512dq",
@@ -389,97 +575,163 @@ final class Mcv2NativesTest {
       "avx512_vnni",
       "avx512_bitalg"
     );
-    assertEquals(flags.containsAll(iceLake), Level.AVX512.isIn(levels));
-    assertEquals(!isX86, Level.NEON.isIn(levels));
+    final boolean expectedAvx512 = flags.containsAll(iceLake);
+    final boolean avx512 = Level.AVX512.isIn(levels);
+    assertEquals(expectedAvx512, avx512);
+
+    final boolean expectedNeon = !isX86;
+    final boolean neon = Level.NEON.isIn(levels);
+    assertEquals(expectedNeon, neon);
     // SVE's vector length is not in /proc/cpuinfo: without SVE neither SVE level runs, with it at most one
     final boolean sve = Level.SVE256.isIn(levels) || Level.SVE512.isIn(levels);
-    assertTrue(flags.contains("sve") || !sve);
-    assertFalse(Level.SVE256.isIn(levels) && Level.SVE512.isIn(levels));
+    final boolean sveListed = flags.contains("sve") || !sve;
+    assertTrue(sveListed);
+
+    final boolean bothSve = Level.SVE256.isIn(levels) && Level.SVE512.isIn(levels);
+    assertFalse(bothSve);
   }
 
   @Test
-  void bindsTheLibraryAndRefusesAWrongOne() {
-    assumeTrue(NativeTesting.expected(), "no library loads here");
+  void shouldBindTheLibraryAndRefuseAWrongOne() {
+    assumeTrue(NativeTesting.expected(), NO_LIBRARY_MESSAGE);
+
     final SymbolLookup library = NativeTesting.library();
     final int levels = NativeTesting.resolution().levels();
     // The resolution's platform, as bind passes the library the hardware capabilities (SVE's permission) only for Linux
     final String platform = Objects.requireNonNull(Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", "")));
     final Resolution best = Natives.bind(library, platform, null, Natives.ABI_VERSION);
-    assertEquals(Natives.level(levels, null), Objects.requireNonNull(best.binding()).level());
-    assertEquals("native " + Natives.level(levels, null).symbol() + " (" + platform + ")", best.description());
-    assertInstanceOf(Mcv2Internals.nested("NativeKernels"), NativeTesting.factory(best).get());
-    assertEquals(Level.SCALAR, Objects.requireNonNull(Natives.bind(library, "here", "scalar", Natives.ABI_VERSION).binding()).level());
+    final Level expectedLevel = Natives.level(levels, null);
+    final Level bestLevel = Objects.requireNonNull(best.binding()).level();
+    assertEquals(expectedLevel, bestLevel);
+
+    final String expectedDescription = NATIVE_DESCRIPTION_PREFIX + Natives.level(levels, null).symbol() + " (" + platform + ")";
+    final String bestDescription = best.description();
+    assertEquals(expectedDescription, bestDescription);
+
+    final Class<?> expectedKernelsType = Mcv2Internals.nested(NATIVE_KERNELS_CLASS);
+    final Object kernels = NativeTesting.factory(best).get();
+    assertInstanceOf(expectedKernelsType, kernels);
+
+    final Level scalarLevel = Objects.requireNonNull(Natives.bind(library, "here", SCALAR_LEVEL, Natives.ABI_VERSION).binding()).level();
+    assertEquals(Level.SCALAR, scalarLevel);
+
     final Resolution unversioned = Natives.bind(
       name -> name.equals("mcv2_abi") ? Optional.empty() : library.find(name),
       "here",
       null,
       Natives.ABI_VERSION
     );
-    assertTrue(unversioned.failed());
-    assertTrue(unversioned.description().startsWith("Java, the library could not be bound"));
+    final boolean unversionedFailed = unversioned.failed();
+    assertTrue(unversionedFailed);
+
+    final boolean unversionedDescribed = unversioned.description().startsWith("Java, the library could not be bound");
+    assertTrue(unversionedDescribed);
+
     final Resolution other = Natives.bind(library, "here", null, Natives.ABI_VERSION + 1);
-    assertTrue(other.failed());
-    assertEquals("Java, the library's interface " + Natives.ABI_VERSION + " is not " + (Natives.ABI_VERSION + 1), other.description());
+    final boolean otherFailed = other.failed();
+    assertTrue(otherFailed);
+
+    final String expectedOtherDescription = "Java, the library's interface " + Natives.ABI_VERSION + " is not " + (Natives.ABI_VERSION + 1);
+    final String otherDescription = other.description();
+    assertEquals(expectedOtherDescription, otherDescription);
+
     final Resolution lacking = Natives.bind(
       name -> name.endsWith("_residual_target") ? Optional.empty() : library.find(name),
       "here",
       null,
       Natives.ABI_VERSION
     );
-    assertTrue(lacking.failed());
+    final boolean lackingFailed = lacking.failed();
+    assertTrue(lackingFailed);
   }
 
   @Test
-  void loadsTheExpectedKernelsAndTellsWhich() throws IOException {
-    Natives.install(NativeTesting.FOLDER, MCV2.NATIVE_AUTO);
+  void shouldLoadTheExpectedKernelsAndTellWhich() throws IOException {
+    Natives.install(NativeTesting.FOLDER, Mcv2.NATIVE_AUTO);
+
     if (NativeTesting.expected()) {
-      assertTrue(MCV2.describeNatives().startsWith("native "), MCV2.describeNatives());
-      assertInstanceOf(Mcv2Internals.nested("NativeKernels"), NativeTesting.factory(Natives.resolved()).get());
+      final boolean describesNative = Mcv2.describeNatives().startsWith(NATIVE_DESCRIPTION_PREFIX);
+      assertTrue(describesNative, Mcv2.describeNatives());
+
+      final Class<?> expectedKernelsType = Mcv2Internals.nested(NATIVE_KERNELS_CLASS);
+      final Object kernels = NativeTesting.factory(Natives.resolved()).get();
+      assertInstanceOf(expectedKernelsType, kernels);
     } else {
-      assertTrue(MCV2.describeNatives().startsWith("Java, "), MCV2.describeNatives());
-      assertSame(NativeTesting.javaFactory(), NativeTesting.factory(Natives.resolved()));
+      final boolean describesJava = Mcv2.describeNatives().startsWith("Java, ");
+      assertTrue(describesJava, Mcv2.describeNatives());
+
+      final Supplier<?> expectedFactory = NativeTesting.javaFactory();
+      final Supplier<?> factory = NativeTesting.factory(Natives.resolved());
+      assertSame(expectedFactory, factory);
     }
-    assertSame(Natives.resolved(), Natives.resolved());
-    Natives.install(this.folder, MCV2.NATIVE_OFF);
-    assertEquals("Java, turned off by mcv2.native=off", MCV2.describeNatives());
-    assertSame(NativeTesting.javaFactory(), NativeTesting.factory(Natives.resolved()));
-    System.setProperty(MCV2.NATIVE_PROPERTY, MCV2.NATIVE_OFF);
-    Natives.install(this.folder, MCV2.NATIVE_AUTO);
-    assertEquals("Java, turned off by mcv2.native=off", MCV2.describeNatives());
-    System.clearProperty(MCV2.NATIVE_PROPERTY);
-    Natives.install(Files.writeString(this.folder.resolve("a file"), "in the way"), MCV2.NATIVE_AUTO);
-    assertTrue(MCV2.describeNatives().startsWith("Java, "));
-    assertEquals(NativeTesting.expected(), Natives.resolved().failed());
-    assertThrows(IllegalArgumentException.class, () -> Natives.install(this.folder, "sometimes"));
-    assertThrows(NullPointerException.class, () -> MCV2.installNatives(null, MCV2.NATIVE_OFF));
-    assertThrows(NullPointerException.class, () -> MCV2.installNatives(this.folder, null));
-    assertThrows(IllegalArgumentException.class, () -> MCV2.installNatives(this.folder, "other"));
+
+    final Resolution expectedResolution = Natives.resolved();
+    final Resolution resolution = Natives.resolved();
+    assertSame(expectedResolution, resolution);
+
+    Natives.install(this.folder, Mcv2.NATIVE_OFF);
+    final String offDescription = Mcv2.describeNatives();
+    assertEquals(OFF_DESCRIPTION, offDescription);
+
+    final Supplier<?> expectedOffFactory = NativeTesting.javaFactory();
+    final Supplier<?> offFactory = NativeTesting.factory(Natives.resolved());
+    assertSame(expectedOffFactory, offFactory);
+
+    System.setProperty(Mcv2.NATIVE_PROPERTY, Mcv2.NATIVE_OFF);
+    Natives.install(this.folder, Mcv2.NATIVE_AUTO);
+    final String propertyOffDescription = Mcv2.describeNatives();
+    assertEquals(OFF_DESCRIPTION, propertyOffDescription);
+
+    System.clearProperty(Mcv2.NATIVE_PROPERTY);
+    Natives.install(Files.writeString(this.folder.resolve(BLOCKING_FILE_NAME), BLOCKING_FILE_TEXT), Mcv2.NATIVE_AUTO);
+    final boolean describesJavaAfterFailure = Mcv2.describeNatives().startsWith("Java, ");
+    assertTrue(describesJavaAfterFailure);
+
+    final boolean expectedFailed = NativeTesting.expected();
+    final boolean failed = Natives.resolved().failed();
+    assertEquals(expectedFailed, failed);
+
+    assertThrows(IllegalArgumentException.class, () -> Natives.install(this.folder, UNKNOWN_SETTING));
+    assertThrows(NullPointerException.class, () -> Mcv2.installNatives(null, Mcv2.NATIVE_OFF));
+    assertThrows(NullPointerException.class, () -> Mcv2.installNatives(this.folder, null));
+    assertThrows(IllegalArgumentException.class, () -> Mcv2.installNatives(this.folder, "other"));
   }
 
   @Test
-  void publicInstallationSelectsEachLevelAndPreservesExistingEncoders() {
+  void shouldSelectEachLevelAndPreserveExistingEncodersOnPublicInstallation() {
     // the library loads from NativeTesting's folder, not the temporary one: Windows keeps a loaded library locked, so
     // JUnit could not delete the temporary folder after the test
-    MCV2.installNatives(NativeTesting.FOLDER, MCV2.NATIVE_OFF);
-    final MCV2 java = new MCV2(MCV2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
-    final Supplier<?> javaFactory = (Supplier<?>) Mcv2Internals.field(MCV2.class, java, "kernels");
-    assertSame(NativeTesting.javaFactory(), javaFactory);
-    assertEquals("Java, turned off by mcv2.native=off", MCV2.describeNatives());
+    Mcv2.installNatives(NativeTesting.FOLDER, Mcv2.NATIVE_OFF);
+    final Mcv2 java = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
+    final Supplier<?> javaFactory = (Supplier<?>) Mcv2Internals.field(Mcv2.class, java, "kernels");
+    final Supplier<?> expectedJavaFactory = NativeTesting.javaFactory();
+    assertSame(expectedJavaFactory, javaFactory);
+
+    final String offDescription = Mcv2.describeNatives();
+    assertEquals(OFF_DESCRIPTION, offDescription);
+
     for (final Level level : NativeTesting.levels()) {
-      System.setProperty("mcv2.native.level", level.symbol());
-      System.clearProperty(MCV2.NATIVE_PROPERTY);
-      MCV2.installNatives(NativeTesting.FOLDER, MCV2.NATIVE_AUTO);
-      final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
-      final Supplier<?> nativeFactory = (Supplier<?>) Mcv2Internals.field(MCV2.class, encoder, "kernels");
-      assertEquals(level, NativeTesting.view(nativeFactory.get()).level());
-      assertTrue(MCV2.describeNatives().startsWith("native " + level.symbol() + " ("));
-      assertSame(javaFactory, Mcv2Internals.field(MCV2.class, java, "kernels"));
-      System.setProperty(MCV2.NATIVE_PROPERTY, MCV2.NATIVE_OFF);
-      MCV2.installNatives(NativeTesting.FOLDER, MCV2.NATIVE_AUTO);
-      final MCV2 disabled = new MCV2(MCV2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
-      assertSame(javaFactory, Mcv2Internals.field(MCV2.class, disabled, "kernels"));
-      assertSame(nativeFactory, Mcv2Internals.field(MCV2.class, encoder, "kernels"));
-      assertEquals(level, NativeTesting.view(nativeFactory.get()).level());
+      System.setProperty(LEVEL_PROPERTY, level.symbol());
+      System.clearProperty(Mcv2.NATIVE_PROPERTY);
+      Mcv2.installNatives(NativeTesting.FOLDER, Mcv2.NATIVE_AUTO);
+      final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
+      final Supplier<?> nativeFactory = (Supplier<?>) Mcv2Internals.field(Mcv2.class, encoder, "kernels");
+      final Level nativeLevel = NativeTesting.view(nativeFactory.get()).level();
+      assertEquals(level, nativeLevel);
+      final boolean describesLevel = Mcv2.describeNatives().startsWith(NATIVE_DESCRIPTION_PREFIX + level.symbol() + " (");
+      assertTrue(describesLevel);
+      final Object javaKernels = Mcv2Internals.field(Mcv2.class, java, "kernels");
+      assertSame(javaFactory, javaKernels);
+
+      System.setProperty(Mcv2.NATIVE_PROPERTY, Mcv2.NATIVE_OFF);
+      Mcv2.installNatives(NativeTesting.FOLDER, Mcv2.NATIVE_AUTO);
+      final Mcv2 disabled = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, Mcv2.Verification.VERIFIED);
+      final Object disabledKernels = Mcv2Internals.field(Mcv2.class, disabled, "kernels");
+      assertSame(javaFactory, disabledKernels);
+      final Object encoderKernels = Mcv2Internals.field(Mcv2.class, encoder, "kernels");
+      assertSame(nativeFactory, encoderKernels);
+      final Level nativeLevelAfterDisabling = NativeTesting.view(nativeFactory.get()).level();
+      assertEquals(level, nativeLevelAfterDisabling);
     }
   }
 }

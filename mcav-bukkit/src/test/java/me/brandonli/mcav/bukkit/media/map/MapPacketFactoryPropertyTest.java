@@ -40,10 +40,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 
-/**
- * Properties of {@link MapPacketFactory} for every number of patches, not only the counts around the bundle limit the
- * examples use.
- */
 final class MapPacketFactoryPropertyTest {
 
   private static final String SEED = "20260925";
@@ -83,9 +79,6 @@ final class MapPacketFactoryPropertyTest {
     return Arbitraries.oneOf(anyCount, aroundLimits);
   }
 
-  /**
-   * Gets the packets the viewer received since the given number of packets.
-   */
   private List<Packet<?>> packetsSince(final int before) {
     final List<Packet<?>> packets = this.server.getSentPackets(VIEWER);
     final int after = packets.size();
@@ -99,13 +92,14 @@ final class MapPacketFactoryPropertyTest {
   }
 
   @Property(seed = SEED, tries = 60)
-  void sendsEveryPatchInOrderInBundlesOfAtMostTheProtocolLimit(@ForAll("patchCounts") final int patchCount) {
+  void shouldSendEveryPatchInOrderInBundlesOfAtMostTheProtocolLimit(@ForAll("patchCounts") final int patchCount) {
     final List<MapTilePatch> patches = new ArrayList<>(patchCount);
     for (int index = 0; index < patchCount; index++) {
       final byte color = (byte) index;
-      final MapTilePatch patch = new MapTilePatch(index, index % 128, 0, 1, 1, new byte[] { color });
+      final MapTilePatch patch = MapTilePatch.of(index, index % 128, 0, 1, 1, new byte[] { color });
       patches.add(patch);
     }
+
     final List<UUID> viewers = List.of(VIEWER, OFFLINE);
     final int before = this.packetCount();
 
@@ -115,22 +109,25 @@ final class MapPacketFactoryPropertyTest {
     final int expectedBundles = (patchCount + BUNDLE_LIMIT - 1) / BUNDLE_LIMIT;
     final int bundleCount = bundles.size();
     assertEquals(expectedBundles, bundleCount, "one bundle per started block of 4096 patches");
+
     int next = 0;
     for (final Packet<?> bundle : bundles) {
       final List<ClientboundMapItemDataPacket> mapPackets = unbundle(bundle);
       final int size = mapPackets.size();
-      assertTrue(size > 0 && size <= BUNDLE_LIMIT, () -> "a bundle of " + size + " packets");
+      final boolean withinLimit = size > 0 && size <= BUNDLE_LIMIT;
+      assertTrue(withinLimit, () -> "a bundle of " + size + " packets");
       for (final ClientboundMapItemDataPacket mapPacket : mapPackets) {
         final MapTilePatch expected = patches.get(next);
         assertMapPacket(mapPacket, expected);
         next++;
       }
     }
+
     assertEquals(patchCount, next, "every patch was sent exactly once");
   }
 
   @Property(seed = SEED, tries = 30)
-  void clearingFillsEveryMapOfTheRangeWithTransparency(
+  void shouldFillEveryMapOfTheRangeWithTransparencyWhenClearing(
     @ForAll @IntRange(min = 0, max = 1 << 30) final int startMapId,
     @ForAll("patchCounts") final int mapCount
   ) {
@@ -149,16 +146,12 @@ final class MapPacketFactoryPropertyTest {
         offset++;
       }
     }
+
     assertEquals(mapCount, offset, "every map of the range is cleared once");
   }
 
-  /**
-   * The largest wall the sandbox builds has 64 by 64 maps. Clearing it happens when a video is released, without the
-   * byte budget of playback, so the live pass measured it as a burst: this pins that any clear of up to 4096 maps
-   * reaches a client as one bundle, applied in one tick rather than split, and that its size is 16400 bytes a map.
-   */
   @Property(seed = SEED, tries = 30)
-  void clearingAWallOfUpTo4096MapsIsOneBundle(@ForAll @IntRange(min = 1, max = BUNDLE_LIMIT) final int mapCount) {
+  void shouldClearAWallOfUpTo4096MapsInOneBundle(@ForAll @IntRange(min = 1, max = BUNDLE_LIMIT) final int mapCount) {
     final List<UUID> viewers = List.of(VIEWER);
     final int before = this.packetCount();
 
@@ -167,6 +160,7 @@ final class MapPacketFactoryPropertyTest {
     final List<Packet<?>> bundles = this.packetsSince(before);
     final int bundleCount = bundles.size();
     assertEquals(1, bundleCount, "a clear of up to 4096 maps is one bundle");
+
     final Packet<?> bundle = bundles.getFirst();
     final List<ClientboundMapItemDataPacket> mapPackets = unbundle(bundle);
     long colorBytes = 0;
@@ -176,6 +170,7 @@ final class MapPacketFactoryPropertyTest {
       final byte[] mapColors = patch.mapColors();
       colorBytes += mapColors.length;
     }
+
     final long expectedBytes = (long) mapCount * MAP_PIXELS;
     assertEquals(expectedBytes, colorBytes, "a clear sends one full map of colors per map");
   }

@@ -53,12 +53,11 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
-/**
- * Tests {@link FileHttpChannelInitializer}.
- */
 final class FileHttpChannelInitializerTest {
 
   private static final byte[] PACK = { 'P', 'K', 3, 4 };
+
+  private static final String PACK_FILE_NAME = "pack.zip";
 
   @TempDir
   private Path directory;
@@ -67,7 +66,7 @@ final class FileHttpChannelInitializerTest {
 
   @BeforeEach
   void writePack() throws IOException {
-    this.pack = this.directory.resolve("pack.zip");
+    this.pack = this.directory.resolve(PACK_FILE_NAME);
     Files.write(this.pack, PACK);
   }
 
@@ -84,7 +83,7 @@ final class FileHttpChannelInitializerTest {
   }
 
   @Test
-  void addsTheTimeoutsInFrontOfTheFileHandler() throws ReflectiveOperationException {
+  void shouldAddTheTimeoutsInFrontOfTheFileHandler() throws ReflectiveOperationException {
     final Connection connection = new Connection();
     final SocketChannel channel = connection.channel;
     final ChannelPipeline pipeline = connection.pipeline;
@@ -103,20 +102,75 @@ final class FileHttpChannelInitializerTest {
     final ChannelHandler writeTimeoutHandler = writeTimeoutCaptor.getValue();
     final ChannelHandler fileHandler = handlerCaptor.getValue();
     final ReadTimeoutHandler readTimeout = assertInstanceOf(ReadTimeoutHandler.class, timeoutHandler);
-    final long timeoutMillis = readTimeout.getReaderIdleTimeInMillis();
-    assertEquals(30_000, timeoutMillis);
+    final long timeoutMilliseconds = readTimeout.getReaderIdleTimeInMillis();
+    assertEquals(30_000, timeoutMilliseconds);
+
     final WriteTimeoutHandler writeTimeout = assertInstanceOf(WriteTimeoutHandler.class, writeTimeoutHandler);
     final Field timeoutField = WriteTimeoutHandler.class.getDeclaredField("timeoutNanos");
     timeoutField.setAccessible(true);
     final long configuredTimeout = timeoutField.getLong(writeTimeout);
-    assertEquals(TimeUnit.MINUTES.toNanos(5), configuredTimeout, "the installed handler uses the five-minute timeout");
+    final long expectedTimeout = TimeUnit.MINUTES.toNanos(5);
+    assertEquals(expectedTimeout, configuredTimeout, "the installed handler uses the five-minute timeout");
     assertEquals(300, FileHttpChannelInitializer.WRITE_TIMEOUT_SECONDS, "a stalled download is closed after five minutes");
     assertInstanceOf(FileServerHandler.class, fileHandler);
   }
 
-  /**
-   * A socket channel whose pipeline and close future are observable, as a connection of the server.
-   */
+  @Test
+  void shouldRefuseMoreConnectionsThanTheLimitAndCountThemBackDown() {
+    final FileHttpChannelInitializer initializer = new FileHttpChannelInitializer(this.pack, 2);
+    final Connection first = new Connection();
+    final Connection second = new Connection();
+    final Connection refused = new Connection();
+
+    initializer.initChannel(first.channel);
+    initializer.initChannel(second.channel);
+    initializer.initChannel(refused.channel);
+
+    final int openConnections = initializer.getOpenConnections();
+    assertEquals(3, openConnections);
+    verify(first.pipeline).addLast(eq(FileHttpChannelInitializer.READ_TIMEOUT_NAME), any(ChannelHandler.class));
+    verify(second.pipeline).addLast(eq(FileHttpChannelInitializer.READ_TIMEOUT_NAME), any(ChannelHandler.class));
+    verify(refused.pipeline, never()).addLast(eq(FileHttpChannelInitializer.READ_TIMEOUT_NAME), any(ChannelHandler.class));
+    verify(refused.pipeline, never()).addLast(any(ChannelHandler.class));
+
+    final ArgumentCaptor<Object> answers = ArgumentCaptor.forClass(Object.class);
+    verify(refused.channel).writeAndFlush(answers.capture());
+
+    final Object answer = answers.getValue();
+    final ByteBuf bytes = assertInstanceOf(ByteBuf.class, answer);
+    final String text = bytes.toString(StandardCharsets.US_ASCII);
+    bytes.release();
+    final boolean busy = text.startsWith("HTTP/1.1 503 Service Unavailable");
+    assertTrue(busy, text);
+
+    first.close();
+    final int openConnectionsAfterClose = initializer.getOpenConnections();
+    assertEquals(2, openConnectionsAfterClose, "a closed connection makes room for the next one");
+  }
+
+  @Test
+  void shouldRefuseANonPositiveConnectionLimit() {
+    assertThrows(IllegalArgumentException.class, () -> new FileHttpChannelInitializer(this.pack, 0));
+  }
+
+  @Test
+  void shouldCloseConnectionsThatStaySilentBeforeTheRequestIsComplete() {
+    final EmbeddedChannel channel = this.createChannel();
+    final ByteBuf partialRequest = Unpooled.copiedBuffer("GET / HTTP/1.1\r\n", StandardCharsets.US_ASCII);
+    final long almostTimedOut = FileHttpChannelInitializer.READ_TIMEOUT_SECONDS - 1;
+
+    channel.writeInbound(partialRequest);
+    channel.advanceTimeBy(almostTimedOut, TimeUnit.SECONDS);
+    channel.runScheduledPendingTasks();
+    final boolean openBeforeTimeout = channel.isOpen();
+    channel.advanceTimeBy(2, TimeUnit.SECONDS);
+    channel.runScheduledPendingTasks();
+    final boolean openAfterTimeout = channel.isOpen();
+
+    assertTrue(openBeforeTimeout);
+    assertFalse(openAfterTimeout, "a slow client cannot keep the connection open forever");
+  }
+
   private static final class Connection {
 
     private final SocketChannel channel;
@@ -136,58 +190,5 @@ final class FileHttpChannelInitializerTest {
     private void close() {
       this.closed.setSuccess();
     }
-  }
-
-  @Test
-  void refusesMoreConnectionsThanTheLimitAndCountsThemBackDown() {
-    final FileHttpChannelInitializer initializer = new FileHttpChannelInitializer(this.pack, 2);
-    final Connection first = new Connection();
-    final Connection second = new Connection();
-    final Connection refused = new Connection();
-
-    initializer.initChannel(first.channel);
-    initializer.initChannel(second.channel);
-    initializer.initChannel(refused.channel);
-
-    assertEquals(3, initializer.getOpenConnections());
-    verify(first.pipeline).addLast(eq(FileHttpChannelInitializer.READ_TIMEOUT_NAME), any(ChannelHandler.class));
-    verify(second.pipeline).addLast(eq(FileHttpChannelInitializer.READ_TIMEOUT_NAME), any(ChannelHandler.class));
-    verify(refused.pipeline, never()).addLast(eq(FileHttpChannelInitializer.READ_TIMEOUT_NAME), any(ChannelHandler.class));
-    verify(refused.pipeline, never()).addLast(any(ChannelHandler.class));
-
-    final ArgumentCaptor<Object> answers = ArgumentCaptor.forClass(Object.class);
-    verify(refused.channel).writeAndFlush(answers.capture());
-    final Object answer = answers.getValue();
-    final ByteBuf bytes = assertInstanceOf(ByteBuf.class, answer);
-    final String text = bytes.toString(StandardCharsets.US_ASCII);
-    bytes.release();
-    final boolean busy = text.startsWith("HTTP/1.1 503 Service Unavailable");
-    assertTrue(busy, text);
-
-    first.close();
-    assertEquals(2, initializer.getOpenConnections(), "a closed connection makes room for the next one");
-  }
-
-  @Test
-  void refusesANonPositiveConnectionLimit() {
-    assertThrows(IllegalArgumentException.class, () -> new FileHttpChannelInitializer(this.pack, 0));
-  }
-
-  @Test
-  void closesConnectionsThatStaySilentBeforeTheRequestIsComplete() {
-    final EmbeddedChannel channel = this.createChannel();
-    final ByteBuf partialRequest = Unpooled.copiedBuffer("GET / HTTP/1.1\r\n", StandardCharsets.US_ASCII);
-    final long almostTimedOut = FileHttpChannelInitializer.READ_TIMEOUT_SECONDS - 1;
-
-    channel.writeInbound(partialRequest);
-    channel.advanceTimeBy(almostTimedOut, TimeUnit.SECONDS);
-    channel.runScheduledPendingTasks();
-    final boolean openBeforeTimeout = channel.isOpen();
-    channel.advanceTimeBy(2, TimeUnit.SECONDS);
-    channel.runScheduledPendingTasks();
-    final boolean openAfterTimeout = channel.isOpen();
-
-    assertTrue(openBeforeTimeout);
-    assertFalse(openAfterTimeout, "a slow client cannot keep the connection open forever");
   }
 }

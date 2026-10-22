@@ -39,9 +39,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Tests real child failures and publishing without invoking FFmpeg or production CommandTask. */
 @Timeout(20)
 final class GeneratedMediaTest {
+
+  private static final String VIDEO_FILE_NAME = "video.mp4";
+
+  private static final String SUCCESS_ARGUMENT = "success";
+  private static final String FAILURE_ARGUMENT = "failure";
+  private static final String TIMEOUT_ARGUMENT = "timeout";
+
+  private static final String COMPLETED_MEDIA = "completed media";
+  private static final String DIAGNOSTIC = "fixture encoder diagnostic";
 
   @TempDir
   private Path directory;
@@ -56,7 +64,7 @@ final class GeneratedMediaTest {
       class FixtureWriter {
         public static void main(String[] args) throws Exception {
           Path output = Path.of(args[1]);
-          if (!output.toString().endsWith(".mp4")) throw new AssertionError("format extension was lost");
+          if (!output.toString().endsWith(".mp4")) throw new AssertionError("Format extension was lost!");
           Files.writeString(output, args[0].equals("success") ? "completed media" : "partial media");
           if (args[0].equals("failure")) { System.err.println("fixture encoder diagnostic"); System.exit(7); }
           if (args[0].equals("timeout")) { Thread.sleep(30_000L); }
@@ -66,6 +74,7 @@ final class GeneratedMediaTest {
     );
     final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     assertNotNull(compiler, "fixture tests run on the build JDK");
+
     final String target = this.directory.toString();
     final String sourcePath = source.toString();
     final int code = compiler.run(null, null, null, "-d", target, sourcePath);
@@ -88,64 +97,82 @@ final class GeneratedMediaTest {
   }
 
   @Test
-  void replacesUntrustedExistingFilesAndCachesOnlySuccessfulGeneration() throws Exception {
-    final Path output = this.directory.resolve("video.mp4");
+  void shouldReplaceUntrustedExistingFilesAndCacheOnlySuccessfulGeneration() throws Exception {
+    final Path output = this.directory.resolve(VIDEO_FILE_NAME);
     Files.writeString(output, "partial from a failed older attempt");
     final AtomicInteger invocations = new AtomicInteger();
     final AtomicReference<Path> temporary = new AtomicReference<>();
     final Path generated = GeneratedMedia.generate(output, path -> {
       invocations.incrementAndGet();
       temporary.set(path);
-      return this.command(path, "success");
+      return this.command(path, SUCCESS_ARGUMENT);
     });
     final String content = Files.readString(generated);
-    assertEquals("completed media", content);
-    assertEquals(output.toAbsolutePath(), generated);
+    assertEquals(COMPLETED_MEDIA, content);
+
+    final Path expectedPath = output.toAbsolutePath();
+    assertEquals(expectedPath, generated);
+
     final Path staged = temporary.get();
     assertNotNull(staged);
-    assertFalse(staged.equals(output), "the encoder writes into a temporary sibling");
+
+    final boolean stagedAtTheOutput = staged.equals(output);
+    assertFalse(stagedAtTheOutput, "the encoder writes into a temporary sibling");
+
     final Path cached = GeneratedMedia.generate(output, _ -> {
-      throw new AssertionError("successfully generated media must be reused");
+      throw new AssertionError("Successfully generated media must be reused!");
     });
     final int commands = invocations.get();
     assertEquals(generated, cached);
     assertEquals(1, commands);
+
     this.assertNoPartialFiles();
   }
 
   @Test
-  void failedEncodingPreservesTheOldDestinationAndTheNextRequestRetries() throws Exception {
-    final Path output = this.directory.resolve("video.mp4");
+  void shouldPreserveTheOldDestinationAndRetryOnTheNextRequestWhenEncodingFails() throws Exception {
+    final Path output = this.directory.resolve(VIDEO_FILE_NAME);
     Files.writeString(output, "old complete media");
     final UncheckedIOException thrown = assertThrows(UncheckedIOException.class, () ->
-      GeneratedMedia.generate(output, path -> this.command(path, "failure"))
+      GeneratedMedia.generate(output, path -> this.command(path, FAILURE_ARGUMENT))
     );
     final String message = thrown.getMessage();
-    assertTrue(message.contains("exit code 7"));
-    assertTrue(message.contains("fixture encoder diagnostic"));
+    final boolean reportsTheExitCode = message.contains("exit code 7");
+    assertTrue(reportsTheExitCode);
+
+    final boolean reportsTheDiagnostic = message.contains(DIAGNOSTIC);
+    assertTrue(reportsTheDiagnostic);
+
     final String kept = Files.readString(output);
     assertEquals("old complete media", kept, "failed temporary output is never published");
+
     this.assertNoPartialFiles();
-    final Path retried = GeneratedMedia.generate(output, path -> this.command(path, "success"));
+    final Path retried = GeneratedMedia.generate(output, path -> this.command(path, SUCCESS_ARGUMENT));
     final String content = Files.readString(retried);
-    assertEquals("completed media", content);
+    assertEquals(COMPLETED_MEDIA, content);
+
     this.assertNoPartialFiles();
   }
 
   @Test
-  void timedOutEncodingIsBoundedAndDoesNotPublishItsPartialOutput() throws Exception {
-    final Path output = this.directory.resolve("video.mp4");
+  void shouldBoundATimedOutEncodingAndNotPublishItsPartialOutput() throws Exception {
+    final Path output = this.directory.resolve(VIDEO_FILE_NAME);
     final Duration timeout = Duration.ofSeconds(2);
     final long before = System.nanoTime();
     final UncheckedIOException thrown = assertThrows(UncheckedIOException.class, () ->
-      GeneratedMedia.generate(output, path -> this.command(path, "timeout"), timeout)
+      GeneratedMedia.generate(output, path -> this.command(path, TIMEOUT_ARGUMENT), timeout)
     );
     final long elapsed = System.nanoTime() - before;
     final String message = thrown.getMessage();
-    assertTrue(message.contains("exceeded"));
-    assertTrue(elapsed < 6_000_000_000L, "the deadline plus bounded process cleanup must not wait for the 30 second fixture");
+    final boolean reportsTheTimeout = message.contains("took longer than its");
+    assertTrue(reportsTheTimeout);
+
+    final boolean withinTheDeadline = elapsed < 6_000_000_000L;
+    assertTrue(withinTheDeadline, "the deadline plus bounded process cleanup must not wait for the 30 second fixture");
+
     final boolean published = Files.exists(output);
     assertFalse(published);
+
     this.assertNoPartialFiles();
   }
 }

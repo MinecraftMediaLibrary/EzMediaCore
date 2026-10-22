@@ -7,5 +7,6 @@ dependencies {
     compileOnlyApi(libs.netty.all)
     compileOnlyApi(libs.guava)
     compileOnlyApi(libs.gson)
+
     testImplementation(project(":mcav-common"))
 }

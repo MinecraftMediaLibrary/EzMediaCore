@@ -41,21 +41,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import me.brandonli.mcav.bukkit.BukkitException;
 import me.brandonli.mcav.bukkit.resourcepack.provider.PackHosting;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link ServerPackHosting}, {@link FileHttpServer}, and {@link HttpServerException} with a real server on the
- * loopback interface. The servers listen on a free port picked by the operating system, which is read back after
- * they started, so no other process can take the port in between.
- */
 final class ServerPackHostingTest {
 
   private static final byte[] PACK = { 'P', 'K', 3, 4, 1 };
   private static final byte[] REBUILT_PACK = { 'P', 'K', 3, 4, 2, 2 };
   private static final int ANY_FREE_PORT = 0;
+
+  private static final String PACK_FILE_NAME = "pack.zip";
+
+  private static final String LOOPBACK_ADDRESS = "127.0.0.1";
+  private static final int PORT = 25566;
+
+  private static final String GET_METHOD = "GET";
+  private static final int HTTP_OK = 200;
+  private static final String ZIP_CONTENT_TYPE = "application/zip";
+
+  private static final String MESSAGE = "Message!";
+
+  private static final String SERVER_THREAD_PREFIX = "mcav-pack-http";
+  private static final long THREAD_EXIT_TIMEOUT_MILLISECONDS = 10_000L;
 
   @TempDir
   private Path directory;
@@ -64,11 +74,11 @@ final class ServerPackHostingTest {
 
   @BeforeEach
   void writePack() throws IOException {
-    this.zip = this.directory.resolve("pack.zip");
+    this.zip = this.directory.resolve(PACK_FILE_NAME);
     Files.write(this.zip, PACK);
   }
 
-  private static HttpResponse<byte[]> request(final int port, final String method) throws IOException, InterruptedException {
+  private HttpResponse<byte[]> request(final int port, final String method) throws IOException, InterruptedException {
     final URI uri = URI.create("http://127.0.0.1:" + port + "/pack.zip");
     final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(uri);
     final HttpRequest.BodyPublisher noBody = HttpRequest.BodyPublishers.noBody();
@@ -83,32 +93,32 @@ final class ServerPackHostingTest {
     }
   }
 
-  private static String header(final HttpResponse<?> response, final String name) {
+  private String header(final HttpResponse<?> response, final String name) {
     final HttpHeaders headers = response.headers();
     final Optional<String> value = headers.firstValue(name);
     return value.orElse(null);
   }
 
-  private static void assertServesThePackToGetRequests(final int port) throws IOException, InterruptedException {
-    final HttpResponse<byte[]> get = request(port, "GET");
+  private void assertServesThePackToGetRequests(final int port) throws IOException, InterruptedException {
+    final HttpResponse<byte[]> get = this.request(port, GET_METHOD);
     final int status = get.statusCode();
     final byte[] body = get.body();
-    final String contentType = header(get, "Content-Type");
-    final String disposition = header(get, "Content-Disposition");
+    final String contentType = this.header(get, "Content-Type");
+    final String disposition = this.header(get, "Content-Disposition");
 
-    assertEquals(200, status);
+    assertEquals(HTTP_OK, status);
     assertArrayEquals(PACK, body);
-    assertEquals("application/zip", contentType);
+    assertEquals(ZIP_CONTENT_TYPE, contentType);
     assertEquals("attachment; filename=\"pack.zip\"", disposition);
   }
 
-  private static void assertAnswersHeadRequestsWithTheHeadersOnly(final int port) throws IOException, InterruptedException {
-    final HttpResponse<byte[]> head = request(port, "HEAD");
+  private void assertAnswersHeadRequestsWithTheHeadersOnly(final int port) throws IOException, InterruptedException {
+    final HttpResponse<byte[]> head = this.request(port, "HEAD");
     final int status = head.statusCode();
-    final String length = header(head, "Content-Length");
+    final String length = this.header(head, "Content-Length");
     final byte[] body = head.body();
 
-    assertEquals(200, status);
+    assertEquals(HTTP_OK, status);
     assertEquals("5", length);
     assertEquals(0, body.length);
   }
@@ -116,16 +126,16 @@ final class ServerPackHostingTest {
   private void assertServesTheRebuiltPack(final int port) throws IOException, InterruptedException {
     Files.write(this.zip, REBUILT_PACK);
 
-    final HttpResponse<byte[]> rebuilt = request(port, "GET");
+    final HttpResponse<byte[]> rebuilt = this.request(port, GET_METHOD);
     final byte[] body = rebuilt.body();
 
     assertArrayEquals(REBUILT_PACK, body, "the file is read for every download");
   }
 
   @Test
-  void servesThePackOverHttpUntilItIsShutDown() throws IOException, InterruptedException {
+  void shouldServeThePackOverHttpUntilItIsShutDown() throws IOException, InterruptedException {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
-    final ServerPackHosting hosting = new ServerPackHosting(this.zip, "127.0.0.1", 25566, server);
+    final ServerPackHosting hosting = new ServerPackHosting(this.zip, LOOPBACK_ADDRESS, PORT, server);
     hosting.start();
     final int port = server.getLocalPort();
 
@@ -133,22 +143,23 @@ final class ServerPackHostingTest {
       hosting.start();
       final int portAfterSecondStart = server.getLocalPort();
       assertEquals(port, portAfterSecondStart, "starting again keeps the running server");
-      assertServesThePackToGetRequests(port);
-      assertAnswersHeadRequestsWithTheHeadersOnly(port);
+      this.assertServesThePackToGetRequests(port);
+      this.assertAnswersHeadRequestsWithTheHeadersOnly(port);
+
       this.assertServesTheRebuiltPack(port);
     } finally {
       hosting.shutdown();
       hosting.shutdown();
     }
 
-    assertThrows(IOException.class, () -> request(port, "GET"));
+    assertThrows(IOException.class, () -> this.request(port, GET_METHOD));
     assertThrows(IllegalStateException.class, server::getLocalPort);
   }
 
   @Test
-  void canBeStartedAgainAfterItWasShutDown() throws IOException, InterruptedException {
+  void shouldStartAgainAfterItWasShutDown() throws IOException, InterruptedException {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
-    final ServerPackHosting hosting = new ServerPackHosting(this.zip, "127.0.0.1", 25566, server);
+    final ServerPackHosting hosting = new ServerPackHosting(this.zip, LOOPBACK_ADDRESS, PORT, server);
 
     hosting.start();
     hosting.shutdown();
@@ -156,7 +167,7 @@ final class ServerPackHostingTest {
 
     try {
       final int port = server.getLocalPort();
-      final HttpResponse<byte[]> get = request(port, "GET");
+      final HttpResponse<byte[]> get = this.request(port, GET_METHOD);
       final byte[] body = get.body();
       assertArrayEquals(PACK, body);
     } finally {
@@ -164,35 +175,44 @@ final class ServerPackHostingTest {
     }
   }
 
-  /**
-   * Gets the names of the Netty threads of the pack server that are still running.
-   *
-   * @return the names of the running server threads
-   */
-  private static List<String> runningServerThreadNames() {
+  private List<String> runningServerThreadNames() {
     final Map<Thread, StackTraceElement[]> stackTraces = Thread.getAllStackTraces();
     final Set<Thread> threads = stackTraces.keySet();
     final List<String> names = new ArrayList<>();
     for (final Thread thread : threads) {
       final String name = thread.getName();
-      final boolean serverThread = name.startsWith("mcav-pack-http");
+      final boolean serverThread = name.startsWith(SERVER_THREAD_PREFIX);
       final boolean running = thread.isAlive();
       if (serverThread && running) {
         names.add(name);
       }
     }
+
     return names;
   }
 
+  // netty completes the termination future just before its threads end
+  private void awaitServerThreadExits() throws InterruptedException {
+    final Map<Thread, StackTraceElement[]> stackTraces = Thread.getAllStackTraces();
+    final Set<Thread> threads = stackTraces.keySet();
+    for (final Thread thread : threads) {
+      final String name = thread.getName();
+      if (name.startsWith(SERVER_THREAD_PREFIX)) {
+        thread.join(THREAD_EXIT_TIMEOUT_MILLISECONDS);
+      }
+    }
+  }
+
   @Test
-  void releasesItsThreadsWhenItStopsAndWhenItCannotStart() throws IOException {
+  void shouldReleaseItsThreadsWhenItStopsAndWhenItCannotStart() throws IOException, InterruptedException {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
-    final ServerPackHosting hosting = new ServerPackHosting(this.zip, "127.0.0.1", 25566, server);
+    final ServerPackHosting hosting = new ServerPackHosting(this.zip, LOOPBACK_ADDRESS, PORT, server);
 
     hosting.start();
-    final List<String> whileRunning = runningServerThreadNames();
+    final List<String> whileRunning = this.runningServerThreadNames();
     hosting.shutdown();
-    final List<String> afterShutdown = runningServerThreadNames();
+    this.awaitServerThreadExits();
+    final List<String> afterShutdown = this.runningServerThreadNames();
     final boolean startedThreads = whileRunning.isEmpty();
     final List<String> noThreads = List.of();
 
@@ -204,47 +224,51 @@ final class ServerPackHostingTest {
       occupied.setReuseAddress(false);
       occupied.bind(anyAddress);
       final int port = occupied.getLocalPort();
-      final ServerPackHosting blocked = new ServerPackHosting(this.zip, "127.0.0.1", port);
+      final ServerPackHosting blocked = new ServerPackHosting(this.zip, LOOPBACK_ADDRESS, port);
 
       assertThrows(HttpServerException.class, blocked::start);
-      final List<String> afterFailedStart = runningServerThreadNames();
+
+      this.awaitServerThreadExits();
+      final List<String> afterFailedStart = this.runningServerThreadNames();
 
       assertEquals(noThreads, afterFailedStart, "a start that fails releases its threads as well");
     }
   }
 
   @Test
-  void reportsThePortOnlyWhileRunning() {
+  void shouldReportThePortOnlyWhileRunning() {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
 
     final IllegalStateException exception = assertThrows(IllegalStateException.class, server::getLocalPort);
     final String message = exception.getMessage();
 
-    assertEquals("The resource pack server is not running", message);
+    assertEquals("The resource pack server is not running!", message);
   }
 
   @Test
-  void reportsPortsThatAreInUse() throws IOException {
+  void shouldReportPortsThatAreInUse() throws IOException {
     try (final ServerSocket occupied = new ServerSocket()) {
       final InetSocketAddress anyAddress = new InetSocketAddress(0);
       occupied.setReuseAddress(false);
       occupied.bind(anyAddress);
       final int port = occupied.getLocalPort();
-      final ServerPackHosting hosting = new ServerPackHosting(this.zip, "127.0.0.1", port);
+      final ServerPackHosting hosting = new ServerPackHosting(this.zip, LOOPBACK_ADDRESS, port);
 
       final HttpServerException exception = assertThrows(HttpServerException.class, hosting::start);
       final String message = exception.getMessage();
       final Throwable cause = exception.getCause();
 
-      assertEquals("Failed to start the resource pack server on port " + port, message);
+      final String expectedMessage = "Port %s could not be bound for the resource pack server!".formatted(port);
+      assertEquals(expectedMessage, message);
       assertNotNull(cause);
+
       hosting.shutdown();
     }
   }
 
   @Test
-  void describesWherePlayersDownloadThePack() {
-    final HttpHosting hosting = PackHosting.http(this.zip, "example.org", 25566);
+  void shouldDescribeWherePlayersDownloadThePack() {
+    final HttpHosting hosting = PackHosting.http(this.zip, "example.org", PORT);
 
     final String url = hosting.getRawUrl();
     final String hostName = hosting.getHostName();
@@ -254,14 +278,14 @@ final class ServerPackHostingTest {
     assertInstanceOf(ServerPackHosting.class, hosting);
     assertEquals("http://example.org:25566", url);
     assertEquals("example.org", hostName);
-    assertEquals(25566, port);
+    assertEquals(PORT, port);
     assertSame(this.zip, hostedZip);
     assertEquals("http://%s:%s", HttpHosting.HOST_URL);
   }
 
   @Test
-  void bracketsAnIpv6AddressInTheDownloadUrl() {
-    final HttpHosting hosting = PackHosting.http(this.zip, "::1", 25566);
+  void shouldBracketAnIpv6AddressInTheDownloadUrl() {
+    final HttpHosting hosting = PackHosting.http(this.zip, "::1", PORT);
 
     final String url = hosting.getRawUrl();
 
@@ -269,7 +293,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
     final ServerPackHosting lowest = new ServerPackHosting(this.zip, "host", 1);
     final ServerPackHosting highest = new ServerPackHosting(this.zip, "host", 65535);
@@ -290,31 +314,31 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void exceptionsKeepTheMessage() {
-    final HttpServerException exception = new HttpServerException("message");
+  void shouldKeepTheMessageInExceptions() {
+    final HttpServerException exception = new HttpServerException(MESSAGE);
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("message", message);
+    assertEquals(MESSAGE, message);
     assertNull(cause);
   }
 
   @Test
-  void exceptionsKeepTheMessageAndTheCause() {
-    final IOException failure = new IOException("cause");
-    final HttpServerException exception = new HttpServerException("message", failure);
+  void shouldKeepTheMessageAndTheCauseInExceptions() {
+    final IOException failure = new IOException("Cause!");
+    final HttpServerException exception = new HttpServerException(MESSAGE, failure);
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("message", message);
+    assertEquals(MESSAGE, message);
     assertSame(failure, cause);
   }
 
   @Test
-  void exceptionsAreRuntimeExceptions() {
-    final HttpServerException exception = new HttpServerException("message");
-    assertInstanceOf(RuntimeException.class, exception, "a port in use is recoverable, so it is no Error");
+  void shouldMakeItsExceptionsBukkitExceptions() {
+    final HttpServerException exception = new HttpServerException(MESSAGE);
+    assertInstanceOf(BukkitException.class, exception);
   }
 }

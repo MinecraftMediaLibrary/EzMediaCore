@@ -69,11 +69,13 @@ import org.slf4j.LoggerFactory;
  * viewer is shown the screen again and starts on a keyframe. The distances are measured on the main thread once a
  * second; a viewer who is near goes out of range only {@value #RANGE_MARGIN} blocks farther, so one at the edge does
  * not come and go.
+ *
+ * @since 1.0.0
  */
 public final class Mcv2Channel {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Mcv2Channel.class);
-  private static final String UNSENT_LIMIT_REFUSED = "The connection of viewer {} refused the limit of unsent bytes";
+  private static final String UNSENT_LIMIT_REFUSED = "The connection of viewer {} refused the limit of unsent bytes.";
 
   private static final int RANGE_MARGIN = 32;
 
@@ -109,15 +111,17 @@ public final class Mcv2Channel {
    * @param configuration the screen
    * @param viewers       who has the pack loaded
    * @throws NullPointerException if configuration or viewers is null
+   * @since 1.0.0
    */
   public Mcv2Channel(final Mcv2Configuration configuration, final Mcv2Viewers viewers) {
     this(configuration, viewers, new Mcv2Screen(configuration));
   }
 
   Mcv2Channel(final Mcv2Configuration configuration, final Mcv2Viewers viewers, final Mcv2Screen screen) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
-    Preconditions.checkNotNull(viewers, "Viewers must not be null");
-    Preconditions.checkNotNull(screen, "Screen must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+    Preconditions.checkNotNull(viewers, "Viewers must not be null!");
+    Preconditions.checkNotNull(screen, "Screen must not be null!");
+
     this.configuration = configuration;
     this.viewers = viewers;
     this.screen = screen;
@@ -131,31 +135,16 @@ public final class Mcv2Channel {
   }
 
   /**
-   * Gets the screen.
-   *
-   * @return the screen
-   */
-  public Mcv2Screen getScreen() {
-    return this.screen;
-  }
-
-  /**
-   * Gets the configuration of the screen the channel sends to: its video size, stream id and viewers.
-   *
-   * @return the configuration
-   */
-  public Mcv2Configuration getConfiguration() {
-    return this.configuration;
-  }
-
-  /**
    * Spawns the screen's page frames, and starts measuring how far the viewers are from the wall, unless the channel
    * still measures them since the dithered maps took the page frames' place. Call on the main thread.
+   *
    * @throws IllegalStateException if the screen is already built or no plugin has been injected
-   * @throws NullPointerException if the origin no longer resolves to a world
+   * @throws NullPointerException  if the origin no longer resolves to a world
+   * @since 1.0.0
    */
   public void open() {
     this.screen.build();
+
     if (this.ranging == null) {
       this.measureRange();
       this.ranging = Bukkit.getScheduler().runTaskTimer(BukkitModule.getPlugin(), this::measureRange, RANGE_TICKS, RANGE_TICKS);
@@ -164,6 +153,8 @@ public final class Mcv2Channel {
 
   /**
    * Removes the screen's page frames, and stops measuring the viewers' distances. Call on the main thread.
+   *
+   * @since 1.0.0
    */
   public void close() {
     final BukkitTask task = this.ranging;
@@ -171,6 +162,7 @@ public final class Mcv2Channel {
       task.cancel();
       this.ranging = null;
     }
+
     this.removeFrames();
     this.farAway = Set.of();
   }
@@ -193,24 +185,28 @@ public final class Mcv2Channel {
     final Set<UUID> far = new HashSet<>();
     for (final UUID viewer : this.configuration.getViewers()) {
       final Player player = Bukkit.getPlayer(viewer);
-      if (player != null && this.isFarAway(player, before.contains(viewer))) {
+      final int margin = before.contains(viewer) ? 0 : RANGE_MARGIN;
+      if (player != null && this.isFarAway(player, margin)) {
         far.add(viewer);
       }
     }
+
     this.farAway = Set.copyOf(far);
   }
 
-  private boolean isFarAway(final Player player, final boolean wasFarAway) {
+  private boolean isFarAway(final Player player, final int margin) {
     final int viewDistance = player.getViewDistance();
     if (viewDistance <= 0) {
       return false;
     }
+
     // Bukkit throws if the location's world has unloaded.
-    final World wall = Objects.requireNonNull(this.configuration.getOrigin().getWorld(), "A screen's origin is in a world");
+    final World wall = Objects.requireNonNull(this.configuration.getOrigin().getWorld(), "A screen's origin is in a world!");
     if (!wall.getUID().equals(player.getWorld().getUID())) {
       return true;
     }
-    final double reach = viewDistance * CHUNK_BLOCKS + (wasFarAway ? 0 : RANGE_MARGIN);
+
+    final double reach = viewDistance * CHUNK_BLOCKS + margin;
     return this.distanceToWall(player.getLocation()) > reach;
   }
 
@@ -222,13 +218,13 @@ public final class Mcv2Channel {
     final int lastX = firstX + right.getModX() * span;
     final int firstZ = origin.getBlockZ();
     final int lastZ = firstZ + right.getModZ() * span;
-    final double outsideX = outside(location.getX(), Math.min(firstX, lastX), Math.max(firstX, lastX) + 1);
-    final double outsideY = outside(location.getY(), origin.getBlockY() - (this.configuration.getRows() - 1), origin.getBlockY() + 1);
-    final double outsideZ = outside(location.getZ(), Math.min(firstZ, lastZ), Math.max(firstZ, lastZ) + 1);
+    final double outsideX = this.outside(location.getX(), Math.min(firstX, lastX), Math.max(firstX, lastX) + 1);
+    final double outsideY = this.outside(location.getY(), origin.getBlockY() - (this.configuration.getRows() - 1), origin.getBlockY() + 1);
+    final double outsideZ = this.outside(location.getZ(), Math.min(firstZ, lastZ), Math.max(firstZ, lastZ) + 1);
     return Math.sqrt(outsideX * outsideX + outsideY * outsideY + outsideZ * outsideZ);
   }
 
-  private static double outside(final double coordinate, final double low, final double high) {
+  private double outside(final double coordinate, final double low, final double high) {
     return Math.max(0, Math.max(low - coordinate, coordinate - high));
   }
 
@@ -239,6 +235,7 @@ public final class Mcv2Channel {
    *
    * @return the viewers who do not receive frames and should be shown the dithered maps
    * @throws IllegalStateException if showing a new viewer requires scheduling before a plugin has been injected
+   * @since 1.0.0
    */
   public Set<UUID> update() {
     final Set<UUID> selected = new HashSet<>(this.configuration.getViewers());
@@ -248,30 +245,39 @@ public final class Mcv2Channel {
     final Set<UUID> others = ConcurrentHashMap.newKeySet();
     final Set<UUID> far = this.farAway;
     for (final UUID viewer : selected) {
-      final Mcv2Link link = this.links.get(viewer);
-      if (far.contains(viewer)) {
-        // Not hidden: hiding removes the scoreboard team shared by every screen shown to this viewer.
-        this.scheduled.remove(viewer);
-        if (this.links.remove(viewer) != null) {
-          this.away.add(viewer);
-        }
-      } else if (!this.viewers.isLoaded(viewer)) {
-        others.add(viewer);
-        this.scheduled.remove(viewer);
-        if (this.links.remove(viewer) != null) {
-          Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.hide(viewer));
-        }
-      } else if (link != null) {
-        receiving.put(viewer, link);
-      } else {
-        others.add(viewer);
-        if (this.scheduled.add(viewer)) {
-          Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.show(viewer));
-        }
+      this.sortViewer(viewer, far, receiving, others);
+    }
+
+    this.recipients = Collections.unmodifiableMap(receiving);
+
+    return others;
+  }
+
+  private void sortViewer(final UUID viewer, final Set<UUID> far, final Map<UUID, Mcv2Link> receiving, final Set<UUID> others) {
+    final Mcv2Link link = this.links.get(viewer);
+    if (far.contains(viewer)) {
+      // Not hidden: hiding removes the scoreboard team shared by every screen shown to this viewer.
+      this.scheduled.remove(viewer);
+
+      if (this.links.remove(viewer) != null) {
+        this.away.add(viewer);
+      }
+    } else if (!this.viewers.isLoaded(viewer)) {
+      others.add(viewer);
+      this.scheduled.remove(viewer);
+
+      if (this.links.remove(viewer) != null) {
+        Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.hide(viewer));
+      }
+    } else if (link != null) {
+      receiving.put(viewer, link);
+    } else {
+      others.add(viewer);
+
+      if (this.scheduled.add(viewer)) {
+        Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.show(viewer));
       }
     }
-    this.recipients = Collections.unmodifiableMap(receiving);
-    return others;
   }
 
   private void retireRemoved(final Set<UUID> selected) {
@@ -305,6 +311,7 @@ public final class Mcv2Channel {
     if (this.scheduled.contains(viewer)) {
       return;
     }
+
     final Player player = Bukkit.getPlayer(viewer);
     if (player != null) {
       this.screen.hide(player);
@@ -318,15 +325,16 @@ public final class Mcv2Channel {
       this.scheduled.remove(viewer);
       return;
     }
+
     this.screen.show(player);
 
     final int unsent = this.configuration.getUnsentLimit();
     if (unsent > 0) {
       try {
         PacketUtils.limitUnsent(viewer, unsent);
-      } catch (final RuntimeException refused) {
+      } catch (final RuntimeException exception) {
         // A closing epoll connection may reject this optional backlog limit.
-        LOGGER.debug(UNSENT_LIMIT_REFUSED, viewer, refused);
+        LOGGER.debug(UNSENT_LIMIT_REFUSED, viewer, exception);
       }
     }
 
@@ -335,11 +343,14 @@ public final class Mcv2Channel {
     // Publish before rechecking so an overlapping retirement can own the cleanup.
     if (!this.canShow(viewer)) {
       this.scheduled.remove(viewer);
+
       if (this.links.remove(viewer, link)) {
         this.screen.hide(player);
       }
+
       return;
     }
+
     this.keyframeRequest.request();
   }
 
@@ -353,25 +364,9 @@ public final class Mcv2Channel {
   }
 
   /**
-   * Gets the viewers that receive frames.
-   *
-   * @return the viewers shown the screen, as of the last {@link #update()}
-   */
-  public Set<UUID> getRecipients() {
-    return Set.copyOf(this.recipients.keySet());
-  }
-
-  /**
-   * Gets the links of the viewers shown the screen: what each was sent, missed and has not yet written.
-   *
-   * @return the links by viewer, a live view
-   */
-  public Map<UUID, Mcv2Link> getLinks() {
-    return Collections.unmodifiableMap(this.links);
-  }
-
-  /**
    * Asks for the next frame to be a keyframe.
+   *
+   * @since 1.0.0
    */
   public void requestKeyframe() {
     this.keyframeRequest.request();
@@ -381,6 +376,7 @@ public final class Mcv2Channel {
    * Takes a keyframe request: a viewer was just shown the screen, or a frame could not be sent.
    *
    * @return true if the next frame should be a keyframe
+   * @since 1.0.0
    */
   public boolean takeKeyframeRequest() {
     return this.keyframeRequest.take();
@@ -393,58 +389,64 @@ public final class Mcv2Channel {
    *
    * @param frame the frame
    * @return the number of page-map color bytes per potential recipient, excluding anchors and packet overhead, or -1 if the frame has more pages than the screen has page slots, in which
-   *     case nothing is sent and the next frame is asked to be a keyframe
+   *         case nothing is sent and the next frame is asked to be a keyframe
    * @throws IllegalArgumentException if the bytes are not a valid MCV2 frame
-   * @throws NullPointerException if {@code frame} is null
+   * @throws NullPointerException     if {@code frame} is null
+   * @since 1.0.0
    */
   public int send(final byte[] frame) {
-    Preconditions.checkNotNull(frame, "Frame must not be null");
+    Preconditions.checkNotNull(frame, "Frame must not be null!");
+
     final Frame header;
     final List<byte[]> pages;
     try {
       header = Mcv2Decoder.parse(frame);
       pages = TransportPages.makePages(header, this.configuration.getStreamId());
     } catch (final Mcv2Exception exception) {
-      throw new IllegalArgumentException("Not a valid MCV2 frame: " + exception.getMessage(), exception);
+      final String message = "Not a valid MCV2 frame (%s)!".formatted(exception.getMessage());
+      throw new IllegalArgumentException(message, exception);
     }
+
     final Mcv2SendEvent event = new Mcv2SendEvent();
     event.frameId = header.getFrameId();
     event.referenceId = header.getReferenceId();
     event.keyframe = header.isKeyframe();
     event.bytes = frame.length;
+
     if (pages.size() > this.configuration.getPageSlots()) {
       this.keyframeRequest.request();
       event.colors = -1;
       event.commit();
       return -1;
     }
+
     final List<MapTilePatch> patches = new ArrayList<>();
     int colors = 0;
     for (int page = 0; page < pages.size(); page++) {
       final byte[] mapColors = MapAlphabet.toMapColors(pages.get(page));
       colors += mapColors.length;
       final int rows = mapColors.length / MapLayout.MAP_SIZE;
-      patches.add(new MapTilePatch(this.configuration.getPageMap() + page, 0, 0, MapLayout.MAP_SIZE, rows, mapColors));
+      patches.add(MapTilePatch.of(this.configuration.getPageMap() + page, 0, 0, MapLayout.MAP_SIZE, rows, mapColors));
     }
-    final boolean isKeyframe = header.isKeyframe();
-    if (isKeyframe) {
+
+    final Mcv2FrameKind kind = header.isKeyframe() ? Mcv2FrameKind.KEYFRAME : Mcv2FrameKind.PREDICTED;
+    if (kind == Mcv2FrameKind.KEYFRAME) {
       patches.addAll(this.screen.anchors());
     }
+
     final List<MapPacketFactory.Bundle> bundles = MapPacketFactory.bundles(patches);
     long bytes = 0;
     for (final MapPacketFactory.Bundle bundle : bundles) {
-      bytes += bundle.bytes();
+      bytes += bundle.getBytes();
     }
+
     for (final Map.Entry<UUID, Mcv2Link> recipient : this.recipients.entrySet()) {
       final UUID viewer = recipient.getKey();
       final Mcv2Link link = recipient.getValue();
       final long behind = link.getBehind();
-      if (link.offer(header.getFrameId(), header.getReferenceId(), isKeyframe, bytes)) {
+      if (link.offer(header.getFrameId(), header.getReferenceId(), kind, bytes)) {
         event.sentTo++;
-
-        for (final MapPacketFactory.Bundle bundle : bundles) {
-          bundle.send(viewer, () -> link.written(bundle.bytes()));
-        }
+        this.sendBundles(viewer, link, bundles);
       } else if (link.getBehind() > behind) {
         event.behind++;
       } else {
@@ -452,9 +454,56 @@ public final class Mcv2Channel {
       }
       event.backlog = Math.max(event.backlog, link.getBacklog());
     }
+
     event.colors = colors;
     event.sent = System.currentTimeMillis();
     event.commit();
     return colors;
+  }
+
+  private void sendBundles(final UUID viewer, final Mcv2Link link, final List<MapPacketFactory.Bundle> bundles) {
+    for (final MapPacketFactory.Bundle bundle : bundles) {
+      bundle.send(viewer, () -> link.written(bundle.getBytes()));
+    }
+  }
+
+  /**
+   * Returns the screen.
+   *
+   * @return the screen
+   * @since 1.0.0
+   */
+  public Mcv2Screen getScreen() {
+    return this.screen;
+  }
+
+  /**
+   * Returns the configuration of the screen the channel sends to: its video size, stream id and viewers.
+   *
+   * @return the configuration
+   * @since 1.0.0
+   */
+  public Mcv2Configuration getConfiguration() {
+    return this.configuration;
+  }
+
+  /**
+   * Returns the viewers that receive frames.
+   *
+   * @return the viewers shown the screen, as of the last {@link #update()}
+   * @since 1.0.0
+   */
+  public Set<UUID> getRecipients() {
+    return Set.copyOf(this.recipients.keySet());
+  }
+
+  /**
+   * Returns the links of the viewers shown the screen: what each was sent, missed and has not yet written.
+   *
+   * @return the links by viewer, a live view
+   * @since 1.0.0
+   */
+  public Map<UUID, Mcv2Link> getLinks() {
+    return Collections.unmodifiableMap(this.links);
   }
 }

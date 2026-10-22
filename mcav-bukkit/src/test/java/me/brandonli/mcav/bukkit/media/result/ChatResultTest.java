@@ -27,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import java.util.List;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.ChatConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ChatConfigurationBuilder;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.Images;
 import me.brandonli.mcav.media.image.ImageBuffer;
@@ -38,9 +39,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ChatResult}.
- */
 final class ChatResultTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -55,7 +53,7 @@ final class ChatResultTest {
     this.server = FakeServer.start();
     this.server.addPlayer(VIEWER);
     this.server.injectModule();
-    final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
+    final ChatConfigurationBuilder builder = ChatConfiguration.builder();
     builder.viewers(List.of(VIEWER, OFFLINE));
     builder.character("#");
     builder.chatWidth(2);
@@ -82,7 +80,7 @@ final class ChatResultTest {
   }
 
   @Test
-  void startsOnAnEmptyChat() {
+  void shouldStartOnAnEmptyChat() {
     this.result.start();
 
     final String message = this.getFirstMessage();
@@ -91,7 +89,7 @@ final class ChatResultTest {
   }
 
   @Test
-  void sendsEveryFrameAsOneMessageSizedToTheChat() {
+  void shouldSendEveryFrameAsOneMessageSizedToTheChat() {
     final ImageBuffer image = Images.solid(40, 20, 0xFF336699);
     final OriginalVideoMetadata metadata = mock(OriginalVideoMetadata.class);
 
@@ -111,7 +109,7 @@ final class ChatResultTest {
   }
 
   @Test
-  void clearsTheChatWhenReleased() {
+  void shouldClearTheChatWhenReleased() {
     this.result.release();
 
     final String message = this.getFirstMessage();
@@ -120,7 +118,7 @@ final class ChatResultTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final OriginalVideoMetadata metadata = mock(OriginalVideoMetadata.class);
 
     assertThrows(NullPointerException.class, () -> new ChatResult(null));

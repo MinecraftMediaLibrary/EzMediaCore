@@ -64,6 +64,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>If another plugin replaces a viewer's scoreboard, cleanup leaves that replacement in place. While the
  * viewer remains tracked, ticks do not reclaim the sidebar from the replacing plugin.
+ *
+ * @since 1.0.0
  */
 public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
 
@@ -82,9 +84,11 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
    *
    * @param configuration the configuration describing the viewers and the size of the scoreboard image
    * @throws NullPointerException if the configuration is null
+   * @since 1.0.0
    */
   public ScoreboardRenderer(final ScoreboardConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+
     final int lines = configuration.getLines();
     this.configuration = configuration;
     this.previousScoreboards = new HashMap<>();
@@ -94,7 +98,9 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
 
   /**
    * Creates the scoreboard and shows it to every online viewer. May be called from any thread.
+   *
    * @throws IllegalStateException if no plugin was injected
+   * @since 1.0.0
    */
   public void show() {
     this.showDisplay(this::createScoreboard);
@@ -104,11 +110,13 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
    * Converts the image into scoreboard lines and schedules them for display. May be called from any thread.
    *
    * @param image the image to render, which is resized to the scoreboard dimensions in place
-   * @throws NullPointerException if the image is null
+   * @throws NullPointerException  if the image is null
    * @throws IllegalStateException if the image has been released
+   * @since 1.0.0
    */
   public void render(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
+
     final int width = this.configuration.getWidth();
     final int lines = this.configuration.getLines();
     final ResizeFilter resize = new ResizeFilter(width, lines);
@@ -121,12 +129,15 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
       final String line = ChatUtils.createRawLine(pixels, character, width, row);
       components[row] = LEGACY_SERIALIZER.deserialize(line);
     }
+
     this.submit(components);
   }
 
   /**
    * Removes the scoreboard and restores the previous scoreboard of every viewer. May be called from any thread,
    * but call it on the main thread during shutdown, because a disabled plugin cannot schedule the restore anymore.
+   *
+   * @since 1.0.0
    */
   public void hide() {
     this.hideDisplay(this::removeScoreboard);
@@ -156,10 +167,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
     return objective;
   }
 
-  /**
-   * Registers one team per line. The text of a line is the suffix of its team, and the score of its unique,
-   * invisible entry keeps the lines in order.
-   */
+  // a line is its team's suffix; the score of its invisible entry keeps the order
   private void registerTeams(final Scoreboard board, final Objective objective) {
     final int lines = this.teams.length;
     for (int row = 0; row < lines; row++) {
@@ -187,16 +195,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
     }
   }
 
-  /**
-   * Shows the scoreboard to newly configured or returning online viewers.
-   *
-   * <p>The scoreboard a player sees is per session, so a viewer added to the configuration after the board was
-   * created, and a viewer who logged out and back in, would never be shown it again without this. A viewer already
-   * looking at the board is left alone, so their remembered previous scoreboard is not overwritten with this one.
-   * Viewers who went offline are forgotten: the server gives them the main scoreboard when they rejoin, so there is
-   * nothing left to restore, and they are served again as new viewers. Online viewers removed from the
-   * configuration receive their saved scoreboard before ownership is forgotten.
-   */
+  // a shown scoreboard lasts one session, so new and returning viewers are shown it again
   @Override
   protected void onTick() {
     final Scoreboard board = this.scoreboard;
@@ -219,6 +218,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
         player.setScoreboard(board);
       }
     }
+
     final Set<UUID> remembered = this.previousScoreboards.keySet();
     final Set<UUID> removed = new HashSet<>(remembered);
     removed.removeAll(watching);
@@ -227,17 +227,12 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
       final Scoreboard saved = requireNonNull(rememberedBoard);
       final Player player = Bukkit.getPlayer(viewer);
       if (player != null) {
-        restoreViewer(player, board, saved);
+        this.restoreViewer(player, board, saved);
       }
       this.previousScoreboards.remove(viewer);
     }
   }
 
-  /**
-   * Draws every line of the frame into the suffix of its team.
-   *
-   * @param lines the lines of the frame, from top to bottom
-   */
   @Override
   protected void apply(final Component[] lines) {
     if (this.scoreboard == null) {
@@ -258,14 +253,11 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
     }
 
     this.restoreViewers(board);
-    unregisterAll(board);
+    this.unregisterAll(board);
     this.previousScoreboards.clear();
     this.scoreboard = null;
   }
 
-  /**
-   * Gives every viewer who still sees the scoreboard back the scoreboard they had before.
-   */
   private void restoreViewers(final Scoreboard board) {
     final ScoreboardManager manager = Bukkit.getScoreboardManager();
     final Scoreboard mainScoreboard = manager.getMainScoreboard();
@@ -280,11 +272,11 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
         continue;
       }
       final Scoreboard previous = this.previousScoreboards.getOrDefault(viewer, mainScoreboard);
-      restoreViewer(player, board, previous);
+      this.restoreViewer(player, board, previous);
     }
   }
 
-  private static void restoreViewer(final Player player, final Scoreboard board, final Scoreboard previous) {
+  private void restoreViewer(final Player player, final Scoreboard board, final Scoreboard previous) {
     final Scoreboard current = player.getScoreboard();
     // Scoreboards do not override equals; preserve a replacement installed by another plugin.
     final boolean seesThisBoard = board.equals(current);
@@ -293,7 +285,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
     }
   }
 
-  private static void unregisterAll(final Scoreboard board) {
+  private void unregisterAll(final Scoreboard board) {
     final Set<Objective> objectives = board.getObjectives();
     for (final Objective objective : objectives) {
       objective.unregister();

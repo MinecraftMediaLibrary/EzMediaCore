@@ -31,8 +31,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.BlockConfiguration;
+import me.brandonli.mcav.bukkit.media.config.BlockConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.config.EntityConfiguration;
+import me.brandonli.mcav.bukkit.media.config.EntityConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.config.ScoreboardConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ScoreboardConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.lookup.BlockPaletteLookup;
 import me.brandonli.mcav.bukkit.testing.FakeScoreboards;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
@@ -61,14 +64,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-/**
- * Tests {@link BlockResult}, {@link EntityResult}, and {@link ScoreboardResult}, the video filters that hand every
- * frame to a renderer.
- */
 final class RendererResultsTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final int BROWN = (102 << 16) | (76 << 8) | 51;
+
+  private static final String CHARACTER = "#";
 
   private FakeServer server;
   private FakeWorld world;
@@ -96,8 +97,8 @@ final class RendererResultsTest {
   }
 
   @Test
-  void blockResultsShowFramesAsBlocksAndRestoreTheWorld() {
-    final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
+  void shouldShowFramesAsBlocksAndRestoreTheWorldInBlockResults() {
+    final BlockConfigurationBuilder builder = BlockConfiguration.builder();
     final Location position = this.createPosition();
     builder.viewers(List.of(VIEWER));
     builder.position(position);
@@ -133,11 +134,11 @@ final class RendererResultsTest {
   }
 
   @Test
-  void entityResultsShowFramesInATextDisplayAndRemoveIt() {
-    final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
+  void shouldShowFramesInATextDisplayAndRemoveItInEntityResults() {
+    final EntityConfigurationBuilder builder = EntityConfiguration.builder();
     final Location position = this.createPosition();
     builder.viewers(List.of(VIEWER));
-    builder.character("#");
+    builder.character(CHARACTER);
     builder.position(position);
     builder.entityWidth(1);
     builder.entityHeight(1);
@@ -155,17 +156,23 @@ final class RendererResultsTest {
 
     assertTrue(handled);
     verify(this.viewer).showEntity(plugin, display);
+
     final ArgumentCaptor<net.minecraft.network.chat.Component> textCaptor = ArgumentCaptor.captor(); // fqn: Component is imported as net.kyori.adventure.text.Component
     verify(handle).setText(textCaptor.capture());
-    assertEquals("#", textCaptor.getValue().getString());
+
+    final String text = textCaptor.getValue().getString();
+    assertEquals(CHARACTER, text);
+
     final List<Integer> colors = new ArrayList<>();
     textCaptor.getValue().visit((style, characters) -> {
       for (int index = 0; index < characters.length(); index++) {
         colors.add(style.getColor() == null ? -1 : style.getColor().getValue());
       }
+
       return Optional.empty();
     }, Style.EMPTY);
-    assertEquals(List.of(0x000000), colors, "the submitted image's exact color reaches the display");
+    final List<Integer> expectedColors = List.of(0x000000);
+    assertEquals(expectedColors, colors, "the submitted image's exact color reaches the display");
     verify(display).remove();
     assertThrows(NullPointerException.class, () -> new EntityResult(null));
 
@@ -173,14 +180,14 @@ final class RendererResultsTest {
   }
 
   @Test
-  void scoreboardResultsShowFramesOnTheSidebarAndRestoreThePreviousScoreboard() {
+  void shouldShowFramesOnTheSidebarAndRestoreThePreviousScoreboardInScoreboardResults() {
     final ScoreboardManager manager = this.server.getScoreboardManager();
     final FakeScoreboards scoreboards = FakeScoreboards.install(manager);
     final Scoreboard previous = mock(CraftScoreboard.class);
     FakeScoreboards.trackScoreboard(this.viewer, previous);
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
     builder.viewers(List.of(VIEWER));
-    builder.character("#");
+    builder.character(CHARACTER);
     builder.lines(1);
     builder.width(1);
     final ScoreboardConfiguration configuration = builder.build();
@@ -199,14 +206,14 @@ final class RendererResultsTest {
     assertTrue(handled);
     assertSame(board, shown);
     assertSame(previous, restored);
-    verify(team).suffix(Component.text("#", TextColor.color(0x000000)));
+    verify(team).suffix(Component.text(CHARACTER, TextColor.color(0x000000)));
     assertThrows(NullPointerException.class, () -> new ScoreboardResult(null));
 
     this.assertRejectsMissingFrames(result);
   }
 
   @Test
-  void offersCharactersThatWorkAsPixels() {
+  void shouldOfferCharactersThatWorkAsPixels() {
     final List<String> characters = List.of(
       Characters.FULL_CHARACTER,
       Characters.WHITE_SQUARE,
@@ -217,7 +224,9 @@ final class RendererResultsTest {
       Characters.SMALL_BLACK_SQUARE
     );
 
-    assertEquals(List.of("█", "□", "■", "○", "●", "▫", "▪"), characters);
+    final List<String> expectedCharacters = List.of("█", "□", "■", "○", "●", "▫", "▪");
+    assertEquals(expectedCharacters, characters);
+
     UtilityClassAssertions.assertNotInstantiable(Characters.class);
   }
 }

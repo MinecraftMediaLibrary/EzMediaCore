@@ -18,8 +18,8 @@ MCAV implements the common families of dithering algorithms:
       default.
     - [Floyd-Steinberg](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering): spreads the error to four
       neighbors.
-    - **Temporal Floyd-Steinberg**: Floyd-Steinberg that keeps the dither pattern stable between frames of a video, which
-      reduces flickering.
+    - **Temporal Floyd-Steinberg**: Floyd-Steinberg that keeps the dither pattern stable between frames of a video,
+      which reduces flickering.
     - [Atkinson](https://en.wikipedia.org/wiki/Atkinson_dithering): spreads only part of the error to six neighbors,
       which gives crisper, higher contrast images.
     - **Jarvis-Judice-Ninke**, **Stucki**, and **Burkes**: spread the error over twelve or seven neighbors for smoother
@@ -56,12 +56,17 @@ resolution frames are scaled to, and the players who see the maps.
 
 ```java
   public static MapConfiguration createMapWall(final Collection<UUID> viewers) {
-    final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
-    builder.map(0);
-    builder.mapBlockWidth(5);
-    builder.mapBlockHeight(5);
-    builder.mapWidthResolution(640);
-    builder.mapHeightResolution(640);
+    final int firstMapId = 0;
+    final int mapBlockWidth = 5;
+    final int mapBlockHeight = 5;
+    final int widthResolution = 640;
+    final int heightResolution = 640;
+    final MapConfigurationBuilder builder = MapConfiguration.builder();
+    builder.map(firstMapId);
+    builder.mapBlockWidth(mapBlockWidth);
+    builder.mapBlockHeight(mapBlockHeight);
+    builder.mapWidthResolution(widthResolution);
+    builder.mapHeightResolution(heightResolution);
     builder.viewers(viewers);
     final MapConfiguration configuration = builder.build();
     return configuration;
@@ -84,6 +89,7 @@ before it starts; call `release()` on the returned filter when the video is over
     final VideoPipelineStep pipeline = VideoPipelineStep.of(mapFilter);
     final VideoAttachableCallback videoCallback = player.getVideoAttachableCallback();
     videoCallback.attach(pipeline);
+
     return mapFilter;
   }
 ```

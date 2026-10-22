@@ -51,5 +51,6 @@ work on the server and registers listeners in the name of your plugin.
   bukkitModule.inject(this);
 ```
 
-`inject` throws an `UnsupportedServerVersionException` when the server does not run Minecraft 26.3. It is an
-`IllegalStateException`, so catch it to log a clear message and disable your plugin, as the sandbox plugin does.
+`inject` throws an `UnsupportedServerVersionException` when the server does not run Minecraft 26.3. Catch it to log a
+clear message and disable your plugin, as the sandbox plugin does. Every exception of `mcav-bukkit` extends
+`BukkitException`, an unchecked `MCAVException`, so one catch of it handles them all.

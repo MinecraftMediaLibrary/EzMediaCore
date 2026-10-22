@@ -29,15 +29,14 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** Reaches the encoder's private members by reflection, so the tests need no wider encoder API. */
 final class Mcv2Internals {
 
   private Mcv2Internals() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   static Class<?> nested(final String name) {
-    return Arrays.stream(MCV2.class.getDeclaredClasses())
+    return Arrays.stream(Mcv2.class.getDeclaredClasses())
       .filter(type -> type.getSimpleName().equals(name))
       .findFirst()
       .orElseThrow();
@@ -98,10 +97,20 @@ final class Mcv2Internals {
     if (cause instanceof final RuntimeException runtime) {
       return runtime;
     }
+
     if (cause instanceof final Error error) {
       throw error;
     }
+
     throw new AssertionError(cause);
+  }
+
+  static Kernels javaKernels() {
+    final Class<?> type = nested("Kernels");
+    final Object target = construct(nested("JavaKernels"), new Class<?>[0]);
+    return (Kernels) Proxy.newProxyInstance(Kernels.class.getClassLoader(), new Class<?>[] { Kernels.class }, (_, method, arguments) ->
+      call(type, target, method.getName(), method.getParameterTypes(), arguments == null ? new Object[0] : arguments)
+    );
   }
 
   static final class Workers {
@@ -118,7 +127,7 @@ final class Mcv2Internals {
       return (int) invoke(TYPE, this.value, "threads", new Class<?>[0]);
     }
 
-    <T> void forEach(final int count, final Supplier<T> factory, final ObjIntConsumer<T> action) {
+    <ScratchType> void forEach(final int count, final Supplier<ScratchType> factory, final ObjIntConsumer<ScratchType> action) {
       call(TYPE, this.value, "forEach", new Class<?>[] { int.class, Supplier.class, ObjIntConsumer.class }, count, factory, action);
     }
   }
@@ -128,7 +137,7 @@ final class Mcv2Internals {
     private static final Class<?> TYPE = nested("MotionLambda");
     static final double KNEE = (double) field(TYPE, null, "KNEE");
     static final double EXPONENT = (double) field(TYPE, null, "EXPONENT");
-    static final double MAX_RAISE = (double) field(TYPE, null, "MAX_RAISE");
+    static final double MAXIMUM_RAISE = (double) field(TYPE, null, "MAXIMUM_RAISE");
     static final double SMOOTHING = (double) field(TYPE, null, "SMOOTHING");
     private final Object value = construct(TYPE, new Class<?>[0]);
 
@@ -214,13 +223,5 @@ final class Mcv2Internals {
     void residualTarget(int[] source, int[] prediction, int count, float[] target);
 
     default void forgetArrays() {}
-  }
-
-  static Kernels javaKernels() {
-    final Class<?> type = nested("Kernels");
-    final Object target = construct(nested("JavaKernels"), new Class<?>[0]);
-    return (Kernels) Proxy.newProxyInstance(Kernels.class.getClassLoader(), new Class<?>[] { Kernels.class }, (_, method, arguments) ->
-      call(type, target, method.getName(), method.getParameterTypes(), arguments == null ? new Object[0] : arguments)
-    );
   }
 }

@@ -74,18 +74,36 @@ import org.slf4j.LoggerFactory;
  * on a later server tick. Serialize frame delivery with lifecycle operations unless this class explicitly provides
  * locking, and never mutate an input buffer concurrently with conversion.
  *
- * <p>Processing, start and release are serialized by an internal lock. The result owns any dithering pool it
- * creates, but does not own the supplied algorithm. Release waits for the current process call to leave the lock;
- * start permits reuse, with a new encoder created on the next frame.
+ * <p>This class is thread-safe: processing, start and release are serialized by an internal lock. The result owns any
+ * dithering pool it creates, but does not own the supplied algorithm. Release waits for the current process call to
+ * leave the lock; start permits reuse, with a new encoder created on the next frame.
+ *
+ * {@snippet :
+ * final CompressedMapResult result = new CompressedMapResult(configuration);
+ * final DitherAlgorithm algorithm = DitherAlgorithm.temporalFloydSteinberg();
+ * final FunctionalVideoFilter filter = DitherFilter.dither(algorithm, result);
+ * filter.start();
+ * final VideoPipelineStep pipeline = VideoPipelineStep.of(filter);
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * video.attach(pipeline);
+ * // when playback ends
+ * filter.release();
+ * }
+ *
+ * @since 1.0.0
  */
 public class CompressedMapResult implements DitherResultStep {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CompressedMapResult.class);
 
-  private static final String DITHERING_THREAD_FAILED = "Uncaught exception in map dithering thread {}";
+  private static final String DITHERING_THREAD_FAILED = "Map dithering thread {} failed with an uncaught exception.";
+
+  private static final int MINIMUM_PARALLELISM = 1;
+
+  private static final int PROCESSORS_PER_DITHER_THREAD = 2;
 
   private final MapConfiguration configuration;
-  private final int maxBytesPerFrame;
+  private final int maximumBytesPerFrame;
   private final Map<UUID, Object> activeViewers;
   private final Map<Integer, BitSet> sentPixels;
   private final Lock lock;
@@ -96,30 +114,35 @@ public class CompressedMapResult implements DitherResultStep {
 
   /**
    * Constructs a new {@code CompressedMapResult} with an ordinary-update budget of
-   * {@link DeltaMapEncoder#DEFAULT_MAX_BYTES_PER_FRAME} bytes per frame.
+   * {@link DeltaMapEncoder#DEFAULT_MAXIMUM_BYTES_PER_FRAME} bytes per frame.
    *
    * @param configuration the configuration describing the map grid and the viewers
    * @throws NullPointerException if the configuration is null
+   * @since 1.0.0
    */
   public CompressedMapResult(final MapConfiguration configuration) {
-    this(configuration, DeltaMapEncoder.DEFAULT_MAX_BYTES_PER_FRAME);
+    this(configuration, DeltaMapEncoder.DEFAULT_MAXIMUM_BYTES_PER_FRAME);
   }
 
   /**
    * Constructs a new {@code CompressedMapResult}.
    *
-   * @param configuration    the configuration describing the map grid and the viewers
-   * @param maxBytesPerFrame the budget for ordinary delta updates, including estimated patch overhead. The most
-   *                         urgent map is always sent even if it exceeds the budget. Resize cleanup and new-viewer
-   *                         snapshots are additional. Lower values spread motion and scene cuts over more frames
+   * <p>The byte budget covers ordinary delta updates, including estimated patch overhead. The most urgent map is always
+   * sent even if it exceeds the budget. Resize cleanup and new-viewer snapshots are additional. Lower values spread
+   * motion and scene cuts over more frames.
+   *
+   * @param configuration        the configuration describing the map grid and the viewers
+   * @param maximumBytesPerFrame the budget for ordinary delta updates, including estimated patch overhead
    * @throws IllegalArgumentException if the budget is not positive
-   * @throws NullPointerException if {@code configuration} is null
+   * @throws NullPointerException     if {@code configuration} is null
+   * @since 1.0.0
    */
-  public CompressedMapResult(final MapConfiguration configuration, final int maxBytesPerFrame) {
-    Preconditions.checkNotNull(configuration, "Map configuration must not be null");
-    Preconditions.checkArgument(maxBytesPerFrame > 0, "Byte budget must be positive");
+  public CompressedMapResult(final MapConfiguration configuration, final int maximumBytesPerFrame) {
+    Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
+    Preconditions.checkArgument(maximumBytesPerFrame > 0, "Byte budget must be positive!");
+
     this.configuration = configuration;
-    this.maxBytesPerFrame = maxBytesPerFrame;
+    this.maximumBytesPerFrame = maximumBytesPerFrame;
     this.activeViewers = new HashMap<>();
     this.sentPixels = new TreeMap<>();
     this.lock = new ReentrantLock();
@@ -133,23 +156,26 @@ public class CompressedMapResult implements DitherResultStep {
    * @param samples   the frame, which is resized in place if resizing is configured
    * @param algorithm the dithering algorithm; a {@link ParallelDitherAlgorithm} runs on dedicated daemon threads
    * @throws NullPointerException if {@code samples} or {@code algorithm} is null
+   * @since 1.0.0
    */
   @Override
   public void process(final ImageBuffer samples, final DitherAlgorithm algorithm) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
-    Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+    Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null!");
+
     this.lock.lock();
     try {
       if (this.released) {
         return;
       }
-      this.processFrame(samples, algorithm);
+
+      this.ditherAndSendFrame(samples, algorithm);
     } finally {
       this.lock.unlock();
     }
   }
 
-  private void processFrame(final ImageBuffer samples, final DitherAlgorithm algorithm) {
+  private void ditherAndSendFrame(final ImageBuffer samples, final DitherAlgorithm algorithm) {
     this.resizeIfConfigured(samples);
     final byte[] dithered = this.dither(samples, algorithm);
 
@@ -165,6 +191,7 @@ public class CompressedMapResult implements DitherResultStep {
     if (!shouldResize) {
       return;
     }
+
     final int width = this.configuration.getMapWidthResolution();
     final int height = this.configuration.getMapHeightResolution();
     final ResizeFilter filter = new ResizeFilter(width, height);
@@ -175,10 +202,12 @@ public class CompressedMapResult implements DitherResultStep {
     final List<UUID> existingViewers = new ArrayList<>();
     final List<UUID> newViewers = new ArrayList<>();
     this.sortConnectedViewers(existingViewers, newViewers);
+
     if (!existingViewers.isEmpty()) {
       MapPacketFactory.send(existingViewers, patches);
       this.rememberCoverage(patches);
     }
+
     if (!newViewers.isEmpty()) {
       // A layout change forgets the viewer baseline, so old viewers also receive this reset. Keep historical
       // cleanup available for viewers absent during earlier resizes, including when the snapshot is empty.
@@ -194,14 +223,11 @@ public class CompressedMapResult implements DitherResultStep {
     for (final MapTilePatch patch : patches) {
       final int mapId = patch.getMapId();
       final BitSet pixels = this.sentPixels.computeIfAbsent(mapId, _ -> new BitSet(MapLayout.MAP_SIZE * MapLayout.MAP_SIZE));
-      setCoverage(pixels, patch, true);
+      this.setCoverage(pixels, patch, Coverage.COVERED);
     }
   }
 
-  /**
-   * Subtracts the current snapshot from the exact union of previously sent pixels. A bounding rectangle would
-   * erase pixels never owned by the result when, for example, a wide image is followed by a tall image.
-   */
+  // the exact union, not a bounding box, which would erase pixels this result never drew
   private List<MapTilePatch> createHistoryClears(final List<MapTilePatch> snapshot) {
     final Map<Integer, BitSet> uncovered = new TreeMap<>();
     for (final Map.Entry<Integer, BitSet> entry : this.sentPixels.entrySet()) {
@@ -210,38 +236,37 @@ public class CompressedMapResult implements DitherResultStep {
       final BitSet copy = (BitSet) pixels.clone();
       uncovered.put(mapId, copy);
     }
+
     for (final MapTilePatch patch : snapshot) {
       final int mapId = patch.getMapId();
       final BitSet pixels = uncovered.get(mapId);
       if (pixels != null) {
-        setCoverage(pixels, patch, false);
+        this.setCoverage(pixels, patch, Coverage.UNCOVERED);
       }
     }
+
     final List<MapTilePatch> clears = new ArrayList<>();
     for (final Map.Entry<Integer, BitSet> entry : uncovered.entrySet()) {
       final int mapId = entry.getKey();
       final BitSet pixels = entry.getValue();
-      appendClearRectangles(mapId, pixels, clears);
+      this.appendClearRectangles(mapId, pixels, clears);
     }
+
     return clears;
   }
 
-  private static void setCoverage(final BitSet pixels, final MapTilePatch patch, final boolean covered) {
+  private void setCoverage(final BitSet pixels, final MapTilePatch patch, final Coverage coverage) {
     final int left = patch.getX();
     final int top = patch.getY();
     final int width = patch.getWidth();
     final int height = patch.getHeight();
     for (int row = 0; row < height; row++) {
       final int start = (top + row) * MapLayout.MAP_SIZE + left;
-      pixels.set(start, start + width, covered);
+      pixels.set(start, start + width, coverage == Coverage.COVERED);
     }
   }
 
-  /**
-   * Consumes a coverage bitmap as disjoint transparent rectangles. Each horizontal run is extended down through
-   * rows that contain it, keeping solid regions compact without including a pixel outside the recorded coverage.
-   */
-  private static void appendClearRectangles(final int mapId, final BitSet pixels, final List<MapTilePatch> clears) {
+  private void appendClearRectangles(final int mapId, final BitSet pixels, final List<MapTilePatch> clears) {
     final int size = MapLayout.MAP_SIZE;
     int first = pixels.nextSetBit(0);
     while (first >= 0) {
@@ -250,32 +275,35 @@ public class CompressedMapResult implements DitherResultStep {
       final int nextClear = pixels.nextClearBit(first);
       final int right = Math.min(nextClear, (top + 1) * size);
       final int width = right - first;
-      int height = 1;
-      while (top + height < size) {
-        final int nextRowStart = (top + height) * size + left;
-        final int nextRowClear = pixels.nextClearBit(nextRowStart);
-        if (nextRowClear < nextRowStart + width) {
-          break;
-        }
-        height++;
-      }
+      final int height = this.clearRunHeight(pixels, left, top, width);
       final byte[] transparent = new byte[width * height];
-      final MapTilePatch clear = new MapTilePatch(mapId, left, top, width, height, transparent);
+      final MapTilePatch clear = MapTilePatch.of(mapId, left, top, width, height, transparent);
       clears.add(clear);
-      setCoverage(pixels, clear, false);
+      this.setCoverage(pixels, clear, Coverage.UNCOVERED);
       first = pixels.nextSetBit(0);
     }
   }
 
-  /**
-   * Sorts the connected viewers into those who already watch, and receive only the changes, and those who just
-   * started watching, and need the complete picture first. Viewers who disconnected are forgotten.
-   */
+  private int clearRunHeight(final BitSet pixels, final int left, final int top, final int width) {
+    final int size = MapLayout.MAP_SIZE;
+    int height = 1;
+    while (top + height < size) {
+      final int nextRowStart = (top + height) * size + left;
+      final int nextRowClear = pixels.nextClearBit(nextRowStart);
+      if (nextRowClear < nextRowStart + width) {
+        break;
+      }
+      height++;
+    }
+
+    return height;
+  }
+
   private void sortConnectedViewers(final List<UUID> existingViewers, final List<UUID> newViewers) {
     final Collection<UUID> viewers = this.configuration.getViewers();
     final Set<UUID> connectedViewers = new HashSet<>();
     for (final UUID viewer : viewers) {
-      final Object connection = PacketUtils.connectionIdentity(viewer);
+      final @Nullable Object connection = PacketUtils.connectionIdentity(viewer).orElse(null);
       if (connection == null) {
         continue;
       }
@@ -285,6 +313,7 @@ public class CompressedMapResult implements DitherResultStep {
       final List<UUID> group = alreadyWatching ? existingViewers : newViewers;
       group.add(viewer);
     }
+
     this.activeViewers.keySet().retainAll(connectedViewers);
   }
 
@@ -300,10 +329,12 @@ public class CompressedMapResult implements DitherResultStep {
         return currentEncoder;
       }
     }
+
     final MapLayout layout = new MapLayout(startMapId, columns, rows, width, height);
-    final DeltaMapEncoder createdEncoder = new DeltaMapEncoder(layout, this.maxBytesPerFrame);
+    final DeltaMapEncoder createdEncoder = new DeltaMapEncoder(layout, this.maximumBytesPerFrame);
     this.encoder = createdEncoder;
     this.activeViewers.clear();
+
     return createdEncoder;
   }
 
@@ -311,29 +342,31 @@ public class CompressedMapResult implements DitherResultStep {
     if (algorithm instanceof final ParallelDitherAlgorithm parallelAlgorithm) {
       ForkJoinPool pool = this.ditherPool;
       if (pool == null) {
-        pool = createDitherPool();
+        pool = this.createDitherPool();
         this.ditherPool = pool;
       }
+
       return parallelAlgorithm.ditherIntoBytes(samples, pool);
     }
+
     return algorithm.ditherIntoBytes(samples);
   }
 
-  private static ForkJoinPool createDitherPool() {
+  private ForkJoinPool createDitherPool() {
     final Runtime runtime = Runtime.getRuntime();
     final int processors = runtime.availableProcessors();
-    final int parallelism = Math.max(1, processors / 2 - 1);
-    final ForkJoinPool.ForkJoinWorkerThreadFactory threadFactory = CompressedMapResult::createDitherThread;
-    final Thread.UncaughtExceptionHandler exceptionHandler = CompressedMapResult::logUncaughtException;
+    final int parallelism = Math.max(MINIMUM_PARALLELISM, processors / PROCESSORS_PER_DITHER_THREAD - 1);
+    final ForkJoinPool.ForkJoinWorkerThreadFactory threadFactory = this::createDitherThread;
+    final Thread.UncaughtExceptionHandler exceptionHandler = this::logUncaughtException;
     return new ForkJoinPool(parallelism, threadFactory, exceptionHandler, false);
   }
 
-  private static void logUncaughtException(final Thread thread, final Throwable throwable) {
+  private void logUncaughtException(final Thread thread, final Throwable throwable) {
     final String threadName = thread.getName();
     LOGGER.error(DITHERING_THREAD_FAILED, threadName, throwable);
   }
 
-  private static ForkJoinWorkerThread createDitherThread(final ForkJoinPool pool) {
+  private ForkJoinWorkerThread createDitherThread(final ForkJoinPool pool) {
     final ForkJoinPool.ForkJoinWorkerThreadFactory defaultFactory = ForkJoinPool.defaultForkJoinWorkerThreadFactory;
     final ForkJoinWorkerThread thread = defaultFactory.newThread(pool);
     final int poolIndex = thread.getPoolIndex();
@@ -347,6 +380,8 @@ public class CompressedMapResult implements DitherResultStep {
    * that frame coalesce. The encoder's delta history and the coverage used for resize cleanup are retained.
    * This request sends no packets itself, shares the processing lock, and does not resume a released result.
    * The snapshot is additional to the ordinary delta byte budget.
+   *
+   * @since 1.0.0
    */
   public void refresh() {
     this.lock.lock();
@@ -361,6 +396,8 @@ public class CompressedMapResult implements DitherResultStep {
    * Accepts frames again. The encoder itself is created lazily when the first frame arrives, because the frame size
    * is unknown until then; this only undoes a previous {@link #release()}, so the same result can show a second
    * video, the way every other result of this module can.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -375,6 +412,8 @@ public class CompressedMapResult implements DitherResultStep {
   /**
    * Stops processing frames, shuts down the dithering threads, and clears the maps of every viewer. Frames that
    * arrive after this method was called are ignored.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {
@@ -383,6 +422,7 @@ public class CompressedMapResult implements DitherResultStep {
       if (this.released) {
         return;
       }
+
       this.released = true;
       this.encoder = null;
       this.activeViewers.clear();
@@ -393,6 +433,7 @@ public class CompressedMapResult implements DitherResultStep {
         pool.shutdownNow();
         this.ditherPool = null;
       }
+
       // Clearing is part of the same transition: a restarted frame must be sent after this clear.
       this.clearMaps();
     } finally {
@@ -407,5 +448,10 @@ public class CompressedMapResult implements DitherResultStep {
     final int rows = this.configuration.getMapBlockHeight();
     final int mapCount = columns * rows;
     MapPacketFactory.clear(viewers, startMapId, mapCount);
+  }
+
+  private enum Coverage {
+    COVERED,
+    UNCOVERED,
   }
 }

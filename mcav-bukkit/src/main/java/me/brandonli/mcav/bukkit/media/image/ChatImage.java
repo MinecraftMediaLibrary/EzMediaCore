@@ -31,6 +31,8 @@ import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 /**
  * Displays still images in the chat of the viewers. The chat is cleared before every image, so only the latest
  * image is visible. Packets are sent directly, so images may be displayed from any thread.
+ *
+ * @since 1.0.0
  */
 public class ChatImage implements DisplayableImage {
 
@@ -45,10 +47,12 @@ public class ChatImage implements DisplayableImage {
    *
    * @param image the image to show, which is resized to the chat dimensions in place
    * @throws NullPointerException if the image is null
+   * @since 1.0.0
    */
   @Override
   public void displayImage(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
+
     final int width = this.configuration.getChatWidth();
     final int height = this.configuration.getChatHeight();
     final ResizeFilter resize = new ResizeFilter(width, height);
@@ -66,6 +70,8 @@ public class ChatImage implements DisplayableImage {
 
   /**
    * Clears the chat of every viewer.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

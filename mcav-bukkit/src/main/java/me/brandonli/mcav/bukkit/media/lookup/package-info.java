@@ -18,11 +18,13 @@
 /**
  * Shared block-color palette lookup used by block-wall rendering.
  *
- * <p>{@link me.brandonli.mcav.bukkit.media.lookup.BlockPaletteLookup#init()} initializes the bundled palette
+ * <p>{@link me.brandonli.mcav.bukkit.media.lookup.BlockPaletteLookup#initialize()} initializes the bundled palette
  * ahead of playback; first access also initializes it lazily. Lookups are thread-safe. Cached block data and
  * dithering palette arrays are shared and must not be modified; clone block data before applying caller changes.
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
+ *
+ * @since 1.0.0
  */
 package me.brandonli.mcav.bukkit.media.lookup;

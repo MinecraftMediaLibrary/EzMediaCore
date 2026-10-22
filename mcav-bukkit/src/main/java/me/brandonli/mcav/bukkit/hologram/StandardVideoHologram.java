@@ -44,7 +44,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * A hologram that shows the title, the uploader, the upload date, and a progress bar of a video. The progress bar
  * advances every 20 server ticks until the metadata duration, rounded up to whole seconds, is reached.
  * It is independent of player position and slows down with the server tick rate. Create an instance with
- * {@link Hologram#basic()}, populate it with {@link #handleRequest(Location, UrlParseDump)}, then start it.
+ * {@link Hologram#basic()}, populate it with {@link #spawn(Location, UrlParseDump)}, then start it.
+ *
+ * <p>This class is not thread-safe: use it on the server main thread.
+ *
+ * @since 1.0.0
  */
 public class StandardVideoHologram extends VideoHologram {
 
@@ -69,6 +73,19 @@ public class StandardVideoHologram extends VideoHologram {
   private static final int PROGRESS_SEGMENTS = 20;
   private static final long TICKS_PER_SECOND = 20L;
 
+  private static final String TITLE_PLACEHOLDER = "title";
+  private static final String UPLOADER_PLACEHOLDER = "uploader";
+  private static final String DATE_PLACEHOLDER = "date";
+
+  private static final int FIRST_TEEN_DAY = 11;
+  private static final int LAST_TEEN_DAY = 13;
+
+  private static final int DECIMAL_BASE = 10;
+
+  private static final String DEFAULT_ORDINAL_SUFFIX = "th";
+
+  private static final int SECONDS_PER_MINUTE = 60;
+
   private Component metadataText;
   private int durationSeconds;
   private int currentSecond;
@@ -87,17 +104,19 @@ public class StandardVideoHologram extends VideoHologram {
    * @param dump     the metadata of the video, as parsed by yt-dlp
    * @throws NullPointerException     if the location or the metadata is null
    * @throws IllegalArgumentException if the location has no world
+   * @since 1.0.0
    */
   @Override
-  public void handleRequest(final Location location, final UrlParseDump dump) {
-    Preconditions.checkNotNull(location, "Location must not be null");
-    Preconditions.checkNotNull(dump, "Video metadata must not be null");
+  public void spawn(final Location location, final UrlParseDump dump) {
+    Preconditions.checkNotNull(location, "Location must not be null!");
+    Preconditions.checkNotNull(dump, "Video metadata must not be null!");
+
     final World world = location.getWorld();
-    Preconditions.checkArgument(world != null, "Location must have a world");
+    Preconditions.checkArgument(world != null, "Location must have a world!");
 
     this.kill();
-    final Component metadata = createMetadataText(dump);
-    final TextDisplay entity = world.spawn(location, TextDisplay.class, display -> configureDisplay(display, metadata));
+    final Component metadata = this.createMetadataText(dump);
+    final TextDisplay entity = world.spawn(location, TextDisplay.class, display -> this.configureDisplay(display, metadata));
     this.setDisplay(entity);
     this.metadataText = metadata;
 
@@ -107,7 +126,7 @@ public class StandardVideoHologram extends VideoHologram {
     this.currentSecond = 0;
   }
 
-  private static void configureDisplay(final TextDisplay display, final Component text) {
+  private void configureDisplay(final TextDisplay display, final Component text) {
     display.setPersistent(false);
     display.setAlignment(TextDisplay.TextAlignment.CENTER);
     display.setBillboard(Display.Billboard.VERTICAL);
@@ -117,7 +136,7 @@ public class StandardVideoHologram extends VideoHologram {
     display.text(text);
   }
 
-  private static Component createMetadataText(final UrlParseDump dump) {
+  private Component createMetadataText(final UrlParseDump dump) {
     final Optional<String> titleValue = dump.getTitle();
     final Optional<String> uploaderValue = dump.getUploader();
     final @Nullable String reportedTitle = titleValue.orElse(null);
@@ -125,54 +144,58 @@ public class StandardVideoHologram extends VideoHologram {
     final String title = reportedTitle == null ? UNKNOWN_TITLE : reportedTitle;
     final String uploader = reportedUploader == null ? UNKNOWN_UPLOADER : reportedUploader;
     final int timestamp = dump.getTimestamp();
-    final String uploadDate = formatUploadDate(timestamp);
+    final String uploadDate = this.formatUploadDate(timestamp);
     // the site names its videos and uploaders, so the names are inserted as text that is never parsed: escaping them
     // leaves a backslash at their end, which would escape the closing tag after them
     return MINI_MESSAGE.deserialize(
       METADATA_TEMPLATE,
-      Placeholder.unparsed("title", title),
-      Placeholder.unparsed("uploader", uploader),
-      Placeholder.unparsed("date", uploadDate)
+      Placeholder.unparsed(TITLE_PLACEHOLDER, title),
+      Placeholder.unparsed(UPLOADER_PLACEHOLDER, uploader),
+      Placeholder.unparsed(DATE_PLACEHOLDER, uploadDate)
     );
   }
 
-  private static String formatUploadDate(final int timestamp) {
+  private String formatUploadDate(final int timestamp) {
     if (timestamp <= 0) {
       return UNKNOWN_DATE;
     }
+
     final Instant instant = Instant.ofEpochSecond(timestamp);
     final ZoneId zone = ZoneId.systemDefault();
     final ZonedDateTime dateTime = instant.atZone(zone);
     final int day = dateTime.getDayOfMonth();
-    final String ordinal = getOrdinalSuffix(day);
+    final String ordinal = this.getOrdinalSuffix(day);
     final String monthDay = dateTime.format(MONTH_DAY_FORMATTER);
     final String yearTime = dateTime.format(YEAR_TIME_FORMATTER);
     return monthDay + ordinal + yearTime;
   }
 
-  private static String getOrdinalSuffix(final int day) {
-    if (day >= 11 && day <= 13) {
-      return "th";
+  private String getOrdinalSuffix(final int day) {
+    if (day >= FIRST_TEEN_DAY && day <= LAST_TEEN_DAY) {
+      return DEFAULT_ORDINAL_SUFFIX;
     }
-    final int lastDigit = day % 10;
+
+    final int lastDigit = day % DECIMAL_BASE;
     return switch (lastDigit) {
       case 1 -> "st";
       case 2 -> "nd";
       case 3 -> "rd";
-      default -> "th";
+      default -> DEFAULT_ORDINAL_SUFFIX;
     };
   }
 
   /**
    * Starts the progress bar, which advances every 20 server ticks until the duration of the video is reached or the
-   * display is removed. Has no effect before {@link #handleRequest(Location, UrlParseDump)} was called or while the
+   * display is removed. Has no effect before {@link #spawn(Location, UrlParseDump)} was called or while the
    * progress bar is already running.
+   *
    * @throws IllegalStateException if a display is present but no plugin has been injected into BukkitModule
+   * @since 1.0.0
    */
   @Override
   public void start() {
-    final TextDisplay display = this.getDisplay();
-    if (display == null || this.task != null) {
+    final Optional<TextDisplay> display = this.getDisplay();
+    if (display.isEmpty() || this.task != null) {
       return;
     }
 
@@ -183,12 +206,13 @@ public class StandardVideoHologram extends VideoHologram {
   }
 
   private void advanceProgress() {
-    final TextDisplay display = this.getDisplay();
+    final @Nullable TextDisplay display = this.getDisplay().orElse(null);
     final boolean finished = this.currentSecond > this.durationSeconds;
     if (display == null || !display.isValid() || finished) {
       this.cancelTask();
       return;
     }
+
     final Component text = this.createProgressText();
     display.text(text);
     this.currentSecond++;
@@ -196,8 +220,8 @@ public class StandardVideoHologram extends VideoHologram {
 
   private Component createProgressText() {
     final String progressBar = this.createProgressBar();
-    final String currentTime = formatTime(this.currentSecond);
-    final String totalTime = formatTime(this.durationSeconds);
+    final String currentTime = this.formatTime(this.currentSecond);
+    final String totalTime = this.formatTime(this.durationSeconds);
     final String timerLine = "<gray>%s</gray> %s <gray>%s</gray>".formatted(currentTime, progressBar, totalTime);
     final Component timer = MINI_MESSAGE.deserialize(timerLine);
 
@@ -218,14 +242,15 @@ public class StandardVideoHologram extends VideoHologram {
     if (this.durationSeconds == 0) {
       return 0;
     }
+
     final double progress = (double) this.currentSecond / this.durationSeconds;
     final double filledSegments = Math.ceil(progress * PROGRESS_SEGMENTS);
     return (int) filledSegments;
   }
 
-  private static String formatTime(final int seconds) {
-    final int minutes = seconds / 60;
-    final int remainingSeconds = seconds % 60;
+  private String formatTime(final int seconds) {
+    final int minutes = seconds / SECONDS_PER_MINUTE;
+    final int remainingSeconds = seconds % SECONDS_PER_MINUTE;
     return String.format(Locale.getDefault(Locale.Category.FORMAT), "%02d:%02d", minutes, remainingSeconds);
   }
 
@@ -234,6 +259,7 @@ public class StandardVideoHologram extends VideoHologram {
     if (current == null) {
       return;
     }
+
     current.cancel();
     this.task = null;
   }
@@ -241,6 +267,8 @@ public class StandardVideoHologram extends VideoHologram {
   /**
    * Stops the progress bar and removes the display entity from the world. Calling this method on a hologram that
    * was never spawned has no effect.
+   *
+   * @since 1.0.0
    */
   @Override
   public void kill() {

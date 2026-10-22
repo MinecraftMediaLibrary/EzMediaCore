@@ -14,8 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 """Hand-computed pictures for every reconstruction rule and stream transition."""
 
+import itertools
 import unittest
 
 import numpy
@@ -25,150 +27,204 @@ import mcv2_reference
 from mcv2_reference import Decoder, decode
 from mcv2_reference import Node, pack_frame
 
+WIDTH = 3
+HEIGHT = 2
+PICTURE_SHAPE = (HEIGHT, WIDTH, mcv2_reference.CHANNELS)
 
-def at_size(node, size):
-    while size < 32:
-        node = Node(mcv2_reference.SPLIT, children=(node, Node(mcv2_reference.SKIP), Node(mcv2_reference.SKIP), Node(mcv2_reference.SKIP)))
-        size *= 2
-    return node
-
-
-def frame(node=None, width=3, height=2, key=True, frame_id=0, reference_id=None, size=32):
-    if reference_id is None:
-        reference_id = frame_id if key else (frame_id - 1) & 0xFFFFFFFF
-    return pack_frame(width, height, frame_id, reference_id, {} if node is None else {0: at_size(node, size)})
-
-
-def gray(values):
-    return numpy.repeat(numpy.array(values, numpy.uint8)[..., None], 3, axis=-1)
+ZERO_VECTOR = b'\0\0'
 
 
 class ReconstructionTest(unittest.TestCase):
-    def test_keyframe_absent_and_skip_are_black_and_solid(self):
+    def test_should_decode_absent_and_skipped_keyframe_blocks_black_and_solid_blocks_in_their_color(self):
         for node in (None, Node(mcv2_reference.SKIP)):
-            numpy.testing.assert_array_equal(numpy.zeros((2, 3, 3), numpy.uint8), decode(frame(node)))
-        numpy.testing.assert_array_equal(numpy.array([[[4, 5, 6]] * 3] * 2, numpy.uint8),
-                                      decode(frame(Node(mcv2_reference.SOLID, record=b'\4\5\6'))))
+            decoded = decode(frame(node))
+            numpy.testing.assert_array_equal(numpy.zeros(PICTURE_SHAPE, numpy.uint8), decoded)
 
-    def test_palette_lsb_first_and_row_major_at_all_sizes(self):
-        for size in (8, 16, 32):
-            selectors = bytearray(size * size // 8)
-            selectors[0], selectors[size // 8] = 0b00000101, 0b00000010
+        decoded = decode(frame(Node(mcv2_reference.SOLID, record=b'\4\5\6')))
+        numpy.testing.assert_array_equal(numpy.array([[[4, 5, 6]] * WIDTH] * HEIGHT, numpy.uint8), decoded)
+
+    def test_should_read_palette_selectors_least_significant_bit_first_and_row_major_at_all_sizes(self):
+        for size in mcv2_reference.LEAF_SIZES:
+            selectors = bytearray(size * size // mcv2_reference.BITS_PER_BYTE)
+            selectors[0], selectors[size // mcv2_reference.BITS_PER_BYTE] = 0b00000101, 0b00000010
             node = Node(mcv2_reference.PALETTE, record=bytes([1, 2, 3, 91, 92, 93]) + selectors)
             expected = numpy.array([[[91, 92, 93], [1, 2, 3], [91, 92, 93]],
                                  [[1, 2, 3], [91, 92, 93], [1, 2, 3]]], numpy.uint8)
-            numpy.testing.assert_array_equal(expected, decode(frame(node, size=size)))
+            decoded = decode(frame(node, size=size))
+            numpy.testing.assert_array_equal(expected, decoded)
 
-    def test_pattern_axes_at_all_sizes_keep_full_precision(self):
+    def test_should_keep_full_precision_on_pattern_axes_at_all_sizes(self):
         colors = bytes([9, 21, 25, 67, 122, 238])
-        for size in (8, 16, 32):
-            for orientation in (0, 1):
-                node = Node(mcv2_reference.PATTERN, record=colors + bytes([orientation, 0b00000101]) + bytes(size // 8 - 1))
-                expected = numpy.array(([[[67, 122, 238], [9, 21, 25], [67, 122, 238]]] * 2
-                                     if orientation == 0 else
-                                     [[[67, 122, 238]] * 3, [[9, 21, 25]] * 3]), numpy.uint8)
-                with self.subTest(size=size, orientation=orientation):
-                    numpy.testing.assert_array_equal(expected, decode(frame(node, size=size)))
+        orientations = (mcv2_reference.VERTICAL_STRIPES, mcv2_reference.HORIZONTAL_STRIPES)
+        for size, orientation in itertools.product(mcv2_reference.LEAF_SIZES, orientations):
+            other_selectors = bytes(size // mcv2_reference.BITS_PER_BYTE - 1)
+            node = Node(mcv2_reference.PATTERN, record=colors + bytes([orientation, 0b00000101]) + other_selectors)
+            expected = striped_picture(orientation)
+            with self.subTest(size=size, orientation=orientation):
+                decoded = decode(frame(node, size=size))
+                numpy.testing.assert_array_equal(expected, decoded)
 
-    def test_whole_pixel_motion_sign_and_clamping(self):
+    def test_should_sign_and_clamp_whole_pixel_motion(self):
         reference = gray([[1, 2, 3], [4, 5, 6]])
         cases = [(b'\1\xff', [[2, 3, 3], [2, 3, 3]]), (b'\x80\x7f', [[4, 4, 4], [4, 4, 4]]),
                  (b'\x7f\x80', [[3, 3, 3], [3, 3, 3]]), (b'\2\0', [[3, 3, 3], [6, 6, 6]])]
         for record, expected in cases:
-            numpy.testing.assert_array_equal(gray(expected), decode(frame(Node(mcv2_reference.MOTION, record=record), key=False, frame_id=1), reference, 0))
-        numpy.testing.assert_array_equal(reference, decode(frame(key=False, frame_id=1), reference, 0))
+            decoded = decode(frame(Node(mcv2_reference.MOTION, record=record), frame_id=1, reference_id=0), reference, 0)
+            numpy.testing.assert_array_equal(gray(expected), decoded)
 
-    def test_compact_vector_sign_and_clamping(self):
+        decoded = decode(frame(frame_id=1, reference_id=0), reference, 0)
+        numpy.testing.assert_array_equal(reference, decoded)
+
+    def test_should_sign_and_clamp_compact_vectors(self):
         reference = gray([[1, 2, 3], [4, 5, 6]])
-        for vector, expected in [(b'\0\0', [[1, 2, 3], [4, 5, 6]]),
+        for vector, expected in [(ZERO_VECTOR, [[1, 2, 3], [4, 5, 6]]),
                                  (b'\1\xff', [[2, 3, 3], [2, 3, 3]]),
                                  (b'\xf8\x07', [[4, 4, 4], [4, 4, 4]]),
                                  (b'\x7f\x80', [[3, 3, 3], [3, 3, 3]])]:
-            data = frame(Node(mcv2_reference.COMPACT, record=vector + bytes(8)), key=False, frame_id=1)
-            numpy.testing.assert_array_equal(gray(expected), decode(data, reference, 0))
+            data = frame(Node(mcv2_reference.COMPACT, record=vector + bytes(mcv2_reference.GRID_BYTES)), frame_id=1, reference_id=0)
+            decoded = decode(data, reference, 0)
+            numpy.testing.assert_array_equal(gray(expected), decoded)
 
-    def test_quantizers_and_clipping(self):
+    def test_should_apply_quantizers_and_clip(self):
         for nodes, expected in [(0x11, [129, 130, 132]), (0x88, [120, 112, 96])]:
             for quantizer, value in enumerate(expected):
-                data = frame(Node(mcv2_reference.COMPACT, quantizer, b'\0\0' + bytes([nodes] * 8)), width=1, height=1, key=False, frame_id=1)
-                numpy.testing.assert_array_equal(numpy.array([[[value] * 3]], numpy.uint8), decode(data, numpy.full((1, 1, 3), 128, numpy.uint8), 0))
-        for nodes, pixel, expected in [(0x77, 250, 255), (0x88, 5, 0)]:
-            data = frame(Node(mcv2_reference.COMPACT, 2, b'\0\0' + bytes([nodes] * 8)), width=1, height=1, key=False, frame_id=1)
-            numpy.testing.assert_array_equal(numpy.array([[[expected] * 3]], numpy.uint8), decode(data, numpy.full((1, 1, 3), pixel, numpy.uint8), 0))
+                record = ZERO_VECTOR + bytes([nodes] * mcv2_reference.GRID_BYTES)
+                data = frame(Node(mcv2_reference.COMPACT, quantizer, record), width=1, height=1, frame_id=1, reference_id=0)
+                decoded = decode(data, numpy.full((1, 1, mcv2_reference.CHANNELS), 128, numpy.uint8), 0)
+                numpy.testing.assert_array_equal(numpy.array([[[value] * mcv2_reference.CHANNELS]], numpy.uint8), decoded)
 
-    def test_grid_16_quantizer_2_exact_pixels_on_every_channel(self):
+        for nodes, pixel, expected in [(0x77, 250, 255), (0x88, 5, 0)]:
+            record = ZERO_VECTOR + bytes([nodes] * mcv2_reference.GRID_BYTES)
+            data = frame(Node(mcv2_reference.COMPACT, 2, record), width=1, height=1, frame_id=1, reference_id=0)
+            decoded = decode(data, numpy.full((1, 1, mcv2_reference.CHANNELS), pixel, numpy.uint8), 0)
+            numpy.testing.assert_array_equal(numpy.array([[[expected] * mcv2_reference.CHANNELS]], numpy.uint8), decoded)
+
+    def test_should_give_exact_pixels_on_every_channel_for_a_grid_of_16_at_quantizer_2(self):
         # Every row has luma nodes -2,-1,0,1; the same luma is added to red, green and blue.
-        record = b'\0\0' + bytes.fromhex('fe10fe10fe10fe10')
-        data = frame(Node(mcv2_reference.COMPACT, 2, record), width=16, height=16, size=16, key=False, frame_id=1)
+        record = ZERO_VECTOR + bytes.fromhex('fe10fe10fe10fe10')
+        data = frame(Node(mcv2_reference.COMPACT, 2, record), width=16, height=16, size=16, frame_id=1, reference_id=0)
         expected_row = [[92, 112, 132], [92, 112, 132], [93, 113, 133], [94, 114, 134],
                         [95, 115, 135], [96, 116, 136], [97, 117, 137], [98, 118, 138],
                         [99, 119, 139], [100, 120, 140], [101, 121, 141], [102, 122, 142],
                         [103, 123, 143], [104, 124, 144], [104, 124, 144], [104, 124, 144]]
-        reference = numpy.broadcast_to(numpy.array([100, 120, 140], numpy.uint8), (16, 16, 3)).copy()
-        numpy.testing.assert_array_equal(numpy.array([expected_row] * 16, numpy.uint8), decode(data, reference, 0))
+        reference = numpy.broadcast_to(numpy.array([100, 120, 140], numpy.uint8), (16, 16, mcv2_reference.CHANNELS)).copy()
+        decoded = decode(data, reference, 0)
+        numpy.testing.assert_array_equal(numpy.array([expected_row] * 16, numpy.uint8), decoded)
 
-    def test_grid_y_bilinear_both_axes_and_round_half_up(self):
-        record = b'\0\0' + bytes.fromhex('ed0ffe100f211032')
-        data = frame(Node(mcv2_reference.COMPACT, record=record), width=8, height=8, size=8, key=False, frame_id=1)
+    def test_should_interpolate_the_luma_grid_bilinearly_on_both_axes_and_round_half_up(self):
+        record = ZERO_VECTOR + bytes.fromhex('ed0ffe100f211032')
+        data = frame(Node(mcv2_reference.COMPACT, record=record), width=8, height=8, size=8, frame_id=1, reference_id=0)
         expected = [[97, 97, 98, 98, 99, 99, 100, 100], [97, 98, 98, 99, 99, 100, 100, 100],
                     [98, 98, 99, 99, 100, 100, 101, 101], [98, 99, 99, 100, 100, 101, 101, 101],
                     [99, 99, 100, 100, 101, 101, 102, 102], [99, 100, 100, 101, 101, 102, 102, 102],
                     [100, 100, 101, 101, 102, 102, 103, 103], [100, 100, 101, 101, 102, 102, 103, 103]]
-        numpy.testing.assert_array_equal(gray(expected), decode(data, numpy.full((8, 8, 3), 100, numpy.uint8), 0))
-        impulse = frame(Node(mcv2_reference.COMPACT, record=b'\0\0\7' + bytes(7)), width=8, height=8, size=8, key=False, frame_id=1)
-        expected = [[7, 5, 2, 0, 0, 0, 0, 0], [5, 4, 1, 0, 0, 0, 0, 0], [2, 1, 0, 0, 0, 0, 0, 0]] + [[0] * 8] * 5
-        numpy.testing.assert_array_equal(gray(expected), decode(impulse, numpy.zeros((8, 8, 3), numpy.uint8), 0))
+        decoded = decode(data, numpy.full((8, 8, mcv2_reference.CHANNELS), 100, numpy.uint8), 0)
+        numpy.testing.assert_array_equal(gray(expected), decoded)
 
-    def test_leaves_read_only_the_reference_and_crop_whole_blocks(self):
-        node = Node(mcv2_reference.SPLIT, children=(Node(mcv2_reference.SOLID, record=bytes([200] * 3)), Node(mcv2_reference.MOTION, record=b'\xf0\0'),
-                                       Node(mcv2_reference.SKIP), Node(mcv2_reference.COMPACT, record=b'\0\0' + b'\x11' * 8)))
-        data = frame(node, width=17, height=17, key=False, frame_id=1)
-        expected = numpy.full((17, 17, 3), 10, numpy.uint8)
+        record = ZERO_VECTOR + b'\7' + bytes(mcv2_reference.GRID_BYTES - 1)
+        impulse = frame(Node(mcv2_reference.COMPACT, record=record), width=8, height=8, size=8, frame_id=1, reference_id=0)
+        expected = [[7, 5, 2, 0, 0, 0, 0, 0], [5, 4, 1, 0, 0, 0, 0, 0], [2, 1, 0, 0, 0, 0, 0, 0]] + [[0] * 8] * 5
+        decoded = decode(impulse, numpy.zeros((8, 8, mcv2_reference.CHANNELS), numpy.uint8), 0)
+        numpy.testing.assert_array_equal(gray(expected), decoded)
+
+    def test_should_read_only_the_reference_and_crop_whole_blocks(self):
+        solid = Node(mcv2_reference.SOLID, record=bytes([200] * mcv2_reference.CHANNELS))
+        motion = Node(mcv2_reference.MOTION, record=b'\xf0\0')
+        compact = Node(mcv2_reference.COMPACT, record=ZERO_VECTOR + b'\x11' * mcv2_reference.GRID_BYTES)
+        node = Node(mcv2_reference.SPLIT, children=(solid, motion, Node(mcv2_reference.SKIP), compact))
+        data = frame(node, width=17, height=17, frame_id=1, reference_id=0)
+        expected = numpy.full((17, 17, mcv2_reference.CHANNELS), 10, numpy.uint8)
         expected[:16, :16] = 200
         expected[16, 16] = 11
-        reference = numpy.full((17, 17, 3), 10, numpy.uint8)
-        numpy.testing.assert_array_equal(expected, decode(data, reference, 0))
-        numpy.testing.assert_array_equal(numpy.full((17, 17, 3), 10, numpy.uint8), reference)
+        reference = numpy.full((17, 17, mcv2_reference.CHANNELS), 10, numpy.uint8)
+        decoded = decode(data, reference, 0)
+        numpy.testing.assert_array_equal(expected, decoded)
 
-    def test_missing_wrong_size_wrong_dtype_and_wrong_id_references(self):
-        data = frame(key=False, frame_id=1)
-        for reference, reference_id in [(None, 0), (numpy.zeros((2, 3, 3), numpy.uint8), 2),
-                                  (numpy.zeros((2, 3, 3), numpy.uint8), None), (numpy.zeros((3, 2, 3), numpy.uint8), 0),
-                                  (numpy.zeros((2, 3, 3), numpy.int32), 0)]:
+        numpy.testing.assert_array_equal(numpy.full((17, 17, mcv2_reference.CHANNELS), 10, numpy.uint8), reference)
+
+    def test_should_reject_missing_wrong_size_wrong_dtype_and_wrong_id_references(self):
+        data = frame(frame_id=1, reference_id=0)
+        transposed = (WIDTH, HEIGHT, mcv2_reference.CHANNELS)
+        for reference, reference_id in [(None, 0), (numpy.zeros(PICTURE_SHAPE, numpy.uint8), 2),
+                                  (numpy.zeros(PICTURE_SHAPE, numpy.uint8), None), (numpy.zeros(transposed, numpy.uint8), 0),
+                                  (numpy.zeros(PICTURE_SHAPE, numpy.int32), 0)]:
             with self.assertRaises(ValueError):
                 decode(data, reference, reference_id)
 
 
 class StreamTest(unittest.TestCase):
-    def test_loss_freeze_recovery_and_failed_frames_do_not_advance_state(self):
+    def test_should_freeze_on_loss_recover_and_not_advance_on_failed_frames(self):
         decoder = Decoder()
         with self.assertRaises(ValueError):
-            decoder.accept(frame(key=False, frame_id=1))
+            decoder.accept(frame(frame_id=1, reference_id=0))
+
         first = decoder.accept(frame(frame_id=4))
-        for bad in (frame(key=False, frame_id=6), changed(frame(frame_id=8), 6, 1), frame(frame_id=3)):
+        for bad in (frame(frame_id=6, reference_id=5), changed(frame(frame_id=8), 6, 1), frame(frame_id=3)):
             with self.assertRaises(ValueError):
                 decoder.accept(bad)
-            self.assertEqual(4, decoder.frame_id)
-            numpy.testing.assert_array_equal(first, decoder.reference)
-        numpy.testing.assert_array_equal(first, decoder.accept(frame(key=False, frame_id=10, reference_id=4)))
-        recovered = decoder.accept(frame(Node(mcv2_reference.SOLID, record=b'\1\2\3'), frame_id=11))
-        numpy.testing.assert_array_equal(numpy.array([[[1, 2, 3]] * 3] * 2, numpy.uint8), recovered)
-        with self.assertRaises(ValueError):
-            decoder.accept(frame(width=4, key=False, frame_id=12, reference_id=11))
-        self.assertEqual(11, decoder.frame_id)
-        self.assertEqual((2, 4, 3), decoder.accept(frame(width=4, frame_id=12)).shape)
 
-    def test_half_range_wraparound_and_caller_edits(self):
+            frame_id = decoder.frame_id
+            self.assertEqual(4, frame_id)
+
+            reference = decoder.reference
+            numpy.testing.assert_array_equal(first, reference)
+
+        frozen = decoder.accept(frame(frame_id=10, reference_id=4))
+        numpy.testing.assert_array_equal(first, frozen)
+
+        recovered = decoder.accept(frame(Node(mcv2_reference.SOLID, record=b'\1\2\3'), frame_id=11))
+        numpy.testing.assert_array_equal(numpy.array([[[1, 2, 3]] * WIDTH] * HEIGHT, numpy.uint8), recovered)
+
+        with self.assertRaises(ValueError):
+            decoder.accept(frame(width=4, frame_id=12, reference_id=11))
+
+        frame_id = decoder.frame_id
+        self.assertEqual(11, frame_id)
+
+        shape = decoder.accept(frame(width=4, frame_id=12)).shape
+        self.assertEqual((HEIGHT, 4, mcv2_reference.CHANNELS), shape)
+
+    def test_should_wrap_around_at_half_range_and_ignore_caller_edits(self):
         decoder = Decoder()
-        first = decoder.accept(frame(Node(mcv2_reference.SOLID, record=bytes([11, 22, 33])), frame_id=0xFFFFFFFE))
+        first = decoder.accept(frame(Node(mcv2_reference.SOLID, record=bytes([11, 22, 33])), frame_id=mcv2_reference.ID_MASK - 1))
         first[:] = 0
-        expected = numpy.array([[[11, 22, 33]] * 3] * 2, numpy.uint8)
-        numpy.testing.assert_array_equal(expected, decoder.accept(frame(key=False, frame_id=0, reference_id=0xFFFFFFFE)))
-        for frame_id in (0, 0x80000000, 0xFFFFFFFF):
+        expected = numpy.array([[[11, 22, 33]] * WIDTH] * HEIGHT, numpy.uint8)
+        decoded = decoder.accept(frame(frame_id=0, reference_id=mcv2_reference.ID_MASK - 1))
+        numpy.testing.assert_array_equal(expected, decoded)
+
+        for frame_id in (0, mcv2_reference.ID_HALF_RANGE, mcv2_reference.ID_MASK):
             with self.assertRaisesRegex(ValueError, 'not newer'):
                 decoder.accept(frame(frame_id=frame_id))
-        decoder.accept(frame(frame_id=0x7FFFFFFF))
-        self.assertEqual(0x7FFFFFFF, decoder.frame_id)
+
+        decoder.accept(frame(frame_id=mcv2_reference.ID_HALF_RANGE - 1))
+        frame_id = decoder.frame_id
+        self.assertEqual(mcv2_reference.ID_HALF_RANGE - 1, frame_id)
+
+
+def frame(node=None, width=WIDTH, height=HEIGHT, frame_id=0, reference_id=None, size=mcv2_reference.SUPERBLOCK_SIZE):
+    if reference_id is None:
+        reference_id = frame_id
+
+    return pack_frame(width, height, frame_id, reference_id, {} if node is None else {0: at_size(node, size)})
+
+
+def at_size(node, size):
+    while size < mcv2_reference.SUPERBLOCK_SIZE:
+        node = Node(mcv2_reference.SPLIT, children=(node, Node(mcv2_reference.SKIP), Node(mcv2_reference.SKIP), Node(mcv2_reference.SKIP)))
+        size *= mcv2_reference.QUADRANTS_PER_SIDE
+
+    return node
+
+
+def striped_picture(orientation):
+    if orientation == mcv2_reference.VERTICAL_STRIPES:
+        return numpy.array([[[67, 122, 238], [9, 21, 25], [67, 122, 238]]] * HEIGHT, numpy.uint8)
+
+    return numpy.array([[[67, 122, 238]] * WIDTH, [[9, 21, 25]] * WIDTH], numpy.uint8)
+
+
+def gray(values):
+    return numpy.repeat(numpy.array(values, numpy.uint8)[..., None], mcv2_reference.CHANNELS, axis=-1)
 
 
 if __name__ == '__main__':

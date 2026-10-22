@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import me.brandonli.mcav.bukkit.media.config.ScoreboardConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ScoreboardConfigurationBuilder;
 import me.brandonli.mcav.bukkit.testing.FakeScoreboards;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.utils.ChatUtils;
@@ -58,14 +59,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-/**
- * Tests {@link ScoreboardRenderer}.
- */
 final class ScoreboardRendererTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID LATE_VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000002");
   private static final UUID OFFLINE = UUID.fromString("00000000-0000-0000-0000-000000000003");
+
+  private static final String CHARACTER = "#";
+
+  private static final String OBJECTIVE_NAME_PATTERN = "mcav_\\d+";
 
   private FakeServer server;
   private List<UUID> viewers;
@@ -91,9 +93,9 @@ final class ScoreboardRendererTest {
   }
 
   private ScoreboardConfiguration createConfiguration(final int lines) {
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
     builder.viewers(this.viewers);
-    builder.character("#");
+    builder.character(CHARACTER);
     builder.lines(lines);
     builder.width(2);
     return builder.build();
@@ -112,7 +114,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void createsAnOrderedSidebarWithHiddenNumbersAndShowsIt() {
+  void shouldCreateAnOrderedSidebarWithHiddenNumbersAndShowIt() {
     final ScoreboardConfiguration configuration = this.createConfiguration(3);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
 
@@ -123,8 +125,9 @@ final class ScoreboardRendererTest {
     final ArgumentCaptor<String> objectiveName = ArgumentCaptor.forClass(String.class);
     final Component emptyTitle = Component.empty();
     verify(board).registerNewObjective(objectiveName.capture(), eq(Criteria.DUMMY), eq(emptyTitle));
+
     final String name = objectiveName.getValue();
-    final boolean validName = name.matches("mcav_\\d+");
+    final boolean validName = name.matches(OBJECTIVE_NAME_PATTERN);
     final List<String> teamNames = this.scoreboards.getTeamNames();
     final List<String> expectedTeamNames = List.of(name + "_0", name + "_1", name + "_2");
     final Scoreboard current = this.viewer.getScoreboard();
@@ -134,22 +137,29 @@ final class ScoreboardRendererTest {
     assertSame(board, current);
     verify(objective).setDisplaySlot(DisplaySlot.SIDEBAR);
     verify(objective).numberFormat(hiddenNumbers);
+
     this.assertLinesAreOrdered();
   }
 
   @Test
-  void duplicateViewersStillRestoreTheirOriginalScoreboard() {
+  void shouldStillRestoreTheOriginalScoreboardOfDuplicateViewers() {
     this.viewers.add(VIEWER);
     this.viewers.add(VIEWER);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(this.createConfiguration(3));
     renderer.show();
-    assertSame(this.scoreboards.getBoard(), this.viewer.getScoreboard());
+
+    final Scoreboard expectedBoard = this.scoreboards.getBoard();
+    final Scoreboard shown = this.viewer.getScoreboard();
+    assertSame(expectedBoard, shown);
+
     renderer.hide();
-    assertSame(this.previousBoard, this.viewer.getScoreboard(), "duplicate entries must not replace the saved original board");
+
+    final Scoreboard restored = this.viewer.getScoreboard();
+    assertSame(this.previousBoard, restored, "duplicate entries must not replace the saved original board");
   }
 
   @Test
-  void usesDifferentNamesForEveryRenderer() {
+  void shouldUseDifferentNamesForEveryRenderer() {
     final ScoreboardConfiguration firstConfiguration = this.createConfiguration(1);
     final ScoreboardConfiguration secondConfiguration = this.createConfiguration(1);
     final ScoreboardRenderer first = new ScoreboardRenderer(firstConfiguration);
@@ -161,6 +171,7 @@ final class ScoreboardRendererTest {
     final Scoreboard board = this.scoreboards.getBoard();
     final ArgumentCaptor<String> names = ArgumentCaptor.forClass(String.class);
     verify(board, times(2)).registerNewObjective(names.capture(), any(Criteria.class), any(Component.class));
+
     final List<String> objectiveNames = names.getAllValues();
     final String firstName = objectiveNames.get(0);
     final String secondName = objectiveNames.get(1);
@@ -168,7 +179,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void createsTheScoreboardOnlyOnce() {
+  void shouldCreateTheScoreboardOnlyOnce() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
 
@@ -180,7 +191,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void drawsEveryImageRowIntoTheSuffixOfItsTeam() {
+  void shouldDrawEveryImageRowIntoTheSuffixOfItsTeam() {
     final ScoreboardConfiguration configuration = this.createConfiguration(2);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     final int[] pixels = { 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFF0000FF };
@@ -191,8 +202,8 @@ final class ScoreboardRendererTest {
     this.server.runTasks();
 
     final LegacyComponentSerializer serializer = LegacyComponentSerializer.legacySection();
-    final String firstLine = ChatUtils.createRawLine(pixels, "#", 2, 0);
-    final String secondLine = ChatUtils.createRawLine(pixels, "#", 2, 1);
+    final String firstLine = ChatUtils.createRawLine(pixels, CHARACTER, 2, 0);
+    final String secondLine = ChatUtils.createRawLine(pixels, CHARACTER, 2, 1);
     final Component expectedFirst = serializer.deserialize(firstLine);
     final Component expectedSecond = serializer.deserialize(secondLine);
     final List<Team> teams = this.scoreboards.getTeams();
@@ -203,7 +214,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void ignoresFramesBeforeTheScoreboardExists() {
+  void shouldIgnoreFramesBeforeTheScoreboardExists() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     final Component line = Component.text("line");
@@ -216,7 +227,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void stopsRenderingFramesWhenItIsHidden() {
+  void shouldStopRenderingFramesWhenItIsHidden() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
 
@@ -230,7 +241,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void doesNothingOnATickBeforeTheScoreboardWasCreated() {
+  void shouldDoNothingOnATickBeforeTheScoreboardWasCreated() {
     final ScoreboardConfiguration configuration = this.createConfiguration(2);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
 
@@ -240,7 +251,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void putsTheScoreboardOnAViewerWhoComesOnlineAfterItWasCreated() {
+  void shouldPutTheScoreboardOnAViewerWhoComesOnlineAfterItWasCreated() {
     final ScoreboardConfiguration configuration = this.createConfiguration(2);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -256,7 +267,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void forgetsAnOfflineViewerAndRestoresTheNewSessionsOwnPreviousBoard() {
+  void shouldForgetAnOfflineViewerAndRestoreTheNewSessionsOwnPreviousBoard() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -282,7 +293,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void restoresThePreviousScoreboardOfViewersThatStillSeeIt() throws ReflectiveOperationException {
+  void shouldRestoreThePreviousScoreboardOfViewersThatStillSeeIt() throws ReflectiveOperationException {
     final ScoreboardConfiguration configuration = this.createConfiguration(2);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -300,18 +311,21 @@ final class ScoreboardRendererTest {
     final List<Team> teams = this.scoreboards.getTeams();
     assertSame(this.previousBoard, viewerBoard);
     assertSame(mainBoard, lateBoard, "viewers that joined later get the main scoreboard");
+
     final Field retainedField = ScoreboardRenderer.class.getDeclaredField("previousScoreboards");
     retainedField.setAccessible(true);
     final Map<?, ?> retained = (Map<?, ?>) retainedField.get(renderer);
-    assertTrue(retained.isEmpty(), "released displays must not retain obsolete rendering state");
+    final boolean retainsNothing = retained.isEmpty();
+    assertTrue(retainsNothing, "released displays must not retain obsolete rendering state");
     verify(objective, times(1)).unregister();
+
     for (final Team team : teams) {
       verify(team, times(1)).unregister();
     }
   }
 
   @Test
-  void leavesViewersAloneThatSwitchedToAnotherScoreboard() {
+  void shouldLeaveViewersAloneThatSwitchedToAnotherScoreboard() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     final Scoreboard otherBoard = mock(CraftScoreboard.class, "other plugin");
@@ -325,7 +339,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void restoresAnOnlineRemovedViewerBeforeForgettingThePreviousBoard() {
+  void shouldRestoreAnOnlineRemovedViewerBeforeForgettingThePreviousBoard() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -335,6 +349,7 @@ final class ScoreboardRendererTest {
     final Scoreboard current = this.viewer.getScoreboard();
     assertSame(this.previousBoard, current);
     verify(this.viewer, times(1)).setScoreboard(this.previousBoard);
+
     this.viewers.add(VIEWER);
     renderer.onTick();
     renderer.hide();
@@ -343,7 +358,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void restoresAViewerRemovedImmediatelyBeforeHide() {
+  void shouldRestoreAViewerRemovedImmediatelyBeforeHide() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -354,7 +369,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void doesNotOverwriteAnotherPluginsBoardWhenAViewerIsRemoved() {
+  void shouldNotOverwriteAnotherPluginsBoardWhenAViewerIsRemoved() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     final Scoreboard replacement = mock(CraftScoreboard.class);
@@ -368,7 +383,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void queuedShowCannotResurrectAScoreboardAfterMainThreadHide() {
+  void shouldNotLetAQueuedShowResurrectAScoreboardAfterMainThreadHide() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     this.server.setPrimaryThread(false);
@@ -379,12 +394,13 @@ final class ScoreboardRendererTest {
     final ScoreboardManager manager = this.server.getScoreboardManager();
     verify(manager, never()).getNewScoreboard();
     verify(this.viewer, never()).setScoreboard(any(Scoreboard.class));
+
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(0, tasks);
   }
 
   @Test
-  void queuedHideCannotRemoveAScoreboardRequestedAgainOnMain() {
+  void shouldNotLetAQueuedHideRemoveAScoreboardRequestedAgainOnMain() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -398,17 +414,19 @@ final class ScoreboardRendererTest {
     final Objective objective = this.scoreboards.getObjective();
     assertSame(board, current);
     verify(objective, never()).unregister();
+
     final Component line = Component.text("still rendering");
     renderer.apply(new Component[] { line });
     final List<Team> teams = this.scoreboards.getTeams();
     final Team team = teams.getFirst();
     verify(team).suffix(line);
+
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(1, tasks);
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
 

@@ -26,16 +26,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link MapLayout}.
- */
 final class MapLayoutTest {
+
+  private static final int MAP_SIZE = 128;
 
   static byte[] createImage(final int width, final int height) {
     final byte[] image = new byte[width * height];
     for (int index = 0; index < image.length; index++) {
       image[index] = (byte) (index % 251);
     }
+
     return image;
   }
 
@@ -44,10 +44,11 @@ final class MapLayoutTest {
     for (int row = 0; row < height; row++) {
       System.arraycopy(image, (top + row) * imageWidth + left, colors, row * width, width);
     }
+
     return colors;
   }
 
-  private static void assertRegion(
+  private void assertRegion(
     final MapRegion region,
     final int localX,
     final int localY,
@@ -72,13 +73,13 @@ final class MapLayoutTest {
   }
 
   @Test
-  void describesMapsAndPatchOverhead() {
-    assertEquals(128, MapLayout.MAP_SIZE);
+  void shouldDescribeMapsAndPatchOverhead() {
+    assertEquals(MAP_SIZE, MapLayout.MAP_SIZE);
     assertEquals(16, MapLayout.PATCH_OVERHEAD);
   }
 
   @Test
-  void numbersMapsRowByRowFromTheStartId() {
+  void shouldNumberMapsRowByRowFromTheStartId() {
     final MapLayout layout = new MapLayout(10, 3, 2, 384, 256);
     final int mapCount = layout.getMapCount();
     final int firstId = layout.getMapId(0);
@@ -94,22 +95,22 @@ final class MapLayoutTest {
     assertEquals(15, lastId);
     assertEquals(384, imageWidth);
     assertEquals(256, imageHeight);
-    assertRegion(secondRowSecondColumn, 0, 0, 128, 128, 128, 128);
-    assertRegion(firstRowSecondColumn, 0, 0, 128, 128, 128, 0);
-    assertRegion(secondRowFirstColumn, 0, 0, 128, 128, 0, 128);
+    this.assertRegion(secondRowSecondColumn, 0, 0, MAP_SIZE, MAP_SIZE, MAP_SIZE, MAP_SIZE);
+    this.assertRegion(firstRowSecondColumn, 0, 0, MAP_SIZE, MAP_SIZE, MAP_SIZE, 0);
+    this.assertRegion(secondRowFirstColumn, 0, 0, MAP_SIZE, MAP_SIZE, 0, MAP_SIZE);
   }
 
   @Test
-  void centersImagesThatAreSmallerThanTheGrid() {
+  void shouldCenterImagesThatAreSmallerThanTheGrid() {
     final MapLayout layout = new MapLayout(0, 1, 1, 100, 50);
     final MapRegion region = layout.getRegion(0);
 
-    assertRegion(region, 14, 39, 100, 50, 0, 0);
+    this.assertRegion(region, 14, 39, 100, 50, 0, 0);
   }
 
   @Test
-  void leavesMapsTheImageDoesNotReachEmpty() {
-    final MapLayout layout = new MapLayout(0, 3, 1, 128, 64);
+  void shouldLeaveMapsTheImageDoesNotReachEmpty() {
+    final MapLayout layout = new MapLayout(0, 3, 1, MAP_SIZE, 64);
     final MapRegion left = layout.getRegion(0);
     final MapRegion middle = layout.getRegion(1);
     final MapRegion right = layout.getRegion(2);
@@ -120,39 +121,39 @@ final class MapLayoutTest {
     assertTrue(leftEmpty);
     assertFalse(middleEmpty);
     assertTrue(rightEmpty);
-    assertRegion(middle, 0, 32, 128, 64, 0, 0);
+    this.assertRegion(middle, 0, 32, MAP_SIZE, 64, 0, 0);
   }
 
   @Test
-  void cropsImagesThatAreLargerThanTheGridEquallyOnEverySide() {
+  void shouldCropImagesThatAreLargerThanTheGridEquallyOnEverySide() {
     final MapLayout layout = new MapLayout(0, 1, 1, 200, 150);
     final MapRegion region = layout.getRegion(0);
 
-    assertRegion(region, 0, 0, 128, 128, 36, 11);
+    this.assertRegion(region, 0, 0, MAP_SIZE, MAP_SIZE, 36, 11);
   }
 
   @Test
-  void splitsImagesThatSpanSeveralMapsPartially() {
+  void shouldSplitImagesThatSpanSeveralMapsPartially() {
     final MapLayout layout = new MapLayout(0, 2, 1, 200, 100);
     final MapRegion left = layout.getRegion(0);
     final MapRegion right = layout.getRegion(1);
 
-    assertRegion(left, 28, 14, 100, 100, 0, 0);
-    assertRegion(right, 0, 14, 100, 100, 100, 0);
+    this.assertRegion(left, 28, 14, 100, 100, 0, 0);
+    this.assertRegion(right, 0, 14, 100, 100, 100, 0);
   }
 
   @Test
-  void splitsImagesThatSpanSeveralMapsVertically() {
-    final MapLayout layout = new MapLayout(0, 1, 2, 128, 200);
+  void shouldSplitImagesThatSpanSeveralMapsVertically() {
+    final MapLayout layout = new MapLayout(0, 1, 2, MAP_SIZE, 200);
     final MapRegion top = layout.getRegion(0);
     final MapRegion bottom = layout.getRegion(1);
 
-    assertRegion(top, 0, 28, 128, 100, 0, 0);
-    assertRegion(bottom, 0, 0, 128, 100, 0, 100);
+    this.assertRegion(top, 0, 28, MAP_SIZE, 100, 0, 0);
+    this.assertRegion(bottom, 0, 0, MAP_SIZE, 100, 0, 100);
   }
 
   @Test
-  void extractsRectanglesThatEndExactlyAtTheEdgeOfTheRegion() {
+  void shouldExtractRectanglesThatEndExactlyAtTheEdgeOfTheRegion() {
     final MapLayout layout = new MapLayout(0, 1, 1, 100, 50);
     final byte[] image = createImage(100, 50);
     final MapTilePatch patch = layout.extractPatch(image, 0, 20, 45, 94, 44);
@@ -167,7 +168,7 @@ final class MapLayoutTest {
   }
 
   @Test
-  void acceptsImagesWithTheLargestPossiblePixelCount() {
+  void shouldAcceptImagesWithTheLargestPossiblePixelCount() {
     final MapLayout layout = new MapLayout(0, 1, 1, 1, Integer.MAX_VALUE);
     final int imageHeight = layout.getImageHeight();
     final int mapCount = layout.getMapCount();
@@ -177,7 +178,7 @@ final class MapLayoutTest {
   }
 
   @Test
-  void rejectsInvalidDimensions() {
+  void shouldRejectInvalidDimensions() {
     assertThrows(IllegalArgumentException.class, () -> new MapLayout(-1, 1, 1, 1, 1));
     assertThrows(IllegalArgumentException.class, () -> new MapLayout(0, 0, 1, 1, 1));
     assertThrows(IllegalArgumentException.class, () -> new MapLayout(0, 1, 0, 1, 1));
@@ -186,7 +187,7 @@ final class MapLayoutTest {
   }
 
   @Test
-  void rejectsGridsWhoseMapIdsOrPixelCountsOverflow() {
+  void shouldRejectGridsWhoseMapIdsOrPixelCountsOverflow() {
     final MapLayout lastIds = new MapLayout(Integer.MAX_VALUE - 1, 2, 1, 1, 1);
     final int lastId = lastIds.getMapId(1);
 
@@ -199,12 +200,12 @@ final class MapLayoutTest {
   }
 
   @Test
-  void rejectsMapCountsThatOverflowEvenWhenTheLastIdFits() {
+  void shouldRejectMapCountsThatOverflowEvenWhenTheLastIdFits() {
     assertThrows(IllegalArgumentException.class, () -> new MapLayout(0, 65_536, 32_768, 1, 1));
   }
 
   @Test
-  void extractsRectanglesThatFillTheWholeRegion() {
+  void shouldExtractRectanglesThatFillTheWholeRegion() {
     final MapLayout layout = new MapLayout(0, 1, 1, 100, 50);
     final byte[] image = createImage(100, 50);
     final MapTilePatch patch = layout.extractPatch(image, 0, 14, 39, 100, 50);
@@ -214,7 +215,7 @@ final class MapLayoutTest {
   }
 
   @Test
-  void rejectsRectanglesThatAreNotInsideTheRegionOfTheMap() {
+  void shouldRejectRectanglesThatAreNotInsideTheRegionOfTheMap() {
     final MapLayout layout = new MapLayout(0, 1, 1, 100, 50);
     final byte[] image = createImage(100, 50);
     final byte[] wrongSize = new byte[10];
@@ -233,9 +234,9 @@ final class MapLayoutTest {
   }
 
   @Test
-  void rejectsMapIndicesOutsideOfTheGrid() {
-    final MapLayout layout = new MapLayout(0, 2, 1, 256, 128);
-    final byte[] image = new byte[256 * 128];
+  void shouldRejectMapIndicesOutsideOfTheGrid() {
+    final MapLayout layout = new MapLayout(0, 2, 1, 256, MAP_SIZE);
+    final byte[] image = new byte[256 * MAP_SIZE];
 
     assertThrows(IndexOutOfBoundsException.class, () -> layout.getRegion(2));
     assertThrows(IndexOutOfBoundsException.class, () -> layout.getRegion(-1));
@@ -245,7 +246,7 @@ final class MapLayoutTest {
   }
 
   @Test
-  void matchesOnlyTheExactGridAndImage() {
+  void shouldMatchOnlyTheExactGridAndImage() {
     final MapLayout layout = new MapLayout(5, 2, 3, 200, 300);
     final boolean same = layout.matches(5, 2, 3, 200, 300);
     final boolean otherStart = layout.matches(6, 2, 3, 200, 300);
@@ -263,7 +264,7 @@ final class MapLayoutTest {
   }
 
   @Test
-  void extractsRectanglesInMapCoordinates() {
+  void shouldExtractRectanglesInMapCoordinates() {
     final MapLayout layout = new MapLayout(3, 1, 1, 100, 50);
     final byte[] image = createImage(100, 50);
     final MapTilePatch patch = layout.extractPatch(image, 0, 20, 40, 3, 2);
@@ -285,9 +286,9 @@ final class MapLayoutTest {
   }
 
   @Test
-  void extractsOnePatchPerCoveredMap() {
-    final MapLayout layout = new MapLayout(7, 3, 1, 128, 64);
-    final byte[] image = createImage(128, 64);
+  void shouldExtractOnePatchPerCoveredMap() {
+    final MapLayout layout = new MapLayout(7, 3, 1, MAP_SIZE, 64);
+    final byte[] image = createImage(MAP_SIZE, 64);
     final List<MapTilePatch> patches = layout.extractAll(image);
     final int patchCount = patches.size();
     final MapTilePatch patch = patches.getFirst();
@@ -302,20 +303,20 @@ final class MapLayoutTest {
     assertEquals(8, mapId);
     assertEquals(0, left);
     assertEquals(32, top);
-    assertEquals(128, width);
+    assertEquals(MAP_SIZE, width);
     assertEquals(64, height);
     assertArrayEquals(image, colors);
   }
 
   @Test
-  void extractsEveryMapOfAFullGrid() {
+  void shouldExtractEveryMapOfAFullGrid() {
     final MapLayout layout = new MapLayout(0, 2, 2, 256, 256);
     final byte[] image = createImage(256, 256);
     final List<MapTilePatch> patches = layout.extractAll(image);
     final int patchCount = patches.size();
     final MapTilePatch lastPatch = patches.getLast();
     final byte[] lastColors = lastPatch.getColors();
-    final byte[] expectedLastColors = copyRectangle(image, 256, 128, 128, 128, 128);
+    final byte[] expectedLastColors = copyRectangle(image, 256, MAP_SIZE, MAP_SIZE, MAP_SIZE, MAP_SIZE);
     final int lastId = lastPatch.getMapId();
 
     assertEquals(4, patchCount);
@@ -324,11 +325,38 @@ final class MapLayoutTest {
   }
 
   @Test
-  void rejectsImagesOfTheWrongSize() {
+  void shouldRejectImagesOfTheWrongSize() {
     final MapLayout layout = new MapLayout(0, 1, 1, 10, 10);
     final byte[] tooSmall = new byte[99];
 
     assertThrows(IllegalArgumentException.class, () -> layout.extractAll(tooSmall));
     assertThrows(NullPointerException.class, () -> layout.extractAll(null));
+  }
+
+  @Test
+  void shouldRejectGridsThatAreTooLargeWhenTheirMapCountJustFits() {
+    final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+      new MapLayout(0, 1, Integer.MAX_VALUE, 1, 1)
+    );
+
+    final String message = exception.getMessage();
+    assertEquals("Map grid of 1x2147483647 maps is too large!", message);
+  }
+
+  @Test
+  void shouldRejectEmptyRectanglesAsOutsideTheRegionOfTheMap() {
+    final MapLayout layout = new MapLayout(0, 1, 1, 100, 50);
+    final byte[] image = createImage(100, 50);
+    final IllegalArgumentException noWidth = assertThrows(IllegalArgumentException.class, () ->
+      layout.extractPatch(image, 0, 14, 39, 0, 1)
+    );
+    final IllegalArgumentException noHeight = assertThrows(IllegalArgumentException.class, () ->
+      layout.extractPatch(image, 0, 14, 39, 1, 0)
+    );
+
+    final String noWidthMessage = noWidth.getMessage();
+    final String noHeightMessage = noHeight.getMessage();
+    assertEquals("Rectangle of 0x1 pixels at (14, 39) in map 0 is outside its region!", noWidthMessage);
+    assertEquals("Rectangle of 1x0 pixels at (14, 39) in map 0 is outside its region!", noHeightMessage);
   }
 }

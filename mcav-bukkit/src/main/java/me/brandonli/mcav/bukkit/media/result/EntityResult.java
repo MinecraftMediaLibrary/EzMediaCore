@@ -35,6 +35,8 @@ import org.bukkit.entity.TextDisplay;
  * Input buffers remain caller-owned and are consumed synchronously, even when converted display data is applied
  * on a later server tick. Serialize frame delivery with lifecycle operations unless this class explicitly provides
  * locking, and never mutate an input buffer concurrently with conversion.
+ *
+ * @since 1.0.0
  */
 public class EntityResult implements FunctionalVideoFilter {
 
@@ -45,14 +47,18 @@ public class EntityResult implements FunctionalVideoFilter {
    *
    * @param configuration the configuration describing the viewers, character, position, and size of the entity
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   public EntityResult(final EntityConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Entity configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Entity configuration must not be null!");
+
     this.renderer = new EntityRenderer(configuration);
   }
 
   /**
    * Spawns the text display and shows it to the viewers.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -66,18 +72,23 @@ public class EntityResult implements FunctionalVideoFilter {
    * @param metadata the metadata of the original video, which is not used
    * @return always true, because the renderer may resize the frame
    * @throws NullPointerException if {@code data} or {@code metadata} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(data, "Frame must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(data, "Frame must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
     this.renderer.render(data);
+
     return true;
   }
 
   /**
    * Removes the text display. Call this method on the main thread during shutdown, because a disabled plugin cannot
    * schedule the removal anymore.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

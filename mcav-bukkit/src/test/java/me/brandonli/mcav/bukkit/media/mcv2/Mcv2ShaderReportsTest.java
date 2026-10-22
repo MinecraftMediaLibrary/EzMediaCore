@@ -35,10 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/**
- * Tests how the reports of the MCV2 client mod are read: only well-formed reports of version 1, at the rate allowed,
- * each changing only the state of the player who sent it.
- */
 final class Mcv2ShaderReportsTest {
 
   private static final UUID ALICE = UUID.fromString("00000000-0000-0000-0000-000000000061");
@@ -55,6 +51,8 @@ final class Mcv2ShaderReportsTest {
 
   private static final byte[] SHADERS_UNKNOWN = { 1, 1, 2, 0 };
 
+  private static final String MALFORMED_REPORT_MESSAGE = "Ignoring a malformed MCV2 client report from Alice.";
+
   private final AtomicLong clock = new AtomicLong(Long.MAX_VALUE - 3 * Mcv2ShaderReports.INTERVAL_NANOSECONDS);
 
   private Mcv2ShaderReports reports;
@@ -66,11 +64,11 @@ final class Mcv2ShaderReportsTest {
   @BeforeEach
   void createReports() {
     this.reports = new Mcv2ShaderReports(this.clock::get);
-    this.alice = player(ALICE, "Alice");
-    this.bob = player(BOB, "Bob");
+    this.alice = this.player(ALICE, "Alice");
+    this.bob = this.player(BOB, "Bob");
   }
 
-  private static Player player(final UUID uuid, final String name) {
+  private Player player(final UUID uuid, final String name) {
     final Player player = mock(Player.class);
     when(player.getUniqueId()).thenReturn(uuid);
     when(player.getName()).thenReturn(name);
@@ -81,13 +79,12 @@ final class Mcv2ShaderReportsTest {
     this.reports.onPluginMessageReceived(Mcv2ShaderReports.CHANNEL, player, message);
   }
 
-  /** Sends a report a second after the last, which the rate always allows. */
   private void sendLater(final Player player, final byte[] message) {
     this.clock.addAndGet(Mcv2ShaderReports.INTERVAL_NANOSECONDS);
     this.send(player, message);
   }
 
-  private static List<String> messages(final LogCapture logs, final Level level) {
+  private List<String> messages(final LogCapture logs, final Level level) {
     return logs
       .getEvents()
       .stream()
@@ -97,33 +94,52 @@ final class Mcv2ShaderReportsTest {
   }
 
   @Test
-  void onlyAShaderPackInUseThatMcv2DoesNotDecodeUnderBlocksDecoding() {
-    assertFalse(this.reports.hasReported(ALICE), "nothing is known of a player without the mod");
-    assertFalse(this.reports.blocksDecoding(ALICE));
+  void shouldBlockDecodingOnlyForAShaderPackInUseThatMcv2DoesNotDecodeUnder() {
+    final boolean reportedWithoutTheMod = this.reports.hasReported(ALICE);
+    assertFalse(reportedWithoutTheMod, "nothing is known of a player without the mod");
+
+    final boolean blocksWithoutTheMod = this.reports.blocksDecoding(ALICE);
+    assertFalse(blocksWithoutTheMod);
+
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
       this.send(this.alice, NO_IRIS);
-      assertTrue(this.reports.hasReported(ALICE));
-      assertFalse(this.reports.blocksDecoding(ALICE));
+
+      final boolean reportedWithoutIris = this.reports.hasReported(ALICE);
+      assertTrue(reportedWithoutIris);
+
+      final boolean blocksWithoutIris = this.reports.blocksDecoding(ALICE);
+      assertFalse(blocksWithoutIris);
+
       this.sendLater(this.alice, NO_IRIS);
       this.sendLater(this.alice, SHADERS_OFF);
-      assertFalse(this.reports.blocksDecoding(ALICE));
+
+      final boolean blocksWithShadersOff = this.reports.blocksDecoding(ALICE);
+      assertFalse(blocksWithShadersOff);
+
       this.sendLater(this.alice, SHADERS_ON);
-      assertTrue(this.reports.blocksDecoding(ALICE));
+
+      final boolean blocksWithShadersOn = this.reports.blocksDecoding(ALICE);
+      assertTrue(blocksWithShadersOn);
+
       this.sendLater(this.alice, SHADERS_DECODED);
-      assertFalse(this.reports.blocksDecoding(ALICE));
+
+      final boolean blocksWithShadersDecoded = this.reports.blocksDecoding(ALICE);
+      assertFalse(blocksWithShadersDecoded);
+
       this.sendLater(this.alice, SHADERS_UNKNOWN);
-      assertFalse(this.reports.blocksDecoding(ALICE), "a shader pack Iris cannot tell leaves the screens as they were");
-      assertEquals(
-        List.of(
-          "The MCV2 client mod of Alice reports no Iris: MCV2 screens show them the video",
-          "The MCV2 client mod of Alice reports Iris without a shader pack: MCV2 screens show them the video",
-          "The MCV2 client mod of Alice reports Iris with a shader pack in use: MCV2 screens show them the dithered maps",
-          "The MCV2 client mod of Alice reports Iris with a shader pack MCV2 decodes under: MCV2 screens show them the video",
-          "The MCV2 client mod of Alice reports Iris, whose shader pack the mod cannot tell: MCV2 screens show them the video"
-        ),
-        messages(logs, Level.INFO),
-        "one line for each change, none for a report that repeats the last"
+
+      final boolean blocksWithShadersUnknown = this.reports.blocksDecoding(ALICE);
+      assertFalse(blocksWithShadersUnknown, "a shader pack Iris cannot tell leaves the screens as they were");
+
+      final List<String> expectedDebugMessages = List.of(
+        "The MCV2 client mod of Alice reports no Iris: MCV2 screens show them the video.",
+        "The MCV2 client mod of Alice reports Iris without a shader pack: MCV2 screens show them the video.",
+        "The MCV2 client mod of Alice reports Iris with a shader pack in use: MCV2 screens show them the dithered maps.",
+        "The MCV2 client mod of Alice reports Iris with a shader pack MCV2 decodes under: MCV2 screens show them the video.",
+        "The MCV2 client mod of Alice reports Iris, whose shader pack the mod cannot tell: MCV2 screens show them the video."
       );
+      final List<String> debugMessages = this.messages(logs, Level.DEBUG);
+      assertEquals(expectedDebugMessages, debugMessages, "one line for each change, none for a report that repeats the last");
     }
   }
 
@@ -143,103 +159,155 @@ final class Mcv2ShaderReportsTest {
       "01 00 02 00",
     }
   )
-  void ignoresAMalformedReportWithOneDebugLine(final String hex) {
-    final byte[] message = HexFormat.ofDelimiter(" ").parseHex(hex);
+  void shouldIgnoreAMalformedReportWithOneDebugLine(final String hexadecimal) {
+    final byte[] message = HexFormat.ofDelimiter(" ").parseHex(hexadecimal);
     this.send(this.alice, SHADERS_ON);
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
       this.sendLater(this.alice, message);
-      assertEquals(List.of("Ignoring a malformed MCV2 client report from Alice"), messages(logs, Level.DEBUG));
-      assertEquals(List.of(), messages(logs, Level.INFO));
+
+      final List<String> expectedDebugMessages = List.of(MALFORMED_REPORT_MESSAGE);
+      final List<String> debugMessages = this.messages(logs, Level.DEBUG);
+      assertEquals(expectedDebugMessages, debugMessages);
+
+      final List<String> informationMessages = this.messages(logs, Level.INFO);
+      assertEquals(List.of(), informationMessages);
     }
-    assertTrue(this.reports.blocksDecoding(ALICE), "an ignored report changes nothing");
+
+    final boolean blocksDecoding = this.reports.blocksDecoding(ALICE);
+    assertTrue(blocksDecoding, "an ignored report changes nothing");
   }
 
   @ParameterizedTest
   @ValueSource(bytes = { 0, 2, -1 })
-  void ignoresAReportOfAnotherVersion(final byte version) {
+  void shouldIgnoreAReportOfAnotherVersion(final byte version) {
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
       this.send(this.alice, new byte[] { version, 1, 1, 0 });
-      assertEquals(List.of("Ignoring an MCV2 client report of version " + version + " from Alice"), messages(logs, Level.DEBUG));
+
+      final List<String> expectedDebugMessages = List.of("Ignoring an MCV2 client report of version %s from Alice.".formatted(version));
+      final List<String> debugMessages = this.messages(logs, Level.DEBUG);
+      assertEquals(expectedDebugMessages, debugMessages);
     }
-    assertFalse(this.reports.hasReported(ALICE));
+
+    final boolean reported = this.reports.hasReported(ALICE);
+    assertFalse(reported);
   }
 
   @Test
-  void ignoresAReportLongerThanTheLongestUnread() {
+  void shouldIgnoreAReportLongerThanTheLongestUnread() {
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
-      final byte[] longest = new byte[Mcv2ShaderReports.MAX_BYTES];
+      final byte[] longest = new byte[Mcv2ShaderReports.MAXIMUM_BYTES];
       longest[0] = Mcv2ShaderReports.VERSION;
       this.send(this.alice, longest);
-      final byte[] longer = new byte[Mcv2ShaderReports.MAX_BYTES + 1];
+      final byte[] longer = new byte[Mcv2ShaderReports.MAXIMUM_BYTES + 1];
       longer[0] = Mcv2ShaderReports.VERSION;
       for (int report = 0; report < Mcv2ShaderReports.BURST; report++) {
         this.send(this.alice, longer);
       }
-      assertEquals(
-        List.of(
-          "Ignoring a malformed MCV2 client report from Alice",
-          "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64",
-          "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64",
-          "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64",
-          "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64",
-          "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64"
-        ),
-        messages(logs, Level.DEBUG)
+
+      final List<String> expectedDebugMessages = List.of(
+        MALFORMED_REPORT_MESSAGE,
+        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
+        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
+        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
+        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
+        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes."
       );
+      final List<String> debugMessages = this.messages(logs, Level.DEBUG);
+      assertEquals(expectedDebugMessages, debugMessages);
     }
+
     // a report too long to read takes nothing from the allowance, and one of the longest length takes one
     for (int report = 1; report < Mcv2ShaderReports.BURST; report++) {
       this.send(this.alice, SHADERS_ON);
     }
-    assertTrue(this.reports.blocksDecoding(ALICE));
+
+    final boolean blocksWithinTheBurst = this.reports.blocksDecoding(ALICE);
+    assertTrue(blocksWithinTheBurst);
+
     this.send(this.alice, SHADERS_OFF);
-    assertTrue(this.reports.blocksDecoding(ALICE), "the burst was used up");
+
+    final boolean blocksPastTheBurst = this.reports.blocksDecoding(ALICE);
+    assertTrue(blocksPastTheBurst, "the burst was used up");
   }
 
   @Test
-  void allowsABurstThenOneReportASecondToEachPlayer() {
+  void shouldAllowABurstThenOneReportASecondToEachPlayer() {
     for (int report = 0; report < Mcv2ShaderReports.BURST; report++) {
       this.send(this.alice, report % 2 == 0 ? SHADERS_ON : SHADERS_OFF);
     }
-    assertTrue(this.reports.blocksDecoding(ALICE), "a burst is read whole");
+
+    final boolean blocksAfterTheBurst = this.reports.blocksDecoding(ALICE);
+    assertTrue(blocksAfterTheBurst, "a burst is read whole");
+
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
       this.send(this.alice, SHADERS_OFF);
-      assertTrue(this.reports.blocksDecoding(ALICE));
-      assertEquals(List.of("Ignoring an MCV2 client report from Alice: more than one a second"), messages(logs, Level.DEBUG));
+
+      final boolean blocksPastTheBurst = this.reports.blocksDecoding(ALICE);
+      assertTrue(blocksPastTheBurst);
+
+      final List<String> expectedDebugMessages = List.of("Ignoring an MCV2 client report from Alice: more than one a second.");
+      final List<String> debugMessages = this.messages(logs, Level.DEBUG);
+      assertEquals(expectedDebugMessages, debugMessages);
     }
+
     this.send(this.bob, SHADERS_ON);
-    assertTrue(this.reports.blocksDecoding(BOB), "the allowance is each player's own");
+
+    final boolean bobBlocksDecoding = this.reports.blocksDecoding(BOB);
+    assertTrue(bobBlocksDecoding, "the allowance is each player's own");
 
     this.clock.addAndGet(Mcv2ShaderReports.INTERVAL_NANOSECONDS - 1);
     this.send(this.alice, SHADERS_OFF);
-    assertTrue(this.reports.blocksDecoding(ALICE), "the allowance refills a second after the report it made room for");
+
+    final boolean blocksBeforeTheRefill = this.reports.blocksDecoding(ALICE);
+    assertTrue(blocksBeforeTheRefill, "the allowance refills a second after the report it made room for");
+
     this.clock.addAndGet(1);
     this.send(this.alice, SHADERS_OFF);
-    assertFalse(this.reports.blocksDecoding(ALICE));
+
+    final boolean blocksAfterTheRefill = this.reports.blocksDecoding(ALICE);
+    assertFalse(blocksAfterTheRefill);
+
     this.send(this.alice, SHADERS_ON);
-    assertFalse(this.reports.blocksDecoding(ALICE), "one report a second");
+
+    final boolean blocksWithinTheSecond = this.reports.blocksDecoding(ALICE);
+    assertFalse(blocksWithinTheSecond, "one report a second");
 
     // a player quiet for longer than a burst takes has a whole burst again, and no more, past the clock's wrap too
     this.clock.addAndGet(2 * Mcv2ShaderReports.BURST * Mcv2ShaderReports.INTERVAL_NANOSECONDS);
     for (int report = 0; report < Mcv2ShaderReports.BURST; report++) {
       this.send(this.alice, report % 2 == 0 ? SHADERS_ON : SHADERS_OFF);
     }
-    assertTrue(this.reports.blocksDecoding(ALICE));
+
+    final boolean blocksAfterTheQuietBurst = this.reports.blocksDecoding(ALICE);
+    assertTrue(blocksAfterTheQuietBurst);
+
     this.send(this.alice, SHADERS_OFF);
-    assertTrue(this.reports.blocksDecoding(ALICE), "a quiet time saves up no more than a burst");
+
+    final boolean blocksPastTheQuietBurst = this.reports.blocksDecoding(ALICE);
+    assertTrue(blocksPastTheQuietBurst, "a quiet time saves up no more than a burst");
   }
 
   @Test
-  void forgetsTheReportAndTheAllowanceOfAPlayerWhoLeft() {
+  void shouldForgetTheReportAndTheAllowanceOfAPlayerWhoLeft() {
     for (int report = 0; report < Mcv2ShaderReports.BURST; report++) {
       this.send(this.alice, SHADERS_ON);
     }
+
     this.send(this.bob, SHADERS_ON);
     this.reports.forget(ALICE);
-    assertFalse(this.reports.hasReported(ALICE));
-    assertFalse(this.reports.blocksDecoding(ALICE));
-    assertTrue(this.reports.blocksDecoding(BOB), "the others are kept");
+
+    final boolean aliceReported = this.reports.hasReported(ALICE);
+    assertFalse(aliceReported);
+
+    final boolean aliceBlocksDecoding = this.reports.blocksDecoding(ALICE);
+    assertFalse(aliceBlocksDecoding);
+
+    final boolean bobBlocksDecoding = this.reports.blocksDecoding(BOB);
+    assertTrue(bobBlocksDecoding, "the others are kept");
+
     this.send(this.alice, SHADERS_ON);
-    assertTrue(this.reports.blocksDecoding(ALICE), "a player who joins again starts with a whole burst");
+
+    final boolean blocksAfterRejoining = this.reports.blocksDecoding(ALICE);
+    assertTrue(blocksAfterRejoining, "a player who joins again starts with a whole burst");
   }
 }

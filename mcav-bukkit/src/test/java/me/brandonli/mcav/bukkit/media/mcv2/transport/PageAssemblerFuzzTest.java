@@ -35,15 +35,9 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Fixtures;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Trees;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the page assembler with a two-page keyframe and five real stream frames (a keyframe and four P frames),
- * reordered, repeated, corrupted, truncated or from another stream. The first input byte is reserved; after it, every four bytes are one step: what to do, which frame,
- * which of its pages, and an argument. A model of the assembler (frames pending by id, the oldest evicted beyond
- * {@link PageAssembler#MAX_PENDING}) says what every step must return: a changed, short or foreign page is always
- * rejected and changes nothing, and an intact page returns its frame, byte for byte, exactly when it completes it.
- */
 @Tag("fuzz")
 final class PageAssemblerFuzzTest {
 
@@ -55,36 +49,37 @@ final class PageAssemblerFuzzTest {
 
   private static final List<List<byte[]>> FOREIGN = pages(STREAM + 1);
 
+  private static final String PROXY_DEFAULT_PATH = "conformance/proxy-default.mcs";
+
   private static List<byte[]> frames() {
     final List<byte[]> frames = new ArrayList<>();
     frames.add(Mcv2Trees.twoPages());
-    final List<byte[]> source = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/proxy-default.mcs"));
+    final List<byte[]> source = Mcv2Fixtures.frames(Mcv2Fixtures.read(PROXY_DEFAULT_PATH));
     for (int index = 0; index < 5; index++) {
       final byte[] frame = source.get(index).clone();
       Mcv2Decoder.putU32(frame, 12, index + 1);
       Mcv2Decoder.putU32(frame, 16, index == 0 ? 1 : index);
       frames.add(frame);
     }
+
     return frames;
   }
 
   private static List<List<byte[]>> pages(final long stream) {
     final List<List<byte[]>> pages = new ArrayList<>();
-    try {
-      for (final byte[] frame : FRAMES) {
-        pages.add(TransportPages.makePages(frame, stream));
-      }
-    } catch (final Mcv2Exception exception) {
-      throw new AssertionError(exception);
+    for (final byte[] frame : FRAMES) {
+      pages.add(TransportPages.makePages(frame, stream));
     }
+
     return pages;
   }
 
   @FuzzTest(maxDuration = "30s")
-  void assemblesExactlyTheFramesThatArrive(final byte[] data) throws Mcv2Exception {
+  void shouldAssembleExactlyTheFramesThatArrive(final byte[] data) {
     if (data.length < 1) {
       return;
     }
+
     final int symbolBits = 6;
     final PageAssembler assembler = new PageAssembler(STREAM, symbolBits);
     final Map<Long, Set<Integer>> pending = new LinkedHashMap<>();
@@ -96,39 +91,60 @@ final class PageAssemblerFuzzTest {
       final int argument = data[step + 3] & 0xFF;
       final byte[] page = frame.get(number);
       switch (action % 4) {
-        case 0 -> {
-          final long id = index;
-          if (!pending.containsKey(id) && pending.size() >= PageAssembler.MAX_PENDING) {
-            final Iterator<Long> oldest = pending.keySet().iterator();
-            oldest.next();
-            oldest.remove();
-          }
-          final Set<Integer> numbers = pending.computeIfAbsent(id, _ -> new HashSet<>());
-          numbers.add(number);
-          final byte[] assembled = assembler.push(page);
-          if (numbers.size() == frame.size()) {
-            assertArrayEquals(FRAMES.get(index), assembled);
-            pending.remove(id);
-          } else {
-            assertNull(assembled);
-          }
-        }
-        case 1 -> {
-          // one symbol changed: a burst of at most eight bits, which the CRC always detects if nothing else does
-          final byte[] changed = page.clone();
-          changed[(argument * 97) % changed.length] ^= (byte) ((action >>> 2) | 1);
-          assertThrows(Mcv2Exception.class, () -> assembler.push(changed));
-        }
-        case 2 -> {
-          final byte[] cut = Arrays.copyOf(page, page.length - 1 - (argument % 16));
-          assertThrows(Mcv2Exception.class, () -> assembler.push(cut));
-        }
-        default -> {
-          final byte[] foreign = FOREIGN.get(index).get(number);
-          assertThrows(Mcv2Exception.class, () -> assembler.push(foreign));
-        }
+        case 0 -> this.pushPage(assembler, pending, index, number, frame);
+        case 1 -> this.assertChangedPageRefused(assembler, page, action, argument);
+        case 2 -> this.assertCutPageRefused(assembler, page, argument);
+        default -> this.assertForeignPageRefused(assembler, index, number);
       }
-      assertEquals(pending.size(), assembler.getPendingCount());
+
+      final int expectedPendingCount = pending.size();
+      final int pendingCount = assembler.getPendingCount();
+      assertEquals(expectedPendingCount, pendingCount);
     }
+  }
+
+  private void pushPage(
+    final PageAssembler assembler,
+    final Map<Long, Set<Integer>> pending,
+    final int index,
+    final int number,
+    final List<byte[]> frame
+  ) {
+    final long id = index;
+    if (!pending.containsKey(id) && pending.size() >= PageAssembler.MAXIMUM_PENDING) {
+      final Iterator<Long> oldest = pending.keySet().iterator();
+      oldest.next();
+      oldest.remove();
+    }
+
+    final Set<Integer> numbers = pending.computeIfAbsent(id, _ -> new HashSet<>());
+    numbers.add(number);
+    final byte @Nullable [] assembled = assembler.push(frame.get(number)).orElse(null);
+    if (numbers.size() != frame.size()) {
+      assertNull(assembled);
+      return;
+    }
+
+    final byte[] expected = FRAMES.get(index);
+    assertArrayEquals(expected, assembled);
+
+    pending.remove(id);
+  }
+
+  private void assertChangedPageRefused(final PageAssembler assembler, final byte[] page, final int action, final int argument) {
+    // one symbol changed: a burst of at most eight bits, which the CRC always detects if nothing else does
+    final byte[] changed = page.clone();
+    changed[(argument * 97) % changed.length] ^= (byte) ((action >>> 2) | 1);
+    assertThrows(Mcv2Exception.class, () -> assembler.push(changed));
+  }
+
+  private void assertCutPageRefused(final PageAssembler assembler, final byte[] page, final int argument) {
+    final byte[] cut = Arrays.copyOf(page, page.length - 1 - (argument % 16));
+    assertThrows(Mcv2Exception.class, () -> assembler.push(cut));
+  }
+
+  private void assertForeignPageRefused(final PageAssembler assembler, final int index, final int number) {
+    final byte[] foreign = FOREIGN.get(index).get(number);
+    assertThrows(Mcv2Exception.class, () -> assembler.push(foreign));
   }
 }

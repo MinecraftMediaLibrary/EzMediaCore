@@ -40,18 +40,19 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the paths and names that go into a resource pack: sound keys, locations of extra files and the description.
- * Whatever they are, the builder either refuses them with an {@link IllegalArgumentException} or writes a pack whose
- * entries all lie below its root, with no empty, dot or parent segment, and whose generated JSON holds exactly the
- * description and the sounds that were accepted. The seeds are the keys and paths of the tests of the builder.
- */
 @Tag("fuzz")
 final class ResourcePackFuzzTest {
 
   private static final Path WORK = createWorkFolder();
   private static final Path SOUND = writeFile("sound.ogg", "OggS");
   private static final Path TEXT = writeFile("credits.txt", "credits");
+
+  private static final String PATH_SEPARATOR = "/";
+  private static final String ZIP_EXTENSION = ".zip";
+
+  private static final String ASSETS_FOLDER = "assets/";
+  private static final String SOUNDS_FILE = "/sounds.json";
+  private static final String SOUNDS_FOLDER = "/sounds/";
 
   private static Path createWorkFolder() {
     try {
@@ -75,83 +76,96 @@ final class ResourcePackFuzzTest {
   }
 
   @FuzzTest(maxDuration = "30s")
-  void writesOnlySafeEntriesAndExactlyTheAcceptedData(final FuzzedDataProvider data) throws IOException {
+  void shouldWriteOnlySafeEntriesAndExactlyTheAcceptedData(final FuzzedDataProvider data) throws IOException {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     final String description = data.consumeString(64);
     pack.meta(data.consumeInt(1, 100), description);
     final List<String> acceptedSounds = new ArrayList<>();
     final int additions = data.consumeInt(0, 4);
     for (int addition = 0; addition < additions; addition++) {
-      final boolean sound = data.consumeBoolean();
+      final EntryKind kind = data.consumeBoolean() ? EntryKind.SOUND : EntryKind.EXTERNAL;
       final String name = data.consumeString(48);
       try {
-        if (sound) {
-          pack.sound(name, SOUND);
-          acceptedSounds.add(name);
-        } else {
-          pack.external(name, TEXT);
-        }
-      } catch (final IllegalArgumentException refused) {
+        this.addEntry(pack, kind, name, acceptedSounds);
+      } catch (final IllegalArgumentException exception) {
         // refusing is always allowed; what was accepted is checked below
       }
     }
 
-    final Path zipped = Files.createTempFile(WORK, "pack", ".zip");
+    final Path zipped = Files.createTempFile(WORK, "pack", ZIP_EXTENSION);
     try {
       pack.zip(zipped);
       try (final ZipFile zip = new ZipFile(zipped.toFile(), StandardCharsets.UTF_8)) {
-        assertSafeEntries(zip);
-        assertMeta(zip, description);
-        assertSounds(zip, acceptedSounds);
+        this.assertSafeEntries(zip);
+        this.assertMeta(zip, description);
+        this.assertSounds(zip, acceptedSounds);
       }
     } finally {
       Files.deleteIfExists(zipped);
     }
   }
 
-  private static void assertSafeEntries(final ZipFile zip) {
+  private void addEntry(final SimpleResourcePack pack, final EntryKind kind, final String name, final List<String> acceptedSounds) {
+    if (kind == EntryKind.EXTERNAL) {
+      pack.external(name, TEXT);
+      return;
+    }
+
+    pack.sound(name, SOUND);
+    acceptedSounds.add(name);
+  }
+
+  private void assertSafeEntries(final ZipFile zip) {
     final Enumeration<? extends ZipEntry> entries = zip.entries();
     while (entries.hasMoreElements()) {
       final ZipEntry entry = entries.nextElement();
       final String name = entry.getName();
-      assertFalse(name.startsWith("/"), () -> "an absolute entry " + name);
-      assertFalse(name.contains("\\"), () -> "an entry with a backslash " + name);
-      for (final String segment : name.split("/", -1)) {
+      final boolean absolute = name.startsWith(PATH_SEPARATOR);
+      assertFalse(absolute, () -> "an absolute entry " + name);
+      final boolean hasBackslash = name.contains("\\");
+      assertFalse(hasBackslash, () -> "an entry with a backslash " + name);
+      for (final String segment : name.split(PATH_SEPARATOR, -1)) {
         final boolean unsafe = segment.isEmpty() || segment.equals(".") || segment.equals("..");
         assertFalse(unsafe, () -> "an entry with an empty, dot or parent segment " + name);
       }
     }
   }
 
-  private static void assertMeta(final ZipFile zip, final String description) throws IOException {
-    final JsonObject meta = readJson(zip, "pack.mcmeta");
+  private void assertMeta(final ZipFile zip, final String description) throws IOException {
+    final JsonObject meta = this.readJson(zip, "pack.mcmeta");
     final JsonObject pack = meta.getAsJsonObject("pack");
     final JsonElement written = pack.get("description");
     final String writtenDescription = written.getAsString();
     assertEquals(description, writtenDescription, "the description survives the JSON unchanged");
   }
 
-  private static void assertSounds(final ZipFile zip, final List<String> acceptedSounds) throws IOException {
+  private void assertSounds(final ZipFile zip, final List<String> acceptedSounds) throws IOException {
     for (final String key : acceptedSounds) {
       final int separator = key.indexOf(':');
       final String namespace = key.substring(0, separator);
       final String value = key.substring(separator + 1);
-      final JsonObject sounds = readJson(zip, "assets/" + namespace + "/sounds.json");
+      final JsonObject sounds = this.readJson(zip, ASSETS_FOLDER + namespace + SOUNDS_FILE);
       final boolean registered = sounds.has(value);
       assertTrue(registered, () -> "the sound " + key + " is not registered");
-      final ZipEntry file = zip.getEntry("assets/" + namespace + "/sounds/" + value + ".ogg");
+      final ZipEntry file = zip.getEntry(ASSETS_FOLDER + namespace + SOUNDS_FOLDER + value + ".ogg");
       assertNotNull(file, () -> "the sound " + key + " has no file");
     }
   }
 
-  private static JsonObject readJson(final ZipFile zip, final String name) throws IOException {
+  private JsonObject readJson(final ZipFile zip, final String name) throws IOException {
     final ZipEntry entry = zip.getEntry(name);
     assertNotNull(entry, () -> "the pack has no " + name);
+
     try (final InputStream stream = zip.getInputStream(entry)) {
       final byte[] bytes = stream.readAllBytes();
       final String json = new String(bytes, StandardCharsets.UTF_8);
       final JsonElement parsed = JsonParser.parseString(json);
       return parsed.getAsJsonObject();
     }
+  }
+
+  private enum EntryKind {
+    EXTERNAL,
+    SOUND,
   }
 }

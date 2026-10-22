@@ -34,6 +34,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.FunctionalVideoFilte
  * Input buffers remain caller-owned and are consumed synchronously, even when converted display data is applied
  * on a later server tick. Serialize frame delivery with lifecycle operations unless this class explicitly provides
  * locking, and never mutate an input buffer concurrently with conversion.
+ *
+ * @since 1.0.0
  */
 public class ScoreboardResult implements FunctionalVideoFilter {
 
@@ -44,14 +46,18 @@ public class ScoreboardResult implements FunctionalVideoFilter {
    *
    * @param configuration the configuration describing the viewers, character, and size of the scoreboard image
    * @throws NullPointerException if {@code configuration} is null
+   * @since 1.0.0
    */
   public ScoreboardResult(final ScoreboardConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Scoreboard configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Scoreboard configuration must not be null!");
+
     this.renderer = new ScoreboardRenderer(configuration);
   }
 
   /**
    * Creates the scoreboard and shows it to the viewers.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -65,12 +71,15 @@ public class ScoreboardResult implements FunctionalVideoFilter {
    * @param metadata the metadata of the original video, which is not used
    * @return always true, because the renderer may resize the frame
    * @throws NullPointerException if {@code data} or {@code metadata} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(data, "Frame must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(data, "Frame must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
     this.renderer.render(data);
+
     return true;
   }
 
@@ -79,6 +88,8 @@ public class ScoreboardResult implements FunctionalVideoFilter {
    * during shutdown, because a disabled plugin cannot schedule the restore anymore.
    *
    * <p>A scoreboard installed by another plugin after this display started is preserved.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

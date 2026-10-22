@@ -44,19 +44,34 @@ import me.brandonli.mcav.bukkit.resourcepack.provider.netty.NettyHosting;
  * <p>The caller owns the hosting lifecycle and source zip. Starting local hosting does not send resource-pack
  * requests to players; obtain the URL and send those requests separately. Keep the source file available for
  * strategies that serve it locally. Website upload is an external operation that shutdown cannot undo.
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * {@snippet :
+ * final PackHosting hosting = PackHosting.injector(zip);
+ * hosting.start();
+ * final String url = hosting.getRawUrl();
+ * // offer the url to the players; when the pack is no longer needed
+ * hosting.shutdown();
+ * }
+ *
+ * @since 1.0.0
  */
 public interface PackHosting {
   /**
-   * Gets the URL players download the resource pack from.
+   * Returns the URL players download the resource pack from.
    *
    * @return the URL of the resource pack
    * @throws IllegalStateException if the URL is only known after {@link #start()} and the hosting was not started
+   * @since 1.0.0
    */
   String getRawUrl();
 
   /**
    * Starts hosting the resource pack. Depending on the strategy, this may block while a server binds or the pack
    * is uploaded, so avoid calling it on the main thread.
+   *
+   * @since 1.0.0
    */
   void start();
 
@@ -64,13 +79,16 @@ public interface PackHosting {
    * Releases this strategy's local hosting resources. Dedicated HTTP hosting stops its server; injected hosting
    * stops accepting new HTTP connections; website hosting leaves the uploaded pack available. Source zip files
    * remain caller-owned and are not deleted. See the strategy's shutdown method for in-flight download behavior.
+   *
+   * @since 1.0.0
    */
   void shutdown();
 
   /**
-   * Gets the resource pack zip that is hosted.
+   * Returns the resource pack zip that is hosted.
    *
    * @return the path to the resource pack zip
+   * @since 1.0.0
    */
   Path getZip();
 
@@ -82,11 +100,13 @@ public interface PackHosting {
    * @param port     the port the HTTP server listens on, from 1 to 65535
    * @return the hosting strategy
    * @throws IllegalArgumentException if the port is out of range
-   * @throws NullPointerException if {@code path} or {@code hostName} is null
+   * @throws NullPointerException     if {@code path} or {@code hostName} is null
+   * @since 1.0.0
    */
   static HttpHosting http(final Path path, final String hostName, final int port) {
-    Preconditions.checkNotNull(path, "Resource pack path must not be null");
-    Preconditions.checkNotNull(hostName, "Host name must not be null");
+    Preconditions.checkNotNull(path, "Resource pack path must not be null!");
+    Preconditions.checkNotNull(hostName, "Host name must not be null!");
+
     return new ServerPackHosting(path, hostName, port);
   }
 
@@ -96,10 +116,12 @@ public interface PackHosting {
    * @param path the path to the resource pack zip
    * @return the hosting strategy
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   static WebsiteHosting website(final Path path) {
-    Preconditions.checkNotNull(path, "Resource pack path must not be null");
-    return new MCPackHosting(path);
+    Preconditions.checkNotNull(path, "Resource pack path must not be null!");
+
+    return new McPackHosting(path);
   }
 
   /**
@@ -108,9 +130,11 @@ public interface PackHosting {
    * @param path the path to the resource pack zip
    * @return the hosting strategy
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   static InjectorHosting injector(final Path path) {
-    Preconditions.checkNotNull(path, "Resource pack path must not be null");
+    Preconditions.checkNotNull(path, "Resource pack path must not be null!");
+
     return new NettyHosting(path);
   }
 }

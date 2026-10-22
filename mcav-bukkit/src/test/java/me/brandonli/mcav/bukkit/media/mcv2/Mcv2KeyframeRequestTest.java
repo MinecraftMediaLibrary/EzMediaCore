@@ -22,29 +22,38 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-/** The keyframe requests of a channel; that none is lost to a frame taking them at the same time, jcstress checks. */
 final class Mcv2KeyframeRequestTest {
 
   @Test
-  void noFrameNeedsAKeyframeUntilOneIsRequested() {
+  void shouldNeedNoKeyframeUntilOneIsRequested() {
     final Mcv2KeyframeRequest requests = new Mcv2KeyframeRequest();
-    assertFalse(requests.take());
+
+    final boolean taken = requests.take();
+    assertFalse(taken);
   }
 
   @Test
-  void oneFrameTakesTheRequest() {
+  void shouldLetOnlyOneFrameTakeTheRequest() {
     final Mcv2KeyframeRequest requests = new Mcv2KeyframeRequest();
     requests.request();
-    assertTrue(requests.take());
-    assertFalse(requests.take(), "the frame after it needs no keyframe");
+
+    final boolean firstTaken = requests.take();
+    assertTrue(firstTaken);
+
+    final boolean secondTaken = requests.take();
+    assertFalse(secondTaken, "the frame after it needs no keyframe");
   }
 
   @Test
-  void requestsBeforeAFrameAreTakenByThatFrame() {
+  void shouldLetAFrameTakeTheRequestsMadeBeforeIt() {
     final Mcv2KeyframeRequest requests = new Mcv2KeyframeRequest();
     requests.request();
     requests.request();
-    assertTrue(requests.take());
-    assertFalse(requests.take());
+
+    final boolean firstTaken = requests.take();
+    assertTrue(firstTaken);
+
+    final boolean secondTaken = requests.take();
+    assertFalse(secondTaken);
   }
 }

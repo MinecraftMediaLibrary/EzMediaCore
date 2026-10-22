@@ -35,21 +35,12 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 
-/**
- * Assertions and helpers for map data packets.
- */
 public final class MapPackets {
 
   private MapPackets() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Asserts that the packet is a bundle of map data packets and returns them.
-   *
-   * @param packet the packet
-   * @return the map data packets of the bundle, in order
-   */
   public static List<ClientboundMapItemDataPacket> unbundle(final Packet<?> packet) {
     final ClientboundBundlePacket bundle = assertInstanceOf(ClientboundBundlePacket.class, packet);
     final Iterable<Packet<? super ClientGamePacketListener>> subPackets = bundle.subPackets();
@@ -58,21 +49,10 @@ public final class MapPackets {
       final ClientboundMapItemDataPacket mapPacket = assertInstanceOf(ClientboundMapItemDataPacket.class, subPacket);
       mapPackets.add(mapPacket);
     }
+
     return mapPackets;
   }
 
-  /**
-   * Asserts the content of a map data packet. The packet must update an unlocked map at the default scale without
-   * decorations.
-   *
-   * @param packet the packet
-   * @param mapId  the expected map id
-   * @param left   the expected x coordinate of the patch
-   * @param top    the expected y coordinate of the patch
-   * @param width  the expected width of the patch
-   * @param height the expected height of the patch
-   * @param colors the expected colors of the patch
-   */
   public static void assertMapPacket(
     final ClientboundMapItemDataPacket packet,
     final int mapId,
@@ -106,13 +86,6 @@ public final class MapPackets {
     assertArrayEquals(colors, actualColors, "colors");
   }
 
-  /**
-   * Asserts that a map data packet carries exactly the specified patch, see
-   * {@link #assertMapPacket(ClientboundMapItemDataPacket, int, int, int, int, int, byte[])}.
-   *
-   * @param packet the packet
-   * @param patch  the expected patch
-   */
   public static void assertMapPacket(final ClientboundMapItemDataPacket packet, final MapTilePatch patch) {
     final int mapId = patch.getMapId();
     final int left = patch.getX();
@@ -123,30 +96,18 @@ public final class MapPackets {
     assertMapPacket(packet, mapId, left, top, width, height, colors);
   }
 
-  /**
-   * Creates the colors a scripted dither algorithm returns for an image: a repeating pattern of palette indices.
-   *
-   * @param image the image
-   * @return one color per pixel
-   */
   public static byte[] pattern(final ImageBuffer image) {
     final int width = image.getWidth();
     final int height = image.getHeight();
     return pattern(width * height, 4);
   }
 
-  /**
-   * Creates a repeating pattern of palette indices.
-   *
-   * @param length the number of pixels
-   * @param offset the first palette index
-   * @return the colors
-   */
   public static byte[] pattern(final int length, final int offset) {
     final byte[] colors = new byte[length];
     for (int index = 0; index < length; index++) {
       colors[index] = (byte) (offset + (index % 100));
     }
+
     return colors;
   }
 }

@@ -53,8 +53,8 @@ import me.brandonli.mcav.MCAV;
 import me.brandonli.mcav.MCAVApi;
 import me.brandonli.mcav.browser.BrowserModule;
 import me.brandonli.mcav.bukkit.BukkitModule;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Pool;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Pool;
 import me.brandonli.mcav.bukkit.utils.versioning.ServerEnvironment;
 import me.brandonli.mcav.bukkit.utils.versioning.UnsupportedServerVersionException;
 import me.brandonli.mcav.plugin.audio.AudioProvider;
@@ -313,10 +313,10 @@ final class MCAVSandboxTest {
     Files.writeString(this.folder.resolve("config.yml"), defaults.replace("  native: auto\n", "  native: \"off\"\n"));
     try {
       this.sandbox.onEnable();
-      assertEquals("Java, turned off by mcv2.native=off", MCV2.describeNatives());
+      assertEquals("Java, turned off by mcv2.native=off", Mcv2.describeNatives());
       this.sandbox.onDisable();
     } finally {
-      MCV2.installNatives(this.folder.resolve("natives"), "auto");
+      Mcv2.installNatives(this.folder.resolve("natives"), "auto");
     }
   }
 

@@ -38,10 +38,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * The frame parser: valid version 3 frames expose their header and leaves, and every header rule is enforced.
- */
 final class Mcv2ParserTest {
+
+  private static final String INVALID_LENGTH_MESSAGE = "Invalid frame length!";
+  private static final String NOT_A_FRAME_MESSAGE = "Not an MCV2 version 3 frame!";
+  private static final String INVALID_DIMENSIONS_MESSAGE = "Invalid dimensions!";
 
   private static byte[] palette() {
     final byte[] record = new byte[38];
@@ -50,87 +51,128 @@ final class Mcv2ParserTest {
   }
 
   @Test
-  void absentRootsHaveNoRecordOffset() throws Mcv2Exception {
+  void shouldGiveAbsentRootsNoRecordOffset() {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(Mcv2Trees.predicted(1, 1, Node.skip()));
-    assertEquals(1, frame.getLeafCount());
-    assertEquals(-1, frame.getLeaf(0).offset());
+    final int leafCount = frame.getLeafCount();
+    assertEquals(1, leafCount);
+
+    final int offset = frame.getLeaf(0).offset();
+    assertEquals(-1, offset);
   }
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(Mcv2Decoder.class);
   }
 
   @Test
-  void parsesTheHeaderAndTheLeavesOfAKeyframe() throws Mcv2Exception {
+  void shouldParseTheHeaderAndTheLeavesOfAKeyframe() {
     final byte[] frame = keyframe(40, 20, solid(1, 2, 3), split(Node.leaf(Mcv2Decoder.MODE_PALETTE, 0, palette())));
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
-    assertEquals(40, parsed.getWidth());
-    assertEquals(20, parsed.getHeight());
-    assertEquals(0, parsed.getFrameId());
-    assertEquals(0, parsed.getReferenceId());
-    assertTrue(parsed.isKeyframe());
-    assertEquals(frame.length, parsed.getData().length);
-    assertArrayEquals(frame, parsed.getData());
-    assertNotSame(parsed.getData(), parsed.getData());
-    assertEquals(5, parsed.getLeafCount());
+    final int width = parsed.getWidth();
+    assertEquals(40, width);
+
+    final int height = parsed.getHeight();
+    assertEquals(20, height);
+
+    final long frameId = parsed.getFrameId();
+    assertEquals(0, frameId);
+
+    final long referenceId = parsed.getReferenceId();
+    assertEquals(0, referenceId);
+
+    final boolean keyframe = parsed.isKeyframe();
+    assertTrue(keyframe);
+
+    final int dataLength = parsed.getData().length;
+    assertEquals(frame.length, dataLength);
+
+    final byte[] data = parsed.getData();
+    assertArrayEquals(frame, data);
+
+    final byte[] firstCopy = parsed.getData();
+    final byte[] secondCopy = parsed.getData();
+    assertNotSame(firstCopy, secondCopy);
+
+    final int leafCount = parsed.getLeafCount();
+    assertEquals(5, leafCount);
+
     final List<Mcv2Decoder.Leaf> leaves = new ArrayList<>();
     for (int leafIndex = 0; leafIndex < parsed.getLeafCount(); leafIndex++) {
       leaves.add(parsed.getLeaf(leafIndex));
     }
+
     // The solid root precedes the second root's four palette children in level order.
-    assertEquals(new Mcv2Decoder.Leaf(32, 0, 16, Mcv2Decoder.MODE_PALETTE, 0, parsed.getPayloadStart() + 3), leaves.get(1));
-    assertEquals(new Mcv2Decoder.Leaf(0, 0, 32, Mcv2Decoder.MODE_SOLID, 0, parsed.getPayloadStart()), leaves.get(0));
+    final Mcv2Decoder.Leaf expectedPaletteLeaf = new Mcv2Decoder.Leaf(32, 0, 16, Mcv2Decoder.MODE_PALETTE, 0, parsed.getPayloadStart() + 3);
+    final Mcv2Decoder.Leaf paletteLeaf = leaves.get(1);
+    assertEquals(expectedPaletteLeaf, paletteLeaf);
+
+    final Mcv2Decoder.Leaf expectedSolidLeaf = new Mcv2Decoder.Leaf(0, 0, 32, Mcv2Decoder.MODE_SOLID, 0, parsed.getPayloadStart());
+    final Mcv2Decoder.Leaf solidLeaf = leaves.get(0);
+    assertEquals(expectedSolidLeaf, solidLeaf);
     assertThrows(IndexOutOfBoundsException.class, () -> parsed.getLeaf(5));
   }
 
   @Test
-  void copiesTheInputSoTheCallerMayReuseIt() throws Mcv2Exception {
+  void shouldCopyTheInputSoTheCallerMayReuseIt() {
     final byte[] frame = keyframe(8, 8, solid(9, 9, 9));
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
     frame[12] = 1;
-    assertEquals(0, parsed.getData()[12]);
+
+    final byte copiedByte = parsed.getData()[12];
+    assertEquals(0, copiedByte);
   }
 
   @Test
-  void rejectsBytesThatAreNotAnMcv2Frame() {
+  void shouldRejectBytesThatAreNotAnMcv2Frame() {
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[] { 'M', 'C', 'V' }));
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[48]));
+
     final Mcv2Exception mcv1 = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[] { 'M', 'C', 'V', '1' }));
-    assertEquals("MCV1 version 1 is no longer supported; re-encode as MCV2 version 3", mcv1.getMessage());
+    final String failureMessage = mcv1.getMessage();
+    assertEquals("MCV1 version 1 is no longer supported; re-encode as MCV2 version 3!", failureMessage);
+
     assertThrows(NullPointerException.class, () -> Mcv2Decoder.parse(null));
   }
 
   @Test
-  void rejectsFramesOfTheWrongLength() {
+  void shouldRejectFramesOfTheWrongLength() {
     final byte[] frame = keyframe(8, 8, solid(1, 1, 1));
-    assertEquals("Invalid frame length", message(Arrays.copyOf(frame, 19)));
-    final byte[] huge = new byte[Mcv2Decoder.MAX_FRAME_BYTES + 1];
+    final String truncatedMessage = this.message(Arrays.copyOf(frame, 19));
+    assertEquals(INVALID_LENGTH_MESSAGE, truncatedMessage);
+
+    final byte[] huge = new byte[Mcv2Decoder.MAXIMUM_FRAME_BYTES + 1];
     System.arraycopy(frame, 0, huge, 0, 4);
-    assertEquals("Invalid frame length", message(huge));
+    final String hugeMessage = this.message(huge);
+    assertEquals(INVALID_LENGTH_MESSAGE, hugeMessage);
   }
 
   @Test
-  void judgesTheLengthOfBytesThatStartLikeAFrame() {
+  void shouldJudgeTheLengthOfBytesThatStartLikeAFrame() {
     final byte[] magic = new byte[Integer.BYTES];
     Mcv2Decoder.putU32(magic, 0, Mcv2Decoder.MAGIC);
-    assertEquals("Invalid frame length", message(magic));
+    final String magicMessage = this.message(magic);
+    assertEquals(INVALID_LENGTH_MESSAGE, magicMessage);
+
     // the shortest and the longest frames pass the length check and reach the header's
-    assertEquals("Not an MCV2 version 3 frame", message(Arrays.copyOf(magic, Mcv2Decoder.HEADER_BYTES)));
-    assertEquals("Not an MCV2 version 3 frame", message(Arrays.copyOf(magic, Mcv2Decoder.MAX_FRAME_BYTES)));
+    final String shortestMessage = this.message(Arrays.copyOf(magic, Mcv2Decoder.HEADER_BYTES));
+    assertEquals(NOT_A_FRAME_MESSAGE, shortestMessage);
+
+    final String longestMessage = this.message(Arrays.copyOf(magic, Mcv2Decoder.MAXIMUM_FRAME_BYTES));
+    assertEquals(NOT_A_FRAME_MESSAGE, longestMessage);
   }
 
   private static Stream<Arguments> headerRules() {
     final byte[] key = keyframe(40, 40, solid(1, 2, 3), solid(4, 5, 6), solid(1, 2, 3), solid(7, 8, 9));
     return Stream.of(
-      Arguments.of(withWord(key, 4, 0x0104), "Not an MCV2 version 3 frame"),
-      Arguments.of(withWord(key, 4, 0x0303), "Not an MCV2 version 3 frame"),
-      Arguments.of(withWord(key, 4, 0x010103), "Not an MCV2 version 3 frame"),
-      Arguments.of(withWord(key, 4, 0x01000003), "Not an MCV2 version 3 frame"),
-      Arguments.of(withWord(key, 8, 40L << 16), "Invalid dimensions"),
-      Arguments.of(withWord(key, 8, 4097 | (40L << 16)), "Invalid dimensions"),
-      Arguments.of(withWord(key, 8, 40), "Invalid dimensions"),
-      Arguments.of(withWord(key, 8, 40 | (4097L << 16)), "Invalid dimensions")
+      Arguments.of(withWord(key, 4, 0x0104), NOT_A_FRAME_MESSAGE),
+      Arguments.of(withWord(key, 4, 0x0303), NOT_A_FRAME_MESSAGE),
+      Arguments.of(withWord(key, 4, 0x010103), NOT_A_FRAME_MESSAGE),
+      Arguments.of(withWord(key, 4, 0x01000003), NOT_A_FRAME_MESSAGE),
+      Arguments.of(withWord(key, 8, 40L << 16), INVALID_DIMENSIONS_MESSAGE),
+      Arguments.of(withWord(key, 8, 4097 | (40L << 16)), INVALID_DIMENSIONS_MESSAGE),
+      Arguments.of(withWord(key, 8, 40), INVALID_DIMENSIONS_MESSAGE),
+      Arguments.of(withWord(key, 8, 40 | (4097L << 16)), INVALID_DIMENSIONS_MESSAGE)
     );
   }
 
@@ -142,11 +184,12 @@ final class Mcv2ParserTest {
 
   @ParameterizedTest(name = "{1}")
   @MethodSource("headerRules")
-  void enforcesEveryHeaderRule(final byte[] frame, final String expected) {
-    assertEquals(expected, message(frame));
+  void shouldEnforceEveryHeaderRule(final byte[] frame, final String expected) {
+    final String failureMessage = this.message(frame);
+    assertEquals(expected, failureMessage);
   }
 
-  private static String message(final byte[] frame) {
+  private String message(final byte[] frame) {
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(frame));
     return exception.getMessage();
   }

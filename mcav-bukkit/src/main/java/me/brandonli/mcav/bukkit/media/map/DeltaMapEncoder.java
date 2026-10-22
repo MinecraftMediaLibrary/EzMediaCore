@@ -51,6 +51,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * sent eventually so the picture never drifts away from the source.
  *
  * <p>The encoder is not thread-safe; callers must synchronize access themselves.
+ *
+ * @since 1.0.0
  */
 public final class DeltaMapEncoder {
 
@@ -62,8 +64,10 @@ public final class DeltaMapEncoder {
    * <p>Earlier versions used a default of 2 MiB per frame. The lower default keeps the connections of the viewers
    * responsive, but a scene cut on a large wall now takes a few more frames to appear completely. Pass a larger
    * budget to the constructor of {@code CompressedMapResult} to get the old behavior back.
+   *
+   * @since 1.0.0
    */
-  public static final int DEFAULT_MAX_BYTES_PER_FRAME = 128 * 1024;
+  public static final int DEFAULT_MAXIMUM_BYTES_PER_FRAME = 128 * 1024;
 
   private static final int MAP_SIZE = MapLayout.MAP_SIZE;
   private static final int MAP_PIXELS = MAP_SIZE * MAP_SIZE;
@@ -71,12 +75,12 @@ public final class DeltaMapEncoder {
   private static final int TILES_PER_ROW = MAP_SIZE / TILE_SIZE;
   private static final int TILE_COUNT = TILES_PER_ROW * TILES_PER_ROW;
   private static final int NOISE_THRESHOLD = 4;
-  private static final int MAX_NOISE_DEFERRAL = 6;
+  private static final int MAXIMUM_NOISE_DEFERRAL = 6;
   private static final long WAITING_PRIORITY = 1L << 32;
   private static final long INITIAL_PRIORITY = Long.MAX_VALUE;
 
   private final MapLayout layout;
-  private final int maxBytesPerFrame;
+  private final int maximumBytesPerFrame;
   private final byte[][] clientState;
   private final boolean[] synced;
   private final long[] waitingFrames;
@@ -86,33 +90,25 @@ public final class DeltaMapEncoder {
   /**
    * Constructs a new encoder for the specified layout.
    *
-   * @param layout           the layout of the image on the maps
-   * @param maxBytesPerFrame the maximum number of bytes to send per frame; the most urgent map is always sent,
-   *                         even if it alone exceeds the budget
+   * @param layout               the layout of the image on the maps
+   * @param maximumBytesPerFrame the maximum number of bytes to send per frame; the most urgent map is always sent,
+   *                             even if it alone exceeds the budget
    * @throws IllegalArgumentException if the budget is not positive
-   * @throws NullPointerException if {@code layout} is null
+   * @throws NullPointerException     if {@code layout} is null
+   * @since 1.0.0
    */
-  public DeltaMapEncoder(final MapLayout layout, final int maxBytesPerFrame) {
-    Preconditions.checkNotNull(layout, "Layout must not be null");
-    Preconditions.checkArgument(maxBytesPerFrame > 0, "Byte budget must be positive");
+  public DeltaMapEncoder(final MapLayout layout, final int maximumBytesPerFrame) {
+    Preconditions.checkNotNull(layout, "Layout must not be null!");
+    Preconditions.checkArgument(maximumBytesPerFrame > 0, "Byte budget must be positive!");
 
     final int mapCount = layout.getMapCount();
     this.layout = layout;
-    this.maxBytesPerFrame = maxBytesPerFrame;
+    this.maximumBytesPerFrame = maximumBytesPerFrame;
     this.clientState = new byte[mapCount][MAP_PIXELS];
     this.synced = new boolean[mapCount];
     this.waitingFrames = new long[mapCount];
     this.deferredNoiseFrames = new byte[mapCount][TILE_COUNT];
     this.changedPixelsPerTile = new int[TILE_COUNT];
-  }
-
-  /**
-   * Gets the layout this encoder was created for.
-   *
-   * @return the layout
-   */
-  public MapLayout getLayout() {
-    return this.layout;
   }
 
   /**
@@ -122,14 +118,16 @@ public final class DeltaMapEncoder {
    * @param image the frame as map palette indices, laid out row by row, matching the image size of the layout
    * @return the patches to send, or an empty list if nothing visible changed
    * @throws IllegalArgumentException if the image size does not match the layout
-   * @throws NullPointerException if {@code image} is null
+   * @throws NullPointerException     if {@code image} is null
+   * @since 1.0.0
    */
   public List<MapTilePatch> encode(final byte[] image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
+
     final int imageWidth = this.layout.getImageWidth();
     final int imageHeight = this.layout.getImageHeight();
     final int expectedLength = imageWidth * imageHeight;
-    Preconditions.checkArgument(image.length == expectedLength, "Image size does not match layout");
+    Preconditions.checkArgument(image.length == expectedLength, "Image size does not match layout!");
 
     final List<MapCandidate> candidates = this.collectCandidates(image);
     if (candidates.isEmpty()) {
@@ -161,6 +159,7 @@ public final class DeltaMapEncoder {
         candidates.add(candidate);
       }
     }
+
     return candidates;
   }
 
@@ -170,7 +169,7 @@ public final class DeltaMapEncoder {
     for (final MapCandidate candidate : candidates) {
       final int map = candidate.getMap();
       final int candidateSize = candidate.getSize();
-      final boolean fitsBudget = usedBytes + candidateSize <= this.maxBytesPerFrame;
+      final boolean fitsBudget = usedBytes + candidateSize <= this.maximumBytesPerFrame;
       final boolean isFirst = accepted.isEmpty();
       if (!fitsBudget && !isFirst) {
         this.waitingFrames[map]++;
@@ -186,6 +185,7 @@ public final class DeltaMapEncoder {
       this.synced[map] = true;
       this.waitingFrames[map] = 0;
     }
+
     return accepted;
   }
 
@@ -194,6 +194,7 @@ public final class DeltaMapEncoder {
    * that start watching while the stream is running, so they can follow the deltas of the following frames.
    *
    * @return one patch for every map that has been sent at least once
+   * @since 1.0.0
    */
   public List<MapTilePatch> snapshot() {
     final int mapCount = this.layout.getMapCount();
@@ -206,6 +207,7 @@ public final class DeltaMapEncoder {
       final MapTilePatch patch = this.copyClientState(map, region);
       patches.add(patch);
     }
+
     return patches;
   }
 
@@ -221,14 +223,17 @@ public final class DeltaMapEncoder {
       final int targetIndex = row * width;
       System.arraycopy(state, sourceIndex, colors, targetIndex, width);
     }
+
     final int mapId = this.layout.getMapId(map);
-    return new MapTilePatch(mapId, localX, localY, width, height, colors);
+    return MapTilePatch.of(mapId, localX, localY, width, height, colors);
   }
 
   /**
    * Forgets previously returned patches and all waiting/noise counters. Subsequent frames rebuild the complete
    * visible picture within the ordinary-update budget, which may require more than one frame. No packets are sent
    * by this method. {@link #snapshot()} is empty until another frame is encoded.
+   *
+   * @since 1.0.0
    */
   public void reset() {
     Arrays.fill(this.synced, false);
@@ -257,7 +262,7 @@ public final class DeltaMapEncoder {
     }
 
     final int changedPixels = this.countChangedPixels(tilesToSend);
-    final List<PatchRectangle> rectangles = chooseRectangles(tilesToSend, region);
+    final List<PatchRectangle> rectangles = this.chooseRectangles(tilesToSend, region);
     final List<MapTilePatch> patches = this.extractPatches(image, map, rectangles);
     final int size = getEncodedSize(rectangles);
 
@@ -266,10 +271,6 @@ public final class DeltaMapEncoder {
     return new MapCandidate(map, patches, size, priority);
   }
 
-  /**
-   * Removes the dirty tiles that only changed a few pixels from the tiles to send, unless they have been held back
-   * for too long already, and updates how long every tile has been held back.
-   */
   private long holdBackNoise(final int map, final long dirtyTiles) {
     final byte[] noiseFrames = this.deferredNoiseFrames[map];
     long tilesToSend = 0;
@@ -286,13 +287,14 @@ public final class DeltaMapEncoder {
         tilesToSend |= tileBit;
       }
     }
+
     return tilesToSend;
   }
 
   private boolean shouldDefer(final byte[] noiseFrames, final int tile) {
     final int tileChanges = this.changedPixelsPerTile[tile];
     final boolean looksLikeNoise = tileChanges < NOISE_THRESHOLD;
-    final boolean mayDeferLonger = noiseFrames[tile] < MAX_NOISE_DEFERRAL;
+    final boolean mayDeferLonger = noiseFrames[tile] < MAXIMUM_NOISE_DEFERRAL;
     return looksLikeNoise && mayDeferLonger;
   }
 
@@ -304,20 +306,19 @@ public final class DeltaMapEncoder {
         changedPixels += this.changedPixelsPerTile[tile];
       }
     }
+
     return changedPixels;
   }
 
-  /**
-   * Chooses whichever is smaller: the merged rectangles of the tiles, or one bounding rectangle around all of them.
-   */
-  private static List<PatchRectangle> chooseRectangles(final long tiles, final MapRegion region) {
-    final List<PatchRectangle> rectangles = mergeTiles(tiles, region);
+  private List<PatchRectangle> chooseRectangles(final long tiles, final MapRegion region) {
+    final List<PatchRectangle> rectangles = this.mergeTiles(tiles, region);
     final PatchRectangle bounds = PatchRectangle.boundingBox(rectangles);
     final int boundsSize = bounds.getEncodedSize();
     final int rectanglesSize = getEncodedSize(rectangles);
     if (boundsSize <= rectanglesSize) {
       return List.of(bounds);
     }
+
     return rectangles;
   }
 
@@ -326,6 +327,7 @@ public final class DeltaMapEncoder {
     for (final PatchRectangle rectangle : rectangles) {
       size += rectangle.getEncodedSize();
     }
+
     return size;
   }
 
@@ -339,15 +341,10 @@ public final class DeltaMapEncoder {
       final MapTilePatch patch = this.layout.extractPatch(image, map, left, top, width, height);
       patches.add(patch);
     }
+
     return patches;
   }
 
-  /**
-   * Compares the region of the image against what the clients display and records how many pixels changed in
-   * every tile.
-   *
-   * @return a bit mask with the bit of every tile that changed
-   */
   private long findDirtyTiles(final byte[] image, final int map, final MapRegion region) {
     Arrays.fill(this.changedPixelsPerTile, 0);
     final byte[] state = this.clientState[map];
@@ -356,6 +353,7 @@ public final class DeltaMapEncoder {
     for (int row = 0; row < height; row++) {
       dirtyTiles |= this.findDirtyTilesInRow(image, state, region, row);
     }
+
     return dirtyTiles;
   }
 
@@ -370,7 +368,7 @@ public final class DeltaMapEncoder {
     long dirtyTiles = 0;
     int column = 0;
     while (column < width) {
-      final int firstChange = findNextChange(image, imageRowStart, state, stateRowStart, column, width);
+      final int firstChange = this.findNextChange(image, imageRowStart, state, stateRowStart, column, width);
       if (firstChange < 0) {
         break;
       }
@@ -378,20 +376,16 @@ public final class DeltaMapEncoder {
       final int tileColumn = (localX + firstChange) / TILE_SIZE;
       final int tileEnd = Math.min(width, (tileColumn + 1) * TILE_SIZE - localX);
       final int tile = tileRowStart + tileColumn;
-      final int changes = countChanges(image, imageRowStart, state, stateRowStart, firstChange, tileEnd);
+      final int changes = this.countChanges(image, imageRowStart, state, stateRowStart, firstChange, tileEnd);
       this.changedPixelsPerTile[tile] += changes;
       dirtyTiles |= 1L << tile;
       column = tileEnd;
     }
+
     return dirtyTiles;
   }
 
-  /**
-   * Finds the first column of the row, starting at a column, where the image differs from what the clients display.
-   *
-   * @return the column of the first change, or -1 if the rest of the row is unchanged
-   */
-  private static int findNextChange(
+  private int findNextChange(
     final byte[] image,
     final int imageRowStart,
     final byte[] state,
@@ -407,6 +401,7 @@ public final class DeltaMapEncoder {
     if (mismatch < 0) {
       return -1;
     }
+
     return fromColumn + mismatch;
   }
 
@@ -417,7 +412,7 @@ public final class DeltaMapEncoder {
     return (sourceY + row) * imageWidth + sourceX;
   }
 
-  private static int countChanges(
+  private int countChanges(
     final byte[] image,
     final int imageRowStart,
     final byte[] state,
@@ -433,44 +428,45 @@ public final class DeltaMapEncoder {
         changes++;
       }
     }
+
     return changes;
   }
 
-  private static List<PatchRectangle> mergeTiles(final long tiles, final MapRegion region) {
-    final boolean[] pending = toPendingTiles(tiles);
+  private List<PatchRectangle> mergeTiles(final long tiles, final MapRegion region) {
+    final boolean[] pending = this.toPendingTiles(tiles);
     final List<PatchRectangle> rectangles = new ArrayList<>();
     for (int tileY = 0; tileY < TILES_PER_ROW; tileY++) {
-      for (int tileX = 0; tileX < TILES_PER_ROW; tileX++) {
-        final int tile = tileY * TILES_PER_ROW + tileX;
-        if (!pending[tile]) {
-          continue;
-        }
-        final PatchRectangle rectangle = takeRun(pending, tileX, tileY, region);
-        rectangles.add(rectangle);
-      }
+      this.takeRowRuns(pending, tileY, region, rectangles);
     }
+
     return rectangles;
   }
 
-  private static boolean[] toPendingTiles(final long tiles) {
+  private void takeRowRuns(final boolean[] pending, final int tileY, final MapRegion region, final List<PatchRectangle> rectangles) {
+    for (int tileX = 0; tileX < TILES_PER_ROW; tileX++) {
+      final int tile = tileY * TILES_PER_ROW + tileX;
+      if (!pending[tile]) {
+        continue;
+      }
+      final PatchRectangle rectangle = this.takeRun(pending, tileX, tileY, region);
+      rectangles.add(rectangle);
+    }
+  }
+
+  private boolean[] toPendingTiles(final long tiles) {
     final boolean[] pending = new boolean[TILE_COUNT];
     for (int tile = 0; tile < TILE_COUNT; tile++) {
       final long tileBit = 1L << tile;
       pending[tile] = (tiles & tileBit) != 0;
     }
+
     return pending;
   }
 
-  /**
-   * Grows a rectangle of pending tiles from a tile, first to the right and then downwards, marks its tiles as
-   * handled, and clips it to the region.
-   *
-   * @return the rectangle in map pixels
-   */
-  private static PatchRectangle takeRun(final boolean[] pending, final int tileX, final int tileY, final MapRegion region) {
-    final int runWidth = measureRunWidth(pending, tileX, tileY);
-    final int runHeight = measureRunHeight(pending, tileX, tileY, runWidth);
-    clearRun(pending, tileX, tileY, runWidth, runHeight);
+  private PatchRectangle takeRun(final boolean[] pending, final int tileX, final int tileY, final MapRegion region) {
+    final int runWidth = this.measureRunWidth(pending, tileX, tileY);
+    final int runHeight = this.measureRunHeight(pending, tileX, tileY, runWidth);
+    this.clearRun(pending, tileX, tileY, runWidth, runHeight);
 
     final int left = tileX * TILE_SIZE;
     final int top = tileY * TILE_SIZE;
@@ -479,7 +475,7 @@ public final class DeltaMapEncoder {
     return PatchRectangle.clip(left, top, width, height, region);
   }
 
-  private static int measureRunWidth(final boolean[] pending, final int tileX, final int tileY) {
+  private int measureRunWidth(final boolean[] pending, final int tileX, final int tileY) {
     int runWidth = 1;
     while (tileX + runWidth < TILES_PER_ROW) {
       final int next = tileY * TILES_PER_ROW + tileX + runWidth;
@@ -488,32 +484,35 @@ public final class DeltaMapEncoder {
       }
       runWidth++;
     }
+
     return runWidth;
   }
 
-  private static int measureRunHeight(final boolean[] pending, final int tileX, final int tileY, final int runWidth) {
+  private int measureRunHeight(final boolean[] pending, final int tileX, final int tileY, final int runWidth) {
     int runHeight = 1;
     while (tileY + runHeight < TILES_PER_ROW) {
-      final boolean rowPending = isRowPending(pending, tileX, tileY + runHeight, runWidth);
+      final boolean rowPending = this.isRowPending(pending, tileX, tileY + runHeight, runWidth);
       if (!rowPending) {
         break;
       }
       runHeight++;
     }
+
     return runHeight;
   }
 
-  private static boolean isRowPending(final boolean[] pending, final int tileX, final int tileY, final int runWidth) {
+  private boolean isRowPending(final boolean[] pending, final int tileX, final int tileY, final int runWidth) {
     for (int tileColumn = tileX; tileColumn < tileX + runWidth; tileColumn++) {
       final int tile = tileY * TILES_PER_ROW + tileColumn;
       if (!pending[tile]) {
         return false;
       }
     }
+
     return true;
   }
 
-  private static void clearRun(final boolean[] pending, final int tileX, final int tileY, final int runWidth, final int runHeight) {
+  private void clearRun(final boolean[] pending, final int tileX, final int tileY, final int runWidth, final int runHeight) {
     for (int tileRow = tileY; tileRow < tileY + runHeight; tileRow++) {
       for (int tileColumn = tileX; tileColumn < tileX + runWidth; tileColumn++) {
         final int tile = tileRow * TILES_PER_ROW + tileColumn;
@@ -537,8 +536,15 @@ public final class DeltaMapEncoder {
   }
 
   /**
-   * A rectangle inside a map that should be sent as one patch.
+   * Returns the layout this encoder was created for.
+   *
+   * @return the layout
+   * @since 1.0.0
    */
+  public MapLayout getLayout() {
+    return this.layout;
+  }
+
   private static final class PatchRectangle {
 
     private final int left;
@@ -553,10 +559,7 @@ public final class DeltaMapEncoder {
       this.height = height;
     }
 
-    /**
-     * Clips a rectangle of tiles to the region. The rectangle always overlaps the region, because it only consists
-     * of dirty tiles, and a tile only becomes dirty when a pixel inside the region changed.
-     */
+    // the rectangle always overlaps the region: only a change inside it dirties a tile
     private static PatchRectangle clip(final int left, final int top, final int width, final int height, final MapRegion region) {
       final int regionX = region.getLocalX();
       final int regionY = region.getLocalY();
@@ -581,6 +584,7 @@ public final class DeltaMapEncoder {
         right = Math.max(right, rectangle.left + rectangle.width);
         bottom = Math.max(bottom, rectangle.top + rectangle.height);
       }
+
       return new PatchRectangle(left, top, right - left, bottom - top);
     }
 
@@ -605,9 +609,6 @@ public final class DeltaMapEncoder {
     }
   }
 
-  /**
-   * The patches that would bring one map up to date, together with their cost and urgency.
-   */
   private static final class MapCandidate {
 
     private final int map;

@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.config.ChatConfiguration;
+import me.brandonli.mcav.bukkit.media.config.ChatConfigurationBuilder;
 import me.brandonli.mcav.bukkit.media.result.ChatResult;
 import me.brandonli.mcav.media.player.pipeline.filter.video.FunctionalVideoFilter;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
@@ -137,7 +138,7 @@ public final class VideoChatCommand extends AbstractVideoCommand {
   ) {
     final int width = resolution.getFirst();
     final int height = resolution.getSecond();
-    final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
+    final ChatConfigurationBuilder builder = ChatConfiguration.builder();
     builder.viewers(players);
     builder.chatWidth(width);
     builder.chatHeight(height);

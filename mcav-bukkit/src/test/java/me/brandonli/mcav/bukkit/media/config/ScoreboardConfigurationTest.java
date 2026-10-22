@@ -28,13 +28,12 @@ import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.result.Characters;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ScoreboardConfiguration}.
- */
 final class ScoreboardConfigurationTest {
 
-  private static ScoreboardConfiguration.Builder<?> completeBuilder() {
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+  private static final String CHARACTER = "x";
+
+  private ScoreboardConfigurationBuilder completeBuilder() {
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
     builder.viewers(List.of());
     builder.character(Characters.FULL_CHARACTER);
     builder.lines(1);
@@ -43,12 +42,12 @@ final class ScoreboardConfigurationTest {
   }
 
   @Test
-  void buildsAConfigurationWithEveryValue() {
+  void shouldBuildAConfigurationWithEveryValue() {
     final List<UUID> viewers = new ArrayList<>();
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
     builder.viewers(viewers);
     builder.character(Characters.SMALL_BLACK_SQUARE);
-    builder.lines(ScoreboardConfiguration.MAX_LINES);
+    builder.lines(ScoreboardConfiguration.MAXIMUM_LINES);
     builder.width(30);
 
     final ScoreboardConfiguration configuration = builder.build();
@@ -64,15 +63,15 @@ final class ScoreboardConfigurationTest {
   }
 
   @Test
-  void settersReturnTheSameBuilder() {
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+  void shouldReturnTheSameBuilderFromSetters() {
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
-    final Object afterCharacter = builder.character("x");
+    final Object afterCharacter = builder.character(CHARACTER);
     final Object afterLines = builder.lines(1);
     final Object afterWidth = builder.width(1);
 
-    assertInstanceOf(ScoreboardConfiguration.ScoreboardResultBuilder.class, builder);
+    assertInstanceOf(DefaultScoreboardConfigurationBuilder.class, builder);
     assertSame(builder, afterViewers);
     assertSame(builder, afterCharacter);
     assertSame(builder, afterLines);
@@ -80,30 +79,30 @@ final class ScoreboardConfigurationTest {
   }
 
   @Test
-  void settersRejectNull() {
-    final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
+  void shouldRejectNullInSetters() {
+    final ScoreboardConfigurationBuilder builder = ScoreboardConfiguration.builder();
 
     assertThrows(NullPointerException.class, () -> builder.viewers(null));
     assertThrows(NullPointerException.class, () -> builder.character(null));
   }
 
   @Test
-  void rejectsMissingOrInvalidValues() {
-    final ScoreboardConfiguration.Builder<?> noViewers = ScoreboardConfiguration.builder();
-    noViewers.character("x");
+  void shouldRejectMissingOrInvalidValues() {
+    final ScoreboardConfigurationBuilder noViewers = ScoreboardConfiguration.builder();
+    noViewers.character(CHARACTER);
     noViewers.lines(1);
     noViewers.width(1);
-    final ScoreboardConfiguration.Builder<?> noCharacter = ScoreboardConfiguration.builder();
+    final ScoreboardConfigurationBuilder noCharacter = ScoreboardConfiguration.builder();
     noCharacter.viewers(List.of());
     noCharacter.lines(1);
     noCharacter.width(1);
-    final ScoreboardConfiguration.Builder<?> emptyCharacter = completeBuilder();
+    final ScoreboardConfigurationBuilder emptyCharacter = this.completeBuilder();
     emptyCharacter.character("");
-    final ScoreboardConfiguration.Builder<?> noLines = completeBuilder();
+    final ScoreboardConfigurationBuilder noLines = this.completeBuilder();
     noLines.lines(0);
-    final ScoreboardConfiguration.Builder<?> tooManyLines = completeBuilder();
+    final ScoreboardConfigurationBuilder tooManyLines = this.completeBuilder();
     tooManyLines.lines(16);
-    final ScoreboardConfiguration.Builder<?> noWidth = completeBuilder();
+    final ScoreboardConfigurationBuilder noWidth = this.completeBuilder();
     noWidth.width(0);
 
     assertThrows(NullPointerException.class, noViewers::build);

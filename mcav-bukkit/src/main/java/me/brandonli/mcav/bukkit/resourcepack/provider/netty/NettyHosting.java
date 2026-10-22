@@ -47,16 +47,28 @@ import org.slf4j.LoggerFactory;
  * <p>Connections that arrive through a proxy using the PROXY protocol, or that are terminated by a proxy such as
  * Velocity, never reach this server as HTTP and cannot be served. Use a separate web server in that case.
  *
- * <p>The caller retains ownership of the source file. Start and shutdown are synchronized and support reuse.
- * The hosting instance registers a connection initializer but does not own the Minecraft listener. Shutdown
- * removes that registration; already-installed handlers on existing connections retain their behavior.
+ * <p>The caller retains ownership of the source file. This class is thread-safe: start and shutdown are synchronized
+ * and support reuse. The hosting instance registers a connection initializer but does not own the Minecraft listener.
+ * Shutdown removes that registration; already-installed handlers on existing connections retain their behavior.
+ *
+ * @since 1.0.0
  */
 public final class NettyHosting implements InjectorHosting {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NettyHosting.class);
-  private static final String PACK_NOT_READ = "Could not read the resource pack {} ahead of the first download";
+  private static final String PACK_NOT_READ = "Could not read the resource pack {} ahead of the first download.";
   private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger();
   private static final String KEY_NAMESPACE = "mcav";
+
+  private static final String KEY_VALUE_PREFIX = "resourcepack_";
+
+  private static final String REQUEST_DIRECTORY = "/mcav/";
+  private static final String PACK_EXTENSION = ".zip";
+
+  private static final String HANDLER_NUMBER_SEPARATOR = "_";
+
+  private static final String URL_SCHEME = "http://";
+  private static final String PORT_SEPARATOR = ":";
 
   private final Path zip;
   private final Key listenerKey;
@@ -73,23 +85,25 @@ public final class NettyHosting implements InjectorHosting {
    *
    * @param zip the path to the resource pack zip to serve
    * @throws NullPointerException if {@code zip} is null
+   * @since 1.0.0
    */
   public NettyHosting(final Path zip) {
-    Preconditions.checkNotNull(zip, "Resource pack path must not be null");
+    Preconditions.checkNotNull(zip, "Resource pack path must not be null!");
+
     final int instanceNumber = INSTANCE_COUNTER.incrementAndGet();
     @Subst("resourcepack_1")
-    final String keyValue = "resourcepack_" + instanceNumber;
-    this.requestPath = "/mcav/" + keyValue + ".zip";
+    final String keyValue = KEY_VALUE_PREFIX + instanceNumber;
+    this.requestPath = REQUEST_DIRECTORY + keyValue + PACK_EXTENSION;
     this.zip = zip;
     this.listenerKey = Key.key(KEY_NAMESPACE, keyValue);
     // a Netty pipeline rejects two handlers of the same name, and this class supports several running instances,
     // so the name carries the instance number exactly as the listener key does
-    this.handlerName = ResourcePackHttpHandler.NAME + "_" + instanceNumber;
+    this.handlerName = ResourcePackHttpHandler.NAME + HANDLER_NUMBER_SEPARATOR + instanceNumber;
     this.packFile = new ResourcePackFile(zip);
   }
 
   /**
-   * Gets the URL players download the resource pack from.
+   * Returns the URL players download the resource pack from.
    *
    * <p>The URL consists of the public address of the server and the port of the Minecraft server, and a unique path for this hosting instance. IPv6 addresses
    * are enclosed in brackets. The public address is looked up the first time this method is called, and the URL is
@@ -99,6 +113,7 @@ public final class NettyHosting implements InjectorHosting {
    * <p>The first address lookup may block. Obtaining a URL does not start hosting or verify external reachability.
    *
    * @return the URL of the resource pack, in the format {@code http://<address>:<port>/mcav/resourcepack_<instance>.zip}
+   * @since 1.0.0
    */
   @Override
   public String getRawUrl() {
@@ -107,24 +122,19 @@ public final class NettyHosting implements InjectorHosting {
       return cachedUrl;
     }
 
-    final String address = ServerAddress.getPublicIPAddress();
+    final String address = ServerAddress.getPublicIpAddress();
     final int port = Bukkit.getPort();
     final String host = formatHost(address);
-    final String builtUrl = "http://" + host + ":" + port + this.requestPath;
+    final String builtUrl = URL_SCHEME + host + PORT_SEPARATOR + port + this.requestPath;
     final boolean fallback = ServerAddress.isFallbackAddress(address);
     if (!fallback) {
       this.url = builtUrl;
     }
+
     return builtUrl;
   }
 
-  /**
-   * Formats an address as the host of a URL. IPv6 addresses are enclosed in brackets and the percent sign of a
-   * zone id is escaped, as required by RFC 3986 and RFC 6874. Other addresses and host names are returned as is.
-   *
-   * @param address the address or host name
-   * @return the host part of a URL
-   */
+  // RFC 3986 and RFC 6874: IPv6 in brackets, the zone id's percent sign escaped
   @VisibleForTesting
   static String formatHost(final String address) {
     return NetworkUtils.formatHostForUrl(address);
@@ -137,44 +147,32 @@ public final class NettyHosting implements InjectorHosting {
    * starts; a later download attempts to read it again and reports a failure to that HTTP client if necessary.
    *
    * @throws InjectorException if the path is not a regular file, including on a repeated start
+   * @since 1.0.0
    */
   @Override
   public synchronized void start() {
     final boolean exists = Files.isRegularFile(this.zip);
     if (!exists) {
-      final String message = "Resource pack does not exist: %s".formatted(this.zip);
+      final String message = "Resource pack %s does not exist!".formatted(this.zip);
       throw new InjectorException(message);
     }
 
     if (this.running) {
       return;
     }
+
     this.readPackAhead();
     ChannelInitializeListenerHolder.addListener(this.listenerKey, this::installHandler);
     this.running = true;
   }
 
-  /**
-   * Reads the pack here, on the thread that starts the hosting, so the first download does not read the whole file on
-   * the Netty thread that also carries the packets of every player. A pack that cannot be read is reported when the
-   * download is answered, exactly as before, so hosting still starts.
-   */
+  // keeps the first read off the Netty thread that carries every player's packets
   private void readPackAhead() {
     try {
       this.packFile.read();
-    } catch (final IOException failure) {
-      LOGGER.warn(PACK_NOT_READ, this.zip, failure);
+    } catch (final IOException exception) {
+      LOGGER.warn(PACK_NOT_READ, this.zip, exception);
     }
-  }
-
-  /**
-   * Gets the name this instance installs its handler under in the Netty pipeline. Visible for testing.
-   *
-   * @return the pipeline name, which is unique per instance
-   */
-  @VisibleForTesting
-  String getHandlerName() {
-    return this.handlerName;
   }
 
   private void installHandler(final Channel channel) {
@@ -185,6 +183,8 @@ public final class NettyHosting implements InjectorHosting {
 
   /**
    * Stops answering HTTP requests for new connections. Connections that are already open are not affected.
+   *
+   * @since 1.0.0
    */
   @Override
   public synchronized void shutdown() {
@@ -194,10 +194,16 @@ public final class NettyHosting implements InjectorHosting {
     }
   }
 
+  @VisibleForTesting
+  String getHandlerName() {
+    return this.handlerName;
+  }
+
   /**
-   * Gets the resource pack zip that is served. The file is read again whenever it changed.
+   * Returns the resource pack zip that is served. The file is read again whenever it changed.
    *
    * @return the path to the resource pack zip
+   * @since 1.0.0
    */
   @Override
   public Path getZip() {

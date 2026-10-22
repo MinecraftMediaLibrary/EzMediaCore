@@ -17,15 +17,17 @@
  */
 package me.brandonli.mcav.bukkit.media.mcv2.transport;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
+import java.util.Arrays;
+import java.util.Objects;
 import me.brandonli.mcav.bukkit.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/** Pages compare by every header field and every payload byte, which the assembler's duplicate rule relies on. */
 final class TransportPageTest {
 
-  private static TransportPage page(
+  private TransportPage page(
     final long stream,
     final long frame,
     final int number,
@@ -40,21 +42,44 @@ final class TransportPageTest {
   }
 
   @Test
-  void comparesEveryField() {
-    final TransportPage value = page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5);
+  void shouldCompareEveryField() {
+    final TransportPage value = this.page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5);
     EqualityAssertions.assertEqualityContract(
       value,
-      page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5),
-      page(9, 2, 0, 1, 2, 48, 1, 6, (byte) 5),
-      page(1, 9, 0, 1, 2, 48, 1, 6, (byte) 5),
-      page(1, 2, 9, 1, 2, 48, 1, 6, (byte) 5),
-      page(1, 2, 0, 9, 2, 48, 1, 6, (byte) 5),
-      page(1, 2, 0, 1, 9, 48, 1, 6, (byte) 5),
-      page(1, 2, 0, 1, 2, 49, 1, 6, (byte) 5),
-      page(1, 2, 0, 1, 2, 48, 0, 6, (byte) 5),
-      page(1, 2, 0, 1, 2, 48, 1, 7, (byte) 5),
-      page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 6)
+      this.page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5),
+      this.page(9, 2, 0, 1, 2, 48, 1, 6, (byte) 5),
+      this.page(1, 9, 0, 1, 2, 48, 1, 6, (byte) 5),
+      this.page(1, 2, 9, 1, 2, 48, 1, 6, (byte) 5),
+      this.page(1, 2, 0, 9, 2, 48, 1, 6, (byte) 5),
+      this.page(1, 2, 0, 1, 9, 48, 1, 6, (byte) 5),
+      this.page(1, 2, 0, 1, 2, 49, 1, 6, (byte) 5),
+      this.page(1, 2, 0, 1, 2, 48, 0, 6, (byte) 5),
+      this.page(1, 2, 0, 1, 2, 48, 1, 7, (byte) 5),
+      this.page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 6)
     );
-    assertNotSame(value.getPayload(), value.getPayload());
+    final byte[] firstPayload = value.getPayload();
+    final byte[] secondPayload = value.getPayload();
+    assertNotSame(firstPayload, secondPayload);
+  }
+
+  @Test
+  void shouldHashThePageByItsFramePageNumberAndPayload() {
+    final TransportPage value = this.page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5);
+
+    final int hash = value.hashCode();
+    final byte[] payload = { 5 };
+    final int payloadHash = Arrays.hashCode(payload);
+    final int expected = Objects.hash(2L, 0, payloadHash);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldDescribeEveryHeaderFieldAndThePayloadLength() {
+    final TransportPage value = this.page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5);
+
+    final String description = value.toString();
+    final String expected =
+      "TransportPage{streamId=1, frameId=2, number=0, count=1, referenceId=2, frameBytes=48, flags=1, symbolBits=6, payloadBytes=1}";
+    assertEquals(expected, description);
   }
 }

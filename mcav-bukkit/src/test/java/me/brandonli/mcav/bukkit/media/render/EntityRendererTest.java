@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import me.brandonli.mcav.bukkit.media.config.EntityConfiguration;
+import me.brandonli.mcav.bukkit.media.config.EntityConfigurationBuilder;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.FakeWorld;
 import me.brandonli.mcav.media.image.ImageBuffer;
@@ -55,13 +56,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-/**
- * Tests {@link EntityRenderer}.
- */
 final class EntityRendererTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID OFFLINE = UUID.fromString("00000000-0000-0000-0000-000000000002");
+
+  private static final String FRAME_TEXT = "frame";
+  private static final String STILL_TEXT = "still";
 
   private FakeServer server;
   private List<UUID> viewers;
@@ -86,7 +87,7 @@ final class EntityRendererTest {
   }
 
   private EntityConfiguration createConfiguration(final Location configuredPosition) {
-    final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
+    final EntityConfigurationBuilder builder = EntityConfiguration.builder();
     builder.viewers(this.viewers);
     builder.character("#");
     builder.position(configuredPosition);
@@ -96,7 +97,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void spawnsAHiddenDisplayAndShowsItToOnlineViewers() {
+  void shouldSpawnAHiddenDisplayAndShowItToOnlineViewers() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
 
@@ -122,7 +123,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void doesNothingOnATickBeforeTheDisplayWasSpawned() {
+  void shouldDoNothingOnATickBeforeTheDisplayWasSpawned() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Plugin plugin = this.server.getPlugin();
@@ -136,10 +137,10 @@ final class EntityRendererTest {
   }
 
   @Test
-  void showsTheDisplayToAViewerWhoComesOnlineAfterTheSpawn() {
+  void shouldShowTheDisplayToAViewerWhoComesOnlineAfterTheSpawn() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
     renderer.show();
     final List<CraftTextDisplay> displays = this.world.getSpawnedDisplays();
     final CraftTextDisplay display = displays.getFirst();
@@ -156,7 +157,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void forgetsAnOfflineVisibilityGrantAndShowsTheEntityToTheRejoinedSession() {
+  void shouldForgetAnOfflineVisibilityGrantAndShowTheEntityToTheRejoinedSession() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     renderer.show();
@@ -172,15 +173,17 @@ final class EntityRendererTest {
     renderer.onTick();
     renderer.onTick();
     verify(rejoined, times(1)).showEntity(plugin, display);
+
     final List<CraftTextDisplay> afterRejoin = this.world.getSpawnedDisplays();
     final int count = afterRejoin.size();
     assertEquals(1, count, "a new player session needs a visibility grant, not a replacement entity");
+
     renderer.hide();
     verify(display, times(1)).remove();
   }
 
   @Test
-  void grantsVisibilityToTheReplacementEntityAfterAViewerReturns() {
+  void shouldGrantVisibilityToTheReplacementEntityAfterAViewerReturns() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     renderer.show();
@@ -196,7 +199,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void spawnsTheDisplayOnlyOnce() {
+  void shouldSpawnTheDisplayOnlyOnce() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
 
@@ -209,7 +212,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void setsTheTextOfTheServerEntityOncePerTick() {
+  void shouldSetTheTextOfTheServerEntityOncePerTick() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final int[] sourcePixels = new int[20 * 10];
@@ -218,6 +221,7 @@ final class EntityRendererTest {
         sourcePixels[row * 20 + column] = column < 10 ? 0xFF123456 : 0xFFABCDEF;
       }
     }
+
     final ImageBuffer image = ImageBuffer.buffer(sourcePixels, 20, 10);
 
     renderer.show();
@@ -230,28 +234,32 @@ final class EntityRendererTest {
     final net.minecraft.world.entity.Display.TextDisplay handle = display.getHandle(); // fqn: Display is imported as org.bukkit.entity.Display
     final ArgumentCaptor<Component> captor = ArgumentCaptor.forClass(Component.class);
     verify(handle, times(1)).setText(captor.capture());
+
     final Component text = captor.getValue();
     final String plain = text.getString();
     final int width = image.getWidth();
     final int height = image.getHeight();
     assertEquals("##", plain);
+
     final List<Integer> colors = new ArrayList<>();
     text.visit((style, characters) -> {
       for (int index = 0; index < characters.length(); index++) {
         colors.add(style.getColor() == null ? -1 : style.getColor().getValue());
       }
+
       return Optional.empty();
     }, Style.EMPTY);
-    assertEquals(List.of(0x123456, 0xABCDEF), colors, "each rendered pixel retains its exact RGB");
+    final List<Integer> expectedColors = List.of(0x123456, 0xABCDEF);
+    assertEquals(expectedColors, colors, "each rendered pixel retains its exact RGB");
     assertEquals(2, width);
     assertEquals(1, height);
   }
 
   @Test
-  void skipsFramesBeforeTheDisplayIsShown() {
+  void shouldSkipFramesBeforeTheDisplayIsShown() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
 
     renderer.apply(text);
 
@@ -261,10 +269,10 @@ final class EntityRendererTest {
   }
 
   @Test
-  void respawnsTheDisplayOnTheNextFrameOnceItsChunkIsLoadedAgain() {
+  void shouldRespawnTheDisplayOnTheNextFrameOnceItsChunkIsLoadedAgain() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
     renderer.show();
     final List<CraftTextDisplay> spawnedBefore = this.world.getSpawnedDisplays();
     final CraftTextDisplay discarded = spawnedBefore.getFirst();
@@ -288,7 +296,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void aDisplayThatComesBackBeforeTheFirstFrameIsGivenNoText() {
+  void shouldGiveNoTextToADisplayThatComesBackBeforeTheFirstFrame() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     renderer.show();
@@ -298,14 +306,17 @@ final class EntityRendererTest {
     renderer.onTick();
 
     final List<CraftTextDisplay> spawned = this.world.getSpawnedDisplays();
-    assertEquals(2, spawned.size(), "the display comes back");
+    final int spawnedCount = spawned.size();
+    assertEquals(2, spawnedCount, "the display comes back");
+
     final net.minecraft.world.entity.Display.TextDisplay handle = spawned.get(1).getHandle(); // fqn: Display is imported as org.bukkit.entity.Display
     verify(handle, never()).setText(any());
+
     renderer.hide();
   }
 
   @Test
-  void aDisplayReturningToALoadedChunkUsesTheNewestSubmittedText() {
+  void shouldUseTheNewestSubmittedTextWhenADisplayReturnsToALoadedChunk() {
     final EntityRenderer renderer = new EntityRenderer(this.createConfiguration(this.position));
     final Component beforeUnload = Component.literal("before");
     final Component whileUnloaded = Component.literal("latest");
@@ -317,71 +328,85 @@ final class EntityRendererTest {
     when(configuredWorld.isChunkLoaded(0, 0)).thenReturn(false);
     renderer.apply(whileUnloaded);
     renderer.onTick();
-    assertEquals(1, this.world.getSpawnedDisplays().size());
+    final int displayCountWhileUnloaded = this.world.getSpawnedDisplays().size();
+    assertEquals(1, displayCountWhileUnloaded);
+
     when(configuredWorld.isChunkLoaded(0, 0)).thenReturn(true);
     renderer.onTick();
     final CraftTextDisplay replacement = this.world.getSpawnedDisplays().get(1);
     final net.minecraft.world.entity.Display.TextDisplay handle = replacement.getHandle(); // fqn: Display is imported as org.bukkit.entity.Display
     verify(handle).setText(whileUnloaded);
     verify(handle, never()).setText(beforeUnload);
+
     renderer.hide();
   }
 
   @Test
-  void aStillImageComesBackWithItsTextOnceItsChunkIsLoadedAgain() {
+  void shouldBringAStillImageBackWithItsTextOnceItsChunkIsLoadedAgain() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("still");
+    final Component text = Component.literal(STILL_TEXT);
     renderer.show();
     renderer.apply(text);
     final CraftTextDisplay discarded = this.world.getSpawnedDisplays().getFirst();
     final World configuredWorld = this.world.getWorld();
     when(discarded.isValid()).thenReturn(false);
     renderer.onTick();
-    assertEquals(1, this.world.getSpawnedDisplays().size(), "not while the chunk is unloaded");
+    final int displayCountWhileUnloaded = this.world.getSpawnedDisplays().size();
+    assertEquals(1, displayCountWhileUnloaded, "not while the chunk is unloaded");
+
     when(configuredWorld.isChunkLoaded(0, 0)).thenReturn(true);
     renderer.onTick();
     renderer.onTick();
 
     final List<CraftTextDisplay> spawned = this.world.getSpawnedDisplays();
-    assertEquals(2, spawned.size(), "the display comes back once");
+    final int spawnedCount = spawned.size();
+    assertEquals(2, spawnedCount, "the display comes back once");
+
     final CraftTextDisplay respawned = spawned.get(1);
     final net.minecraft.world.entity.Display.TextDisplay handle = respawned.getHandle(); // fqn: Display is imported as org.bukkit.entity.Display
     verify(handle).setText(text);
     verify(this.viewer).showEntity(this.server.getPlugin(), respawned);
+
     renderer.hide();
     when(respawned.isValid()).thenReturn(false);
     renderer.onTick();
-    assertEquals(2, this.world.getSpawnedDisplays().size());
+    final int displayCountAfterHide = this.world.getSpawnedDisplays().size();
+    assertEquals(2, displayCountAfterHide);
   }
 
   @Test
-  void aViewerWhoseGrantPaperTookBackIsShownTheDisplayAgain() {
+  void shouldShowTheDisplayAgainToAViewerWhoseGrantPaperTookBack() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Plugin plugin = this.server.getPlugin();
     renderer.show();
-    renderer.apply(Component.literal("still"));
+    renderer.apply(Component.literal(STILL_TEXT));
     final CraftTextDisplay discarded = this.world.getSpawnedDisplays().getFirst();
     when(discarded.isValid()).thenReturn(false);
     when(this.world.getWorld().isChunkLoaded(0, 0)).thenReturn(true);
     renderer.onTick();
     final CraftTextDisplay respawned = this.world.getSpawnedDisplays().get(1);
-    assertTrue(this.viewer.canSee(respawned));
+    final boolean visible = this.viewer.canSee(respawned);
+    assertTrue(visible);
+
     this.server.endTracking(respawned);
     renderer.onTick();
-    assertTrue(this.viewer.canSee(respawned), "the viewer is shown the display again");
+    final boolean visibleAgain = this.viewer.canSee(respawned);
+    assertTrue(visibleAgain, "the viewer is shown the display again");
     verify(this.viewer, times(2)).showEntity(plugin, respawned);
+
     renderer.onTick();
     verify(this.viewer, times(2)).showEntity(plugin, respawned);
+
     renderer.hide();
   }
 
   @Test
-  void waitsForTheChunkToLoadBeforeRespawningTheDisplay() {
+  void shouldWaitForTheChunkToLoadBeforeRespawningTheDisplay() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
     renderer.show();
     final List<CraftTextDisplay> spawnedBefore = this.world.getSpawnedDisplays();
     final CraftTextDisplay discarded = spawnedBefore.getFirst();
@@ -399,12 +424,12 @@ final class EntityRendererTest {
   }
 
   @Test
-  void asksAboutTheChunkThatHoldsANegativeBlockPosition() {
+  void shouldAskAboutTheChunkThatHoldsANegativeBlockPosition() {
     final World configuredWorld = this.world.getWorld();
     final Location negative = new Location(configuredWorld, -17, 70, 35);
     final EntityConfiguration configuration = this.createConfiguration(negative);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
     renderer.show();
     final List<CraftTextDisplay> spawnedBefore = this.world.getSpawnedDisplays();
     final CraftTextDisplay discarded = spawnedBefore.getFirst();
@@ -416,11 +441,11 @@ final class EntityRendererTest {
   }
 
   @Test
-  void stopsRespawningOnceThePositionHasNoWorld() {
+  void shouldStopRespawningOnceThePositionHasNoWorld() {
     final Location movable = this.position.clone();
     final EntityConfiguration configuration = this.createConfiguration(movable);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
     renderer.show();
     final List<CraftTextDisplay> spawnedBefore = this.world.getSpawnedDisplays();
     final CraftTextDisplay discarded = spawnedBefore.getFirst();
@@ -435,7 +460,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void removesTheDisplayWhenHidden() {
+  void shouldRemoveTheDisplayWhenHidden() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Component lateText = Component.literal("late");
@@ -455,7 +480,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void needsAPositionInAWorld() {
+  void shouldNeedAPositionInAWorld() {
     final Location movable = this.position.clone();
     final EntityConfiguration configuration = this.createConfiguration(movable);
     movable.setWorld(null);
@@ -465,7 +490,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void hidesTheDisplayFromRemovedViewersAndShowsItAgainOnReaddition() {
+  void shouldHideTheDisplayFromRemovedViewersAndShowItAgainOnReaddition() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     renderer.show();
@@ -476,6 +501,7 @@ final class EntityRendererTest {
     renderer.onTick();
     renderer.onTick();
     verify(this.viewer, times(1)).hideEntity(plugin, display);
+
     this.viewers.add(VIEWER);
     renderer.onTick();
     renderer.onTick();
@@ -483,7 +509,24 @@ final class EntityRendererTest {
   }
 
   @Test
-  void queuedShowCannotSpawnAnEntityAfterMainThreadHide() {
+  void shouldForgetWhoSawTheRemovedDisplayWhenShowingANewOne() {
+    final EntityConfiguration configuration = this.createConfiguration(this.position);
+    final EntityRenderer renderer = new EntityRenderer(configuration);
+    renderer.show();
+    this.viewers.remove(VIEWER);
+    renderer.hide();
+    renderer.show();
+    renderer.onTick();
+
+    final List<CraftTextDisplay> displays = this.world.getSpawnedDisplays();
+    final int displayCount = displays.size();
+    final Plugin plugin = this.server.getPlugin();
+    assertEquals(2, displayCount);
+    verify(this.viewer, never()).hideEntity(eq(plugin), any(Entity.class));
+  }
+
+  @Test
+  void shouldNotLetAQueuedShowSpawnAnEntityAfterAMainThreadHide() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     this.server.setPrimaryThread(false);
@@ -492,13 +535,15 @@ final class EntityRendererTest {
     renderer.hide();
     this.server.runTasks();
     final List<CraftTextDisplay> displays = this.world.getSpawnedDisplays();
-    assertEquals(0, displays.size());
+    final int displayCount = displays.size();
+    assertEquals(0, displayCount);
+
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(0, tasks);
   }
 
   @Test
-  void queuedHideCannotRemoveAnEntityRequestedAgainOnMain() {
+  void shouldNotLetAQueuedHideRemoveAnEntityRequestedAgainOnTheMainThread() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     renderer.show();
@@ -510,16 +555,18 @@ final class EntityRendererTest {
     renderer.show();
     this.server.runTasks();
     verify(display, never()).remove();
+
     final Component text = Component.literal("still rendering");
     renderer.apply(text);
     final net.minecraft.world.entity.Display.TextDisplay handle = display.getHandle(); // fqn: Display is imported as org.bukkit.entity.Display
     verify(handle).setText(text);
+
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(1, tasks);
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
 
