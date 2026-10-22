@@ -233,6 +233,7 @@ class FakeChain:
             return key not in self.missed, times
 
         self.first = True
+
         return key in self.again, times
 
     def target(self, name):

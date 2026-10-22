@@ -240,6 +240,7 @@ def _read_header(data: bytes) -> tuple[int, int, int, int]:
     magic, version, width, height, frame_id, reference_id = HEADER.unpack_from(data)
     _require(magic == MAGIC and version == VERSION, "The data is not an MCV2 version 3 frame!")
     _require(_is_dimension_valid(width) and _is_dimension_valid(height), INVALID_DIMENSIONS_MESSAGE)
+
     return width, height, frame_id, reference_id
 
 
@@ -346,6 +347,7 @@ def _read_records(data: bytes, frame_index: _FrameIndex, keyframe: bool) -> tupl
 
     _check_split_children(frame_index.descriptors, frame_index.levels)
     _require(frame_index.payload + cursor == len(data), "The records do not end at the end of the frame!")
+
     return offsets, records
 
 
@@ -760,6 +762,7 @@ def _is_newer(frame_id: int, previous_id: int) -> bool:
 
 def page_capacity(symbol_bits: int = SYMBOL_BITS) -> int:
     _check_symbol_bits(symbol_bits)
+
     return PAGE_CAPACITY
 
 
@@ -771,6 +774,7 @@ def _check_symbol_bits(symbol_bits: int) -> None:
 
 def make_pages(frame_data: bytes, stream_id: int = DEFAULT_STREAM_ID, symbol_bits: int = SYMBOL_BITS) -> list[bytes]:
     _check_symbol_bits(symbol_bits)
+
     if not _is_id_valid(stream_id):
         message: str = "The stream id must be u32!"
         raise ValueError(message)
@@ -819,6 +823,7 @@ def to_symbols(data: bytes, symbol_bits: int = SYMBOL_BITS) -> bytes:
 
 def read_page(symbols: bytes, symbol_bits: int = SYMBOL_BITS) -> Page:
     _check_symbol_bits(symbol_bits)
+
     if not PAGE_HEADER_SYMBOLS <= len(symbols) <= PAGE_SYMBOLS:
         message: str = "The map page extent is invalid!"
         raise ValueError(message)
