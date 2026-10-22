@@ -29,21 +29,26 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.FunctionalAudioFilte
  * voice chat audio players and Opus encoders; it does not own the injected API or the supplied entities.
  * Release all filters before stopping the module.
  *
- * <p>The default implementation serializes start, release and incoming audio calls. Each speaker has a separate
- * synchronized queue of at most 25 complete 20 millisecond frames. A slow speaker loses its oldest frames;
- * an empty queue supplies silence. Input buffers must remain stable for the duration of a filter call.
+ * <p>Filters from {@link #svc(Object...)} and {@link #withDistance(float, Object...)} are thread-safe: they serialize
+ * start, release and incoming audio calls, and each speaker has a separate synchronized queue of at most 25 complete
+ * 20 millisecond frames. A slow speaker loses its oldest frames; an empty queue supplies silence. Input buffers must
+ * remain stable for the duration of a filter call.
  *
- * <pre><code>
- *   final SvcFilter speakers = SvcFilter.svc(player);
- *   speakers.start();
- *   final AudioAttachableCallback audio = videoPlayer.getAudioAttachableCallback();
- *   final AudioPipelineStep step = AudioPipelineStep.of(speakers);
- *   audio.attach(step);
- * </code></pre>
+ * {@snippet :
+ * final SvcFilter speakers = SvcFilter.svc(player);
+ * speakers.start();
+ * final AudioAttachableCallback audio = videoPlayer.getAudioAttachableCallback();
+ * final AudioPipelineStep step = AudioPipelineStep.of(speakers);
+ * audio.attach(step);
+ * }
+ *
+ * @since 1.0.0
  */
 public interface SvcFilter extends FunctionalAudioFilter {
   /**
    * The distance in blocks the audio can be heard from when none is specified.
+   *
+   * @since 1.0.0
    */
   float DEFAULT_DISTANCE = 32.0f;
 
@@ -56,6 +61,7 @@ public interface SvcFilter extends FunctionalAudioFilter {
    * @throws IllegalStateException    if the voice chat API was not injected into {@link SvcModule}
    * @throws NullPointerException     if the array or any entity is null
    * @throws IllegalArgumentException if no entities are supplied
+   * @since 1.0.0
    */
   static SvcFilter svc(final Object... entities) {
     return withDistance(DEFAULT_DISTANCE, entities);
@@ -71,6 +77,7 @@ public interface SvcFilter extends FunctionalAudioFilter {
    * @throws IllegalStateException    if the voice chat API was not injected into {@link SvcModule}
    * @throws NullPointerException     if the array or any entity is null
    * @throws IllegalArgumentException if the distance is nonpositive or nonfinite, or no entities are supplied
+   * @since 1.0.0
    */
   static SvcFilter withDistance(final float distance, final Object... entities) {
     final boolean finiteDistance = Float.isFinite(distance);
@@ -91,6 +98,7 @@ public interface SvcFilter extends FunctionalAudioFilter {
    *
    * @return the largest complete-frame queue length, from 0 to 25, or 0 while stopped; a partial frame
    *         is excluded, and consumers may drain the queues while this snapshot is collected
+   * @since 1.0.0
    */
   int getQueuedFrames();
 }

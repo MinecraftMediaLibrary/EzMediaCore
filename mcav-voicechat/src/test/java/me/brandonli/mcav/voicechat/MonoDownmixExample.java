@@ -33,10 +33,7 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.utils.audio.MonoDownmixer;
 
-/**
- * Plays a file through the speakers in mono, exactly as Simple Voice Chat receives it, to check the downmix
- * without a Minecraft server. Pass the path of a media file as the first argument.
- */
+// plays a media file through the speakers in mono, as Simple Voice Chat receives it, without a Minecraft server
 public final class MonoDownmixExample {
 
   private static final float SAMPLE_RATE = 48_000;
@@ -50,12 +47,6 @@ public final class MonoDownmixExample {
     throw new UnsupportedOperationException(message);
   }
 
-  /**
-   * Plays the file given as the first argument until Enter is pressed.
-   *
-   * @param args the command line arguments, of which the first is the path of the media file
-   * @throws LineUnavailableException if the speakers cannot be opened
-   */
   static void main(final String[] args) throws LineUnavailableException {
     if (args.length == 0) {
       System.err.println("Usage: MonoDownmixExample <file>");

@@ -44,12 +44,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * frames. Voice chat pulls frames on its own thread, and a speaker without a frame plays silence instead of
  * stopping. When {@link #start()} fails part way, every speaker it created is stopped again, so the filter stays
  * stopped and can simply be started again.
+ *
+ * <p>This class is thread-safe: its public methods are synchronized, and each speaker guards its own queue for the
+ * voice chat thread.
+ *
+ * @since 1.0.0
  */
 public final class EntityChannelSvcFilter implements SvcFilter {
 
-  /**
-   * The number of mono samples in one 20 millisecond frame at 48 kHz.
-   */
   private static final int FRAME_SAMPLES = 960;
   private static final short[] SILENCE = new short[FRAME_SAMPLES];
 
@@ -63,13 +65,6 @@ public final class EntityChannelSvcFilter implements SvcFilter {
   private int partialLength;
   private boolean running;
 
-  /**
-   * Constructs a stopped filter. {@link SvcFilter#withDistance(float, Object...)} validates the arguments.
-   *
-   * @param distance the distance in blocks the audio can be heard from
-   * @param entities the platform entities the audio comes from; the array is copied
-   * @throws IllegalStateException if the voice chat API was not injected into {@link SvcModule}
-   */
   EntityChannelSvcFilter(final float distance, final Object[] entities) {
     SvcModule.requireVoiceChatApi();
 
@@ -86,6 +81,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
    *
    * @throws IllegalStateException if the voice chat API was removed from {@link SvcModule} after creation
    * @throws SvcException          if voice chat refuses to create an audio channel for an entity
+   * @since 1.0.0
    */
   @Override
   public synchronized void start() {
@@ -148,6 +144,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
    *
    * @throws RuntimeException if a voice chat player or encoder fails during cleanup
    * @throws Error            if a voice chat player or encoder reports an error during cleanup
+   * @since 1.0.0
    */
   @Override
   public synchronized void release() {
@@ -185,6 +182,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
    * @param metadata the metadata of the original stream
    * @return always false, because the samples are only downmixed into a copy and never changed
    * @throws NullPointerException if the samples or the metadata are null
+   * @since 1.0.0
    */
   @Override
   public synchronized boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
@@ -204,13 +202,6 @@ public final class EntityChannelSvcFilter implements SvcFilter {
     return false;
   }
 
-  /**
-   * Copies as many samples as still fit into the partial frame, and hands the frame to every speaker once it is full.
-   *
-   * @param mono   the mono samples
-   * @param offset the index of the first sample that was not collected yet
-   * @return the index of the first sample that is still left after this call
-   */
   private int collect(final short[] mono, final int offset) {
     final int space = FRAME_SAMPLES - this.partialLength;
     final int available = mono.length - offset;
@@ -239,15 +230,13 @@ public final class EntityChannelSvcFilter implements SvcFilter {
    *
    * @return the largest complete-frame queue length, from 0 to 25, or 0 while stopped; partially collected
    *         audio is not counted
+   * @since 1.0.0
    */
   @Override
   public synchronized int getQueuedFrames() {
     return this.speakers.stream().mapToInt(Speaker::getQueuedFrames).max().orElse(0);
   }
 
-  /**
-   * One entity that plays the audio, with its own frame queue.
-   */
   private static final class Speaker {
 
     private final OpusEncoder encoder;

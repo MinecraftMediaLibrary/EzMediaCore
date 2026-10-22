@@ -58,9 +58,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Stubber;
 import org.mockito.verification.VerificationMode;
 
-/**
- * Tests {@link EntityChannelSvcFilter} and the {@link SvcFilter} factories.
- */
 final class EntityChannelSvcFilterTest {
 
   private static final int FRAME_SAMPLES = 960;
@@ -894,10 +891,7 @@ final class EntityChannelSvcFilterTest {
     return this.createEncoder();
   }
 
-  /**
-   * Asserts that nothing was stopped or closed, which is what an error of the virtual machine must leave alone: the
-   * machine is broken, so running more third-party code to clean up would only hide the failure.
-   */
+  // after an error of the virtual machine, more third-party cleanup code would only hide the failure
   private void assertNoSpeakerWasRolledBack() {
     final VerificationMode never = Mockito.never();
     for (final AudioPlayer player : this.players) {
