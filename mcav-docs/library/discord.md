@@ -9,11 +9,11 @@ dependencies {
 }
 ```
 
-Install the `JDAModule` together with the library. The bot itself is created and logged in by your code with JDA.
+Install the `JdaModule` together with the library. The bot itself is created and logged in by your code with JDA.
 
 ```java
   final MCAVApi api = MCAV.api();
-  api.install(JDAModule.class);
+  api.install(JdaModule.class);
 ```
 
 The `DiscordPlayer` is both an audio filter, which you attach to the audio pipeline of any player, and a JDA
@@ -33,11 +33,14 @@ environment variables, so that no secret ends up in the source:
 
   final Guild guild = jda.getGuildById(guildId);
   if (guild == null) {
-    throw new IllegalStateException("The bot is not a member of guild " + guildId);
+    final String message = "Guild %s does not have the bot as a member!".formatted(guildId);
+    throw new IllegalStateException(message);
   }
+
   final VoiceChannel voiceChannel = guild.getVoiceChannelById(channelId);
   if (voiceChannel == null) {
-    throw new IllegalStateException("Voice channel " + channelId + " does not exist");
+    final String message = "Voice channel %s does not exist!".formatted(channelId);
+    throw new IllegalStateException(message);
   }
 
   final DiscordPlayer discord = DiscordPlayer.voice(jda);
@@ -67,8 +70,8 @@ environment variables, so that no secret ends up in the source:
 `setPlaying(String)` sets the bot online and shows the title as its "Playing" activity. `setCurrentMedia(UrlParseDump)`
 does the same with the title yt-dlp resolved. Any title is accepted and adjusted to the rules of Discord:
 
-- Surrounding whitespace is removed.
-- A blank title, or media without a title, shows "Unknown title".
+- Surrounding whitespace and control characters up to U+001F are removed.
+- A title left blank, or media without a title, shows "Unknown title".
 - A title longer than 128 characters (`Activity.MAX_ACTIVITY_NAME_LENGTH`) is cut to 127 characters and ends with an
   ellipsis (`…`), so it fits the limit. An emoji or other character outside the Basic Multilingual Plane is never
   split in half.
@@ -77,8 +80,8 @@ does the same with the title yt-dlp resolved. Any title is accepted and adjusted
 
 The player converts the little-endian samples of the pipeline to the big-endian order Discord expects and queues up to
 three seconds of audio; when the pipeline runs ahead of Discord, the oldest audio is dropped. Call `flush()` after
-seeking or switching media to drop the queued audio immediately, and `getQueuedMillis()` to see how many milliseconds
-of audio are waiting to be sent.
+seeking or switching media to drop the queued audio immediately, and `getQueuedMilliseconds()` to see how many
+milliseconds of audio are waiting to be sent.
 
 ```{warning}
 Never put a bot token into your source code or configuration files that you share. Anyone with the token can control

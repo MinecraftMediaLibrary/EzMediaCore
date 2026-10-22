@@ -34,29 +34,19 @@ import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
-/**
- * Plays the audio of a file into a voice channel. The bot token, guild id, voice channel id, and file path are
- * read from the {@code DISCORD_TOKEN}, {@code DISCORD_GUILD}, {@code DISCORD_CHANNEL}, and {@code MEDIA_FILE}
- * environment variables so that no secret ends up in the source.
- */
-public final class JDAAudioExample {
+public final class JdaAudioExample {
 
-  private JDAAudioExample() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+  private JdaAudioExample() {
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Logs the bot in, joins the voice channel, and plays the file until the JVM exits.
-   *
-   * @throws InterruptedException if interrupted while the bot logs in
-   */
   static void main() throws InterruptedException {
-    final String token = require("DISCORD_TOKEN");
-    final String guildId = require("DISCORD_GUILD");
-    final String channelId = require("DISCORD_CHANNEL");
-    final String file = require("MEDIA_FILE");
+    final String token = getEnvironmentVariable("DISCORD_TOKEN");
+    final String guildId = getEnvironmentVariable("DISCORD_GUILD");
+    final String channelId = getEnvironmentVariable("DISCORD_CHANNEL");
+    final String file = getEnvironmentVariable("MEDIA_FILE");
     final MCAVApi api = MCAV.api();
-    api.install(JDAModule.class);
+    api.install(JdaModule.class);
 
     final JDA jda = login(token);
     final Guild guild = findGuild(jda, guildId);
@@ -68,14 +58,19 @@ public final class JDAAudioExample {
 
     final VideoPlayerMultiplexer multiplexer = play(player, file);
     player.setPlaying(file);
-    final Thread shutdownHook = new Thread(() -> {
-      multiplexer.release();
-      audioManager.closeAudioConnection();
-      jda.shutdown();
-      api.release();
-    });
+    final Thread shutdownHook = new Thread(() -> release(multiplexer, audioManager, jda, api));
     final Runtime runtime = Runtime.getRuntime();
     runtime.addShutdownHook(shutdownHook);
+  }
+
+  private static String getEnvironmentVariable(final String variable) {
+    final String value = System.getenv(variable);
+    if (value == null || value.isBlank()) {
+      final String message = "Environment variable %s must be set!".formatted(variable);
+      throw new IllegalStateException(message);
+    }
+
+    return value;
   }
 
   private static JDA login(final String token) throws InterruptedException {
@@ -89,16 +84,20 @@ public final class JDAAudioExample {
   private static Guild findGuild(final JDA jda, final String guildId) {
     final Guild guild = jda.getGuildById(guildId);
     if (guild == null) {
-      throw new IllegalStateException("The bot is not a member of guild " + guildId);
+      final String message = "Guild %s does not have the bot as a member!".formatted(guildId);
+      throw new IllegalStateException(message);
     }
+
     return guild;
   }
 
   private static VoiceChannel findVoiceChannel(final Guild guild, final String channelId) {
     final VoiceChannel channel = guild.getVoiceChannelById(channelId);
     if (channel == null) {
-      throw new IllegalStateException("Voice channel " + channelId + " does not exist");
+      final String message = "Voice channel %s does not exist!".formatted(channelId);
+      throw new IllegalStateException(message);
     }
+
     return channel;
   }
 
@@ -110,14 +109,14 @@ public final class JDAAudioExample {
     final Path path = Path.of(file);
     final Source source = FileSource.path(path);
     multiplexer.start(source);
+
     return multiplexer;
   }
 
-  private static String require(final String variable) {
-    final String value = System.getenv(variable);
-    if (value == null || value.isBlank()) {
-      throw new IllegalStateException("Set the " + variable + " environment variable");
-    }
-    return value;
+  private static void release(final VideoPlayerMultiplexer multiplexer, final AudioManager audioManager, final JDA jda, final MCAVApi api) {
+    multiplexer.release();
+    audioManager.closeAudioConnection();
+    jda.shutdown();
+    api.release();
   }
 }

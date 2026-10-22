@@ -39,40 +39,32 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * and cut into 20 millisecond frames of {@value #FRAME_BYTES} bytes, which are queued until JDA asks for them.
  * The player sends PCM, so it keeps the {@link #isOpus()} of {@link net.dv8tion.jda.api.audio.AudioSendHandler},
  * which returns false.
+ *
+ * <p>This class is thread-safe: queue operations are synchronized, so pipeline producers and JDA's sending thread
+ * may call it concurrently.
+ *
+ * @since 1.0.0
  */
-public final class DiscordPlayerImpl implements DiscordPlayer {
+public final class PcmDiscordPlayer implements DiscordPlayer {
 
-  /**
-   * The size of one 20 millisecond frame of 48 kHz 16-bit stereo audio in bytes.
-   */
-  static final int FRAME_BYTES = (AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE * 20) / 1000;
+  private static final int FRAME_MILLISECONDS = 20;
+  private static final int MILLISECONDS_PER_SECOND = 1000;
 
-  /**
-   * The activity shown for media without a title.
-   */
+  static final int FRAME_BYTES = (AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE * FRAME_MILLISECONDS) / MILLISECONDS_PER_SECOND;
+
+  private static final int MAXIMUM_QUEUED_FRAMES = 150;
+
   private static final String UNKNOWN_TITLE = "Unknown title";
 
-  /**
-   * The character that ends a title cut to the length limit of Discord.
-   */
   private static final String ELLIPSIS = "…";
-
-  private static final int MAX_QUEUED_FRAMES = 150;
-  private static final int FRAME_MILLIS = 20;
 
   private final JDA jda;
   private final Deque<ByteBuffer> frames;
   private final ByteBuffer partial;
 
-  /**
-   * Creates a player for a bot.
-   *
-   * @param jda the logged-in bot whose presence shows the current title
-   */
-  DiscordPlayerImpl(final JDA jda) {
-    Preconditions.checkNotNull(jda, "JDA must not be null");
+  PcmDiscordPlayer(final JDA jda) {
     this.jda = jda;
-    this.frames = new ArrayDeque<>(MAX_QUEUED_FRAMES);
+    this.frames = new ArrayDeque<>(MAXIMUM_QUEUED_FRAMES);
     this.partial = ByteBuffer.allocate(FRAME_BYTES);
   }
 
@@ -85,11 +77,12 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
    * @param metadata the metadata of the original audio
    * @return always false, because the samples are only read out into frames and never changed
    * @throws NullPointerException if {@code samples} or {@code metadata} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
 
     // the pipeline always carries little-endian samples, even in a buffer whose order was never set
     final ByteBuffer littleEndian = samples.duplicate();
@@ -100,14 +93,10 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
         this.fillPartialFrame(bigEndian);
       }
     }
+
     return false;
   }
 
-  /**
-   * Moves as many bytes into the partial frame as it has room for, and queues the frame once it is full.
-   *
-   * @param bigEndian the converted samples; its position advances by the number of bytes moved
-   */
   private void fillPartialFrame(final ByteBuffer bigEndian) {
     final int wanted = this.partial.remaining();
     final int available = bigEndian.remaining();
@@ -131,17 +120,18 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
     this.partial.clear();
 
     final ByteBuffer frame = ByteBuffer.wrap(copy);
-    if (this.frames.size() >= MAX_QUEUED_FRAMES) {
+    if (this.frames.size() >= MAXIMUM_QUEUED_FRAMES) {
       this.frames.pollFirst();
     }
     this.frames.addLast(frame);
   }
 
   /**
-   * Checks whether a complete frame is queued, which JDA asks before every 20 millisecond interval.
+   * Returns whether a complete frame is queued, which JDA asks before every 20 millisecond interval.
    *
    * @return true if a complete frame is queued at the time of this call; a concurrent flush or consumer
    *         can remove it before {@link #provide20MsAudio()}
+   * @since 1.0.0
    */
   @Override
   public boolean canProvide() {
@@ -155,6 +145,7 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
    *
    * @return a big-endian PCM frame of {@value #FRAME_BYTES} bytes with position zero, owned by the caller,
    *         or null if nothing is queued; the player does not reuse or change a returned buffer
+   * @since 1.0.0
    */
   @Override
   public @Nullable ByteBuffer provide20MsAudio() {
@@ -165,6 +156,8 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
 
   /**
    * Drops every queued frame and the samples that did not fill a frame yet.
+   *
+   * @since 1.0.0
    */
   @Override
   public void flush() {
@@ -175,29 +168,17 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
   }
 
   /**
-   * Gets the duration of the complete frames waiting to be sent; samples that do not fill a frame yet are not
-   * counted.
-   *
-   * @return the queued duration in milliseconds, from 0 to 3000 in multiples of 20
-   */
-  @Override
-  public long getQueuedMillis() {
-    synchronized (this.frames) {
-      final int count = this.frames.size();
-      return (long) count * FRAME_MILLIS;
-    }
-  }
-
-  /**
    * Sets the presence of the bot to "Playing" the title yt-dlp reported, adjusted as {@link #setPlaying(String)}
    * describes.
    *
    * @param dump the media information from yt-dlp
    * @throws NullPointerException if {@code dump} is null
+   * @since 1.0.0
    */
   @Override
   public void setCurrentMedia(final UrlParseDump dump) {
-    Preconditions.checkNotNull(dump, "Dump must not be null");
+    Preconditions.checkNotNull(dump, "Dump must not be null!");
+
     final Optional<String> titleValue = dump.getTitle();
     final @Nullable String title = titleValue.orElse(null);
     this.showPlaying(title);
@@ -209,49 +190,64 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
    *
    * @param title the title
    * @throws NullPointerException if {@code title} is null
+   * @since 1.0.0
    */
   @Override
   public void setPlaying(final String title) {
-    Preconditions.checkNotNull(title, "Title must not be null");
+    Preconditions.checkNotNull(title, "Title must not be null!");
+
     this.showPlaying(title);
   }
 
   private void showPlaying(final @Nullable String title) {
-    final String name = activityName(title);
+    final String name = this.toActivityName(title);
     final Presence presence = this.jda.getPresence();
     final Activity activity = Activity.playing(name);
     presence.setStatus(OnlineStatus.ONLINE);
     presence.setActivity(activity);
   }
 
-  /**
-   * Turns a title into a name Discord accepts for an activity: surrounding whitespace is removed, a missing or
-   * blank title becomes {@value #UNKNOWN_TITLE}, and a title longer than
-   * {@link Activity#MAX_ACTIVITY_NAME_LENGTH} characters is cut and ends with an ellipsis, without splitting a
-   * character outside the Basic Multilingual Plane such as an emoji.
-   *
-   * @param title the title, or null if unknown
-   * @return the activity name, at most {@link Activity#MAX_ACTIVITY_NAME_LENGTH} characters long
-   */
-  private static String activityName(final @Nullable String title) {
+  private String toActivityName(final @Nullable String title) {
     if (title == null) {
       return UNKNOWN_TITLE;
     }
+
     final String stripped = title.strip();
-    if (stripped.isEmpty()) {
+    // JDA trims the control characters that strip keeps
+    final String trimmed = stripped.trim();
+    if (trimmed.isBlank()) {
       return UNKNOWN_TITLE;
     }
-    final int length = stripped.length();
+
+    final int length = trimmed.length();
     if (length <= Activity.MAX_ACTIVITY_NAME_LENGTH) {
-      return stripped;
+      return trimmed;
     }
 
-    int end = Activity.MAX_ACTIVITY_NAME_LENGTH - ELLIPSIS.length();
-    final char last = stripped.charAt(end - 1);
-    if (Character.isHighSurrogate(last)) {
-      end--;
-    }
-    final String kept = stripped.substring(0, end);
+    final int end = this.findCutIndex(trimmed);
+    final String kept = trimmed.substring(0, end);
     return kept + ELLIPSIS;
+  }
+
+  private int findCutIndex(final String title) {
+    final int end = Activity.MAX_ACTIVITY_NAME_LENGTH - ELLIPSIS.length();
+    final char last = title.charAt(end - 1);
+    final boolean splitsCharacter = Character.isHighSurrogate(last);
+    return splitsCharacter ? end - 1 : end;
+  }
+
+  /**
+   * Returns the duration of the complete frames waiting to be sent; samples that do not fill a frame yet are not
+   * counted.
+   *
+   * @return the queued duration in milliseconds, from 0 to 3000 in multiples of 20
+   * @since 1.0.0
+   */
+  @Override
+  public long getQueuedMilliseconds() {
+    synchronized (this.frames) {
+      final int count = this.frames.size();
+      return (long) count * FRAME_MILLISECONDS;
+    }
   }
 }

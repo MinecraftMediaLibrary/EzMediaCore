@@ -216,10 +216,13 @@ and the old `LocationData` type are removed; use the current map configuration a
 injection hooks and several resource-pack exception constructors changed as well.
 
 Custom `HttpResult` implementations must now supply `getCurrentMedia`, `setCurrentMedia`, `getListenerCount` and
-`isRunning`. Custom `DiscordPlayer` implementations must supply `flush`, `getQueuedMillis` and `setPlaying`.
+`isRunning`. Custom `DiscordPlayer` implementations must supply `flush`, `getQueuedMilliseconds` and `setPlaying`.
 `SVCFilter` and `SVCModule` are now `SvcFilter` and `SvcModule`, and custom `SvcFilter` implementations must supply
 `getQueuedFrames`. Existing factory users usually need only to recompile, while implementation subclasses may also be
 affected by the new final modifiers.
+
+The Discord module cases its acronym as a word: install `JdaModule` instead of `JDAModule`. The player that
+`DiscordPlayer.voice(jda)` returns, formerly `DiscordPlayerImpl`, is now `PcmDiscordPlayer`.
 
 ## Virtual machines and VNC
 
