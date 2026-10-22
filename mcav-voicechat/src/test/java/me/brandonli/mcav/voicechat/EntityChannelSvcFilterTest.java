@@ -579,6 +579,25 @@ final class EntityChannelSvcFilterTest {
   }
 
   @Test
+  void shouldSuppressTheEncoderCloseFailureWhenCreatingAPlayerFails() {
+    this.failingEntity = BOB;
+    this.failingStep = CREATE_AUDIO_PLAYER;
+    final IllegalArgumentException closeFailure = new IllegalArgumentException("Close failed!");
+    final Stubber encoderCreation = Mockito.doAnswer(_ -> this.createEncoderThatFailsToCloseForBob(closeFailure));
+    final VoicechatServerApi stubbedApi = encoderCreation.when(this.api);
+    stubbedApi.createEncoder();
+    final SvcFilter filter = SvcFilter.svc(ALICE, BOB);
+    final IllegalStateException thrown = assertThrows(IllegalStateException.class, filter::start);
+    final Throwable[] suppressed = thrown.getSuppressed();
+    final Throwable[] expected = { closeFailure };
+    assertSame(this.failure, thrown);
+    assertArrayEquals(expected, suppressed);
+    this.assertEverySpeakerStopped();
+
+    filter.release();
+  }
+
+  @Test
   void shouldNeverSuppressACleanupExceptionOntoItself() {
     final SvcFilter filter = SvcFilter.svc(ALICE, BOB);
     filter.start();
@@ -851,6 +870,18 @@ final class EntityChannelSvcFilterTest {
     stubbedPlayer.stopPlaying();
 
     return player;
+  }
+
+  private OpusEncoder createEncoderThatFailsToCloseForBob(final RuntimeException closeFailure) {
+    final OpusEncoder encoder = this.createEncoder();
+    final boolean creatingForBob = BOB.equals(this.currentEntity);
+    if (creatingForBob) {
+      final Stubber failedClose = Mockito.doThrow(closeFailure);
+      final OpusEncoder stubbedEncoder = failedClose.when(encoder);
+      stubbedEncoder.close();
+    }
+
+    return encoder;
   }
 
   private void assertOnlyReachedSpeakerPartsWereCreated(final String failingStep, final int playerCount) {
