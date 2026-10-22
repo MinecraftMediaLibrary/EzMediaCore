@@ -38,6 +38,18 @@ import java.util.jar.JarOutputStream;
  */
 public final class LocalMavenRepository {
 
+  private static final String RESOURCE_FOLDER = "mcav-test/";
+  private static final String RESOURCE_EXTENSION = ".txt";
+
+  private static final String VERSION_SEPARATOR = "-";
+  private static final String POM_EXTENSION = ".pom";
+  private static final String JAR_EXTENSION = ".jar";
+  private static final String CHECKSUM_EXTENSION = ".sha1";
+
+  private static final String COORDINATE_SEPARATOR = ":";
+
+  private static final String CHECKSUM_ALGORITHM = "SHA-1";
+
   private final Path root;
 
   /**
@@ -67,7 +79,7 @@ public final class LocalMavenRepository {
    * @return the resource name
    */
   public static String resourceName(final String artifactId) {
-    return "mcav-test/" + artifactId + ".txt";
+    return RESOURCE_FOLDER + artifactId + RESOURCE_EXTENSION;
   }
 
   /**
@@ -154,14 +166,14 @@ public final class LocalMavenRepository {
     throws IOException {
     final Path directory = this.directoryOf(groupId, artifactId, version);
     Files.createDirectories(directory);
-    final String baseName = artifactId + "-" + version;
-    final Path pom = directory.resolve(baseName + ".pom");
+    final String baseName = artifactId + VERSION_SEPARATOR + version;
+    final Path pom = directory.resolve(baseName + POM_EXTENSION);
     final String content = pomOf(groupId, artifactId, version, dependencies);
     Files.writeString(pom, content, StandardCharsets.UTF_8);
     writeChecksum(pom);
 
-    final Path jar = directory.resolve(baseName + ".jar");
-    final String coordinates = groupId + ":" + artifactId + ":" + version;
+    final Path jar = directory.resolve(baseName + JAR_EXTENSION);
+    final String coordinates = groupId + COORDINATE_SEPARATOR + artifactId + COORDINATE_SEPARATOR + version;
     final String resource = resourceName(artifactId);
     writeJar(jar, resource, coordinates);
     writeChecksum(jar);
@@ -201,8 +213,9 @@ public final class LocalMavenRepository {
     throws IOException {
     final Path directory = this.directoryOf(groupId, artifactId, version);
     Files.createDirectories(directory);
-    final Path jar = directory.resolve(artifactId + "-" + version + "-" + classifier + ".jar");
-    final String coordinates = groupId + ":" + artifactId + ":" + version + ":" + classifier;
+    final Path jar = directory.resolve(artifactId + VERSION_SEPARATOR + version + VERSION_SEPARATOR + classifier + JAR_EXTENSION);
+    final String coordinates =
+      groupId + COORDINATE_SEPARATOR + artifactId + COORDINATE_SEPARATOR + version + COORDINATE_SEPARATOR + classifier;
     final String resource = resourceName(artifactId);
     writeJar(jar, resource, coordinates);
     writeChecksum(jar);
@@ -217,7 +230,7 @@ public final class LocalMavenRepository {
    */
   public static Path checksumFileOf(final Path file) {
     final Path name = file.getFileName();
-    return file.resolveSibling(name + ".sha1");
+    return file.resolveSibling(name + CHECKSUM_EXTENSION);
   }
 
   /**
@@ -230,7 +243,7 @@ public final class LocalMavenRepository {
     final byte[] content = Files.readAllBytes(file);
     final MessageDigest digest;
     try {
-      digest = MessageDigest.getInstance("SHA-1");
+      digest = MessageDigest.getInstance(CHECKSUM_ALGORITHM);
     } catch (final NoSuchAlgorithmException exception) {
       throw new IOException(exception);
     }

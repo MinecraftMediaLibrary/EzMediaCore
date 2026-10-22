@@ -50,6 +50,16 @@ import org.eclipse.aether.repository.RemoteRepository;
  */
 final class InstallationPathsPropertyTest {
 
+  private static final String TEMPORARY_PREFIX = "mcav-installer-paths";
+
+  private static final String INSTALLED_FOLDER = "installed";
+  private static final String REMOTE_FOLDER = "remote";
+  private static final String LOCAL_FOLDER = "local";
+  private static final String ARTIFACT_FOLDER = "artifact";
+
+  private static final String TREE_ARCHIVE = "complete-tree.zip";
+  private static final String TREE_LOCAL_FOLDER = "complete-local";
+
   private static final String SEED = "20260925";
   private static final String REFUSED = " must contain only letters, digits, dots, underscores or hyphens!";
 
@@ -61,10 +71,10 @@ final class InstallationPathsPropertyTest {
 
   @BeforeProperty
   void createManager() throws IOException {
-    this.root = Files.createTempDirectory("mcav-installer-paths");
-    this.folder = this.root.resolve("installed");
-    final Path emptyRepository = this.root.resolve("remote");
-    this.localRepository = this.root.resolve("local");
+    this.root = Files.createTempDirectory(TEMPORARY_PREFIX);
+    this.folder = this.root.resolve(INSTALLED_FOLDER);
+    final Path emptyRepository = this.root.resolve(REMOTE_FOLDER);
+    this.localRepository = this.root.resolve(LOCAL_FOLDER);
     Files.createDirectories(this.folder);
     Files.createDirectories(emptyRepository);
     final URI remoteUri = emptyRepository.toUri();
@@ -72,11 +82,7 @@ final class InstallationPathsPropertyTest {
     final RemoteRepository remote = InstallationManager.createRepository("empty", remoteUrl);
     final List<RemoteRepository> repositories = List.of(remote);
     this.manager = new InstallationManager(this.folder, repositories, this.localRepository);
-    this.completeTree = new InstallationTreeAssertions(
-      this.root.resolve("complete-tree.zip"),
-      repositories,
-      this.root.resolve("complete-local")
-    );
+    this.completeTree = new InstallationTreeAssertions(this.root.resolve(TREE_ARCHIVE), repositories, this.root.resolve(TREE_LOCAL_FOLDER));
   }
 
   @AfterProperty
@@ -166,7 +172,7 @@ final class InstallationPathsPropertyTest {
     @ForAll("coordinates") final String artifactId,
     @ForAll("coordinates") final String fileName
   ) {
-    final Path target = this.folder.resolve("artifact");
+    final Path target = this.folder.resolve(ARTIFACT_FOLDER);
     final Path destination;
     try {
       destination = InstallationManager.destinationOf(target, groupId, artifactId, fileName);

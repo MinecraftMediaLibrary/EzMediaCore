@@ -33,6 +33,8 @@ import org.junit.jupiter.api.Test;
  */
 final class ArtifactTest {
 
+  private static final String COPY_FAILURE_MESSAGE = "Jars cannot be copied!";
+
   @Test
   void shouldListEveryModuleWithItsArtifactId() {
     final Artifact[] values = Artifact.values();
@@ -66,26 +68,26 @@ final class ArtifactTest {
 
   @Test
   void shouldKeepTheMessageOfInstallationExceptions() {
-    final InstallationException exception = new InstallationException("Jars cannot be copied!");
+    final InstallationException exception = new InstallationException(COPY_FAILURE_MESSAGE);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Jars cannot be copied!", message);
+    assertEquals(COPY_FAILURE_MESSAGE, message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCauseOfInstallationExceptions() {
     final IOException copyFailure = new IOException("Disk is full!");
-    final InstallationException exception = new InstallationException("Jars cannot be copied!", copyFailure);
+    final InstallationException exception = new InstallationException(COPY_FAILURE_MESSAGE, copyFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Jars cannot be copied!", message);
+    assertEquals(COPY_FAILURE_MESSAGE, message);
     assertSame(copyFailure, cause);
   }
 
   @Test
   void shouldMakeInstallationExceptionsRuntimeExceptions() {
-    final InstallationException exception = new InstallationException("Jars cannot be copied!");
+    final InstallationException exception = new InstallationException(COPY_FAILURE_MESSAGE);
     assertInstanceOf(RuntimeException.class, exception, "a failed installation is recoverable, so it is no Error");
   }
 

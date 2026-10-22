@@ -30,6 +30,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 final class ReflectiveInjector extends UrlClassLoaderInjector {
 
+  private static final String ADD_URL_METHOD = "addURL";
+
   /**
    * The {@code addURL} method of {@link URLClassLoader}, or null if {@code java.net} is not opened to this module.
    */
@@ -63,7 +65,7 @@ final class ReflectiveInjector extends UrlClassLoaderInjector {
     try {
       final MethodHandles.Lookup privateLookup = MethodHandles.privateLookupIn(URLClassLoader.class, lookup);
       final MethodType type = MethodType.methodType(void.class, URL.class);
-      return privateLookup.findVirtual(URLClassLoader.class, "addURL", type);
+      return privateLookup.findVirtual(URLClassLoader.class, ADD_URL_METHOD, type);
     } catch (final IllegalAccessException | NoSuchMethodException | RuntimeException exception) {
       return null;
     }

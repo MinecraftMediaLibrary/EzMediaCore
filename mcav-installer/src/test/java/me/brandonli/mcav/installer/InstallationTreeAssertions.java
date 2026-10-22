@@ -36,6 +36,11 @@ import org.eclipse.aether.repository.RemoteRepository;
 /** Checks installation writes in a filesystem whose entire root is observable. */
 final class InstallationTreeAssertions implements AutoCloseable {
 
+  private static final String ROOT = "/";
+  private static final String INSTALLED_FOLDER = "workspace/installed";
+  private static final String SENTINEL_FILE = "boundary-sentinel";
+  private static final String EXISTING_FILE = "existing.txt";
+
   private final FileSystem filesystem;
   private final InstallationManager manager;
   private final Path root;
@@ -43,10 +48,10 @@ final class InstallationTreeAssertions implements AutoCloseable {
 
   InstallationTreeAssertions(final Path archive, final List<RemoteRepository> repositories, final Path localRepository) throws IOException {
     this.filesystem = FileSystems.newFileSystem(archive, Map.of("create", "true"));
-    this.root = this.filesystem.getPath("/");
-    this.installed = Files.createDirectories(this.root.resolve("workspace/installed"));
-    Files.write(this.root.resolve("boundary-sentinel"), new byte[] { 11, 22, 33, 44 });
-    Files.write(this.installed.getParent().resolve("existing.txt"), new byte[] { 55, 66 });
+    this.root = this.filesystem.getPath(ROOT);
+    this.installed = Files.createDirectories(this.root.resolve(INSTALLED_FOLDER));
+    Files.write(this.root.resolve(SENTINEL_FILE), new byte[] { 11, 22, 33, 44 });
+    Files.write(this.installed.getParent().resolve(EXISTING_FILE), new byte[] { 55, 66 });
     this.manager = new InstallationManager(this.installed, repositories, localRepository);
   }
 

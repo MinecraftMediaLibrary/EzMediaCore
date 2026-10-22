@@ -30,14 +30,16 @@ import org.junit.jupiter.api.io.TempDir;
  */
 final class IoUtilsTest {
 
+  private static final String JAR_NAME = "library-1.0.jar";
+
   @TempDir
   private Path directory;
 
   @Test
   void shouldGetTheFileNameOfAPath() {
-    final Path file = this.directory.resolve("library-1.0.jar");
+    final Path file = this.directory.resolve(JAR_NAME);
     final String name = IoUtils.getFileName(file);
-    assertEquals("library-1.0.jar", name);
+    assertEquals(JAR_NAME, name);
   }
 
   @Test

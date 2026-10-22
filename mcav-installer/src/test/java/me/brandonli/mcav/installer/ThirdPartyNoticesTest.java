@@ -40,8 +40,19 @@ import org.junit.jupiter.api.Test;
  */
 final class ThirdPartyNoticesTest {
 
+  private static final String INSTALLER_JAR_PROPERTY = "mcav.installer.jar";
+
+  private static final String NOTICE_FILE = "META-INF/NOTICE";
+  private static final String THIRD_PARTY_NOTICES_FILE = "META-INF/THIRD-PARTY-NOTICES.md";
+  private static final String ASM_LICENSE_FILE = "META-INF/LICENSE-ASM";
+  private static final String POM_PROPERTIES_SUFFIX = "/pom.properties";
+
+  private static final String GSON_CLASS = "com/google/gson/Gson.class";
+  private static final String ASM_CLASS_READER_CLASS = "org/objectweb/asm/ClassReader.class";
+  private static final String RELOCATED_PREFIX = "me/brandonli/mcav/libs/";
+
   private static ZipFile builtJar() throws IOException {
-    final String path = System.getProperty("mcav.installer.jar");
+    final String path = System.getProperty(INSTALLER_JAR_PROPERTY);
     assertNotNull(path, "the build passes the jar it built");
     return new ZipFile(path);
   }
@@ -57,7 +68,7 @@ final class ThirdPartyNoticesTest {
   @Test
   void shouldKeepTheNoticesOfTheBundledApacheComponents() throws IOException {
     try (final ZipFile jar = builtJar()) {
-      final String notice = read(jar, "META-INF/NOTICE");
+      final String notice = read(jar, NOTICE_FILE);
       for (final String component : List.of("Apache HttpCore", "Apache Commons Codec", "Maven Artifact Resolver API", "Maven Model")) {
         final boolean kept = notice.contains(component);
         assertTrue(kept, component + " in " + notice);
@@ -68,12 +79,12 @@ final class ThirdPartyNoticesTest {
   @Test
   void shouldNameEveryBundledComponentInItsThirdPartyNotices() throws IOException {
     try (final ZipFile jar = builtJar()) {
-      final String notices = read(jar, "META-INF/THIRD-PARTY-NOTICES.md");
+      final String notices = read(jar, THIRD_PARTY_NOTICES_FILE);
       final List<String> unnamed = new ArrayList<>();
       final List<String> bundled = jar
         .stream()
         .map(ZipEntry::getName)
-        .filter(name -> name.endsWith("/pom.properties"))
+        .filter(name -> name.endsWith(POM_PROPERTIES_SUFFIX))
         .toList();
       for (final String name : bundled) {
         final Properties component = new Properties();
@@ -94,14 +105,14 @@ final class ThirdPartyNoticesTest {
   @Test
   void shouldIsolateBundledLibrariesFromTheHostClassPath() throws IOException {
     try (final ZipFile jar = builtJar()) {
-      final List<String> classes = List.of("com/google/gson/Gson.class", "org/objectweb/asm/ClassReader.class");
+      final List<String> classes = List.of(GSON_CLASS, ASM_CLASS_READER_CLASS);
       final List<String> unrelocated = classes
         .stream()
         .filter(name -> jar.getEntry(name) != null)
         .toList();
       assertEquals(List.of(), unrelocated, "bundled libraries must not use host namespaces");
       for (final String name : classes) {
-        final ZipEntry privateCopy = jar.getEntry("me/brandonli/mcav/libs/" + name);
+        final ZipEntry privateCopy = jar.getEntry(RELOCATED_PREFIX + name);
         assertNotNull(privateCopy, "the private copy is still bundled: " + name);
       }
     }
@@ -110,10 +121,10 @@ final class ThirdPartyNoticesTest {
   @Test
   void shouldKeepTheBundledAsmCopyrightAndLicense() throws IOException, NoSuchAlgorithmException {
     try (final ZipFile jar = builtJar()) {
-      final String notices = read(jar, "META-INF/THIRD-PARTY-NOTICES.md");
+      final String notices = read(jar, THIRD_PARTY_NOTICES_FILE);
       final boolean asmNamed = notices.contains("| org.ow2.asm:asm | BSD-3-Clause |");
       assertTrue(asmNamed, "the bundled ASM component must be named in the notices");
-      final String license = read(jar, "META-INF/LICENSE-ASM");
+      final String license = read(jar, ASM_LICENSE_FILE);
       final byte[] bytes = license.getBytes(StandardCharsets.UTF_8);
       final byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
       final String actual = HexFormat.of().formatHex(digest);

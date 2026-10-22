@@ -35,6 +35,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 final class UnsafeInjector extends UrlClassLoaderInjector {
 
   private static final String UNSAFE_CLASS = "sun.misc.Unsafe";
+
+  private static final String CLASS_PATH_FIELD = "ucp";
+  private static final String UNOPENED_URLS_FIELD = "unopenedUrls";
+  private static final String PATH_FIELD = "path";
+
   /**
    * The Unsafe access of this runtime, or null if {@code sun.misc.Unsafe} is not usable.
    */
@@ -54,10 +59,10 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
    */
   UnsafeInjector(final URLClassLoader classLoader, final UnsafeAccess unsafe) {
     super(classLoader);
-    final Object classPath = unsafe.readField(URLClassLoader.class, classLoader, "ucp");
+    final Object classPath = unsafe.readField(URLClassLoader.class, classLoader, CLASS_PATH_FIELD);
     final Class<?> classPathType = classPath.getClass();
-    this.unopenedUrls = readCollection(unsafe, classPathType, classPath, "unopenedUrls");
-    this.path = readCollection(unsafe, classPathType, classPath, "path");
+    this.unopenedUrls = readCollection(unsafe, classPathType, classPath, UNOPENED_URLS_FIELD);
+    this.path = readCollection(unsafe, classPathType, classPath, PATH_FIELD);
     this.unopenedUrlsSink = unsafe.createSink(this.unopenedUrls);
     this.pathSink = unsafe.createSink(this.path);
   }
@@ -116,6 +121,12 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
    */
   static final class UnsafeAccess {
 
+    private static final String INSTANCE_FIELD = "theUnsafe";
+
+    private static final String OBJECT_FIELD_OFFSET_METHOD = "objectFieldOffset";
+    private static final String GET_OBJECT_METHOD = "getObject";
+    private static final String ADD_METHOD = "add";
+
     private final MethodHandle objectFieldOffset;
     private final MethodHandle getObject;
     private final MethodHandle collectionAdd;
@@ -135,7 +146,7 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
     static @Nullable UnsafeAccess find(final String className) {
       try {
         final Class<?> unsafeType = Class.forName(className);
-        final Field instanceField = unsafeType.getDeclaredField("theUnsafe");
+        final Field instanceField = unsafeType.getDeclaredField(INSTANCE_FIELD);
         instanceField.setAccessible(true);
         final Object instance = instanceField.get(null);
         if (instance == null) {
@@ -150,11 +161,11 @@ final class UnsafeInjector extends UrlClassLoaderInjector {
     private static UnsafeAccess bind(final Class<?> unsafeType, final Object instance) throws ReflectiveOperationException {
       final MethodHandles.Lookup lookup = MethodHandles.lookup();
       final MethodType offsetType = MethodType.methodType(long.class, Field.class);
-      final MethodHandle offset = lookup.findVirtual(unsafeType, "objectFieldOffset", offsetType);
+      final MethodHandle offset = lookup.findVirtual(unsafeType, OBJECT_FIELD_OFFSET_METHOD, offsetType);
       final MethodType getObjectType = MethodType.methodType(Object.class, Object.class, long.class);
-      final MethodHandle getObject = lookup.findVirtual(unsafeType, "getObject", getObjectType);
+      final MethodHandle getObject = lookup.findVirtual(unsafeType, GET_OBJECT_METHOD, getObjectType);
       final MethodType addType = MethodType.methodType(boolean.class, Object.class);
-      final MethodHandle add = lookup.findVirtual(Collection.class, "add", addType);
+      final MethodHandle add = lookup.findVirtual(Collection.class, ADD_METHOD, addType);
 
       final MethodHandle boundOffset = offset.bindTo(instance);
       final MethodHandle boundGetObject = getObject.bindTo(instance);

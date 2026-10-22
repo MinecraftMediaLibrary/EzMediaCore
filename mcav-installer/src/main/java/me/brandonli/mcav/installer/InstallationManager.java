@@ -36,6 +36,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
@@ -81,13 +82,39 @@ final class InstallationManager implements AutoCloseable {
    */
   static final List<String> OBSOLETE_FILE_NAMES = List.of("hash.properties", "hashes.properties");
 
+  private static final String COMPILE_SCOPE = "compile";
   private static final String RUNTIME_SCOPE = "runtime";
-  private static final List<String> CLASSPATH_SCOPES = List.of("compile", "runtime");
+  private static final List<String> CLASSPATH_SCOPES = List.of(COMPILE_SCOPE, RUNTIME_SCOPE);
   private static final List<String> EXCLUDED_SCOPES = List.of();
+
+  private static final String JAR_EXTENSION = "jar";
   private static final String PART_SUFFIX = ".part";
+
   private static final Pattern ARTIFACT_ID = Pattern.compile("(?!\\.{1,2}$)[A-Za-z0-9_.-]+");
+
+  private static final String CENTRAL_ID = "central";
+  private static final String CENTRAL_URL = "https://repo.maven.apache.org/maven2/";
+  private static final String SNAPSHOTS_ID = "brandonli-snapshots";
+  private static final String SNAPSHOTS_URL = "https://repo.brandonli.me/snapshots/";
+  private static final String PAPER_ID = "papermc";
+  private static final String PAPER_URL = "https://repo.papermc.io/repository/maven-public/";
+  private static final String GOOGLE_ID = "google";
+  private static final String GOOGLE_URL = "https://maven.google.com/";
+  private static final String CODEMC_ID = "codemc-releases";
+  private static final String CODEMC_URL = "https://repo.codemc.io/repository/maven-releases/";
+  private static final String REPOSITORY_LAYOUT = "default";
+
+  private static final String USER_HOME_PROPERTY = "user.home";
+  private static final String MAVEN_FOLDER = ".m2";
+  private static final String LOCAL_REPOSITORY_FOLDER = "repository";
+
+  private static final String CONNECT_TIMEOUT_KEY = "aether.connector.connectTimeout";
+  private static final String REQUEST_TIMEOUT_KEY = "aether.connector.requestTimeout";
   private static final int CONNECT_TIMEOUT_MILLISECONDS = 30_000;
   private static final int REQUEST_TIMEOUT_MILLISECONDS = 120_000;
+
+  private static final String COPY_THREAD_NAME = "mcav-installer";
+  private static final int MINIMUM_COPY_THREADS = 1;
   private static final int MAXIMUM_COPY_THREADS = 8;
   private static final long SHUTDOWN_TIMEOUT_MILLISECONDS = 10_000;
 
@@ -125,7 +152,7 @@ final class InstallationManager implements AutoCloseable {
 
     final Runtime runtime = Runtime.getRuntime();
     final int processors = runtime.availableProcessors();
-    final int threads = Math.clamp(processors, 1, MAXIMUM_COPY_THREADS);
+    final int threads = Math.clamp(processors, MINIMUM_COPY_THREADS, MAXIMUM_COPY_THREADS);
     this.executor = Executors.newFixedThreadPool(threads, InstallationManager::createCopyThread);
   }
 
@@ -136,23 +163,24 @@ final class InstallationManager implements AutoCloseable {
    * @return the unstarted thread, named {@code mcav-installer}
    */
   static Thread createCopyThread(final Runnable runnable) {
-    final Thread thread = new Thread(runnable, "mcav-installer");
+    final Thread thread = new Thread(runnable, COPY_THREAD_NAME);
     thread.setDaemon(true);
     return thread;
   }
 
   private static List<RemoteRepository> createDefaultRepositories() {
-    final RemoteRepository central = createRepository("central", "https://repo.maven.apache.org/maven2/");
-    final RemoteRepository snapshots = createRepository("brandonli-snapshots", "https://repo.brandonli.me/snapshots/");
-    final RemoteRepository paper = createRepository("papermc", "https://repo.papermc.io/repository/maven-public/");
-    final RemoteRepository google = createRepository("google", "https://maven.google.com/");
-    final RemoteRepository codemc = createRepository("codemc-releases", "https://repo.codemc.io/repository/maven-releases/");
+    final RemoteRepository central = createRepository(CENTRAL_ID, CENTRAL_URL);
+    final RemoteRepository snapshots = createRepository(SNAPSHOTS_ID, SNAPSHOTS_URL);
+    final RemoteRepository paper = createRepository(PAPER_ID, PAPER_URL);
+    final RemoteRepository google = createRepository(GOOGLE_ID, GOOGLE_URL);
+    final RemoteRepository codemc = createRepository(CODEMC_ID, CODEMC_URL);
     return List.of(central, snapshots, paper, google, codemc);
   }
 
   private static Path defaultLocalRepository() {
-    final String home = System.getProperty("user.home");
-    return Path.of(home, ".m2", "repository");
+    final @Nullable String userHome = System.getProperty(USER_HOME_PROPERTY);
+    final String home = Objects.requireNonNull(userHome); // checker framework
+    return Path.of(home, MAVEN_FOLDER, LOCAL_REPOSITORY_FOLDER);
   }
 
   /**
@@ -164,7 +192,7 @@ final class InstallationManager implements AutoCloseable {
    * @return the repository
    */
   static RemoteRepository createRepository(final String id, final String url) {
-    final RemoteRepository.Builder builder = new RemoteRepository.Builder(id, "default", url);
+    final RemoteRepository.Builder builder = new RemoteRepository.Builder(id, REPOSITORY_LAYOUT, url);
     final RepositoryPolicy policy = new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_DAILY, RepositoryPolicy.CHECKSUM_POLICY_FAIL);
     builder.setPolicy(policy);
     return builder.build();
@@ -175,8 +203,8 @@ final class InstallationManager implements AutoCloseable {
     final Map<String, String> configurationProperties = new HashMap<>();
     final String connectTimeout = String.valueOf(CONNECT_TIMEOUT_MILLISECONDS);
     final String requestTimeout = String.valueOf(REQUEST_TIMEOUT_MILLISECONDS);
-    configurationProperties.put("aether.connector.connectTimeout", connectTimeout);
-    configurationProperties.put("aether.connector.requestTimeout", requestTimeout);
+    configurationProperties.put(CONNECT_TIMEOUT_KEY, connectTimeout);
+    configurationProperties.put(REQUEST_TIMEOUT_KEY, requestTimeout);
 
     final SessionBuilderSupplier builderSupplier = new SessionBuilderSupplier(system);
     final RepositorySystemSession.SessionBuilder builder = builderSupplier.get();
@@ -254,7 +282,7 @@ final class InstallationManager implements AutoCloseable {
   }
 
   private DependencyRequest createRequest(final String groupId, final String artifactId, final String version) {
-    final DefaultArtifact root = new DefaultArtifact(groupId, artifactId, "jar", version);
+    final DefaultArtifact root = new DefaultArtifact(groupId, artifactId, JAR_EXTENSION, version);
     final Dependency dependency = new Dependency(root, RUNTIME_SCOPE);
     final CollectRequest collect = new CollectRequest();
     collect.setRoot(dependency);

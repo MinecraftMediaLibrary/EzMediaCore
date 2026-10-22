@@ -67,15 +67,68 @@ import org.mockito.MockedConstruction;
  */
 final class InstallationManagerTest {
 
+  private static final String APPLICATION = "app";
+  private static final String COMPILE_DEPENDENCY = "compile-dep";
+  private static final String RUNTIME_DEPENDENCY = "runtime-dep";
+  private static final String TEST_DEPENDENCY = "test-dep";
+  private static final String PROVIDED_DEPENDENCY = "provided-dep";
+  private static final String TRANSITIVE = "transitive";
+  private static final String OPTIONAL_TRANSITIVE = "optional-transitive";
+  private static final String NATIVES = "natives";
+  private static final String PLATFORM = "platform";
+
+  private static final String OTHER_GROUP = "other.group";
+  private static final String LINUX_CLASSIFIER = "linux-x86_64";
+  private static final String WINDOWS_CLASSIFIER = "windows-x86_64";
+
+  private static final String COMPILE_SCOPE = "compile";
+  private static final String RUNTIME_SCOPE = "runtime";
+  private static final String TEST_SCOPE = "test";
+  private static final String PROVIDED_SCOPE = "provided";
+
+  private static final String TEST_REPOSITORY_ID = "test";
+
+  private static final String REMOTE_FOLDER = "remote";
+  private static final String LOCAL_FOLDER = "local";
+  private static final String DEPENDENCIES_FOLDER = "dependencies";
+  private static final String TARGET_FOLDER = "target";
+  private static final String ESCAPE_FOLDER = "escape";
+  private static final String ELSEWHERE_FOLDER = "elsewhere";
+  private static final String PARENT_FOLDER = "..";
+
+  private static final String CONTENT_FILE = "content.txt";
+  private static final String HASH_FILE = "hash.properties";
+  private static final String HASHES_FILE = "hashes.properties";
+  private static final String FIRST_JAR = "first.jar";
+  private static final String SECOND_JAR = "second.jar";
+  private static final String ESCAPE_JAR = "escape.jar";
+  private static final String PARENT_ESCAPE_JAR = "../../../escape.jar";
+
+  private static final String APPLICATION_JAR = "me.test/app/app-1.0.jar";
+  private static final String COMPILE_DEPENDENCY_JAR = "me.test/compile-dep/compile-dep-1.0.jar";
+  private static final String RUNTIME_DEPENDENCY_JAR = "me.test/runtime-dep/runtime-dep-1.0.jar";
+  private static final String TRANSITIVE_JAR = "me.test/transitive/transitive-1.0.jar";
+  private static final String PLATFORM_JAR = "me.test/platform/platform-1.0.jar";
+  private static final String NATIVES_JAR = "me.test/natives/natives-1.0.jar";
+  private static final String LINUX_NATIVES_JAR = "me.test/natives/natives-1.0-linux-x86_64.jar";
+  private static final String WINDOWS_NATIVES_JAR = "me.test/natives/natives-1.0-windows-x86_64.jar";
+  private static final String OTHER_GROUP_NATIVES_JAR = "other.group/natives/natives-1.0.jar";
+  private static final String JAVACPP_JAR = "javacpp-1.5.14-linux-x86_64.jar";
+  private static final String JAVACPP_DESTINATION = "org.bytedeco/javacpp/javacpp-1.5.14-linux-x86_64.jar";
+
+  private static final String PATH_SEPARATOR = "/";
+  private static final String VERSION_SEPARATOR = "-";
+  private static final String JAR_EXTENSION = ".jar";
+
   private static final String GROUP = "me.test";
   private static final String VERSION = "1.0";
   private static final List<String> NO_DEPENDENCIES = List.of();
   private static final List<String> LEAF_ARTIFACTS = List.of(
-    "runtime-dep",
-    "test-dep",
-    "provided-dep",
-    "transitive",
-    "optional-transitive"
+    RUNTIME_DEPENDENCY,
+    TEST_DEPENDENCY,
+    PROVIDED_DEPENDENCY,
+    TRANSITIVE,
+    OPTIONAL_TRANSITIVE
   );
 
   @TempDir
@@ -87,10 +140,10 @@ final class InstallationManagerTest {
 
   @BeforeEach
   void publishTheArtifacts() throws IOException {
-    final Path remote = this.directory.resolve("remote");
+    final Path remote = this.directory.resolve(REMOTE_FOLDER);
     this.repository = new LocalMavenRepository(remote);
-    this.localRepository = this.directory.resolve("local");
-    this.folder = this.directory.resolve("dependencies");
+    this.localRepository = this.directory.resolve(LOCAL_FOLDER);
+    this.folder = this.directory.resolve(DEPENDENCIES_FOLDER);
     Files.createDirectories(this.folder);
 
     this.publishApp();
@@ -101,19 +154,19 @@ final class InstallationManagerTest {
   }
 
   private void publishApp() throws IOException {
-    final String compileDependency = LocalMavenRepository.dependency(GROUP, "compile-dep", VERSION, "compile", false);
-    final String runtimeDependency = LocalMavenRepository.dependency(GROUP, "runtime-dep", VERSION, "runtime", false);
-    final String testDependency = LocalMavenRepository.dependency(GROUP, "test-dep", VERSION, "test", false);
-    final String providedDependency = LocalMavenRepository.dependency(GROUP, "provided-dep", VERSION, "provided", false);
+    final String compileDependency = LocalMavenRepository.dependency(GROUP, COMPILE_DEPENDENCY, VERSION, COMPILE_SCOPE, false);
+    final String runtimeDependency = LocalMavenRepository.dependency(GROUP, RUNTIME_DEPENDENCY, VERSION, RUNTIME_SCOPE, false);
+    final String testDependency = LocalMavenRepository.dependency(GROUP, TEST_DEPENDENCY, VERSION, TEST_SCOPE, false);
+    final String providedDependency = LocalMavenRepository.dependency(GROUP, PROVIDED_DEPENDENCY, VERSION, PROVIDED_SCOPE, false);
     final List<String> dependencies = List.of(compileDependency, runtimeDependency, testDependency, providedDependency);
-    this.repository.publish(GROUP, "app", VERSION, dependencies);
+    this.repository.publish(GROUP, APPLICATION, VERSION, dependencies);
   }
 
   private void publishCompileDependency() throws IOException {
-    final String transitive = LocalMavenRepository.dependency(GROUP, "transitive", VERSION, "compile", false);
-    final String optionalTransitive = LocalMavenRepository.dependency(GROUP, "optional-transitive", VERSION, "compile", true);
+    final String transitive = LocalMavenRepository.dependency(GROUP, TRANSITIVE, VERSION, COMPILE_SCOPE, false);
+    final String optionalTransitive = LocalMavenRepository.dependency(GROUP, OPTIONAL_TRANSITIVE, VERSION, COMPILE_SCOPE, true);
     final List<String> dependencies = List.of(transitive, optionalTransitive);
-    this.repository.publish(GROUP, "compile-dep", VERSION, dependencies);
+    this.repository.publish(GROUP, COMPILE_DEPENDENCY, VERSION, dependencies);
   }
 
   /**
@@ -124,38 +177,38 @@ final class InstallationManagerTest {
    * @throws IOException if the files cannot be written
    */
   private Map<String, Path> publishPlatform() throws IOException {
-    final Path natives = this.repository.publish(GROUP, "natives", VERSION, NO_DEPENDENCIES);
-    final Path linux = this.repository.publishClassified(GROUP, "natives", VERSION, "linux-x86_64");
-    final Path windows = this.repository.publishClassified(GROUP, "natives", VERSION, "windows-x86_64");
-    final Path otherGroup = this.repository.publish("other.group", "natives", VERSION, NO_DEPENDENCIES);
+    final Path natives = this.repository.publish(GROUP, NATIVES, VERSION, NO_DEPENDENCIES);
+    final Path linux = this.repository.publishClassified(GROUP, NATIVES, VERSION, LINUX_CLASSIFIER);
+    final Path windows = this.repository.publishClassified(GROUP, NATIVES, VERSION, WINDOWS_CLASSIFIER);
+    final Path otherGroup = this.repository.publish(OTHER_GROUP, NATIVES, VERSION, NO_DEPENDENCIES);
     final List<String> dependencies = platformDependencies();
-    final Path platform = this.repository.publish(GROUP, "platform", VERSION, dependencies);
+    final Path platform = this.repository.publish(GROUP, PLATFORM, VERSION, dependencies);
 
     return Map.of(
-      "me.test/platform/platform-1.0.jar",
+      PLATFORM_JAR,
       platform,
-      "me.test/natives/natives-1.0.jar",
+      NATIVES_JAR,
       natives,
-      "me.test/natives/natives-1.0-linux-x86_64.jar",
+      LINUX_NATIVES_JAR,
       linux,
-      "me.test/natives/natives-1.0-windows-x86_64.jar",
+      WINDOWS_NATIVES_JAR,
       windows,
-      "other.group/natives/natives-1.0.jar",
+      OTHER_GROUP_NATIVES_JAR,
       otherGroup
     );
   }
 
   private static List<String> platformDependencies() {
-    final String nativesDependency = LocalMavenRepository.dependency(GROUP, "natives", VERSION, "compile", false);
-    final String linuxDependency = LocalMavenRepository.classifiedDependency(GROUP, "natives", VERSION, "linux-x86_64");
-    final String windowsDependency = LocalMavenRepository.classifiedDependency(GROUP, "natives", VERSION, "windows-x86_64");
-    final String otherGroupDependency = LocalMavenRepository.dependency("other.group", "natives", VERSION, "compile", false);
+    final String nativesDependency = LocalMavenRepository.dependency(GROUP, NATIVES, VERSION, COMPILE_SCOPE, false);
+    final String linuxDependency = LocalMavenRepository.classifiedDependency(GROUP, NATIVES, VERSION, LINUX_CLASSIFIER);
+    final String windowsDependency = LocalMavenRepository.classifiedDependency(GROUP, NATIVES, VERSION, WINDOWS_CLASSIFIER);
+    final String otherGroupDependency = LocalMavenRepository.dependency(OTHER_GROUP, NATIVES, VERSION, COMPILE_SCOPE, false);
     return List.of(nativesDependency, linuxDependency, windowsDependency, otherGroupDependency);
   }
 
   private InstallationManager createManager() {
     final String url = this.repository.getUrl();
-    final RemoteRepository remote = InstallationManager.createRepository("test", url);
+    final RemoteRepository remote = InstallationManager.createRepository(TEST_REPOSITORY_ID, url);
     final List<RemoteRepository> repositories = List.of(remote);
     return new InstallationManager(this.folder, repositories, this.localRepository);
   }
@@ -177,25 +230,36 @@ final class InstallationManagerTest {
       final long count = entries.count();
       assertEquals(0, count, "invalid coordinates must not create an installation tree");
     }
-    final Path escaped = this.directory.resolve("escape");
+    final Path escaped = this.directory.resolve(ESCAPE_FOLDER);
     final boolean escapedExists = Files.exists(escaped);
     assertFalse(escapedExists);
   }
 
   private Path publishedJar(final String artifactId) {
     final Path versionDirectory = this.repository.directoryOf(GROUP, artifactId, VERSION);
-    return versionDirectory.resolve(artifactId + "-" + VERSION + ".jar");
+    return versionDirectory.resolve(artifactId + VERSION_SEPARATOR + VERSION + JAR_EXTENSION);
   }
 
   private Path publishedJarOf(final Path copiedJar) {
     final Path fileName = copiedJar.getFileName();
     final String name = fileName.toString();
-    final String artifactId = name.replace("-" + VERSION + ".jar", "");
+    final String artifactId = name.replace(VERSION_SEPARATOR + VERSION + JAR_EXTENSION, "");
     return this.publishedJar(artifactId);
   }
 
   private Path copiedJar(final String installed, final String artifactId) {
-    return this.folder.resolve(installed + "/" + GROUP + "/" + artifactId + "/" + artifactId + "-" + VERSION + ".jar");
+    return this.folder.resolve(
+      installed +
+        PATH_SEPARATOR +
+        GROUP +
+        PATH_SEPARATOR +
+        artifactId +
+        PATH_SEPARATOR +
+        artifactId +
+        VERSION_SEPARATOR +
+        VERSION +
+        JAR_EXTENSION
+    );
   }
 
   private static List<Path> regularFilesIn(final Path root) throws IOException {
@@ -286,7 +350,7 @@ final class InstallationManagerTest {
 
   @Test
   void shouldFailOnBadChecksumsAndCheckForUpdatesDailyInEveryRepository() {
-    final RemoteRepository created = InstallationManager.createRepository("test", "file:///repository/");
+    final RemoteRepository created = InstallationManager.createRepository(TEST_REPOSITORY_ID, "file:///repository/");
     final List<RemoteRepository> repositories = new ArrayList<>(InstallationManager.REPOSITORIES);
     repositories.add(created);
     for (final RemoteRepository remote : repositories) {
@@ -299,15 +363,15 @@ final class InstallationManagerTest {
 
   @Test
   void shouldReturnTheSameJarsWhenTheyAreAlreadyUpToDate() {
-    final List<Path> first = this.download("app");
-    final List<Path> second = this.download("app");
+    final List<Path> first = this.download(APPLICATION);
+    final List<Path> second = this.download(APPLICATION);
     assertEquals(first, second, "jars that are already up to date are returned like freshly copied ones");
   }
 
   @Test
   void shouldStopItsCopyThreadsWhenClosed() {
     final InstallationManager manager = this.createManager();
-    manager.downloadDependencies(GROUP, "app", VERSION);
+    manager.downloadDependencies(GROUP, APPLICATION, VERSION);
     final boolean stoppedBeforeClose = manager.isStopped();
     manager.close();
     final boolean stoppedAfterClose = manager.isStopped();
@@ -374,21 +438,16 @@ final class InstallationManagerTest {
 
   @Test
   void shouldCopyTheArtifactWithItsCompileAndRuntimeDependenciesOnly() throws IOException {
-    final List<Path> jars = this.download("app");
-    final Path target = this.folder.resolve("app");
+    final List<Path> jars = this.download(APPLICATION);
+    final Path target = this.folder.resolve(APPLICATION);
     final List<String> names = relativeNames(target, jars);
     final Set<String> nameSet = Set.copyOf(names);
-    final Set<String> expected = Set.of(
-      "me.test/app/app-1.0.jar",
-      "me.test/compile-dep/compile-dep-1.0.jar",
-      "me.test/runtime-dep/runtime-dep-1.0.jar",
-      "me.test/transitive/transitive-1.0.jar"
-    );
+    final Set<String> expected = Set.of(APPLICATION_JAR, COMPILE_DEPENDENCY_JAR, RUNTIME_DEPENDENCY_JAR, TRANSITIVE_JAR);
     final int count = names.size();
     final String first = names.getFirst();
     assertEquals(4, count);
     assertEquals(expected, nameSet);
-    assertEquals("me.test/app/app-1.0.jar", first);
+    assertEquals(APPLICATION_JAR, first);
 
     for (final Path jar : jars) {
       final Path source = this.publishedJarOf(jar);
@@ -404,8 +463,8 @@ final class InstallationManagerTest {
   void shouldCopyClassifierJarsAndEqualArtifactIdsOfOtherGroupsToSeparateFiles() throws IOException {
     final Map<String, Path> expectedSources = this.publishPlatform();
 
-    final List<Path> jars = this.download("platform");
-    final Path target = this.folder.resolve("platform");
+    final List<Path> jars = this.download(PLATFORM);
+    final Path target = this.folder.resolve(PLATFORM);
     final Set<Path> distinct = Set.copyOf(jars);
     final int count = jars.size();
     final int distinctCount = distinct.size();
@@ -430,10 +489,10 @@ final class InstallationManagerTest {
 
   @Test
   void shouldRecopyChangedJarsAndKeepUpToDateOnes() throws IOException {
-    this.download("app");
-    final Path tampered = this.copiedJar("app", "app");
-    final Path untouched = this.copiedJar("app", "compile-dep");
-    final Path source = this.publishedJar("app");
+    this.download(APPLICATION);
+    final Path tampered = this.copiedJar(APPLICATION, APPLICATION);
+    final Path untouched = this.copiedJar(APPLICATION, COMPILE_DEPENDENCY);
+    final Path source = this.publishedJar(APPLICATION);
     final long sourceSize = Files.size(source);
     final byte[] sameSize = new byte[(int) sourceSize];
     Files.write(tampered, sameSize);
@@ -442,7 +501,7 @@ final class InstallationManagerTest {
     Files.setLastModifiedTime(untouched, pastTime);
     Files.setLastModifiedTime(tampered, pastTime);
 
-    this.download("app");
+    this.download(APPLICATION);
     assertSameContent(source, tampered, "a jar with the same size but other content is copied again");
     final FileTime untouchedTime = Files.getLastModifiedTime(untouched);
     final FileTime restoredTime = Files.getLastModifiedTime(tampered);
@@ -452,7 +511,7 @@ final class InstallationManagerTest {
 
   @Test
   void shouldDeleteTheChecksumFilesOfEarlierVersions() throws IOException {
-    final List<String> expectedNames = List.of("hash.properties", "hashes.properties");
+    final List<String> expectedNames = List.of(HASH_FILE, HASHES_FILE);
     final List<String> obsoleteNames = InstallationManager.OBSOLETE_FILE_NAMES;
     assertEquals(expectedNames, obsoleteNames);
     for (final String name : expectedNames) {
@@ -460,8 +519,8 @@ final class InstallationManagerTest {
       Files.writeString(file, "me.test\\:app\\:1.0=\\uZZZZ\n");
     }
 
-    final List<Path> jars = this.download("runtime-dep");
-    final Path expected = this.copiedJar("runtime-dep", "runtime-dep");
+    final List<Path> jars = this.download(RUNTIME_DEPENDENCY);
+    final Path expected = this.copiedJar(RUNTIME_DEPENDENCY, RUNTIME_DEPENDENCY);
     final List<Path> expectedJars = List.of(expected);
     assertEquals(expectedJars, jars);
     for (final String name : expectedNames) {
@@ -473,13 +532,13 @@ final class InstallationManagerTest {
 
   @Test
   void shouldInstallEvenWhenAnObsoleteFileCannotBeDeleted() throws IOException {
-    final Path blocked = this.folder.resolve("hash.properties");
+    final Path blocked = this.folder.resolve(HASH_FILE);
     Files.createDirectories(blocked);
-    final Path content = blocked.resolve("content.txt");
+    final Path content = blocked.resolve(CONTENT_FILE);
     Files.writeString(content, "keeps the directory from being deleted");
 
-    final List<Path> jars = this.download("runtime-dep");
-    final Path expected = this.copiedJar("runtime-dep", "runtime-dep");
+    final List<Path> jars = this.download(RUNTIME_DEPENDENCY);
+    final Path expected = this.copiedJar(RUNTIME_DEPENDENCY, RUNTIME_DEPENDENCY);
     final List<Path> expectedJars = List.of(expected);
     final boolean stillThere = Files.isDirectory(blocked);
     assertEquals(expectedJars, jars);
@@ -488,27 +547,27 @@ final class InstallationManagerTest {
 
   @Test
   void shouldRejectDownloadsWhoseChecksumDoesNotMatch() throws IOException {
-    final Path jar = this.publishedJar("runtime-dep");
+    final Path jar = this.publishedJar(RUNTIME_DEPENDENCY);
     final Path checksum = LocalMavenRepository.checksumFileOf(jar);
     Files.writeString(checksum, "0000000000000000000000000000000000000000");
 
-    final InstallationException error = assertThrows(InstallationException.class, () -> this.download("runtime-dep"));
+    final InstallationException error = assertThrows(InstallationException.class, () -> this.download(RUNTIME_DEPENDENCY));
     final String message = error.getMessage();
     final boolean checksumFailure = hasChecksumFailure(error);
     assertEquals("Artifact me.test:runtime-dep:1.0 could not be resolved!", message);
     assertTrue(checksumFailure, "the checksum mismatch fails the download instead of only warning");
 
-    final Path copied = this.copiedJar("runtime-dep", "runtime-dep");
+    final Path copied = this.copiedJar(RUNTIME_DEPENDENCY, RUNTIME_DEPENDENCY);
     final boolean exists = Files.exists(copied);
     assertFalse(exists);
   }
 
   @Test
   void shouldRejectDownloadsWithoutAChecksum() throws IOException {
-    final Path jar = this.publishedJar("runtime-dep");
+    final Path jar = this.publishedJar(RUNTIME_DEPENDENCY);
     final Path checksum = LocalMavenRepository.checksumFileOf(jar);
     Files.delete(checksum);
-    final InstallationException error = assertThrows(InstallationException.class, () -> this.download("runtime-dep"));
+    final InstallationException error = assertThrows(InstallationException.class, () -> this.download(RUNTIME_DEPENDENCY));
     final boolean checksumFailure = hasChecksumFailure(error);
     assertTrue(checksumFailure);
   }
@@ -524,9 +583,9 @@ final class InstallationManagerTest {
 
   @Test
   void shouldReportATargetFolderThatIsAFile() throws IOException {
-    final Path target = this.folder.resolve("app");
+    final Path target = this.folder.resolve(APPLICATION);
     Files.writeString(target, "in the way");
-    final InstallationException error = assertThrows(InstallationException.class, () -> this.download("app"));
+    final InstallationException error = assertThrows(InstallationException.class, () -> this.download(APPLICATION));
     final String message = error.getMessage();
     final Throwable cause = error.getCause();
     assertEquals("Dependencies of app could not be copied!", message);
@@ -535,12 +594,12 @@ final class InstallationManagerTest {
 
   @Test
   void shouldReportJarsThatCannotBeMovedIntoPlace() throws IOException {
-    final Path blocked = this.copiedJar("runtime-dep", "runtime-dep");
+    final Path blocked = this.copiedJar(RUNTIME_DEPENDENCY, RUNTIME_DEPENDENCY);
     Files.createDirectories(blocked);
-    final Path content = blocked.resolve("content.txt");
+    final Path content = blocked.resolve(CONTENT_FILE);
     Files.writeString(content, "keeps the directory from being replaced");
 
-    final InstallationException error = assertThrows(InstallationException.class, () -> this.download("runtime-dep"));
+    final InstallationException error = assertThrows(InstallationException.class, () -> this.download(RUNTIME_DEPENDENCY));
     final String message = error.getMessage();
     final Throwable cause = error.getCause();
     assertEquals("Dependencies of runtime-dep could not be copied!", message);
@@ -549,22 +608,22 @@ final class InstallationManagerTest {
 
   @Test
   void shouldPlaceEveryJarInTheFolderOfItsGroupAndArtifact() throws IOException {
-    final Path target = this.directory.resolve("target");
-    final Path destination = InstallationManager.destinationOf(target, "org.bytedeco", "javacpp", "javacpp-1.5.14-linux-x86_64.jar");
-    final Path expected = target.resolve("org.bytedeco/javacpp/javacpp-1.5.14-linux-x86_64.jar");
+    final Path target = this.directory.resolve(TARGET_FOLDER);
+    final Path destination = InstallationManager.destinationOf(target, "org.bytedeco", "javacpp", JAVACPP_JAR);
+    final Path expected = target.resolve(JAVACPP_DESTINATION);
     assertEquals(expected, destination);
   }
 
   @Test
   void shouldRefuseCoordinatesThatWouldLeaveTheTargetFolder() {
-    final Path target = this.directory.resolve("target");
-    final Path absolute = this.directory.resolve("elsewhere");
+    final Path target = this.directory.resolve(TARGET_FOLDER);
+    final Path absolute = this.directory.resolve(ELSEWHERE_FOLDER);
     final String absoluteGroup = absolute.toString();
-    assertThrows(IOException.class, () -> InstallationManager.destinationOf(target, "..", "..", "escape.jar"));
-    assertThrows(IOException.class, () -> InstallationManager.destinationOf(target, "group", "artifact", "../../../escape.jar"));
+    assertThrows(IOException.class, () -> InstallationManager.destinationOf(target, PARENT_FOLDER, PARENT_FOLDER, ESCAPE_JAR));
+    assertThrows(IOException.class, () -> InstallationManager.destinationOf(target, "group", "artifact", PARENT_ESCAPE_JAR));
 
     final IOException exception = assertThrows(IOException.class, () ->
-      InstallationManager.destinationOf(target, absoluteGroup, "artifact", "escape.jar")
+      InstallationManager.destinationOf(target, absoluteGroup, "artifact", ESCAPE_JAR)
     );
     final String message = exception.getMessage();
     final String expected = "Jar %s:artifact (escape.jar) would land outside %s when copied!".formatted(absoluteGroup, target);
@@ -579,7 +638,7 @@ final class InstallationManagerTest {
   @ParameterizedTest
   @CsvSource({ "'', '', ''", "., ., .", "group, artifact, ..", "group, artifact, ''", "group, artifact, nested/inner.jar" })
   void shouldRefuseCoordinatesThatWouldNotPutTheJarUnderItsOwnName(final String groupId, final String artifactId, final String fileName) {
-    final Path target = this.directory.resolve("target");
+    final Path target = this.directory.resolve(TARGET_FOLDER);
     final Path root = this.directory.getRoot();
 
     assertThrows(IOException.class, () -> InstallationManager.destinationOf(target, groupId, artifactId, fileName));
@@ -588,8 +647,8 @@ final class InstallationManagerTest {
 
   @Test
   void shouldAwaitCopiesInTaskOrder() throws IOException {
-    final Path first = this.directory.resolve("first.jar");
-    final Path second = this.directory.resolve("second.jar");
+    final Path first = this.directory.resolve(FIRST_JAR);
+    final Path second = this.directory.resolve(SECOND_JAR);
     final CompletableFuture<Path> firstFuture = CompletableFuture.completedFuture(first);
     final CompletableFuture<Path> secondFuture = CompletableFuture.completedFuture(second);
     final List<Future<Path>> futures = List.of(firstFuture, secondFuture);

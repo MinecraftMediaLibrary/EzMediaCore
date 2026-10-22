@@ -44,6 +44,9 @@ import org.junit.jupiter.api.io.TempDir;
  */
 final class UrlClassLoaderInjectorTest {
 
+  private static final String LIBRARY_JAR = "library.jar";
+  private static final String LIBRARY_CONTENT = "library";
+
   private static final String RESOURCE = "library.txt";
 
   @TempDir
@@ -63,8 +66,8 @@ final class UrlClassLoaderInjectorTest {
   }
 
   private URL writeJar() throws IOException {
-    final Path jar = this.directory.resolve("library.jar");
-    LocalMavenRepository.writeJar(jar, RESOURCE, "library");
+    final Path jar = this.directory.resolve(LIBRARY_JAR);
+    LocalMavenRepository.writeJar(jar, RESOURCE, LIBRARY_CONTENT);
     final URI uri = jar.toUri();
     return uri.toURL();
   }
@@ -134,7 +137,7 @@ final class UrlClassLoaderInjectorTest {
       final URL[] expected = { jar };
       assertArrayEquals(expected, urls);
       final String content = readResource(loader);
-      assertEquals("library", content);
+      assertEquals(LIBRARY_CONTENT, content);
     }
   }
 

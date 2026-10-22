@@ -46,6 +46,13 @@ import org.junit.jupiter.api.io.TempDir;
  */
 final class UnsafeInjectorTest {
 
+  private static final String TEXT_FIELD = "text";
+  private static final String URLS_FIELD = "urls";
+  private static final String ABSENT_FIELD = "absent";
+
+  private static final String LIBRARY_JAR = "library.jar";
+  private static final String LIBRARY_CONTENT = "library";
+
   private static final String RESOURCE = "library.txt";
 
   @TempDir
@@ -87,8 +94,8 @@ final class UnsafeInjectorTest {
     long objectFieldOffset(final Field field) {
       final String name = field.getName();
       return switch (name) {
-        case "text" -> FATAL_OFFSET;
-        case "urls" -> LINKAGE_OFFSET;
+        case TEXT_FIELD -> FATAL_OFFSET;
+        case URLS_FIELD -> LINKAGE_OFFSET;
         default -> READABLE_OFFSET;
       };
     }
@@ -124,8 +131,8 @@ final class UnsafeInjectorTest {
   }
 
   private URL writeJar() throws IOException {
-    final Path jar = this.directory.resolve("library.jar");
-    LocalMavenRepository.writeJar(jar, RESOURCE, "library");
+    final Path jar = this.directory.resolve(LIBRARY_JAR);
+    LocalMavenRepository.writeJar(jar, RESOURCE, LIBRARY_CONTENT);
     final URI uri = jar.toUri();
     return uri.toURL();
   }
@@ -151,7 +158,7 @@ final class UnsafeInjectorTest {
       final URL[] expected = { jar };
       assertArrayEquals(expected, urls, "a jar is only added once");
       final String content = readResource(loader);
-      assertEquals("library", content);
+      assertEquals(LIBRARY_CONTENT, content);
       final URLClassLoader target = injector.getClassLoader();
       assertSame(loader, target);
     }
@@ -178,7 +185,7 @@ final class UnsafeInjectorTest {
   void shouldReadInstanceFieldsRegardlessOfAccess() {
     final UnsafeInjector.UnsafeAccess unsafe = unsafe();
     final Holder holder = new Holder();
-    final Object text = unsafe.readField(Holder.class, holder, "text");
+    final Object text = unsafe.readField(Holder.class, holder, TEXT_FIELD);
     assertSame(holder.text, text);
   }
 
@@ -191,7 +198,9 @@ final class UnsafeInjectorTest {
     assertNotNull(Holder.SHARED, "the static field holds a value that must still not be read");
 
     final JarInjectorException missing = assertThrows(JarInjectorException.class, () -> unsafe.readField(Holder.class, holder, "missing"));
-    final JarInjectorException absent = assertThrows(JarInjectorException.class, () -> unsafe.readField(Holder.class, holder, "absent"));
+    final JarInjectorException absent = assertThrows(JarInjectorException.class, () ->
+      unsafe.readField(Holder.class, holder, ABSENT_FIELD)
+    );
     final JarInjectorException shared = assertThrows(JarInjectorException.class, () -> unsafe.readField(Holder.class, holder, "SHARED"));
     final String missingMessage = missing.getMessage();
     final Throwable missingCause = missing.getCause();
@@ -212,11 +221,11 @@ final class UnsafeInjectorTest {
   void shouldReadOnlyCollectionFieldsAsCollections() {
     final UnsafeInjector.UnsafeAccess unsafe = unsafe();
     final Holder holder = new Holder();
-    final Collection<?> urls = UnsafeInjector.readCollection(unsafe, Holder.class, holder, "urls");
+    final Collection<?> urls = UnsafeInjector.readCollection(unsafe, Holder.class, holder, URLS_FIELD);
     assertSame(holder.urls, urls);
 
     final JarInjectorException exception = assertThrows(JarInjectorException.class, () ->
-      UnsafeInjector.readCollection(unsafe, Holder.class, holder, "text")
+      UnsafeInjector.readCollection(unsafe, Holder.class, holder, TEXT_FIELD)
     );
     final String message = exception.getMessage();
     final String typeName = Holder.class.getName();
@@ -228,9 +237,9 @@ final class UnsafeInjectorTest {
   void shouldHaveALookAlikeWhoseReadsFail() throws NoSuchFieldException {
     final UnsafeWithFailingReads lookAlike = UnsafeWithFailingReads.theUnsafe;
     final Holder holder = new Holder();
-    final Field textField = Holder.class.getDeclaredField("text");
-    final Field urlsField = Holder.class.getDeclaredField("urls");
-    final Field absentField = Holder.class.getDeclaredField("absent");
+    final Field textField = Holder.class.getDeclaredField(TEXT_FIELD);
+    final Field urlsField = Holder.class.getDeclaredField(URLS_FIELD);
+    final Field absentField = Holder.class.getDeclaredField(ABSENT_FIELD);
     final long textOffset = lookAlike.objectFieldOffset(textField);
     final long urlsOffset = lookAlike.objectFieldOffset(urlsField);
     final long absentOffset = lookAlike.objectFieldOffset(absentField);
@@ -249,8 +258,10 @@ final class UnsafeInjectorTest {
     assertNotNull(failing, "the look-alike has an instance and both Unsafe methods");
     final Holder holder = new Holder();
 
-    final InternalError fatal = assertThrows(InternalError.class, () -> failing.readField(Holder.class, holder, "text"));
-    final JarInjectorException linkage = assertThrows(JarInjectorException.class, () -> failing.readField(Holder.class, holder, "urls"));
+    final InternalError fatal = assertThrows(InternalError.class, () -> failing.readField(Holder.class, holder, TEXT_FIELD));
+    final JarInjectorException linkage = assertThrows(JarInjectorException.class, () ->
+      failing.readField(Holder.class, holder, URLS_FIELD)
+    );
     final String fatalMessage = fatal.getMessage();
     final String linkageMessage = linkage.getMessage();
     final Throwable linkageCause = linkage.getCause();

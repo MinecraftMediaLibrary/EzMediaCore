@@ -49,6 +49,16 @@ import org.mockito.Mockito;
  */
 final class LoaderUtilsTest {
 
+  private static final String FIRST_JAR = "first.jar";
+  private static final String FIRST_RESOURCE = "first.txt";
+  private static final String FIRST_CONTENT = "first";
+
+  private static final String SECOND_JAR = "second.jar";
+  private static final String SECOND_RESOURCE = "second.txt";
+  private static final String SECOND_CONTENT = "second";
+
+  private static final String LIBRARY_JAR = "library.jar";
+
   private static final String KNOT = "net.fabricmc.loader.impl.launch.knot.KnotClassLoader";
 
   @TempDir
@@ -93,10 +103,10 @@ final class LoaderUtilsTest {
 
   @BeforeEach
   void writeTheJars() throws IOException {
-    this.firstJar = this.directory.resolve("first.jar");
-    this.secondJar = this.directory.resolve("second.jar");
-    LocalMavenRepository.writeJar(this.firstJar, "first.txt", "first");
-    LocalMavenRepository.writeJar(this.secondJar, "second.txt", "second");
+    this.firstJar = this.directory.resolve(FIRST_JAR);
+    this.secondJar = this.directory.resolve(SECOND_JAR);
+    LocalMavenRepository.writeJar(this.firstJar, FIRST_RESOURCE, FIRST_CONTENT);
+    LocalMavenRepository.writeJar(this.secondJar, SECOND_RESOURCE, SECOND_CONTENT);
   }
 
   private static String readResource(final URLClassLoader loader, final String name) throws IOException {
@@ -119,10 +129,10 @@ final class LoaderUtilsTest {
     final URL[] expected = { firstUrl, secondUrl };
     assertArrayEquals(expected, urls);
 
-    final String first = readResource(loader, "first.txt");
-    final String second = readResource(loader, "second.txt");
-    assertEquals("first", first);
-    assertEquals("second", second);
+    final String first = readResource(loader, FIRST_RESOURCE);
+    final String second = readResource(loader, SECOND_RESOURCE);
+    assertEquals(FIRST_CONTENT, first);
+    assertEquals(SECOND_CONTENT, second);
   }
 
   /**
@@ -237,7 +247,7 @@ final class LoaderUtilsTest {
     Mockito.when(jar.toAbsolutePath()).thenReturn(absolute);
     Mockito.when(absolute.normalize()).thenReturn(absolute);
     Mockito.when(absolute.toUri()).thenReturn(unknownScheme);
-    Mockito.when(jar.toString()).thenReturn("library.jar");
+    Mockito.when(jar.toString()).thenReturn(LIBRARY_JAR);
     final List<Path> jars = List.of(jar);
 
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {

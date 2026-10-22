@@ -46,6 +46,16 @@ import org.junit.jupiter.api.Tag;
 @Tag("fuzz")
 final class InstallationPathsFuzzTest {
 
+  private static final String TEMPORARY_PREFIX = "mcav-installer-fuzz";
+
+  private static final String INSTALLED_FOLDER = "installed";
+  private static final String REMOTE_FOLDER = "remote";
+  private static final String LOCAL_FOLDER = "local";
+  private static final String ARTIFACT_FOLDER = "artifact";
+
+  private static final String TREE_ARCHIVE = "complete-tree.zip";
+  private static final String TREE_LOCAL_FOLDER = "complete-local";
+
   private static final Workspace WORKSPACE = new Workspace();
 
   @FuzzTest(maxDuration = "30s")
@@ -85,7 +95,7 @@ final class InstallationPathsFuzzTest {
   }
 
   private static void assertJarDestination(final String groupId, final String artifact, final String fileName) {
-    final Path target = WORKSPACE.folder.resolve("artifact");
+    final Path target = WORKSPACE.folder.resolve(ARTIFACT_FOLDER);
     final Path destination;
     try {
       destination = InstallationManager.destinationOf(target, groupId, artifact, fileName);
@@ -116,10 +126,10 @@ final class InstallationPathsFuzzTest {
 
     Workspace() {
       try {
-        this.root = Files.createTempDirectory("mcav-installer-fuzz");
-        this.folder = this.root.resolve("installed");
-        this.localRepository = this.root.resolve("local");
-        final Path remote = this.root.resolve("remote");
+        this.root = Files.createTempDirectory(TEMPORARY_PREFIX);
+        this.folder = this.root.resolve(INSTALLED_FOLDER);
+        this.localRepository = this.root.resolve(LOCAL_FOLDER);
+        final Path remote = this.root.resolve(REMOTE_FOLDER);
         Files.createDirectories(this.folder);
         Files.createDirectories(remote);
         final URI remoteUri = remote.toUri();
@@ -128,9 +138,9 @@ final class InstallationPathsFuzzTest {
         final List<RemoteRepository> repositories = List.of(repository);
         this.manager = new InstallationManager(this.folder, repositories, this.localRepository);
         this.completeTree = new InstallationTreeAssertions(
-          this.root.resolve("complete-tree.zip"),
+          this.root.resolve(TREE_ARCHIVE),
           repositories,
-          this.root.resolve("complete-local")
+          this.root.resolve(TREE_LOCAL_FOLDER)
         );
       } catch (final IOException exception) {
         throw new UncheckedIOException(exception);
