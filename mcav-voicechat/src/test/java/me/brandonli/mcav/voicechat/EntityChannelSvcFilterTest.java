@@ -60,9 +60,9 @@ import org.mockito.stubbing.Stubber;
 import org.mockito.verification.VerificationMode;
 
 /**
- * Tests {@link SvcFilterImpl} and the {@link SvcFilter} factories.
+ * Tests {@link EntityChannelSvcFilter} and the {@link SvcFilter} factories.
  */
-final class SvcFilterImplTest {
+final class EntityChannelSvcFilterTest {
 
   private static final int FRAME_SAMPLES = 960;
   private static final int MAXIMUM_FRAMES = 25;
@@ -285,7 +285,7 @@ final class SvcFilterImplTest {
   @Test
   void shouldCreateOneSpeakerPerEntityWithTheDefaultDistance() {
     final SvcFilter filter = SvcFilter.svc("alice", "bob");
-    assertInstanceOf(SvcFilterImpl.class, filter);
+    assertInstanceOf(EntityChannelSvcFilter.class, filter);
     filter.start();
 
     final List<Object> expectedEntities = List.of("alice", "bob");

@@ -46,7 +46,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * stopping. When {@link #start()} fails part way, every speaker it created is stopped again, so the filter stays
  * stopped and can simply be started again.
  */
-public final class SvcFilterImpl implements SvcFilter {
+public final class EntityChannelSvcFilter implements SvcFilter {
 
   /**
    * The number of mono samples in one 20 millisecond frame at 48 kHz.
@@ -71,7 +71,7 @@ public final class SvcFilterImpl implements SvcFilter {
    * @param entities the platform entities the audio comes from; the array is copied
    * @throws IllegalStateException if the voice chat API was not injected into {@link SvcModule}
    */
-  SvcFilterImpl(final float distance, final Object[] entities) {
+  EntityChannelSvcFilter(final float distance, final Object[] entities) {
     SvcModule.requireVoiceChatApi();
     this.distance = distance;
     this.entities = entities.clone();

@@ -83,7 +83,7 @@ public interface SvcFilter extends FunctionalAudioFilter {
       Preconditions.checkNotNull(entity, "Entities must not contain null!");
     }
 
-    return new SvcFilterImpl(distance, entities);
+    return new EntityChannelSvcFilter(distance, entities);
   }
 
   /**
