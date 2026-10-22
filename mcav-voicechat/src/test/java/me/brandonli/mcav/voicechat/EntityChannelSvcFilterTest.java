@@ -45,7 +45,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -682,7 +681,7 @@ final class EntityChannelSvcFilterTest {
   void shouldStopTheCreatedSpeakersWhenVoiceChatRefusesAChannel() {
     this.refusedEntity = BOB;
     final SvcFilter filter = SvcFilter.svc(ALICE, BOB);
-    final PlayerException exception = assertThrows(PlayerException.class, filter::start);
+    final SvcException exception = assertThrows(SvcException.class, filter::start);
     final String message = exception.getMessage();
     assertEquals("Entity bob was refused an audio channel by Simple Voice Chat!", message);
 

@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import me.brandonli.mcav.utils.ThrowableUtils;
 import me.brandonli.mcav.utils.audio.MonoDownmixer;
@@ -86,7 +85,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
    * the failure is rethrown, so the filter stays stopped.
    *
    * @throws IllegalStateException if the voice chat API was removed from {@link SvcModule} after creation
-   * @throws PlayerException       if voice chat refuses to create an audio channel for an entity
+   * @throws SvcException          if voice chat refuses to create an audio channel for an entity
    */
   @Override
   public synchronized void start() {
@@ -121,7 +120,7 @@ public final class EntityChannelSvcFilter implements SvcFilter {
     final EntityAudioChannel channel = api.createEntityAudioChannel(channelId, entity);
     if (channel == null) {
       final String message = "Entity %s was refused an audio channel by Simple Voice Chat!".formatted(platformEntity);
-      throw new PlayerException(message);
+      throw new SvcException(message);
     }
 
     channel.setDistance(this.distance);

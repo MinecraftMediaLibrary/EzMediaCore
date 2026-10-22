@@ -92,9 +92,9 @@ instead of delaying the others, and a speaker without audio plays silence instea
 `getQueuedFrames()` returns the number of frames waiting for the slowest speaker. The samples are passed on to the next
 step unchanged, and a filter that is not started simply ignores them.
 
-If `start()` fails part way, for example because Simple Voice Chat refuses to create an audio channel for one of the
-entities, it releases every speaker, encoder, and audio player it had already created before throwing. The filter
-stays stopped and can simply be started again.
+If `start()` fails part way, for example with an `SvcException` because Simple Voice Chat refuses to create an audio
+channel for one of the entities, it releases every speaker, encoder, and audio player it had already created before
+throwing. The filter stays stopped and can simply be started again.
 
 ## Mono Downmixing
 
