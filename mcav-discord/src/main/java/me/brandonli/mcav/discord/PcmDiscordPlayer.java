@@ -39,38 +39,29 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * and cut into 20 millisecond frames of {@value #FRAME_BYTES} bytes, which are queued until JDA asks for them.
  * The player sends PCM, so it keeps the {@link #isOpus()} of {@link net.dv8tion.jda.api.audio.AudioSendHandler},
  * which returns false.
+ *
+ * <p>This class is thread-safe: queue operations are synchronized, so pipeline producers and JDA's sending thread
+ * may call it concurrently.
+ *
+ * @since 1.0.0
  */
 public final class PcmDiscordPlayer implements DiscordPlayer {
 
   private static final int FRAME_MILLISECONDS = 20;
   private static final int MILLISECONDS_PER_SECOND = 1000;
 
-  /**
-   * The size of one 20 millisecond frame of 48 kHz 16-bit stereo audio in bytes.
-   */
   static final int FRAME_BYTES = (AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE * FRAME_MILLISECONDS) / MILLISECONDS_PER_SECOND;
 
   private static final int MAXIMUM_QUEUED_FRAMES = 150;
 
-  /**
-   * The activity shown for media without a title.
-   */
   private static final String UNKNOWN_TITLE = "Unknown title";
 
-  /**
-   * The character that ends a title cut to the length limit of Discord.
-   */
   private static final String ELLIPSIS = "…";
 
   private final JDA jda;
   private final Deque<ByteBuffer> frames;
   private final ByteBuffer partial;
 
-  /**
-   * Creates a player for a bot.
-   *
-   * @param jda the logged-in bot whose presence shows the current title
-   */
   PcmDiscordPlayer(final JDA jda) {
     this.jda = jda;
     this.frames = new ArrayDeque<>(MAXIMUM_QUEUED_FRAMES);
@@ -86,6 +77,7 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
    * @param metadata the metadata of the original audio
    * @return always false, because the samples are only read out into frames and never changed
    * @throws NullPointerException if {@code samples} or {@code metadata} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
@@ -105,11 +97,6 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
     return false;
   }
 
-  /**
-   * Moves as many bytes into the partial frame as it has room for, and queues the frame once it is full.
-   *
-   * @param bigEndian the converted samples; its position advances by the number of bytes moved
-   */
   private void fillPartialFrame(final ByteBuffer bigEndian) {
     final int wanted = this.partial.remaining();
     final int available = bigEndian.remaining();
@@ -144,6 +131,7 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
    *
    * @return true if a complete frame is queued at the time of this call; a concurrent flush or consumer
    *         can remove it before {@link #provide20MsAudio()}
+   * @since 1.0.0
    */
   @Override
   public boolean canProvide() {
@@ -157,6 +145,7 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
    *
    * @return a big-endian PCM frame of {@value #FRAME_BYTES} bytes with position zero, owned by the caller,
    *         or null if nothing is queued; the player does not reuse or change a returned buffer
+   * @since 1.0.0
    */
   @Override
   public @Nullable ByteBuffer provide20MsAudio() {
@@ -167,6 +156,8 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
 
   /**
    * Drops every queued frame and the samples that did not fill a frame yet.
+   *
+   * @since 1.0.0
    */
   @Override
   public void flush() {
@@ -182,6 +173,7 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
    *
    * @param dump the media information from yt-dlp
    * @throws NullPointerException if {@code dump} is null
+   * @since 1.0.0
    */
   @Override
   public void setCurrentMedia(final UrlParseDump dump) {
@@ -198,6 +190,7 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
    *
    * @param title the title
    * @throws NullPointerException if {@code title} is null
+   * @since 1.0.0
    */
   @Override
   public void setPlaying(final String title) {
@@ -214,15 +207,6 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
     presence.setActivity(activity);
   }
 
-  /**
-   * Turns a title into a name Discord accepts for an activity: surrounding whitespace and control characters up to
-   * U+001F are removed, a missing title or one left blank becomes {@value #UNKNOWN_TITLE}, and a title longer than
-   * {@link Activity#MAX_ACTIVITY_NAME_LENGTH} characters is cut and ends with an ellipsis, without splitting a
-   * character outside the Basic Multilingual Plane such as an emoji.
-   *
-   * @param title the title, or null if unknown
-   * @return the activity name, at most {@link Activity#MAX_ACTIVITY_NAME_LENGTH} characters long
-   */
   private String toActivityName(final @Nullable String title) {
     if (title == null) {
       return UNKNOWN_TITLE;
@@ -257,6 +241,7 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
    * counted.
    *
    * @return the queued duration in milliseconds, from 0 to 3000 in multiples of 20
+   * @since 1.0.0
    */
   @Override
   public long getQueuedMilliseconds() {

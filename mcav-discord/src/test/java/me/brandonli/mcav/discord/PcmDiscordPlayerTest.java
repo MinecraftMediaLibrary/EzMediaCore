@@ -52,9 +52,6 @@ import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.mockito.verification.VerificationMode;
 
-/**
- * Tests {@link PcmDiscordPlayer} and the {@link DiscordPlayer} factory.
- */
 final class PcmDiscordPlayerTest {
 
   private static final int FRAME_BYTES = 3840;
@@ -188,12 +185,6 @@ final class PcmDiscordPlayerTest {
     return activity.getName();
   }
 
-  /**
-   * Captures every activity shown so far.
-   *
-   * @param mode how often the activity must have been set
-   * @return the shown activities, oldest first
-   */
   private List<Activity> shownActivities(final VerificationMode mode) {
     final ArgumentCaptor<Activity> captor = ArgumentCaptor.forClass(Activity.class);
     final Presence verified = Mockito.verify(this.presence, mode);
@@ -322,9 +313,6 @@ final class PcmDiscordPlayerTest {
     return buffer.order(ByteOrder.BIG_ENDIAN);
   }
 
-  /**
-   * Asserts that a frame holds one value up to a split index and another value from there on.
-   */
   private void assertFrameHolds(final ByteBuffer frame, final byte before, final int split, final byte after) {
     assertNotNull(frame);
 
@@ -447,9 +435,6 @@ final class PcmDiscordPlayerTest {
     }
   }
 
-  /**
-   * Lets several threads apply frames at the same time, each frame filled with the index of its thread.
-   */
   private void produceConcurrently() throws Exception {
     final CountDownLatch start = new CountDownLatch(1);
     try (final ExecutorService executor = Executors.newFixedThreadPool(PRODUCERS)) {

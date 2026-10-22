@@ -34,22 +34,12 @@ import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
-/**
- * Plays the audio of a file into a voice channel. The bot token, guild id, voice channel id, and file path are
- * read from the {@code DISCORD_TOKEN}, {@code DISCORD_GUILD}, {@code DISCORD_CHANNEL}, and {@code MEDIA_FILE}
- * environment variables so that no secret ends up in the source.
- */
 public final class JdaAudioExample {
 
   private JdaAudioExample() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Logs the bot in, joins the voice channel, and plays the file until the JVM exits.
-   *
-   * @throws InterruptedException if interrupted while the bot logs in
-   */
   static void main() throws InterruptedException {
     final String token = getEnvironmentVariable("DISCORD_TOKEN");
     final String guildId = getEnvironmentVariable("DISCORD_GUILD");

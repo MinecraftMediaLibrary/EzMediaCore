@@ -32,21 +32,25 @@ import net.dv8tion.jda.api.audio.AudioSendHandler;
  * Discord, the oldest complete frames are dropped. The default player keeps at most three seconds of complete
  * frames and a partial frame, using 48 kHz signed 16-bit stereo PCM as required by {@link AudioFilter}.
  *
- * <p>The default player synchronizes queue operations, so pipeline producers and JDA's sending thread may run
- * concurrently. Do not change an input buffer while a filter call reads it. Queue queries are snapshots.
- * The caller owns the JDA instance and voice connection: detach the audio pipeline, {@link #flush()} the queue,
+ * <p>The caller owns the JDA instance and voice connection: detach the audio pipeline, {@link #flush()} the queue,
  * close the voice connection and shut down the bot when they are no longer needed. This player has no native
  * resources to close, and stopping {@link JdaModule} does not close the bot.
  *
- * <pre><code>
- *   final DiscordPlayer player = DiscordPlayer.voice(jda);
- *   final AudioManager audioManager = guild.getAudioManager();
- *   audioManager.setSendingHandler(player);
- *   audioManager.openAudioConnection(channel);
- *   final AudioAttachableCallback audio = videoPlayer.getAudioAttachableCallback();
- *   final AudioPipelineStep step = AudioPipelineStep.of(player);
- *   audio.attach(step);
- * </code></pre>
+ * {@snippet :
+ * final DiscordPlayer player = DiscordPlayer.voice(jda);
+ * final AudioManager audioManager = guild.getAudioManager();
+ * audioManager.setSendingHandler(player);
+ * audioManager.openAudioConnection(channel);
+ *
+ * final AudioPipelineStep step = AudioPipelineStep.of(player);
+ * final AudioAttachableCallback audio = videoPlayer.getAudioAttachableCallback();
+ * audio.attach(step);
+ * }
+ *
+ * <p>Implementations in this library are thread-safe: pipeline producers and JDA's sending thread may call a player
+ * concurrently, and queue queries are snapshots. Do not change an input buffer while a filter call reads it.
+ *
+ * @since 1.0.0
  */
 public interface DiscordPlayer extends AudioFilter, AudioSendHandler {
   /**
@@ -55,6 +59,7 @@ public interface DiscordPlayer extends AudioFilter, AudioSendHandler {
    * @param jda the non-null logged-in bot; ownership remains with the caller
    * @return a new player with an empty queue; it does not open a voice connection
    * @throws NullPointerException if {@code jda} is null
+   * @since 1.0.0
    */
   static DiscordPlayer voice(final JDA jda) {
     Preconditions.checkNotNull(jda, "JDA must not be null!");
@@ -68,6 +73,7 @@ public interface DiscordPlayer extends AudioFilter, AudioSendHandler {
    *
    * @param dump the non-null media information from yt-dlp; its title may be null
    * @throws NullPointerException if {@code dump} is null
+   * @since 1.0.0
    */
   void setCurrentMedia(final UrlParseDump dump);
 
@@ -79,12 +85,15 @@ public interface DiscordPlayer extends AudioFilter, AudioSendHandler {
    *
    * @param title the non-null title; a title left blank shows "Unknown title"
    * @throws NullPointerException if {@code title} is null
+   * @since 1.0.0
    */
   void setPlaying(final String title);
 
   /**
    * Drops every queued sample and any incomplete frame, for example after seeking or stopping the source.
    * Producers can enqueue new audio immediately after this call.
+   *
+   * @since 1.0.0
    */
   void flush();
 
@@ -93,6 +102,7 @@ public interface DiscordPlayer extends AudioFilter, AudioSendHandler {
    *
    * @return the duration of complete frames in milliseconds, from 0 to 3000 in multiples of 20;
    *         the incomplete frame is not counted
+   * @since 1.0.0
    */
   long getQueuedMilliseconds();
 }
