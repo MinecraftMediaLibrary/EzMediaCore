@@ -2039,61 +2039,92 @@ def shader_check_main():
     print(context.info[GL_RENDERER_KEY])
     failures = 0
     for stream in arguments.streams:
-        chain = None
-        last_id = None
-        shown = None
-        decoded = skipped = wrong = 0
-        for index, frame in enumerate(read_archive(stream)):
-            width, height = struct.unpack_from(DIMENSIONS_FORMAT, frame, WIDTH_OFFSET)
-            frame_id, reference_id = struct.unpack_from(FRAME_IDS_FORMAT, frame, FRAME_ID_OFFSET)
-            keyframe = frame_id == reference_id
-            if chain is None:
-                chain = ShaderChain(context, width, height, arguments.slots)
-                if arguments.spirv:
-                    chain.compiled = shader_check_compile_via_spirv(chain.includes, arguments.spirv)
-            if arguments.drop and index % arguments.drop == arguments.drop - 1:
-                continue
-            pages = make_pages(frame, SHADER_CHECK_STREAM_ID, SYMBOL_BITS)
-            # Mcv2Channel.send refuses a frame with more pages than slots, so the client never receives it.
-            delta = None if last_id is None else (frame_id - last_id) & ID_MASK
-            newer = delta is None or (delta > 0 and (keyframe or delta < ID_HALF_RANGE))
-            decodable = (
-                newer
-                and (keyframe or reference_id == last_id)
-                and ((width, height) == (chain.width, chain.height))
-                and (len(pages) <= arguments.slots)
-            )
-            chain.show(pages[: arguments.slots])
-            chain_decoded, picture = chain.frame()
-            if chain_decoded != decodable:
-                wrong += 1
-                print(
-                    "  frame %d: the chain %s it, the client model %s"
-                    % (index, "decoded" if chain_decoded else "skipped", "can" if decodable else "cannot")
-                )
-                continue
-            if chain_decoded:
-                decoded += 1
-                expected = decode(frame, None if keyframe else shown, last_id)
-                shown = expected
-                last_id = frame_id
-                if not numpy.array_equal(picture, expected):
-                    wrong += 1
-                    difference = numpy.abs(picture.astype(int) - expected.astype(int))
-                    print(
-                        "  frame %d differs: %d pixels, max %d"
-                        % (index, int((difference.max(axis=2) > 0).sum()), difference.max())
-                    )
-            else:
-                skipped += 1
-                if shown is not None and (not numpy.array_equal(picture, shown)):
-                    wrong += 1
-                    print("  frame %d was skipped but the picture changed" % index)
-        print("%s: %d frames decoded, %d skipped, %d wrong" % (Path(stream).name, decoded, skipped, wrong))
-        failures += wrong
+        failures += shader_check_stream(context, arguments, stream)
     if arguments.restart_check:
         failures += shader_check_check_restart(context, arguments.slots, arguments.spirv)
     sys.exit(FAILURE_EXIT_CODE if failures else SUCCESS_EXIT_CODE)
+
+
+def shader_check_stream(context, arguments, stream):
+    check = ShaderStreamCheck(context, arguments)
+    for index, frame in enumerate(read_archive(stream)):
+        check.check_frame(index, frame)
+    print("%s: %d frames decoded, %d skipped, %d wrong" % (Path(stream).name, check.decoded, check.skipped, check.wrong))
+
+    return check.wrong
+
+
+class ShaderStreamCheck:
+    def __init__(self, context, arguments):
+        self.context = context
+        self.arguments = arguments
+        self.chain = None
+        self.last_id = None
+        self.shown = None
+        self.decoded = 0
+        self.skipped = 0
+        self.wrong = 0
+
+    def check_frame(self, index, frame):
+        width, height = struct.unpack_from(DIMENSIONS_FORMAT, frame, WIDTH_OFFSET)
+        frame_id, reference_id = struct.unpack_from(FRAME_IDS_FORMAT, frame, FRAME_ID_OFFSET)
+        keyframe = frame_id == reference_id
+        if self.chain is None:
+            self.chain = self.create_chain(width, height)
+        if self.arguments.drop and index % self.arguments.drop == self.arguments.drop - 1:
+            return
+
+        pages = make_pages(frame, SHADER_CHECK_STREAM_ID, SYMBOL_BITS)
+        # Mcv2Channel.send refuses a frame with more pages than slots, so the client never receives it.
+        delta = None if self.last_id is None else (frame_id - self.last_id) & ID_MASK
+        newer = delta is None or (delta > 0 and (keyframe or delta < ID_HALF_RANGE))
+        decodable = (
+            newer
+            and (keyframe or reference_id == self.last_id)
+            and ((width, height) == (self.chain.width, self.chain.height))
+            and (len(pages) <= self.arguments.slots)
+        )
+        self.chain.show(pages[: self.arguments.slots])
+        chain_decoded, picture = self.chain.frame()
+        if chain_decoded != decodable:
+            self.wrong += 1
+            print(
+                "  frame %d: the chain %s it, the client model %s"
+                % (index, "decoded" if chain_decoded else "skipped", "can" if decodable else "cannot")
+            )
+            return
+
+        if not chain_decoded:
+            self.check_skipped(index, picture)
+            return
+
+        self.decoded += 1
+        expected = decode(frame, None if keyframe else self.shown, self.last_id)
+        self.shown = expected
+        self.last_id = frame_id
+        self.check_picture(index, picture, expected)
+
+    def create_chain(self, width, height):
+        chain = ShaderChain(self.context, width, height, self.arguments.slots)
+        if self.arguments.spirv:
+            chain.compiled = shader_check_compile_via_spirv(chain.includes, self.arguments.spirv)
+
+        return chain
+
+    def check_skipped(self, index, picture):
+        self.skipped += 1
+        if self.shown is not None and (not numpy.array_equal(picture, self.shown)):
+            self.wrong += 1
+            print("  frame %d was skipped but the picture changed" % index)
+
+    def check_picture(self, index, picture, expected):
+        if not numpy.array_equal(picture, expected):
+            self.wrong += 1
+            difference = numpy.abs(picture.astype(int) - expected.astype(int))
+            print(
+                "  frame %d differs: %d pixels, max %d"
+                % (index, int((difference.max(axis=2) > 0).sum()), difference.max())
+            )
 
 
 class ShaderChain:
@@ -2451,73 +2482,42 @@ def shader_timing_main():
     )
     failures = 0
     for stream in arguments.streams:
-        frames = list(read_archive(stream))
-        width, height = struct.unpack_from(DIMENSIONS_FORMAT, frames[0], WIDTH_OFFSET)
-        chain = TimedShaderChain(context, width, height, arguments.slots)
-        pages = [page_maker(frame, SHADER_CHECK_STREAM_ID, SYMBOL_BITS) for frame in frames]
-        keyframes = [
-            frame[FRAME_ID_OFFSET:REFERENCE_ID_OFFSET] == frame[REFERENCE_ID_OFFSET:HEADER_BYTES]
-            if frame[VERSION_OFFSET] == VERSION
-            else bool(frame[VERSION_2_FLAGS_OFFSET] & 1)
-            for frame in frames
-        ]
-        if arguments.spirv:
-            chain.compiled = shader_check_compile_via_spirv(chain.includes, arguments.spirv)
-        first_pictures = None
-        new_keyframes, new_predicted_frames, idle = ([], [], [])
-        mismatches = 0
-        for round_index in range(arguments.rounds):
-            chain.reset()
-            pictures = []
-            for index, page_list in enumerate(pages):
-                chain.show(page_list)
-                decoded, times = chain.timed_frame(arguments.repeats)
-                names = tuple(times)
-                times[TOTAL_TIMING_NAME] = sum(times[name] for name in names)
-                chain.show(page_list)
-                shown_again, again = chain.timed_frame(1)
-                again["total"] = sum(again[name] for name in names)
-                pictures.append(chain.target(PREVIOUS_TARGET).read())
-                if not decoded or shown_again:
-                    failures += 1
-                    print("  frame %d: decoded %s, decoded again %s" % (index, decoded, shown_again))
-                if round_index > 0:
-                    (new_keyframes if keyframes[index] else new_predicted_frames).append(times)
-                    idle.append(again)
-            if first_pictures is None:
-                first_pictures = pictures
-            else:
-                mismatches += sum(
-                    1 for first_picture, picture in zip(first_pictures, pictures) if first_picture != picture
-                )
-        result = dict(
-            width=width,
-            height=height,
-            frames=len(frames),
-            mismatches=mismatches,
-            new_keyframe=shader_timing_summarize(new_keyframes, names),
-            new_p=shader_timing_summarize(new_predicted_frames, names),
-            idle=shader_timing_summarize(idle, names),
-        )
+        result, stream_failures = shader_timing_stream(context, arguments, page_maker, stream)
         report["streams"][Path(stream).name] = result
-        failures += mismatches
-        print(
-            "%s (%dx%d, %d frames, %d rounds counted, %d picture mismatches between rounds)"
-            % (Path(stream).name, width, height, len(frames), arguments.rounds - 1, mismatches)
-        )
-        print(
-            "  %-24s %22s %22s %22s"
-            % ("pass (ms)", "new P frame mean/p95", "new keyframe mean/p95", "no new video mean/p95")
-        )
-        for name in names + (TOTAL_TIMING_NAME,):
-            cells = [result[kind][name] for kind in ("new_p", "new_keyframe", "idle")]
-            print(
-                "  %-24s %22s %22s %22s"
-                % (name, *("%9.3f / %9.3f" % (cell["mean"], cell["p95"]) for cell in cells))
-            )
+        failures += stream_failures
     if arguments.json:
         arguments.json.write_text(json.dumps(report, indent=REPORT_INDENT))
     sys.exit(FAILURE_EXIT_CODE if failures else SUCCESS_EXIT_CODE)
+
+
+def shader_timing_stream(context, arguments, page_maker, stream):
+    frames = list(read_archive(stream))
+    width, height = struct.unpack_from(DIMENSIONS_FORMAT, frames[0], WIDTH_OFFSET)
+    chain = TimedShaderChain(context, width, height, arguments.slots)
+    pages = [page_maker(frame, SHADER_CHECK_STREAM_ID, SYMBOL_BITS) for frame in frames]
+    keyframes = [
+        frame[FRAME_ID_OFFSET:REFERENCE_ID_OFFSET] == frame[REFERENCE_ID_OFFSET:HEADER_BYTES]
+        if frame[VERSION_OFFSET] == VERSION
+        else bool(frame[VERSION_2_FLAGS_OFFSET] & 1)
+        for frame in frames
+    ]
+    if arguments.spirv:
+        chain.compiled = shader_check_compile_via_spirv(chain.includes, arguments.spirv)
+    rounds = ShaderTimingRounds(chain, pages, keyframes, arguments.repeats)
+    for round_index in range(arguments.rounds):
+        rounds.run(round_index)
+    result = dict(
+        width=width,
+        height=height,
+        frames=len(frames),
+        mismatches=rounds.mismatches,
+        new_keyframe=shader_timing_summarize(rounds.new_keyframes, rounds.names),
+        new_p=shader_timing_summarize(rounds.new_predicted_frames, rounds.names),
+        idle=shader_timing_summarize(rounds.idle, rounds.names),
+    )
+    shader_timing_print(Path(stream).name, result, rounds.names, arguments.rounds - 1)
+
+    return result, rounds.failures + rounds.mismatches
 
 
 class TimedShaderChain(ShaderChain):
@@ -2600,6 +2600,54 @@ def shader_timing_perspective(field_of_view_y, aspect, near, far):
     return matrix
 
 
+class ShaderTimingRounds:
+    def __init__(self, chain, pages, keyframes, repeats):
+        self.chain = chain
+        self.pages = pages
+        self.keyframes = keyframes
+        self.repeats = repeats
+        self.names = None
+        self.first_pictures = None
+        self.new_keyframes = []
+        self.new_predicted_frames = []
+        self.idle = []
+        self.mismatches = 0
+        self.failures = 0
+
+    def run(self, round_index):
+        self.chain.reset()
+        pictures = []
+        for index, page_list in enumerate(self.pages):
+            pictures.append(self.time_frame(round_index, index, page_list))
+        self.compare(pictures)
+
+    def time_frame(self, round_index, index, page_list):
+        self.chain.show(page_list)
+        decoded, times = self.chain.timed_frame(self.repeats)
+        self.names = tuple(times)
+        times[TOTAL_TIMING_NAME] = sum(times[name] for name in self.names)
+        self.chain.show(page_list)
+        shown_again, again = self.chain.timed_frame(1)
+        again["total"] = sum(again[name] for name in self.names)
+        picture = self.chain.target(PREVIOUS_TARGET).read()
+        if not decoded or shown_again:
+            self.failures += 1
+            print("  frame %d: decoded %s, decoded again %s" % (index, decoded, shown_again))
+        if round_index > 0:
+            (self.new_keyframes if self.keyframes[index] else self.new_predicted_frames).append(times)
+            self.idle.append(again)
+
+        return picture
+
+    def compare(self, pictures):
+        if self.first_pictures is None:
+            self.first_pictures = pictures
+        else:
+            self.mismatches += sum(
+                1 for first_picture, picture in zip(self.first_pictures, pictures) if first_picture != picture
+            )
+
+
 def shader_timing_summarize(samples, names):
     out = {}
     for name in names + (TOTAL_TIMING_NAME,):
@@ -2607,6 +2655,23 @@ def shader_timing_summarize(samples, names):
         out[name] = dict(mean=float(values.mean()), p95=float(numpy.percentile(values, TAIL_PERCENTILE)), n=len(samples))
 
     return out
+
+
+def shader_timing_print(stream_name, result, names, rounds_counted):
+    print(
+        "%s (%dx%d, %d frames, %d rounds counted, %d picture mismatches between rounds)"
+        % (stream_name, result["width"], result["height"], result["frames"], rounds_counted, result["mismatches"])
+    )
+    print(
+        "  %-24s %22s %22s %22s"
+        % ("pass (ms)", "new P frame mean/p95", "new keyframe mean/p95", "no new video mean/p95")
+    )
+    for name in names + (TOTAL_TIMING_NAME,):
+        cells = [result[kind][name] for kind in ("new_p", "new_keyframe", "idle")]
+        print(
+            "  %-24s %22s %22s %22s"
+            % (name, *("%9.3f / %9.3f" % (cell["mean"], cell["p95"]) for cell in cells))
+        )
 
 
 def strip_check_main():
@@ -2640,84 +2705,119 @@ def strip_check_main():
     arguments = parser.parse_args()
     from PIL import Image
 
-    total_slots = arguments.total_slots if arguments.total_slots is not None else arguments.slots
     captures = sorted(arguments.captures.glob(SCREENSHOT_GLOB))
     if not captures:
         message: str = f"Folder {arguments.captures} holds no PNG screenshots!"
         parser.error(message)
-    valid, invalid, frames = (Counter(), Counter(), set())
-    descriptors, decisions, failures, counts = (0, Counter(), [], [])
-    squared = 0
+    check = StripCheck(arguments)
     for capture in captures:
         screen = numpy.asarray(Image.open(capture).convert("RGB"))
+        check.check_capture(capture.name, screen)
+    summary = check.summary(len(captures))
+    for failure in check.failures[:STRIP_CHECK_PRINTED_FAILURES]:
+        print("%s: %s" % failure)
+    print(json.dumps(summary))
+    sys.exit(FAILURE_EXIT_CODE if check.failures else SUCCESS_EXIT_CODE)
+
+
+class StripCheck:
+    def __init__(self, arguments):
+        self.arguments = arguments
+        self.total_slots = arguments.total_slots if arguments.total_slots is not None else arguments.slots
+        self.valid = Counter()
+        self.invalid = Counter()
+        self.frames = set()
+        self.descriptors = 0
+        self.decisions = Counter()
+        self.failures = []
+        self.counts = []
+        self.squared = 0
+
+    def check_capture(self, name, screen):
         width = screen.shape[1]
         rows = (PAGE_PIXELS + width - 1) // width
+        pages = self.read_pages(screen, rows)
+        self.check_descriptor(name, screen, rows)
+        if self.arguments.video_width + STRIP_CHECK_MARGIN + (self.arguments.slots + STRIP_CHECK_EXTRA_SQUARES) * STRIP_CHECK_STEP > width:
+            return
+
+        self.squared += 1
+        top = self.total_slots * rows + self.arguments.screens + self.arguments.debug_top
+        colours = self.read_squares(name, screen, top)
+        self.check_slot_squares(name, colours, pages)
+        self.check_decision(name, colours)
+        self.check_counter(name, colours)
+
+    def read_pages(self, screen, rows):
         pages = {}
-        for slot in range(arguments.slots):
+        for slot in range(self.arguments.slots):
             try:
-                page = strip_check_read_strip_page(
-                    strip_check_page_symbols(screen, arguments.first_slot + slot, rows)
-                )
+                page = strip_check_read_strip_page(strip_check_page_symbols(screen, self.arguments.first_slot + slot, rows))
                 pages[slot] = True
-                valid[slot] += 1
-                frames.add((page.frame_id, page.number))
+                self.valid[slot] += 1
+                self.frames.add((page.frame_id, page.number))
             except ValueError as exception:
                 pages[slot] = False
-                invalid[slot, str(exception)] += 1
-        descriptor_row = total_slots * rows + arguments.screen
-        if [
-            tuple(int(channel) for channel in screen[descriptor_row, column]) for column in range(len(STRIP_CHECK_DESCRIPTOR))
-        ] == STRIP_CHECK_DESCRIPTOR:
-            descriptors += 1
+                self.invalid[slot, str(exception)] += 1
+
+        return pages
+
+    def check_descriptor(self, name, screen, rows):
+        descriptor_row = self.total_slots * rows + self.arguments.screen
+        colours = [tuple(int(channel) for channel in screen[descriptor_row, column]) for column in range(len(STRIP_CHECK_DESCRIPTOR))]
+        if colours == STRIP_CHECK_DESCRIPTOR:
+            self.descriptors += 1
         else:
-            failures.append((capture.name, "descriptor"))
-        top = total_slots * rows + arguments.screens + arguments.debug_top
-        if arguments.video_width + STRIP_CHECK_MARGIN + (arguments.slots + STRIP_CHECK_EXTRA_SQUARES) * STRIP_CHECK_STEP > width:
-            continue
-        squared += 1
+            self.failures.append((name, "descriptor"))
+
+    def read_squares(self, name, screen, top):
         colours = []
-        for square in range(arguments.slots + STRIP_CHECK_EXTRA_SQUARES):
-            left = arguments.video_width + STRIP_CHECK_MARGIN + square * STRIP_CHECK_STEP
+        for square in range(self.arguments.slots + STRIP_CHECK_EXTRA_SQUARES):
+            left = self.arguments.video_width + STRIP_CHECK_MARGIN + square * STRIP_CHECK_STEP
             region = screen[top : top + STRIP_CHECK_SQUARE, left : left + STRIP_CHECK_SQUARE].reshape(-1, CHANNELS)
             if numpy.any(region != region[0]):
-                failures.append((capture.name, "square %d is not one colour" % square))
+                self.failures.append((name, "square %d is not one colour" % square))
             colours.append(tuple(int(channel) for channel in region[0]))
-        for slot in range(arguments.slots):
+
+        return colours
+
+    def check_slot_squares(self, name, colours, pages):
+        for slot in range(self.arguments.slots):
             if colours[slot] != (STRIP_CHECK_GREEN if pages[slot] else STRIP_CHECK_RED):
-                failures.append(
-                    (capture.name, "slot %d square %s, page valid %s" % (slot, colours[slot], pages[slot]))
-                )
+                self.failures.append((name, "slot %d square %s, page valid %s" % (slot, colours[slot], pages[slot])))
+
+    def check_decision(self, name, colours):
         decision = {
             STRIP_CHECK_GREEN: "decoded",
             STRIP_CHECK_BLUE: "nothing new",
             STRIP_CHECK_RED: "cannot decode",
-        }.get(colours[arguments.slots], "other")
-        decisions[decision] += 1
+        }.get(colours[self.arguments.slots], "other")
+        self.decisions[decision] += 1
         if decision in ("cannot decode", "other"):
-            failures.append((capture.name, "decision %s" % (colours[arguments.slots],)))
+            self.failures.append((name, "decision %s" % (colours[self.arguments.slots],)))
+
+    def check_counter(self, name, colours):
         count = 0
-        for index, colour in enumerate(colours[arguments.slots + 1 :]):
+        for index, colour in enumerate(colours[self.arguments.slots + 1 :]):
             if len(set(colour)) != 1:
-                failures.append((capture.name, "counter byte %d not grey: %s" % (index, colour)))
+                self.failures.append((name, "counter byte %d not grey: %s" % (index, colour)))
             count |= colour[0] << BITS_PER_BYTE * index
-        if counts and count < counts[-1]:
-            failures.append((capture.name, "counter went down from %d to %d" % (counts[-1], count)))
-        counts.append(count)
-    summary = {
-        "captures": len(captures),
-        "valid_pages_per_slot": {slot: valid[slot] for slot in sorted(valid)},
-        "slots_without_a_page": {"%d: %s" % key: value for key, value in sorted(invalid.items())},
-        "distinct_pages": len(frames),
-        "descriptor_rows": descriptors,
-        "captures_with_squares": squared,
-        "decisions": dict(decisions),
-        "counter": [counts[0], counts[-1]] if counts else None,
-        "failures": len(failures),
-    }
-    for failure in failures[:STRIP_CHECK_PRINTED_FAILURES]:
-        print("%s: %s" % failure)
-    print(json.dumps(summary))
-    sys.exit(FAILURE_EXIT_CODE if failures else SUCCESS_EXIT_CODE)
+        if self.counts and count < self.counts[-1]:
+            self.failures.append((name, "counter went down from %d to %d" % (self.counts[-1], count)))
+        self.counts.append(count)
+
+    def summary(self, captures):
+        return {
+            "captures": captures,
+            "valid_pages_per_slot": {slot: self.valid[slot] for slot in sorted(self.valid)},
+            "slots_without_a_page": {"%d: %s" % key: value for key, value in sorted(self.invalid.items())},
+            "distinct_pages": len(self.frames),
+            "descriptor_rows": self.descriptors,
+            "captures_with_squares": self.squared,
+            "decisions": dict(self.decisions),
+            "counter": [self.counts[0], self.counts[-1]] if self.counts else None,
+            "failures": len(self.failures),
+        }
 
 
 def strip_check_read_strip_page(symbols):
@@ -2844,25 +2944,7 @@ def latency_main():
     by_number = {}
     for event in numbered:
         by_number.setdefault(event["number"], []).append(event)
-    first_seen = {}
-    ambiguous = set()
-    previous = None
-    for timestamp, number in shots:
-        if number is not None and number != previous:
-            candidates = [
-                event
-                for event in by_number.get(number, [])
-                if event["sent_to"] > 0
-                and math.isfinite(event["sent"])
-                and (event["arrived"] <= event["sent"] <= timestamp)
-            ]
-            if candidates:
-                latest = max(candidates, key=lambda event: event["sent"])
-                occurrence = (number, latest["arrived"])
-                first_seen[occurrence] = timestamp
-                if len(candidates) > 1:
-                    ambiguous.add(occurrence)
-        previous = number if number is not None else previous
+    first_seen, ambiguous = latency_first_seen(shots, by_number)
     latencies = [timestamp - arrival for (number, arrival), timestamp in first_seen.items()]
     arrived = {event["number"]: event for event in numbered}
     server = [event["sent"] - event["arrived"] for event in frames]
@@ -3034,6 +3116,36 @@ def latency_captures(path):
         raise subprocess.CalledProcessError(decoder.returncode, decoder.args)
 
     return result
+
+
+def latency_first_seen(shots, by_number):
+    first_seen = {}
+    ambiguous = set()
+    for timestamp, number in latency_number_changes(shots):
+        candidates = [
+            event
+            for event in by_number.get(number, [])
+            if event["sent_to"] > 0
+            and math.isfinite(event["sent"])
+            and (event["arrived"] <= event["sent"] <= timestamp)
+        ]
+        if not candidates:
+            continue
+        latest = max(candidates, key=lambda event: event["sent"])
+        occurrence = (number, latest["arrived"])
+        first_seen[occurrence] = timestamp
+        if len(candidates) > 1:
+            ambiguous.add(occurrence)
+
+    return first_seen, ambiguous
+
+
+def latency_number_changes(shots):
+    previous = None
+    for timestamp, number in shots:
+        if number is not None and number != previous:
+            yield timestamp, number
+        previous = number if number is not None else previous
 
 
 def latency_percentile(values, percent):
