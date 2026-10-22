@@ -19,6 +19,7 @@ package me.brandonli.mcav.voicechat;
 
 import com.google.common.base.Preconditions;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
+import java.util.Optional;
 import me.brandonli.mcav.module.MCAVModule;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -93,10 +94,10 @@ public final class SvcModule implements MCAVModule {
   /**
    * Returns the injected server API.
    *
-   * @return the shared API snapshot, or null before injection or after {@link #stop()}
+   * @return the shared API snapshot, or empty before injection or after {@link #stop()}
    */
-  public static @Nullable VoicechatServerApi getVoiceChatApi() {
-    return voiceChatApi;
+  public static Optional<VoicechatServerApi> getVoiceChatApi() {
+    return Optional.ofNullable(voiceChatApi);
   }
 
   /**
