@@ -22,25 +22,54 @@ import java.io.ByteArrayOutputStream
 import org.gradle.api.GradleException
 import org.gradle.process.ExecOperations
 
+/**
+ * Checks the version that a tool reports against the version this build pins.
+ */
 object ToolVersions {
 
+    private const val VERSION_ARGUMENT: String = "--version"
+
+    private const val VERSION_GROUP: Int = 1
+
+    /**
+     * Checks that [executable] reports [expected] as its version.
+     *
+     * The executable runs with [argument], and its version is the first word after [prefix] in its output.
+     *
+     * @param processes  the service that runs the executable
+     * @param executable the executable to run, as a path or a file
+     * @param tool       the name of the tool, for the failure message
+     * @param expected   the version that this build pins
+     * @param prefix     the text before the version, the tool name and a space unless given
+     * @param argument   the argument that prints the version, `--version` unless given
+     * @throws GradleException if the executable cannot run or reports another version
+     */
     fun verify(
         processes: ExecOperations,
         executable: Any,
         tool: String,
         expected: String,
         prefix: String = "$tool ",
-        argument: String = "--version"
-    ) {
-        val output = ByteArrayOutputStream()
+        argument: String = VERSION_ARGUMENT
+    ): Unit {
+        val output: ByteArrayOutputStream = ByteArrayOutputStream()
         processes.exec {
-            commandLine(executable, argument)
-            standardOutput = output
+            this.commandLine(executable, argument)
+            this.standardOutput = output
         }
-        val reported = output.toString(Charsets.UTF_8).trim()
-        val actual = Regex("(?:^|\\s)${Regex.escape(prefix)}(\\S+)").find(reported)?.groupValues?.get(1)
+
+        val reported: String = output.toString(Charsets.UTF_8).trim()
+        val actual: String? = this.findVersion(reported, prefix)
         if (actual != expected) {
-            throw GradleException("$executable must be $tool $expected, but it is $reported")
+            val message: String = "$executable reports $reported, which is not the $tool $expected this build pins!"
+            throw GradleException(message)
         }
+    }
+
+    private fun findVersion(reported: String, prefix: String): String? {
+        val escapedPrefix: String = Regex.escape(prefix)
+        val version: Regex = Regex("(?:^|\\s)$escapedPrefix(\\S+)")
+        val match: MatchResult? = version.find(reported)
+        return match?.groupValues?.get(VERSION_GROUP)
     }
 }

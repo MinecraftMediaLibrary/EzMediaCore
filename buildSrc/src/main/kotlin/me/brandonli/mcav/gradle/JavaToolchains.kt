@@ -26,10 +26,42 @@ import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.kotlin.dsl.getByType
 
-fun Project.javaLanguageVersion(): JavaLanguageVersion = JavaLanguageVersion.of(libs.versionOf("java"))
+/**
+ * Finds the Java toolchain of the version that the catalog pins.
+ */
+object JavaToolchains {
 
-fun Project.javaLauncher(requestedVendor: JvmVendorSpec? = null): Provider<JavaLauncher> =
-    extensions.getByType<JavaToolchainService>().launcherFor {
-        languageVersion.set(javaLanguageVersion())
-        if (requestedVendor != null) vendor.set(requestedVendor)
+    private const val JAVA_VERSION_ALIAS: String = "java"
+
+    /**
+     * Returns the Java language version that the catalog pins as `java`.
+     *
+     * @param project the project whose catalog to read
+     * @return the language version
+     * @throws IllegalArgumentException if the catalog has no `java` version
+     */
+    fun languageVersion(project: Project): JavaLanguageVersion {
+        val version: String = CatalogUtils.versionOf(project.libs, JAVA_VERSION_ALIAS)
+        return JavaLanguageVersion.of(version)
     }
+
+    /**
+     * Returns a launcher of the pinned Java version.
+     *
+     * @param project         the project whose catalog and toolchains to use
+     * @param requestedVendor the vendor of the toolchain, or `null` for any vendor
+     * @return the launcher
+     * @throws IllegalArgumentException if the catalog has no `java` version
+     */
+    fun launcher(project: Project, requestedVendor: JvmVendorSpec? = null): Provider<JavaLauncher> {
+        val version: JavaLanguageVersion = this.languageVersion(project)
+        val toolchains: JavaToolchainService = project.extensions.getByType<JavaToolchainService>()
+        return toolchains.launcherFor {
+            this.languageVersion.set(version)
+
+            if (requestedVendor != null) {
+                this.vendor.set(requestedVendor)
+            }
+        }
+    }
+}

@@ -18,12 +18,17 @@
 
 package me.brandonli.mcav.gradle
 
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.bundling.AbstractArchiveTask
+/**
+ * One entry of a coverage exceptions file: a source line that no test can cover, and why.
+ *
+ * @property path       the path of the source file, relative to the source directory
+ * @property sourceLine the trimmed text of the excused line
+ * @property reason     why no test can cover the line
+ */
+class CoverageException(val path: String, val sourceLine: String, val reason: String) {
 
-abstract class McavPublishingExtension {
-
-    abstract val bundledJar: Property<AbstractArchiveTask>
-
-    abstract val gradleModuleMetadata: Property<Boolean>
+    /**
+     * Whether this exception has excused an uncovered line.
+     */
+    var used: Boolean = false
 }

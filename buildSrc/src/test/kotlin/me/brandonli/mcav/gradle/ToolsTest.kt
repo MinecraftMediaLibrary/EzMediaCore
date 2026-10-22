@@ -18,7 +18,11 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import org.gradle.api.GradleException
+import org.gradle.api.Project
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -28,35 +32,48 @@ import org.junit.jupiter.api.Test
 
 class ToolsTest {
 
-    @Test
-    fun aPinnedArchiveHasItsChecksumAndAnUnpinnedOneNamesItsOverrideVariable() {
-        val project = ProjectBuilder.builder().build()
-        assertEquals(
-            "70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00",
-            project.pinnedSha256("zig", "0.16.0", "zig-x86_64-linux-0.16.0.tar.xz").get()
-        )
-        val failure = assertThrows(GradleException::class.java) { project.pinnedSha256("clang-format", "1.0", "clang.zip").get() }
-        assertEquals(
-            "tool-checksums.properties pins no SHA-256 for clang-format/1.0/clang.zip; set CLANG_FORMAT=/path/to/clang-format 1.0",
-            failure.message
-        )
+    private companion object {
+
+        const val CLANG_ARCHIVE: String = "clang.zip"
+        const val FIXTURE_TOOL_PATH: String = "tools/fixture-tool/1.0/fixture-tool"
+        const val PATH_TOOL_PATH: String = "tools/path/1.0/path"
     }
 
     @Test
-    fun withoutItsOverrideVariableTheInstalledToolIsSelected() {
-        val project = ProjectBuilder.builder().build()
-        val installed = project.layout.buildDirectory.file("tools/fixture-tool/1.0/fixture-tool")
-        assertFalse(project.toolOverride("fixture-tool").isPresent)
-        assertSame(installed, project.selectTool("fixture-tool", installed))
+    fun shouldGiveAPinnedArchiveItsChecksumAndNameTheOverrideVariableOfAnUnpinnedOne(): Unit {
+        val project: Project = ProjectBuilder.builder().build()
+        val checksum: String = Tools.pinnedSha256(project, "zig", "0.16.0", "zig-x86_64-linux-0.16.0.tar.xz").get()
+        assertEquals("70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00", checksum)
+
+        val failure: GradleException =
+            assertThrows(GradleException::class.java) { Tools.pinnedSha256(project, "clang-format", "1.0", CLANG_ARCHIVE).get() }
+        val message: String? = failure.message
+        val expected: String =
+            "tool-checksums.properties pins no SHA-256 for clang-format/1.0/clang.zip, so set CLANG_FORMAT to a clang-format 1.0 binary!"
+        assertEquals(expected, message)
     }
 
     @Test
-    fun aSetOverrideVariableSelectsItsFileOverTheInstalledTool() {
-        val project = ProjectBuilder.builder().build()
-        val installed = project.layout.buildDirectory.file("tools/path/1.0/path")
+    fun shouldSelectTheInstalledToolWithoutItsOverrideVariable(): Unit {
+        val project: Project = ProjectBuilder.builder().build()
+        val installed: Provider<RegularFile> = project.layout.buildDirectory.file(FIXTURE_TOOL_PATH)
+        val overridden: Boolean = Tools.toolOverride(project, "fixture-tool").isPresent
+        assertFalse(overridden)
+
+        val selected: Provider<RegularFile> = Tools.selectTool(project, "fixture-tool", installed)
+        assertSame(installed, selected)
+    }
+
+    @Test
+    fun shouldSelectTheFileOfASetOverrideVariableOverTheInstalledTool(): Unit {
+        val project: Project = ProjectBuilder.builder().build()
+        val installed: Provider<RegularFile> = project.layout.buildDirectory.file(PATH_TOOL_PATH)
         // a test cannot set a variable of its own process, and PATH is always set
-        val variable = project.file(System.getenv("PATH"))
-        assertEquals(variable, project.toolOverride("path").get().asFile)
-        assertEquals(variable, project.selectTool("path", installed).get().asFile)
+        val variable: File = project.file(System.getenv("PATH"))
+        val override: File = Tools.toolOverride(project, "path").get().asFile
+        assertEquals(variable, override)
+
+        val selected: File = Tools.selectTool(project, "path", installed).get().asFile
+        assertEquals(variable, selected)
     }
 }

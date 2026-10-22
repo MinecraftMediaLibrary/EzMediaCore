@@ -18,64 +18,92 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipFile
 import javax.xml.parsers.DocumentBuilderFactory
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.w3c.dom.Node
+import org.w3c.dom.NodeList
 
 class PublishingPluginTest {
+
+    private companion object {
+
+        const val POM_TASK: String = "generatePomFileForMavenPublication"
+
+        const val GROUP_ID_ELEMENT: String = "groupId"
+
+        const val SCM_CONNECTION: String = "scm:git:https://github.com/PulseBeat02/mcav.git"
+
+        const val REPOSITORY_DIRECTORY: String = ".."
+        const val CATALOG_PATH: String = "gradle/libs.versions.toml"
+        const val BUILD_SCRIPT: String = "build.gradle"
+        const val SOURCE_PATH: String = "src/main/java/Example.java"
+        const val POM_PATH: String = "build/publications/maven/pom-default.xml"
+        const val MUTATION_POM_PATH: String = "build/mutation-pom.txt"
+
+        const val LICENSE_FILE: String = "LICENSE"
+        const val NOTICES_FILE: String = "THIRD-PARTY-NOTICES.md"
+        const val LICENSE_ENTRY: String = "META-INF/LICENSE-MCAV"
+        const val NOTICES_ENTRY: String = "META-INF/THIRD-PARTY-NOTICES.md"
+
+        const val SETTINGS_SCRIPT: String = "settings.gradle"
+    }
 
     @TempDir
     lateinit var directory: Path
 
     @Test
-    fun thePublishedPomNamesTheProjectItsLicenseAndItsSourceRepository() {
-        prepareProject()
-        run("generatePomFileForMavenPublication")
-        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-            .parse(directory.resolve("build/publications/maven/pom-default.xml").toFile())
-        val project = document.documentElement
-        fun text(tag: String): String = project.getElementsByTagName(tag).item(0)?.textContent ?: ""
+    fun shouldNameTheProjectItsLicenseAndItsSourceRepositoryInThePublishedPom(): Unit {
+        this.prepareProject()
+        this.run(POM_TASK)
 
-        assertEquals("me.brandonli", text("groupId"))
-        assertEquals("mcav-fixture", text("artifactId"))
-        assertEquals("1.2.3", text("version"))
-        val license = project.getElementsByTagName("license").item(0)
-        assertNotNull(license, "the POM must identify MCAV's license")
-        assertEquals("GNU General Public License, version 3 or later", license.childNodes.let { children ->
-            (0 until children.length).map { children.item(it) }.single { it.nodeName == "name" }.textContent
-        })
-        assertEquals("scm:git:https://github.com/PulseBeat02/mcav.git", text("connection"))
-        assertEquals("mcav-fixture", text("name"))
+        val project: Element = this.readPom()
+        val names: Map<String, String?> = mapOf(
+            GROUP_ID_ELEMENT to this.textOf(project, GROUP_ID_ELEMENT),
+            "artifactId" to this.textOf(project, "artifactId"),
+            "version" to this.textOf(project, "version"),
+            "license" to this.licenseNameOf(project),
+            "connection" to this.textOf(project, "connection"),
+            "name" to this.textOf(project, "name")
+        )
+        val expected: Map<String, String?> = mapOf(
+            GROUP_ID_ELEMENT to "me.brandonli",
+            "artifactId" to "mcav-fixture",
+            "version" to "1.2.3",
+            "license" to "GNU General Public License, version 3 or later",
+            "connection" to SCM_CONNECTION,
+            "name" to "mcav-fixture"
+        )
+        assertEquals(expected, names)
     }
 
     @Test
-    fun everyPublishedJarCarriesTheProjectLicenseAndThirdPartyNotices() {
-        prepareProject()
-        run("jar", "sourcesJar", "javadocJar")
-        for (classifier in listOf("", "-sources", "-javadoc")) {
-            val path = directory.resolve("build/libs/mcav-fixture-1.2.3$classifier.jar")
-            ZipFile(path.toFile()).use { jar ->
-                for (name in listOf("LICENSE", "THIRD-PARTY-NOTICES.md")) {
-                    val entry = jar.getEntry("META-INF/" + if (name == "LICENSE") "LICENSE-MCAV" else name)
-                    assertNotNull(entry, "$path must carry $name")
-                    assertEquals(directory.resolve(name).toFile().readText(), jar.getInputStream(entry).reader().readText())
-                }
-            }
-        }
+    fun shouldCarryTheProjectLicenseAndThirdPartyNoticesInEveryPublishedJar(): Unit {
+        this.prepareProject()
+        this.run("jar", "sourcesJar", "javadocJar")
+
+        val classifiers: List<String> = listOf("", "-sources", "-javadoc")
+        val legalTexts: List<String> = listOf(LICENSE_FILE, NOTICES_FILE).map { this.directory.resolve(it).toFile().readText() }
+        val jars: Map<String, List<String?>> = classifiers.associateWith(this::readLegalEntries)
+        val expected: Map<String, List<String?>> = classifiers.associateWith { legalTexts }
+        assertEquals(expected, jars)
     }
 
     @Test
-    fun mutationTestJvmCanReadTheGeneratedPublication() {
-        prepareProject()
-        val catalog = directory.resolve("gradle/libs.versions.toml").toFile()
+    fun shouldLetTheMutationTestJvmReadTheGeneratedPublication(): Unit {
+        this.prepareProject()
+
+        val catalog: File = this.directory.resolve(CATALOG_PATH).toFile()
         catalog.parentFile.mkdirs()
-        Path.of("..", "gradle", "libs.versions.toml").toFile().copyTo(catalog)
-        directory.resolve("build.gradle").toFile().appendText(
+        Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
+        this.directory.resolve(BUILD_SCRIPT).toFile().appendText(
             """
             apply plugin: 'mcav.mutation'
             tasks.register('readMutationPom', JavaExec) {
@@ -86,7 +114,7 @@ class PublishingPluginTest {
             }
             """.trimIndent()
         )
-        directory.resolve("src/main/java/Example.java").toFile().writeText(
+        this.directory.resolve(SOURCE_PATH).toFile().writeText(
             """
             import java.nio.file.Files;
             import java.nio.file.Path;
@@ -106,39 +134,76 @@ class PublishingPluginTest {
             }
             """.trimIndent()
         )
-        run("readMutationPom")
-        assertEquals(
-            directory.resolve("build/publications/maven/pom-default.xml").toFile().readText(),
-            directory.resolve("build/mutation-pom.txt").toFile().readText()
-        )
+        this.run("readMutationPom")
+
+        val generated: String = this.directory.resolve(POM_PATH).toFile().readText()
+        val read: String = this.directory.resolve(MUTATION_POM_PATH).toFile().readText()
+        assertEquals(generated, read)
     }
 
     @Test
-    fun thePublishedGroupFollowsTheRootProjectGroup() {
-        prepareProject()
-        directory.resolve("build.gradle").toFile().appendText("group = 'fixture.changed'\n")
-        run("generatePomFileForMavenPublication")
-        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-            .parse(directory.resolve("build/publications/maven/pom-default.xml").toFile())
-        assertEquals("fixture.changed", document.documentElement.getElementsByTagName("groupId").item(0).textContent)
+    fun shouldFollowTheRootProjectGroupInThePublishedGroup(): Unit {
+        this.prepareProject()
+        this.directory.resolve(BUILD_SCRIPT).toFile().appendText("group = 'fixture.changed'\n")
+        this.run(POM_TASK)
+
+        val project: Element = this.readPom()
+        val groupId: String = this.textOf(project, GROUP_ID_ELEMENT)
+        assertEquals("fixture.changed", groupId)
     }
 
-    private fun prepareProject() {
-        val project = directory.toFile()
-        project.resolve("settings.gradle").writeText("rootProject.name = 'mcav-fixture'\n")
-        project.resolve("build.gradle").writeText("plugins { id 'mcav.publishing' }\ngroup = 'me.brandonli'\nversion = '1.2.3'\n")
-        project.resolve("LICENSE").writeText("Fixture license: preserve the complete root file.\n")
-        project.resolve("THIRD-PARTY-NOTICES.md").writeText("Fixture notices: preserve the complete root file.\n")
-        val source = project.resolve("src/main/java/Example.java")
+    private fun prepareProject(): Unit {
+        val project: File = this.directory.toFile()
+        project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'mcav-fixture'\n")
+        project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.publishing' }\ngroup = 'me.brandonli'\nversion = '1.2.3'\n")
+        project.resolve(LICENSE_FILE).writeText("Fixture license: preserve the complete root file.\n")
+        project.resolve(NOTICES_FILE).writeText("Fixture notices: preserve the complete root file.\n")
+
+        val source: File = project.resolve(SOURCE_PATH)
         source.parentFile.mkdirs()
         source.writeText("/** A public example for the documentation jar. */ public class Example {}\n")
     }
 
-    private fun run(vararg tasks: String) {
+    private fun run(vararg tasks: String): Unit {
         GradleRunner.create()
-            .withProjectDir(directory.toFile())
+            .withProjectDir(this.directory.toFile())
             .withPluginClasspath()
             .withArguments(*tasks, "--max-workers=2", "--stacktrace")
             .build()
+    }
+
+    private fun readPom(): Element {
+        val pom: File = this.directory.resolve(POM_PATH).toFile()
+        val document: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(pom)
+        return document.documentElement
+    }
+
+    private fun textOf(project: Element, tag: String): String {
+        return project.getElementsByTagName(tag).item(0)?.textContent ?: ""
+    }
+
+    private fun licenseNameOf(project: Element): String? {
+        val license: Node? = project.getElementsByTagName("license").item(0)
+        return license?.childNodes?.let(this::nameOf)
+    }
+
+    private fun nameOf(children: NodeList): String {
+        val indexes: IntRange = 0 until children.length
+        val nodes: List<Node> = indexes.map(children::item)
+        val name: Node = nodes.single { it.nodeName == "name" }
+        return name.textContent
+    }
+
+    private fun readLegalEntries(classifier: String): List<String?> {
+        val file: File = this.directory.resolve("build/libs/mcav-fixture-1.2.3$classifier.jar").toFile()
+        return ZipFile(file).use(this::readLegalTexts)
+    }
+
+    private fun readLegalTexts(jar: ZipFile): List<String?> {
+        return listOf(LICENSE_ENTRY, NOTICES_ENTRY).map { name -> this.readEntry(jar, name) }
+    }
+
+    private fun readEntry(jar: ZipFile, name: String): String? {
+        return jar.getEntry(name)?.let { jar.getInputStream(it).reader().readText() }
     }
 }

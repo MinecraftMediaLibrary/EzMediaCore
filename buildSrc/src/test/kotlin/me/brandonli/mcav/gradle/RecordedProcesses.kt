@@ -28,43 +28,82 @@ import org.mockito.Mockito.RETURNS_SELF
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockingDetails
+import org.mockito.invocation.Invocation
+import org.mockito.invocation.InvocationOnMock
 
 class RecordedProcesses(private val versionOutput: String, private val onCommand: (List<String>) -> Unit = {}) {
 
-    val commands = mutableListOf<List<String>>()
+    val commands: MutableList<List<String>> = mutableListOf<List<String>>()
 
-    val environments = mutableListOf<Map<String, Any?>>()
+    val environments: MutableList<Map<String, Any?>> = mutableListOf<Map<String, Any?>>()
 
-    val workingDirectories = mutableListOf<Any?>()
+    val workingDirectories: MutableList<Any?> = mutableListOf<Any?>()
 
     val operations: ExecOperations = mock(ExecOperations::class.java)
 
     init {
-        doAnswer { invocation ->
-            val specification = mock(ExecSpec::class.java, RETURNS_SELF)
-            invocation.getArgument<Action<ExecSpec>>(0).execute(specification)
-            val calls = mockingDetails(specification).invocations
-            val command = when (val arguments = calls.single { it.method.name == "commandLine" }.rawArguments[0]) {
-                is Array<*> -> arguments.toList()
-                else -> (arguments as Iterable<*>).toList()
-            }.map { it.toString() }
-            val environment = mutableMapOf<String, Any?>()
-            calls.filter { it.method.name == "environment" }.forEach { call ->
-                when (call.rawArguments.size) {
-                    1 -> (call.rawArguments[0] as Map<*, *>).forEach { (name, value) -> environment[name as String] = value }
-                    else -> environment[call.rawArguments[0] as String] = call.rawArguments[1]
-                }
-            }
-            synchronized(this) {
-                commands += command
-                environments += environment
-                workingDirectories += calls.singleOrNull { it.method.name == "workingDir" }?.rawArguments?.get(0)
-            }
-            if (command.last() == "--version" || command.last() == "version") {
-                (calls.single { it.method.name == "setStandardOutput" }.rawArguments[0] as OutputStream).write(versionOutput.toByteArray())
-            }
-            onCommand(command)
-            mock(ExecResult::class.java)
-        }.`when`(operations).exec(any())
+        doAnswer { invocation -> this.exec(invocation) }.`when`(this.operations).exec(any())
+    }
+
+    private fun exec(invocation: InvocationOnMock): ExecResult {
+        val specification: ExecSpec = mock(ExecSpec::class.java, RETURNS_SELF)
+        val action: Action<ExecSpec> = invocation.getArgument<Action<ExecSpec>>(0)
+        action.execute(specification)
+
+        val calls: Collection<Invocation> = mockingDetails(specification).invocations
+        val command: List<String> = this.commandOf(calls)
+        val environment: Map<String, Any?> = this.environmentOf(calls)
+        val workingDirectory: Any? = calls.singleOrNull { it.method.name == "workingDir" }?.rawArguments?.get(0)
+        this.record(command, environment, workingDirectory)
+        this.writeVersion(calls, command)
+        this.onCommand(command)
+
+        return mock(ExecResult::class.java)
+    }
+
+    private fun commandOf(calls: Collection<Invocation>): List<String> {
+        val arguments: Any? = this.argumentsOf(calls, "commandLine")[0]
+        val values: List<Any?> = when (arguments) {
+            is Array<*> -> arguments.toList()
+            else -> (arguments as Iterable<*>).toList()
+        }
+        return values.map { it.toString() }
+    }
+
+    private fun argumentsOf(calls: Collection<Invocation>, method: String): Array<out Any?> {
+        val call: Invocation = calls.single { it.method.name == method }
+        return call.rawArguments
+    }
+
+    private fun environmentOf(calls: Collection<Invocation>): Map<String, Any?> {
+        val environment: MutableMap<String, Any?> = mutableMapOf<String, Any?>()
+        val environmentCalls: List<Invocation> = calls.filter { it.method.name == "environment" }
+        environmentCalls.forEach { call -> this.addEnvironment(environment, call.rawArguments) }
+
+        return environment
+    }
+
+    private fun addEnvironment(environment: MutableMap<String, Any?>, arguments: Array<out Any?>): Unit {
+        when (arguments.size) {
+            1 -> (arguments[0] as Map<*, *>).forEach { (name, value) -> environment[name as String] = value }
+            else -> environment[arguments[0] as String] = arguments[1]
+        }
+    }
+
+    @Synchronized
+    private fun record(command: List<String>, environment: Map<String, Any?>, workingDirectory: Any?): Unit {
+        this.commands += command
+        this.environments += environment
+        this.workingDirectories += workingDirectory
+    }
+
+    private fun writeVersion(calls: Collection<Invocation>, command: List<String>): Unit {
+        val last: String = command.last()
+        if (last != "--version" && last != "version") {
+            return
+        }
+
+        val output: OutputStream = this.argumentsOf(calls, "setStandardOutput")[0] as OutputStream
+        output.write(this.versionOutput.toByteArray())
     }
 }

@@ -16,67 +16,82 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.DownloadToolArchive
 import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.LockPythonRequirements
 import me.brandonli.mcav.gradle.PythonEnvironment
-import me.brandonli.mcav.gradle.isWindows
+import me.brandonli.mcav.gradle.RequirementsLock
+import me.brandonli.mcav.gradle.Tools
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.pinnedSha256
-import me.brandonli.mcav.gradle.selectTool
-import me.brandonli.mcav.gradle.versionOf
 
-val uvTarget = HostPlatform.current().uvTarget
-val pinnedUvVersion = libs.versionOf("uv")
-val pinnedPythonVersion = libs.versionOf("python")
-val pinnedPackages = listOf(
-    "clang-format", "jupyter-book", "matplotlib", "moderngl", "numpy", "pillow", "pytest", "pytest-xdist", "sphinx-design"
-).associateWith { libs.versionOf("python-$it") }
-val packageMarkers = mapOf(
+val uvTool: String = "uv"
+val pythonAlias: String = "python"
+val pythonPackageAliasPrefix: String = "python-"
+val pythonPackages: List<String> =
+    listOf("clang-format", "jupyter-book", "matplotlib", "moderngl", "numpy", "pillow", "pytest", "pytest-xdist", "sphinx-design")
+
+val uvReleasesUrl: String = "https://github.com/astral-sh/uv/releases/download"
+val zipExtension: String = ".zip"
+val gzipTarExtension: String = ".tar.gz"
+val windowsUvExecutable: String = "uv.exe"
+
+val requirementsLockPath: String = "requirements.lock"
+val uvToolsPath: String = "tools/uv"
+val pythonToolsPath: String = "tools/python"
+val uvCachePath: String = "tools/uv/cache"
+
+val licenseHeaderPath: String = "HEADER"
+
+val host: HostPlatform = HostPlatform.current()
+val uvTarget: String = host.uvTarget
+val pinnedUvVersion: String = CatalogUtils.versionOf(libs, uvTool)
+val pinnedPythonVersion: String = CatalogUtils.versionOf(libs, pythonAlias)
+val pinnedPackages: Map<String, String> = pythonPackages.associateWith { CatalogUtils.versionOf(libs, "$pythonPackageAliasPrefix$it") }
+val packageMarkers: Map<String, String> = mapOf(
     "clang-format" to "sys_platform != 'win32' or platform_machine != 'ARM64'",
     "moderngl" to "platform_machine != 'aarch64' and platform_machine != 'ARM64'"
 )
-val uvArchive = "uv-$uvTarget" + if (isWindows) ".zip" else ".tar.gz"
-val uvPath = if (isWindows) "uv.exe" else "uv-$uvTarget/uv"
-val downloadUv = tasks.register<DownloadToolArchive>("downloadUv") {
-    group = "build setup"
-    description = "Downloads the pinned uv and verifies its SHA-256"
-    archiveUrl = "https://github.com/astral-sh/uv/releases/download/$pinnedUvVersion/$uvArchive"
-    sha256 = pinnedSha256("uv", pinnedUvVersion, uvArchive)
-    executablePath = uvPath
-    installationDirectory = layout.buildDirectory.dir("tools/uv/$pinnedUvVersion")
+val uvArchive: String = "$uvTool-$uvTarget" + if (host.isWindows) zipExtension else gzipTarExtension
+val uvPath: String = if (host.isWindows) windowsUvExecutable else "$uvTool-$uvTarget/$uvTool"
+val downloadUv: TaskProvider<DownloadToolArchive> = tasks.register<DownloadToolArchive>("downloadUv") {
+    this.group = "build setup"
+    this.description = "Downloads the pinned uv and verifies its SHA-256"
+    this.archiveUrl = "$uvReleasesUrl/$pinnedUvVersion/$uvArchive"
+    this.sha256 = Tools.pinnedSha256(project, uvTool, pinnedUvVersion, uvArchive)
+    this.executablePath = uvPath
+    this.installationDirectory = layout.buildDirectory.dir("$uvToolsPath/$pinnedUvVersion")
 }
-val selectedUv = selectTool("uv", downloadUv.flatMap { it.installationDirectory.file(uvPath) })
-val requirementsLock = layout.projectDirectory.file("requirements.lock")
-val pythonInstallation = layout.buildDirectory.dir("tools/python/$pinnedPythonVersion")
-val uvCache = layout.buildDirectory.dir("tools/uv/cache")
-val lockHeader = providers.fileContents(layout.settingsDirectory.file("HEADER")).asText.map { header ->
-    header.trimEnd().lines().drop(1).dropLast(1).joinToString("\n", postfix = "\n\n") { "#" + it.removePrefix(" *").trimEnd() }
-}
+val selectedUv: Provider<RegularFile> = Tools.selectTool(project, uvTool, downloadUv.flatMap { it.installationDirectory.file(uvPath) })
+val requirementsLock: RegularFile = layout.projectDirectory.file(requirementsLockPath)
+val pythonInstallation: Provider<Directory> = layout.buildDirectory.dir("$pythonToolsPath/$pinnedPythonVersion")
+val uvCache: Provider<Directory> = layout.buildDirectory.dir(uvCachePath)
+val licenseHeaderFile: RegularFile = layout.settingsDirectory.file(licenseHeaderPath)
+val lockHeader: Provider<String> = providers.fileContents(licenseHeaderFile).asText.map(RequirementsLock::headerOf)
 
-val lockRequirements = tasks.register<LockPythonRequirements>("lockPythonRequirements") {
-    group = "build setup"
-    description = "Regenerates requirements.lock from the Python versions in the catalog"
-    uvExecutable = selectedUv
-    uvVersion = pinnedUvVersion
-    pythonVersion = pinnedPythonVersion
-    versions = pinnedPackages
-    markers = packageMarkers
-    licenseHeader = lockHeader
-    lockFile = requirementsLock
-    installationDirectory = pythonInstallation
-    cacheDirectory = uvCache
+val lockRequirements: TaskProvider<LockPythonRequirements> = tasks.register<LockPythonRequirements>("lockPythonRequirements") {
+    this.group = "build setup"
+    this.description = "Regenerates requirements.lock from the Python versions in the catalog"
+    this.uvExecutable = selectedUv
+    this.uvVersion = pinnedUvVersion
+    this.pythonVersion = pinnedPythonVersion
+    this.versions = pinnedPackages
+    this.markers = packageMarkers
+    this.licenseHeader = lockHeader
+    this.lockFile = requirementsLock
+    this.installationDirectory = pythonInstallation
+    this.cacheDirectory = uvCache
 }
 tasks.register<PythonEnvironment>("installPythonEnvironment") {
-    group = "build setup"
-    description = "Installs the pinned Python and the hash-locked packages of requirements.lock"
-    mustRunAfter(lockRequirements)
-    uvExecutable = selectedUv
-    uvVersion = pinnedUvVersion
-    pythonVersion = pinnedPythonVersion
-    requirements = requirementsLock
-    versions = pinnedPackages
-    lockTask = lockRequirements.map { it.path }
-    installationDirectory = pythonInstallation
-    cacheDirectory = uvCache
+    this.group = "build setup"
+    this.description = "Installs the pinned Python and the hash-locked packages of requirements.lock"
+    this.mustRunAfter(lockRequirements)
+    this.uvExecutable = selectedUv
+    this.uvVersion = pinnedUvVersion
+    this.pythonVersion = pinnedPythonVersion
+    this.requirements = requirementsLock
+    this.versions = pinnedPackages
+    this.lockTask = lockRequirements.map { it.path }
+    this.installationDirectory = pythonInstallation
+    this.cacheDirectory = uvCache
 }

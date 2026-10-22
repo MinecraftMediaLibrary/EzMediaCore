@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import me.brandonli.mcav.gradle.McavPublishingExtension
+import me.brandonli.mcav.gradle.MCAVPublishingExtension
 
 plugins {
     java
@@ -24,7 +24,25 @@ plugins {
     id("mcav.licensing")
 }
 
-val settings = extensions.create<McavPublishingExtension>("mcavPublishing")
+val extensionName: String = "mcavPublishing"
+val javadocEncoding: String = "UTF-8"
+
+val endToEndRepositoryName: String = "endToEnd"
+val endToEndRepositoryPath: String = "e2e-repository"
+val snapshotRepositoryName: String = "brandonli"
+val snapshotRepositoryUrl: String = "https://repo.brandonli.me/snapshots"
+
+val publicationName: String = "maven"
+val projectUrl: String = "https://github.com/PulseBeat02/mcav"
+val licenseName: String = "GNU General Public License, version 3 or later"
+val licenseUrl: String = "https://www.gnu.org/licenses/gpl-3.0.html"
+val licenseDistribution: String = "repo"
+val scmConnection: String = "scm:git:https://github.com/PulseBeat02/mcav.git"
+val scmDeveloperConnection: String = "scm:git:ssh://git@github.com/PulseBeat02/mcav.git"
+
+val publishedPomProperty: String = "mcav.published.pom"
+
+val settings: MCAVPublishingExtension = extensions.create<MCAVPublishingExtension>(extensionName)
 settings.gradleModuleMetadata.convention(true)
 
 java {
@@ -33,22 +51,22 @@ java {
 }
 
 tasks.withType<Javadoc>().configureEach {
-    options.encoding = "UTF-8"
+    this.options.encoding = javadocEncoding
 }
 
 tasks.withType<GenerateModuleMetadata>().configureEach {
-    enabled = settings.gradleModuleMetadata.get()
+    this.enabled = settings.gradleModuleMetadata.get()
 }
 
 publishing {
     repositories {
         maven {
-            name = "endToEnd"
-            url = rootProject.layout.buildDirectory.dir("e2e-repository").get().asFile.toURI()
+            name = endToEndRepositoryName
+            url = rootProject.layout.buildDirectory.dir(endToEndRepositoryPath).get().asFile.toURI()
         }
         maven {
-            name = "brandonli"
-            url = uri("https://repo.brandonli.me/snapshots")
+            name = snapshotRepositoryName
+            url = uri(snapshotRepositoryUrl)
             credentials(PasswordCredentials::class)
             authentication {
                 create<BasicAuthentication>("basic")
@@ -58,27 +76,28 @@ publishing {
 }
 
 afterEvaluate {
-    publishing.publications.create<MavenPublication>("maven") {
+    publishing.publications.create<MavenPublication>(publicationName) {
         groupId = rootProject.group.toString()
         artifactId = project.name
         version = rootProject.version.toString()
         pom {
             name = project.name
             description = "MCAV multimedia library: ${project.name}"
-            url = "https://github.com/PulseBeat02/mcav"
+            url = projectUrl
             licenses {
                 license {
-                    name = "GNU General Public License, version 3 or later"
-                    url = "https://www.gnu.org/licenses/gpl-3.0.html"
-                    distribution = "repo"
+                    name = licenseName
+                    url = licenseUrl
+                    distribution = licenseDistribution
                 }
             }
             scm {
-                connection = "scm:git:https://github.com/PulseBeat02/mcav.git"
-                developerConnection = "scm:git:ssh://git@github.com/PulseBeat02/mcav.git"
-                url = "https://github.com/PulseBeat02/mcav"
+                connection = scmConnection
+                developerConnection = scmDeveloperConnection
+                url = projectUrl
             }
         }
+
         if (settings.bundledJar.isPresent) {
             artifact(settings.bundledJar.get())
             artifact(tasks.named("sourcesJar").get())
@@ -86,19 +105,21 @@ afterEvaluate {
         } else {
             from(components["java"])
         }
+
         if (!settings.gradleModuleMetadata.get()) {
             suppressAllPomMetadataWarnings()
         }
     }
-    val generatedPom = tasks.named<GenerateMavenPom>("generatePomFileForMavenPublication")
-    val publishedPom = "-Dmcav.published.pom=" + generatedPom.get().destination.absolutePath
+
+    val generatedPom: TaskProvider<GenerateMavenPom> = tasks.named<GenerateMavenPom>("generatePomFileForMavenPublication")
+    val publishedPom: String = "-D$publishedPomProperty=" + generatedPom.get().destination.absolutePath
     tasks.named<Test>("test") {
-        dependsOn(generatedPom)
-        jvmArgs(publishedPom)
+        this.dependsOn(generatedPom)
+        this.jvmArgs(publishedPom)
     }
     pluginManager.withPlugin("info.solidsoft.pitest") {
         tasks.named("pitest") {
-            dependsOn(generatedPom)
+            this.dependsOn(generatedPom)
         }
     }
 }

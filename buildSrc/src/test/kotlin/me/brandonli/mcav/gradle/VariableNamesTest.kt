@@ -18,14 +18,23 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
+import java.nio.file.Path
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 
 class VariableNamesTest {
 
+    private companion object {
+
+        const val SOURCE_FILE: String = "Sample.java"
+        const val DETOUR_PATH: String = "sub/../Sample.java"
+    }
+
     @Test
-    fun acceptsDescriptiveNamesTypeParametersAndTheUnnamedVariable() {
-        val source = """
+    fun shouldAcceptDescriptiveNamesTypeParametersAndTheUnnamedVariable(): Unit {
+        val source: String = """
             package example;
             final class Pairs<K, V> {
               private final int count;
@@ -38,12 +47,13 @@ class VariableNamesTest {
               }
             }
         """.trimIndent()
-        assertEquals(emptyList<UndescriptiveName>(), VariableNames.find(source))
+        val found: List<UndescriptiveName> = VariableNames.find(source)
+        assertEquals(emptyList<UndescriptiveName>(), found)
     }
 
     @Test
-    fun reportsEveryKindOfDeclarationNamedByOneLetter() {
-        val source = """
+    fun shouldReportEveryKindOfDeclarationNamedByOneLetter(): Unit {
+        val source: String = """
             package example;
             final class Shapes {
               private int w;
@@ -60,7 +70,7 @@ class VariableNamesTest {
               }
             }
         """.trimIndent()
-        val kinds = VariableNames.find(source).map { "${it.name}: ${it.kind}" }
+        val kinds: List<String> = VariableNames.find(source).map { "${it.name}: ${it.kind}" }
         assertEquals(
             listOf(
                 "w: field",
@@ -80,8 +90,8 @@ class VariableNamesTest {
     }
 
     @Test
-    fun reportsTheShortFormsTheRulesListButNotWordsThatStartWithThem() {
-        val source = """
+    fun shouldReportTheShortFormsTheRulesListButNotWordsThatStartWithThem(): Unit {
+        val source: String = """
             final class Buffers {
               void fill(final byte[] buf, final int idx) {
                 final int bufferSize = buf.length;
@@ -90,12 +100,13 @@ class VariableNamesTest {
               }
             }
         """.trimIndent()
-        assertEquals(listOf("buf", "idx", "sb"), VariableNames.find(source).map { it.name })
+        val names: List<String> = VariableNames.find(source).map { it.name }
+        assertEquals(listOf("buf", "idx", "sb"), names)
     }
 
     @Test
-    fun namesTheMemberAsThePackageTheTypesAndTheName() {
-        val source = """
+    fun shouldNameTheMemberAsThePackageTheTypesAndTheName(): Unit {
+        val source: String = """
             package me.example;
             public final class Frame {
               public record Leaf(int x, int size) {}
@@ -106,8 +117,49 @@ class VariableNamesTest {
               }
             }
         """.trimIndent()
-        val found = VariableNames.find(source)
-        assertEquals(listOf("me.example.Frame.Leaf#x", "me.example.Frame.<anonymous>#q"), found.map { it.member })
-        assertEquals(listOf(3L, 6L), found.map { it.line })
+        val found: List<UndescriptiveName> = VariableNames.find(source)
+        val members: List<String> = found.map { it.member }
+        assertEquals(listOf("me.example.Frame.Leaf#x", "me.example.Frame.<anonymous>#q"), members)
+
+        val lines: List<Long> = found.map { it.line }
+        assertEquals(listOf(3L, 6L), lines)
+    }
+
+    @Test
+    fun shouldReportAOneLetterStaticFieldOfARecordAsAField(): Unit {
+        val source: String = """
+            package example;
+            record Point(int width) {
+              static int x;
+            }
+        """.trimIndent()
+
+        val kinds: List<String> = VariableNames.find(source).map { "${it.name}: ${it.kind}" }
+        assertEquals(listOf("x: field"), kinds)
+    }
+
+    @Test
+    fun shouldNotReportAOneCharacterNameThatIsNoLetter(): Unit {
+        val source: String = """
+            package example;
+            final class Dollars {
+              private final int $ = 1;
+            }
+        """.trimIndent()
+
+        val found: List<UndescriptiveName> = VariableNames.find(source)
+        assertEquals(emptyList<UndescriptiveName>(), found)
+    }
+
+    @Test
+    fun shouldKeyAFileByItsNormalizedPathWhenTheGivenPathTakesADetour(@TempDir directory: Path): Unit {
+        val file: File = directory.resolve(SOURCE_FILE).toFile()
+        file.writeText("final class Sample {\n  private int x;\n}\n")
+
+        val detour: File = directory.resolve(DETOUR_PATH).toFile()
+
+        val found: Map<File, List<UndescriptiveName>> = VariableNames.findInFiles(listOf(detour))
+        val files: Set<File> = found.keys
+        assertEquals(setOf(file), files)
     }
 }

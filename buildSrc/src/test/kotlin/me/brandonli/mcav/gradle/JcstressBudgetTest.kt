@@ -18,61 +18,105 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.gradle.api.GradleException
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 class JcstressBudgetTest {
 
+    private companion object {
+
+        const val QUICK_PRESET: String = "quick"
+
+        const val SECOND_TEST_SELECTION: String = """^a\.b\.Second$"""
+
+        const val TESTS_JAR: String = "tests.jar"
+        const val EMPTY_JAR: String = "empty.jar"
+        const val TEST_LIST_ENTRY: String = "META-INF/TestList"
+
+        const val OTHER_ENTRY: String = "other"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
-    fun splitsHalfOfTheBudgetOverTheIterationsOfEveryRun() {
-        assertEquals(76L, JcstressBudget.iterationMillis("quick", 10, 9, 4))
+    fun shouldSplitHalfOfTheBudgetOverTheIterationsOfEveryRun(): Unit {
+        val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds(QUICK_PRESET, 10, 9, 4)
+        assertEquals(76L, iterationMilliseconds)
     }
 
     @Test
-    fun keepsTheIterationTimeWithinItsBounds() {
-        assertEquals(50L, JcstressBudget.iterationMillis("quick", 1, 9, 4))
-        assertEquals(10_000L, JcstressBudget.iterationMillis("sanity", 100_000, 1, 4))
+    fun shouldKeepTheIterationTimeWithinItsBounds(): Unit {
+        val shortest: Long = JcstressBudget.iterationMilliseconds(QUICK_PRESET, 1, 9, 4)
+        assertEquals(50L, shortest)
+
+        val longest: Long = JcstressBudget.iterationMilliseconds("sanity", 100_000, 1, 4)
+        assertEquals(10_000L, longest)
     }
 
     @Test
-    fun runsOneRunAtATimeOnASingleCpu() {
-        assertEquals(314L, JcstressBudget.iterationMillis("default", 10, 1, 1))
+    fun shouldRunOneRunAtATimeOnASingleCpu(): Unit {
+        val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds("default", 10, 1, 1)
+        assertEquals(314L, iterationMilliseconds)
     }
 
     @Test
-    fun refusesAnUnknownMode() {
-        assertThrows(GradleException::class.java) { JcstressBudget.iterationMillis("forever", 10, 1, 4) }
+    fun shouldRefuseAnUnknownMode(): Unit {
+        assertThrows(GradleException::class.java) { JcstressBudget.iterationMilliseconds("forever", 10, 1, 4) }
     }
 
     @Test
-    fun countsTheTestsTheSelectionMatches() {
-        val jar = directory.resolve("tests.jar").toFile()
-        ZipOutputStream(jar.outputStream()).use { zip ->
-            zip.putNextEntry(ZipEntry("META-INF/TestList"))
-            zip.write(listOf("JCTEST9Sa.b.First,x", "JCTEST10Sa.b.Second,y", "other line").joinToString("\n").toByteArray())
-            zip.closeEntry()
-        }
-        assertEquals(2, JcstressBudget.countTests(jar, null))
-        assertEquals(1, JcstressBudget.countTests(jar, "Sec"))
-        assertEquals(0, JcstressBudget.countTests(jar, "Third"))
+    fun shouldCountTheTestsThatTheSelectionMatches(): Unit {
+        val jar: File = this.directory.resolve(TESTS_JAR).toFile()
+        val testList: String = listOf("JCTEST9Sa.b.First,x", "JCTEST10Sa.b.Second,y", "other line").joinToString("\n")
+        this.writeJar(jar, TEST_LIST_ENTRY, testList)
+
+        val all: Int = JcstressBudget.countTests(jar, null)
+        assertEquals(2, all)
+
+        val selected: Int = JcstressBudget.countTests(jar, SECOND_TEST_SELECTION)
+        assertEquals(1, selected)
+
+        val unmatched: Int = JcstressBudget.countTests(jar, "Third")
+        assertEquals(0, unmatched)
     }
 
     @Test
-    fun countsNoTestsInAJarWithoutTheList() {
-        val jar = directory.resolve("empty.jar").toFile()
-        ZipOutputStream(jar.outputStream()).use { zip ->
-            zip.putNextEntry(ZipEntry("other"))
-            zip.closeEntry()
-        }
-        assertEquals(0, JcstressBudget.countTests(jar, null))
+    fun shouldCountNoTestsInAJarWithoutTheList(): Unit {
+        val jar: File = this.directory.resolve(EMPTY_JAR).toFile()
+        this.writeJar(jar, OTHER_ENTRY, "")
+
+        val count: Int = JcstressBudget.countTests(jar, null)
+        assertEquals(0, count)
+    }
+
+    @Test
+    fun shouldCloseTheJarOnceItsTestsAreCounted(): Unit {
+        OpenFiles.assumeListable()
+
+        val jar: File = this.directory.resolve(EMPTY_JAR).toFile()
+        this.writeJar(jar, OTHER_ENTRY, "")
+        JcstressBudget.countTests(jar, null)
+
+        val open: Boolean = OpenFiles.isOpen(jar)
+        assertFalse(open)
+    }
+
+    private fun writeJar(jar: File, entry: String, content: String): Unit {
+        ZipOutputStream(jar.outputStream()).use { zip -> this.writeEntry(zip, entry, content) }
+    }
+
+    private fun writeEntry(zip: ZipOutputStream, entry: String, content: String): Unit {
+        zip.putNextEntry(ZipEntry(entry))
+        zip.write(content.toByteArray())
+        zip.closeEntry()
     }
 }

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.JcstressBudget
 import me.brandonli.mcav.gradle.JcstressConsole
-import me.brandonli.mcav.gradle.libraryOf
 import me.brandonli.mcav.gradle.libs
 import net.ltgt.gradle.errorprone.errorprone
 
@@ -28,9 +28,26 @@ plugins {
     id("mcav.lint")
 }
 
+val jcstressAlias: String = "jcstress-core"
+val generatedSourcePattern: String = ".*/build/generated/.*"
+val jcstressClassifier: String = "jcstress"
+val jcstressMainClass: String = "org.openjdk.jcstress.Main"
+val signatureFiles: List<String> = listOf("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
+
+val modeProperty: String = "jcstress.mode"
+val budgetProperty: String = "jcstress.timeBudgetMinutes"
+val selectionProperty: String = "jcstress.tests"
+val cpusProperty: String = "jcstress.cpus"
+val defaultMode: String = "quick"
+val maximumDefaultCpus: Int = 4
+
+val workingPath: String = "jcstress"
+val resultsPath: String = "results"
+val consolePath: String = "console.txt"
+
 dependencies {
-    implementation(libs.libraryOf("jcstress-core"))
-    annotationProcessor(libs.libraryOf("jcstress-core"))
+    implementation(CatalogUtils.libraryOf(libs, jcstressAlias))
+    annotationProcessor(CatalogUtils.libraryOf(libs, jcstressAlias))
 }
 
 checkerFramework {
@@ -38,67 +55,75 @@ checkerFramework {
 }
 
 tasks.named<JavaCompile>("compileJava") {
-    options.compilerArgs.remove("-Werror")
-    options.errorprone {
-        excludedPaths = ".*/build/generated/.*"
+    this.options.compilerArgs.remove("-Werror")
+    this.options.errorprone {
+        this.excludedPaths = generatedSourcePattern
     }
 }
 
-val jcstressJar = tasks.register<Jar>("jcstressJar") {
-    group = "build"
-    description = "Packs the jcstress tests with everything they run"
-    archiveClassifier = "jcstress"
-    manifest {
-        attributes("Main-Class" to "org.openjdk.jcstress.Main")
+val jcstressJar: TaskProvider<Jar> = tasks.register<Jar>("jcstressJar") {
+    this.group = "build"
+    this.description = "Packs the jcstress tests with everything they run"
+    this.archiveClassifier = jcstressClassifier
+    this.manifest {
+        this.attributes("Main-Class" to jcstressMainClass)
     }
-    from(sourceSets.main.get().output)
-    val runtimeClasspath = configurations.runtimeClasspath
-    dependsOn(runtimeClasspath)
-    from(runtimeClasspath.map { classpath -> classpath.map { if (it.isDirectory) it else zipTree(it) } }) {
-        exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
+    this.from(sourceSets.main.get().output)
+
+    val runtimeClasspath: NamedDomainObjectProvider<Configuration> = configurations.runtimeClasspath
+    this.dependsOn(runtimeClasspath)
+    this.from(runtimeClasspath.map { classpath -> classpath.map { if (it.isDirectory) it else zipTree(it) } }) {
+        this.exclude(signatureFiles)
     }
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-val ITERATION_TIME = "jcstress: {} tests in {} mode within {} minutes: {} ms per iteration"
-val mode = providers.gradleProperty("jcstress.mode").getOrElse("quick")
-val budgetMinutes = providers.gradleProperty("jcstress.timeBudgetMinutes").map { it.toInt() }
-val selection = providers.gradleProperty("jcstress.tests")
-val cpus = providers.gradleProperty("jcstress.cpus").getOrElse(minOf(4, Runtime.getRuntime().availableProcessors()).toString())
+val ITERATION_TIME: String = "Running {} jcstress tests in {} mode within {} minutes, at {} ms per iteration."
+val mode: String = providers.gradleProperty(modeProperty).getOrElse(defaultMode)
+val budgetMinutes: Provider<Int> = providers.gradleProperty(budgetProperty).map { it.toInt() }
+val selection: Provider<String> = providers.gradleProperty(selectionProperty)
+val defaultCpus: String = minOf(maximumDefaultCpus, Runtime.getRuntime().availableProcessors()).toString()
+val cpus: String = providers.gradleProperty(cpusProperty).getOrElse(defaultCpus)
 
 tasks.register<JavaExec>("jcstressTest") {
-    group = "verification"
-    description = "Runs the jcstress concurrency tests; -Pjcstress.mode, -Pjcstress.timeBudgetMinutes, -Pjcstress.tests"
-    val jar = jcstressJar.flatMap { it.archiveFile }
-    inputs.file(jar)
-    classpath = files(jar)
-    mainClass = "org.openjdk.jcstress.Main"
-    val workingDirectory = layout.buildDirectory.dir("jcstress")
-    workingDir = workingDirectory.get().asFile
-    val arguments = mutableListOf("-m", mode, "-c", cpus, "-r", "results", "-v")
+    this.group = "verification"
+    this.description = "Runs the jcstress concurrency tests; -Pjcstress.mode, -Pjcstress.timeBudgetMinutes, -Pjcstress.tests"
+
+    val jar: Provider<RegularFile> = jcstressJar.flatMap { it.archiveFile }
+    this.inputs.file(jar)
+    this.classpath = files(jar)
+    this.mainClass = jcstressMainClass
+
+    val workingDirectory: Provider<Directory> = layout.buildDirectory.dir(workingPath)
+    this.workingDir = workingDirectory.get().asFile
+
+    val arguments: MutableList<String> = mutableListOf("-m", mode, "-c", cpus, "-r", resultsPath, "-v")
     if (selection.isPresent) {
         arguments += listOf("-t", selection.get())
     }
-    args(arguments)
-    val budget = budgetMinutes.orNull
-    val tests = selection.orNull
-    val cpuCount = cpus.toInt()
-    val stressMode = mode
-    val iterationTime = ITERATION_TIME
-    val console = workingDirectory.map { it.file("console.txt") }
-    doFirst {
+
+    this.args(arguments)
+
+    val budget: Int? = budgetMinutes.orNull
+    val tests: String? = selection.orNull
+    val cpuCount: Int = cpus.toInt()
+    val stressMode: String = mode
+    val iterationTime: String = ITERATION_TIME
+    val console: Provider<RegularFile> = workingDirectory.map { it.file(consolePath) }
+    this.doFirst {
         workingDirectory.get().asFile.mkdirs()
-        standardOutput = JcstressConsole.tee(System.out, console.get().asFile)
+        this@register.standardOutput = JcstressConsole.tee(System.out, console.get().asFile)
+
         if (budget != null) {
-            val testCount = JcstressBudget.countTests(jar.get().asFile, tests)
-            val iterationMillis = JcstressBudget.iterationMillis(stressMode, budget, testCount, cpuCount)
-            logger.lifecycle(iterationTime, testCount, stressMode, budget, iterationMillis)
-            args("-time", iterationMillis.toString())
+            val testCount: Int = JcstressBudget.countTests(jar.get().asFile, tests)
+            val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds(stressMode, budget, testCount, cpuCount)
+            this.logger.lifecycle(iterationTime, testCount, stressMode, budget, iterationMilliseconds)
+            this@register.args("-time", iterationMilliseconds.toString())
         }
     }
-    doLast {
-        standardOutput.close()
+    this.doLast {
+        this@register.standardOutput.close()
         JcstressConsole.checkNoneSkipped(console.get().asFile)
     }
-    outputs.upToDateWhen { false }
+    this.outputs.upToDateWhen { false }
 }

@@ -1,5 +1,6 @@
 [versions]
 bstats = "3.2.1"
+byte-buddy = "1.17.7"
 checker-framework = "4.2.3"
 checker-framework-gradle = "1.0.2"
 client-authlib = "10.0.77"
@@ -98,6 +99,7 @@ zig = "0.16.0"
 
 [libraries]
 bstats-bukkit = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
+byte-buddy-agent = { module = "net.bytebuddy:byte-buddy-agent", version.ref = "byte-buddy" }
 client-authlib = { module = "com.mojang:authlib", version.ref = "client-authlib" }
 client-brigadier = { module = "com.mojang:brigadier", version.ref = "client-brigadier" }
 client-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "client-commons-lang3" }

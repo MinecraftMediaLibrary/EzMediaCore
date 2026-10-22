@@ -18,34 +18,56 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipFile
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 class NativeResourcesTest {
 
+    private companion object {
+
+        const val REPOSITORY_DIRECTORY: String = ".."
+        const val CATALOG_PATH: String = "gradle/libs.versions.toml"
+
+        const val NATIVE_SOURCES_PATH: String = "src/main/native/mcv2"
+        const val NATIVE_SOURCE: String = "mcv2.cpp"
+        const val CONSUMER_JAR_PATH: String = "build/libs/consumer-all.jar"
+        const val NATIVE_LIBRARY_ENTRY: String = "mcav/mcv2/natives/linux-x86_64/libmcv2kernels.so"
+
+        const val SETTINGS_SCRIPT: String = "settings.gradle"
+        const val BUILD_SCRIPT: String = "build.gradle"
+        const val PRODUCER_PROJECT: String = "producer"
+        const val CONSUMER_PROJECT: String = "consumer"
+        const val ZIG_EXECUTABLE: String = "zig"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
-    fun aShadowConsumerBuildsAndPackagesTheGeneratedResourceArtifact() {
-        val project = directory.toFile()
-        project.resolve("settings.gradle").writeText("rootProject.name = 'native-resources'\ninclude 'producer', 'consumer'\n")
-        project.resolve("build.gradle").writeText("plugins { id 'mcav.python' }\n")
-        val catalog = project.resolve("gradle/libs.versions.toml")
+    fun shouldBuildAndPackageTheGeneratedResourceArtifactIntoAShadowConsumer(): Unit {
+        val project: File = this.directory.toFile()
+        project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'native-resources'\ninclude 'producer', 'consumer'\n")
+        project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.python' }\n")
+
+        val catalog: File = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
-        Path.of("..", "gradle", "libs.versions.toml").toFile().copyTo(catalog)
-        val producer = project.resolve("producer").apply { mkdirs() }
-        val sources = producer.resolve("src/main/native/mcv2").apply { mkdirs() }
-        sources.resolve("mcv2.cpp").writeText("native fixture bytes")
-        val compiler = project.resolve("zig").apply { writeText("unused fixture compiler") }
-        producer.resolve("build.gradle").writeText("""
+        Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
+
+        val producer: File = project.resolve(PRODUCER_PROJECT).apply { this.mkdirs() }
+        val sources: File = producer.resolve(NATIVE_SOURCES_PATH).apply { this.mkdirs() }
+        sources.resolve(NATIVE_SOURCE).writeText("native fixture bytes")
+
+        val compiler: File = project.resolve(ZIG_EXECUTABLE).apply { this.writeText("unused fixture compiler") }
+        producer.resolve(BUILD_SCRIPT).writeText("""
             plugins { id 'mcav.natives' }
             tasks.named('buildMcv2Natives') {
                 actions.clear()
@@ -56,8 +78,9 @@ class NativeResourcesTest {
                 }
             }
         """.trimIndent())
-        val consumer = project.resolve("consumer").apply { mkdirs() }
-        consumer.resolve("build.gradle").writeText("""
+
+        val consumer: File = project.resolve(CONSUMER_PROJECT).apply { this.mkdirs() }
+        consumer.resolve(BUILD_SCRIPT).writeText("""
             plugins {
                 id 'java'
                 id 'com.gradleup.shadow'
@@ -70,23 +93,38 @@ class NativeResourcesTest {
             }
             tasks.named('shadowJar') { from(project.configurations.natives) }
         """.trimIndent())
-        val runner = GradleRunner.create().withProjectDir(project).withPluginClasspath()
+
+        val runner: GradleRunner = GradleRunner.create().withProjectDir(project).withPluginClasspath()
             .withEnvironment(System.getenv() + ("ZIG" to compiler.absolutePath))
             .withArguments(":consumer:shadowJar", "--stacktrace")
-        val first = runner.build()
-        assertNull(first.task(":producer:downloadZig"))
-        assertEquals(TaskOutcome.SUCCESS, first.task(":producer:buildMcv2Natives")!!.outcome)
-        ZipFile(consumer.resolve("build/libs/consumer-all.jar")).use { archive ->
-            val library = archive.getEntry("mcav/mcv2/natives/linux-x86_64/libmcv2kernels.so")
-            assertNotNull(library)
-            assertEquals("native fixture bytes", archive.getInputStream(library).reader().readText())
-        }
-        assertEquals(TaskOutcome.UP_TO_DATE, runner.build().task(":producer:buildMcv2Natives")!!.outcome)
-        sources.resolve("mcv2.cpp").writeText("changed native fixture bytes")
-        assertEquals(TaskOutcome.SUCCESS, runner.build().task(":producer:buildMcv2Natives")!!.outcome)
-        ZipFile(consumer.resolve("build/libs/consumer-all.jar")).use { archive ->
-            assertEquals("changed native fixture bytes", archive.getInputStream(
-                archive.getEntry("mcav/mcv2/natives/linux-x86_64/libmcv2kernels.so")).reader().readText())
-        }
+        val first: BuildResult = runner.build()
+        val download: BuildTask? = first.task(":producer:downloadZig")
+        assertNull(download)
+
+        val firstOutcome: TaskOutcome = first.task(":producer:buildMcv2Natives")!!.outcome
+        assertEquals(TaskOutcome.SUCCESS, firstOutcome)
+
+        val packaged: String? = this.readLibrary(consumer)
+        assertEquals("native fixture bytes", packaged)
+
+        val unchangedOutcome: TaskOutcome = runner.build().task(":producer:buildMcv2Natives")!!.outcome
+        assertEquals(TaskOutcome.UP_TO_DATE, unchangedOutcome)
+
+        sources.resolve(NATIVE_SOURCE).writeText("changed native fixture bytes")
+
+        val changedOutcome: TaskOutcome = runner.build().task(":producer:buildMcv2Natives")!!.outcome
+        assertEquals(TaskOutcome.SUCCESS, changedOutcome)
+
+        val repackaged: String? = this.readLibrary(consumer)
+        assertEquals("changed native fixture bytes", repackaged)
+    }
+
+    private fun readLibrary(consumer: File): String? {
+        val jar: File = consumer.resolve(CONSUMER_JAR_PATH)
+        return ZipFile(jar).use(this::readLibraryEntry)
+    }
+
+    private fun readLibraryEntry(archive: ZipFile): String? {
+        return archive.getEntry(NATIVE_LIBRARY_ENTRY)?.let { archive.getInputStream(it).reader().readText() }
     }
 }

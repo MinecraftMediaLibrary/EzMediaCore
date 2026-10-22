@@ -21,20 +21,41 @@ plugins {
     id("mcav.licensing")
 }
 
+val fabricRepositoryUrl: String = "https://maven.fabricmc.net/"
+val neoForgedRepositoryUrl: String = "https://maven.neoforged.net/releases"
+val minecraftLibrariesUrl: String = "https://libraries.minecraft.net"
+val minecraftClientUrl: String = "https://piston-data.mojang.com/v1/objects/"
+val minecraftClientPattern: String = "[revision]/[module].[ext]"
+
+val fabricGroup: String = "net.fabricmc"
+val neoForgedGroup: String = "net.neoforged"
+val mojangGroup: String = "com.mojang"
+val minecraftGroup: String = "net.minecraft"
+val minecraftClientModule: String = "client"
+
+val fabricMetadata: String = "fabric.mod.json"
+val neoForgeMetadata: String = "META-INF/neoforge.mods.toml"
+val fabricClasses: String = "**/Fabric*.class"
+val neoForgeClasses: String = "**/NeoForge*.class"
+
+val plainClassifier: String = "plain"
+val fabricClassifier: String = "fabric"
+val neoForgeClassifier: String = "neoforge"
+
 repositories {
     exclusiveContent {
         forRepository {
-            maven("https://maven.fabricmc.net/") {
+            maven(fabricRepositoryUrl) {
                 name = "Fabric"
             }
         }
         filter {
-            includeGroupAndSubgroups("net.fabricmc")
+            includeGroupAndSubgroups(fabricGroup)
         }
     }
     exclusiveContent {
         forRepository {
-            maven("https://maven.neoforged.net/releases") {
+            maven(neoForgedRepositoryUrl) {
                 name = "NeoForged"
                 metadataSources {
                     artifact()
@@ -42,25 +63,25 @@ repositories {
             }
         }
         filter {
-            includeGroupAndSubgroups("net.neoforged")
+            includeGroupAndSubgroups(neoForgedGroup)
         }
     }
     exclusiveContent {
         forRepository {
-            maven("https://libraries.minecraft.net") {
+            maven(minecraftLibrariesUrl) {
                 name = "Minecraft libraries"
             }
         }
         filter {
-            includeGroup("com.mojang")
+            includeGroup(mojangGroup)
         }
     }
     exclusiveContent {
         forRepository {
-            ivy("https://piston-data.mojang.com/v1/objects/") {
+            ivy(minecraftClientUrl) {
                 name = "Minecraft client"
                 patternLayout {
-                    artifact("[revision]/[module].[ext]")
+                    artifact(minecraftClientPattern)
                 }
                 metadataSources {
                     artifact()
@@ -68,39 +89,39 @@ repositories {
             }
         }
         filter {
-            includeModule("net.minecraft", "client")
+            includeModule(minecraftGroup, minecraftClientModule)
         }
     }
 }
 
 tasks.processResources {
-    val modVersion = rootProject.version.toString()
-    inputs.property("modVersion", modVersion)
-    filesMatching(listOf("fabric.mod.json", "META-INF/neoforge.mods.toml")) {
-        expand("version" to modVersion)
+    val modVersion: String = rootProject.version.toString()
+    this.inputs.property("modVersion", modVersion)
+    this.filesMatching(listOf(fabricMetadata, neoForgeMetadata)) {
+        this.expand("version" to modVersion)
     }
 }
 
 tasks.jar {
-    archiveClassifier = "plain"
+    this.archiveClassifier = plainClassifier
 }
 
-val fabricJar = tasks.register<Jar>("fabricJar") {
-    group = "build"
-    description = "Assembles the mod for Fabric"
-    archiveClassifier = "fabric"
-    from(sourceSets.main.map { it.output })
-    exclude("**/NeoForge*.class", "META-INF/neoforge.mods.toml")
+val fabricJar: TaskProvider<Jar> = tasks.register<Jar>("fabricJar") {
+    this.group = "build"
+    this.description = "Assembles the mod for Fabric"
+    this.archiveClassifier = fabricClassifier
+    this.from(sourceSets.main.map { it.output })
+    this.exclude(neoForgeClasses, neoForgeMetadata)
 }
 
-val neoforgeJar = tasks.register<Jar>("neoforgeJar") {
-    group = "build"
-    description = "Assembles the mod for NeoForge"
-    archiveClassifier = "neoforge"
-    from(sourceSets.main.map { it.output })
-    exclude("**/Fabric*.class", "fabric.mod.json")
+val neoforgeJar: TaskProvider<Jar> = tasks.register<Jar>("neoforgeJar") {
+    this.group = "build"
+    this.description = "Assembles the mod for NeoForge"
+    this.archiveClassifier = neoForgeClassifier
+    this.from(sourceSets.main.map { it.output })
+    this.exclude(fabricClasses, fabricMetadata)
 }
 
 tasks.assemble {
-    dependsOn(fabricJar, neoforgeJar)
+    this.dependsOn(fabricJar, neoforgeJar)
 }

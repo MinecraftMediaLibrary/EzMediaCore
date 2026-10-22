@@ -16,64 +16,77 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
+import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.PythonEnvironment
 import me.brandonli.mcav.gradle.PythonTests
-import me.brandonli.mcav.gradle.addLwjglTestNatives
-import me.brandonli.mcav.gradle.libraryOf
 import me.brandonli.mcav.gradle.libs
 
 plugins {
     java
 }
 
+val lwjglAliases: List<String> = listOf("lwjgl", "lwjgl-shaderc", "lwjgl-spvc")
+val toolsClasspathPath: String = "mcv2-tools-classpath.txt"
+
+val pythonSourcePath: String = "src/test/python"
+val pythonTestPattern: String = "test_*.py"
+val timingTestFile: String = "test_shader_timing.py"
+val pythonCachePattern: String = "**/__pycache__/**"
+val testResourcePath: String = "src/test/resources/mcv2"
+val packResourcePath: String = "src/main/resources/mcav/mcv2/pack"
+val docsImagePath: String = "mcav-docs/images/mcv2"
+val pythonReportPath: String = "test-results/pythonTest"
+
 dependencies {
-    val libraries = listOf("lwjgl", "lwjgl-shaderc", "lwjgl-spvc").map { libs.libraryOf(it) }
+    val libraries: List<Provider<MinimalExternalModuleDependency>> = lwjglAliases.map { CatalogUtils.libraryOf(libs, it) }
     libraries.forEach { testImplementation(it) }
-    addLwjglTestNatives(libraries)
+    HostPlatform.current().addLwjglTestNatives(dependencies, libraries)
 }
 
-val writeToolsClasspath = tasks.register("writeMcv2ToolsClasspath") {
-    group = "verification"
-    description = "Writes the test runtime classpath that Mcv2ToolsTest starts Mcv2Tools with"
-    val output = layout.buildDirectory.file("mcv2-tools-classpath.txt")
-    val classpath = sourceSets.test.map { it.runtimeClasspath }
-    inputs.files(classpath)
-    outputs.file(output)
-    doLast {
+val writeToolsClasspath: TaskProvider<Task> = tasks.register("writeMcv2ToolsClasspath") {
+    this.group = "verification"
+    this.description = "Writes the test runtime classpath that Mcv2ToolsTest starts Mcv2Tools with"
+
+    val output: Provider<RegularFile> = layout.buildDirectory.file(toolsClasspathPath)
+    val classpath: Provider<FileCollection> = sourceSets.test.map { it.runtimeClasspath }
+    this.inputs.files(classpath)
+    this.outputs.file(output)
+    this.doLast {
         output.get().asFile.writeText(classpath.get().asPath)
     }
 }
 
 tasks.test {
-    inputs.files(writeToolsClasspath)
+    this.inputs.files(writeToolsClasspath)
 }
 pluginManager.withPlugin("info.solidsoft.pitest") {
     tasks.named("pitest") {
-        inputs.files(writeToolsClasspath)
+        this.inputs.files(writeToolsClasspath)
     }
 }
 
-val pythonEnvironment = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
-val pythonSources = layout.projectDirectory.dir("src/test/python")
-val pythonTest = tasks.register<PythonTests>("pythonTest") {
-    group = "verification"
-    description = "Runs the Python codec tests in parallel processes, then the timing tests alone"
-    useEnvironment(pythonEnvironment)
-    parallelTests.from(fileTree(pythonSources) {
-        include("test_*.py")
-        exclude("test_shader_timing.py")
+val pythonEnvironment: TaskProvider<PythonEnvironment> = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
+val pythonSources: Directory = layout.projectDirectory.dir(pythonSourcePath)
+val pythonTest: TaskProvider<PythonTests> = tasks.register<PythonTests>("pythonTest") {
+    this.group = "verification"
+    this.description = "Runs the Python codec tests in parallel processes, then the timing tests alone"
+    this.useEnvironment(pythonEnvironment)
+    this.parallelTests.from(fileTree(pythonSources) {
+        this.include(pythonTestPattern)
+        this.exclude(timingTestFile)
     })
-    serialTests.from(pythonSources.file("test_shader_timing.py"))
-    sources.from(
-        fileTree(pythonSources) { exclude("test_*.py", "**/__pycache__/**") },
-        layout.projectDirectory.dir("src/test/resources/mcv2"),
-        layout.projectDirectory.dir("src/main/resources/mcav/mcv2/pack"),
-        layout.settingsDirectory.dir("mcav-docs/images/mcv2")
+    this.serialTests.from(pythonSources.file(timingTestFile))
+    this.sources.from(
+        fileTree(pythonSources) { exclude(pythonTestPattern, pythonCachePattern) },
+        layout.projectDirectory.dir(testResourcePath),
+        layout.projectDirectory.dir(packResourcePath),
+        layout.settingsDirectory.dir(docsImagePath)
     )
-    testDirectory = pythonSources
-    processCount = gradle.startParameter.maxWorkerCount
-    reportDirectory = layout.buildDirectory.dir("test-results/pythonTest")
+    this.testDirectory = pythonSources
+    this.processCount = gradle.startParameter.maxWorkerCount
+    this.reportDirectory = layout.buildDirectory.dir(pythonReportPath)
 }
 tasks.named("check") {
-    dependsOn(pythonTest)
+    this.dependsOn(pythonTest)
 }

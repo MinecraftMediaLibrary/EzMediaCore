@@ -19,18 +19,19 @@
 package me.brandonli.mcav.gradle
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ExternalModuleDependencyBundle
-import org.gradle.api.artifacts.MinimalExternalModuleDependency
-import org.gradle.api.artifacts.VersionCatalog
-import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.api.provider.Provider
-import org.gradle.kotlin.dsl.getByType
+import org.gradle.testfixtures.ProjectBuilder
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Test
 
-val Project.libs: VersionCatalog
-    get() = extensions.getByType<VersionCatalogsExtension>().named("libs")
+class MCAVPublishingExtensionTest {
 
-fun VersionCatalog.versionOf(alias: String): String = findVersion(alias).get().requiredVersion
+    @Test
+    fun shouldHoldWhetherToPublishGradleModuleMetadata(): Unit {
+        val project: Project = ProjectBuilder.builder().build()
+        val extension: MCAVPublishingExtension = project.objects.newInstance(MCAVPublishingExtension::class.java)
+        extension.gradleModuleMetadata.set(false)
 
-fun VersionCatalog.libraryOf(alias: String): Provider<MinimalExternalModuleDependency> = findLibrary(alias).get()
-
-fun VersionCatalog.bundleOf(alias: String): Provider<ExternalModuleDependencyBundle> = findBundle(alias).get()
+        val metadata: Boolean = extension.gradleModuleMetadata.get()
+        assertFalse(metadata)
+    }
+}

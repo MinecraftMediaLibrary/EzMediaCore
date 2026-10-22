@@ -17,8 +17,8 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.transformers.ApacheNoticeResourceTransformer
-import me.brandonli.mcav.gradle.McavPublishingExtension
-import me.brandonli.mcav.gradle.libraryOf
+import me.brandonli.mcav.gradle.CatalogUtils
+import me.brandonli.mcav.gradle.MCAVPublishingExtension
 import me.brandonli.mcav.gradle.libs
 
 plugins {
@@ -27,40 +27,48 @@ plugins {
     id("com.gradleup.shadow")
 }
 
+val mavenResolverSupplierAlias: String = "maven-resolver-supplier"
+val plainClassifier: String = "plain"
+val noticeFiles: List<String> = listOf("META-INF/NOTICE", "META-INF/NOTICE.txt", "META-INF/NOTICE.md")
+val relocatedPackages: List<String> =
+    listOf("com.ctc", "com.google", "jakarta.inject", "org.apache", "org.codehaus", "org.eclipse", "org.objectweb", "org.slf4j")
+val relocationRoot: String = "me.brandonli.mcav.libs"
+val builtJarProperty: String = "mcav.installer.jar"
+val builtJarPath: String = "libs/mcav-installer.jar"
+
 dependencies {
-    implementation(libs.libraryOf("maven-resolver-supplier"))
+    implementation(CatalogUtils.libraryOf(libs, mavenResolverSupplierAlias))
 }
 
-extensions.configure<McavPublishingExtension> {
+extensions.configure<MCAVPublishingExtension> {
     bundledJar = tasks.shadowJar
 }
 
 tasks.jar {
-    archiveClassifier = "plain"
+    this.archiveClassifier = plainClassifier
 }
 
 tasks.shadowJar {
-    archiveClassifier = ""
-    mergeServiceFiles()
-    filesMatching(listOf("META-INF/NOTICE", "META-INF/NOTICE.txt", "META-INF/NOTICE.md")) {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    this.archiveClassifier = ""
+    this.mergeServiceFiles()
+    this.filesMatching(noticeFiles) {
+        this.duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
-    transform(ApacheNoticeResourceTransformer::class.java)
-    inputs.property("noticeDuplicates", DuplicatesStrategy.INCLUDE.name)
-    listOf("com.ctc", "com.google", "jakarta.inject", "org.apache", "org.codehaus", "org.eclipse", "org.objectweb", "org.slf4j")
-        .forEach { prefix -> relocate(prefix, "me.brandonli.mcav.libs.$prefix") }
+    this.transform(ApacheNoticeResourceTransformer::class.java)
+    this.inputs.property("noticeDuplicates", DuplicatesStrategy.INCLUDE.name)
+    relocatedPackages.forEach { prefix -> this.relocate(prefix, "$relocationRoot.$prefix") }
 }
 
 tasks.assemble {
-    dependsOn(tasks.shadowJar)
+    this.dependsOn(tasks.shadowJar)
 }
 
-val builtJar = "-Dmcav.installer.jar=" + layout.buildDirectory.file("libs/mcav-installer.jar").get().asFile.absolutePath
+val builtJar: String = "-D$builtJarProperty=" + layout.buildDirectory.file(builtJarPath).get().asFile.absolutePath
 tasks.test {
-    jvmArgs("--add-opens", "java.base/java.net=ALL-UNNAMED")
-    dependsOn(tasks.shadowJar)
-    jvmArgs(builtJar)
+    this.jvmArgs("--add-opens", "java.base/java.net=ALL-UNNAMED")
+    this.dependsOn(tasks.shadowJar)
+    this.jvmArgs(builtJar)
 }
 tasks.named("pitest") {
-    dependsOn(tasks.shadowJar)
+    this.dependsOn(tasks.shadowJar)
 }

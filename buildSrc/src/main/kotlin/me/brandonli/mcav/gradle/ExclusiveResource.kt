@@ -21,4 +21,9 @@ package me.brandonli.mcav.gradle
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 
+/**
+ * A build service that tasks share to take turns with one resource, such as a quiet machine for timing tests.
+ *
+ * Its registration sets how many tasks may use the resource at once.
+ */
 abstract class ExclusiveResource : BuildService<BuildServiceParameters.None>

@@ -18,46 +18,81 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.BufferedOutputStream
 import java.io.File
 import java.io.OutputStream
 import org.gradle.api.GradleException
 
+/**
+ * Captures the console of a jcstress run and checks it for skipped tests.
+ */
 object JcstressConsole {
 
-    private const val SKIPPED_MESSAGE = "jcstress skipped %d test(s), which failed their sanity check and never ran: %s"
+    private const val TEST_GROUP: Int = 1
 
-    private val skippedLine = Regex("""\[SKIPPED]\s+(\S+)""")
+    private const val LINE_SEPARATOR: String = "\n"
 
-    fun tee(console: OutputStream, file: File): OutputStream = Tee(console, file.outputStream().buffered())
+    private val SKIPPED_LINE: Regex = Regex("""\[SKIPPED]\s+(\S+)""")
 
-    fun skippedTests(lines: List<String>): List<String> =
-        lines.mapNotNull { line -> skippedLine.find(line)?.groupValues?.get(1) }.distinct()
+    /**
+     * Returns a stream that writes to both [console] and a buffered stream of [file].
+     *
+     * Closing the stream flushes [console] and closes the stream of [file].
+     *
+     * @param console the console stream
+     * @param file    the file that receives a copy of the console
+     * @return the stream
+     */
+    fun tee(console: OutputStream, file: File): OutputStream {
+        return Tee(console, BufferedOutputStream(file.outputStream()))
+    }
 
-    fun checkNoneSkipped(console: File) {
-        val skipped = skippedTests(console.readLines())
+    /**
+     * Returns the names of the tests that a jcstress console marks as `[SKIPPED]`, each once and in console order.
+     *
+     * @param lines the lines of the console
+     * @return the names of the skipped tests
+     */
+    fun skippedTests(lines: List<String>): List<String> {
+        return lines.mapNotNull { line -> SKIPPED_LINE.find(line)?.groupValues?.get(TEST_GROUP) }
+            .distinct()
+    }
+
+    /**
+     * Checks that a jcstress console marks no test as skipped.
+     *
+     * @param console the file that holds the console
+     * @throws GradleException if a test was skipped, listing every skipped test
+     */
+    fun checkNoneSkipped(console: File): Unit {
+        val lines: List<String> = console.readLines()
+        val skipped: List<String> = this.skippedTests(lines)
         if (skipped.isNotEmpty()) {
-            throw GradleException(SKIPPED_MESSAGE.format(skipped.size, skipped.joinToString(", ")))
+            val names: String = skipped.joinToString(LINE_SEPARATOR)
+            val message: String =
+                "jcstress skipped ${skipped.size} tests that failed their sanity check and never ran!$LINE_SEPARATOR$names"
+            throw GradleException(message)
         }
     }
 
     private class Tee(private val console: OutputStream, private val file: OutputStream) : OutputStream() {
 
-        override fun write(byte: Int) {
+        override fun write(byte: Int): Unit {
             this.console.write(byte)
             this.file.write(byte)
         }
 
-        override fun write(bytes: ByteArray, offset: Int, length: Int) {
+        override fun write(bytes: ByteArray, offset: Int, length: Int): Unit {
             this.console.write(bytes, offset, length)
             this.file.write(bytes, offset, length)
         }
 
-        override fun flush() {
+        override fun flush(): Unit {
             this.console.flush()
             this.file.flush()
         }
 
-        override fun close() {
+        override fun close(): Unit {
             this.console.flush()
             this.file.close()
         }

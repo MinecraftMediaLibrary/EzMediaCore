@@ -20,47 +20,78 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 import org.gradle.api.GradleException
+import org.gradle.process.ExecOperations
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 class ToolVersionsTest {
 
-    @Test
-    fun uvAcceptsTheExactVersionIncludingItsBuildMetadataAndRejectsOtherVersions() {
-        val processes = RecordedProcesses("uv 0.12.23 (build 2026-10-01)\n")
-        ToolVersions.verify(processes.operations, File("uv"), "uv", "0.12.23")
-        assertEquals(listOf(listOf("uv", "--version")), processes.commands)
-        val failure = assertThrows(GradleException::class.java) {
-            ToolVersions.verify(RecordedProcesses("uv 0.12.22\n").operations, File("uv"), "uv", "0.12.23")
-        }
-        assertEquals("uv must be uv 0.12.23, but it is uv 0.12.22", failure.message)
+    private companion object {
+
+        const val VERSION_OPTION: String = "--version"
+
+        const val UV_TOOL: String = "uv"
+        const val ZIG_TOOL: String = "zig"
+        const val CLANG_FORMAT_TOOL: String = "clang-format"
     }
 
     @Test
-    fun clangFormatAcceptsTheExactVersionWithAProviderPrefixAndRejectsOtherToolsOrVersions() {
-        val prefix = "clang-format version "
-        val processes = RecordedProcesses("Ubuntu clang-format version 18.1.8 (distribution)\n")
-        ToolVersions.verify(processes.operations, "clang-format", "clang-format", "18.1.8", prefix)
-        assertEquals(listOf(listOf("clang-format", "--version")), processes.commands)
-        listOf("clang-format version 18.1.7", "clang-format version 18.1.80", "clang version 18.1.8").forEach { reported ->
-            val failure = assertThrows(GradleException::class.java) {
-                ToolVersions.verify(RecordedProcesses(reported).operations, "clang-format", "clang-format", "18.1.8", prefix)
-            }
-            assertEquals("clang-format must be clang-format 18.1.8, but it is $reported", failure.message)
-        }
+    fun shouldAcceptTheExactUvVersionIncludingItsBuildMetadataAndRejectOtherVersions(): Unit {
+        val processes: RecordedProcesses = RecordedProcesses("uv 0.12.23 (build 2026-10-01)\n")
+        this.verifyUv(processes.operations)
+
+        val commands: List<List<String>> = processes.commands
+        assertEquals(listOf(listOf(UV_TOOL, VERSION_OPTION)), commands)
+
+        val message: String? = this.rejectionOf("uv 0.12.22\n", this::verifyUv)
+        assertEquals("uv reports uv 0.12.22, which is not the uv 0.12.23 this build pins!", message)
     }
 
     @Test
-    fun zigAcceptsItsBareVersionAndRejectsOtherVersions() {
-        val processes = RecordedProcesses("0.16.0\n")
-        ToolVersions.verify(processes.operations, File("zig"), "zig", "0.16.0", prefix = "", argument = "version")
-        assertEquals(listOf(listOf("zig", "version")), processes.commands)
-        listOf("0.15.2", "0.16.0-dev.1+abc").forEach { reported ->
-            val failure = assertThrows(GradleException::class.java) {
-                ToolVersions.verify(RecordedProcesses(reported).operations, File("zig"), "zig", "0.16.0", prefix = "", argument = "version")
-            }
-            assertEquals("zig must be zig 0.16.0, but it is $reported", failure.message)
-        }
+    fun shouldAcceptTheExactClangFormatVersionWithAProviderPrefixAndRejectOtherToolsOrVersions(): Unit {
+        val processes: RecordedProcesses = RecordedProcesses("Ubuntu clang-format version 18.1.8 (distribution)\n")
+        this.verifyClangFormat(processes.operations)
+
+        val commands: List<List<String>> = processes.commands
+        assertEquals(listOf(listOf(CLANG_FORMAT_TOOL, VERSION_OPTION)), commands)
+
+        val reports: List<String> = listOf("clang-format version 18.1.7", "clang-format version 18.1.80", "clang version 18.1.8")
+        val messages: Map<String, String?> = reports.associateWith { reported -> this.rejectionOf(reported, this::verifyClangFormat) }
+        val expected: Map<String, String?> =
+            reports.associateWith { "clang-format reports $it, which is not the clang-format 18.1.8 this build pins!" }
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun shouldAcceptTheBareZigVersionAndRejectOtherVersions(): Unit {
+        val processes: RecordedProcesses = RecordedProcesses("0.16.0\n")
+        this.verifyZig(processes.operations)
+
+        val commands: List<List<String>> = processes.commands
+        assertEquals(listOf(listOf(ZIG_TOOL, "version")), commands)
+
+        val reports: List<String> = listOf("0.15.2", "0.16.0-dev.1+abc")
+        val messages: Map<String, String?> = reports.associateWith { reported -> this.rejectionOf(reported, this::verifyZig) }
+        val expected: Map<String, String?> = reports.associateWith { "zig reports $it, which is not the zig 0.16.0 this build pins!" }
+        assertEquals(expected, messages)
+    }
+
+    private fun verifyUv(operations: ExecOperations): Unit {
+        ToolVersions.verify(operations, File(UV_TOOL), UV_TOOL, "0.12.23")
+    }
+
+    private fun rejectionOf(reported: String, verify: (ExecOperations) -> Unit): String? {
+        val operations: ExecOperations = RecordedProcesses(reported).operations
+        val failure: GradleException = assertThrows(GradleException::class.java) { verify(operations) }
+        return failure.message
+    }
+
+    private fun verifyClangFormat(operations: ExecOperations): Unit {
+        ToolVersions.verify(operations, CLANG_FORMAT_TOOL, CLANG_FORMAT_TOOL, "18.1.8", "clang-format version ")
+    }
+
+    private fun verifyZig(operations: ExecOperations): Unit {
+        ToolVersions.verify(operations, File(ZIG_TOOL), ZIG_TOOL, "0.16.0", prefix = "", argument = "version")
     }
 }

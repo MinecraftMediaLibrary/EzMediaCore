@@ -17,25 +17,57 @@
  */
 
 import com.github.gradle.node.NodeExtension
-import me.brandonli.mcav.gradle.isWindows
+import me.brandonli.mcav.gradle.CatalogUtils
+import me.brandonli.mcav.gradle.HostPlatform
+import me.brandonli.mcav.gradle.NodeLayout
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.versionOf
 
 plugins {
     java
     id("com.diffplug.spotless")
 }
 
-val node = rootProject.extensions.getByType<NodeExtension>()
-val nodeSetup = rootProject.tasks.named("nodeSetup")
-val nodeExecutable = node.resolvedNodeDir.map { it.file(if (isWindows) "node.exe" else "bin/node").asFile }
+val prettierAlias: String = "prettier"
+val prettierJavaPluginAlias: String = "prettier-plugin-java"
+val javaParser: String = "java"
+val javaTabWidth: Int = 2
+val javaPrintWidth: Int = 140
+val licenseHeaderPath: String = "HEADER"
+
+val gradleScriptPattern: String = "*.gradle.kts"
+val resourcePatterns: List<String> = listOf(
+    "src/**/*.json",
+    "src/**/*.yml",
+    "src/**/*.yaml",
+    "src/**/*.properties",
+    "src/**/*.astub",
+    "coverage-exceptions.txt",
+    "*.md"
+)
+val excludedResourcePatterns: List<String> = listOf("**/build/**", "**/node_modules/**")
+
+val spotlessJavaTaskPrefix: String = "spotlessJava"
+
+val node: NodeExtension = rootProject.extensions.getByType<NodeExtension>()
+val nodeSetup: TaskProvider<Task> = rootProject.tasks.named("nodeSetup")
+val host: HostPlatform = HostPlatform.current()
+val nodeExecutable: Provider<File> = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile }
+val prettierVersion: String = CatalogUtils.versionOf(libs, prettierAlias)
+val prettierJavaPluginVersion: String = CatalogUtils.versionOf(libs, prettierJavaPluginAlias)
 
 spotless {
     java {
-        prettier(mapOf("prettier" to libs.versionOf("prettier"), "prettier-plugin-java" to libs.versionOf("prettier-plugin-java")))
-            .config(mapOf("parser" to "java", "tabWidth" to 2, "plugins" to listOf("prettier-plugin-java"), "printWidth" to 140))
+        prettier(mapOf(prettierAlias to prettierVersion, prettierJavaPluginAlias to prettierJavaPluginVersion))
+            .config(
+                mapOf(
+                    "parser" to javaParser,
+                    "tabWidth" to javaTabWidth,
+                    "plugins" to listOf(prettierJavaPluginAlias),
+                    "printWidth" to javaPrintWidth
+                )
+            )
             .nodeExecutable(nodeExecutable)
-        licenseHeaderFile(rootProject.file("HEADER"))
+        licenseHeaderFile(rootProject.file(licenseHeaderPath))
         importOrder()
         removeUnusedImports()
         formatAnnotations()
@@ -43,26 +75,18 @@ spotless {
         endWithNewline()
     }
     kotlinGradle {
-        target("*.gradle.kts")
+        target(gradleScriptPattern)
         trimTrailingWhitespace()
         endWithNewline()
     }
     format("resources") {
-        target(
-            "src/**/*.json",
-            "src/**/*.yml",
-            "src/**/*.yaml",
-            "src/**/*.properties",
-            "src/**/*.astub",
-            "coverage-exceptions.txt",
-            "*.md"
-        )
-        targetExclude("**/build/**", "**/node_modules/**")
+        target(*resourcePatterns.toTypedArray())
+        targetExclude(*excludedResourcePatterns.toTypedArray())
         trimTrailingWhitespace()
         endWithNewline()
     }
 }
 
-tasks.matching { it.name.startsWith("spotlessJava") }.configureEach {
-    dependsOn(nodeSetup)
+tasks.matching { it.name.startsWith(spotlessJavaTaskPrefix) }.configureEach {
+    this.dependsOn(nodeSetup)
 }

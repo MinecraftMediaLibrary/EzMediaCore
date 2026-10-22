@@ -17,21 +17,25 @@
  */
 
 import com.github.gradle.node.NodeExtension
-import me.brandonli.mcav.gradle.isWindows
+import me.brandonli.mcav.gradle.HostPlatform
+import me.brandonli.mcav.gradle.NodeLayout
 
 plugins {
     id("mcav.mutation")
 }
 
-val node = rootProject.extensions.getByType<NodeExtension>()
-val nodeSetup = rootProject.tasks.named("nodeSetup")
-val testNode = node.resolvedNodeDir.map { it.file(if (isWindows) "node.exe" else "bin/node").asFile }
+val testNodeProperty: String = "mcav.testNode"
+
+val node: NodeExtension = rootProject.extensions.getByType<NodeExtension>()
+val nodeSetup: TaskProvider<Task> = rootProject.tasks.named("nodeSetup")
+val host: HostPlatform = HostPlatform.current()
+val testNode: Provider<File> = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile }
 
 tasks.withType<Test>().configureEach {
-    dependsOn(nodeSetup)
-    jvmArgs("-Dmcav.testNode=${testNode.get().absolutePath}")
+    this.dependsOn(nodeSetup)
+    this.jvmArgs("-D$testNodeProperty=${testNode.get().absolutePath}")
 }
 
 tasks.named("pitest") {
-    dependsOn(nodeSetup)
+    this.dependsOn(nodeSetup)
 }

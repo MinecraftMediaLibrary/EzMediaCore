@@ -27,6 +27,8 @@ import static org.mockito.Mockito.when;
 import com.shinyhut.vernacular.client.VernacularClient;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,22 +47,23 @@ final class VncHandshakeDeadlineTest {
 
   private static final long TIMEOUT_SECONDS = 10;
 
+  private static final String JAVA_AGENT_OPTION = "-javaagent:";
+  private static final String BYTE_BUDDY_AGENT = "byte-buddy-agent";
+
   @Test
   void shouldGiveConcurrentAsyncStartsIndependentHandshakeDeadlines(@TempDir final Path folder) throws Exception {
     final Path javaFolder = Path.of(System.getProperty("java.home"), "bin");
     final Path windowsJava = javaFolder.resolve("java.exe");
     final Path executable = Files.isRegularFile(windowsJava) ? windowsJava : javaFolder.resolve("java");
     final Path output = folder.resolve("deadline.log");
-    final Process child = new ProcessBuilder(
-      executable.toString(),
-      "-Djava.util.concurrent.ForkJoinPool.common.parallelism=2",
-      "-cp",
-      System.getProperty("java.class.path"),
-      DeadlineProbe.class.getName()
-    )
-      .redirectErrorStream(true)
-      .redirectOutput(output.toFile())
-      .start();
+    final List<String> command = new ArrayList<>();
+    command.add(executable.toString());
+    command.addAll(this.findByteBuddyAgents());
+    command.add("-Djava.util.concurrent.ForkJoinPool.common.parallelism=2");
+    command.add("-cp");
+    command.add(System.getProperty("java.class.path"));
+    command.add(DeadlineProbe.class.getName());
+    final Process child = new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(output.toFile()).start();
     try {
       final boolean terminated = child.waitFor(30, TimeUnit.SECONDS);
       assertTrue(terminated, "the isolated deadline probe terminates");
@@ -72,6 +75,17 @@ final class VncHandshakeDeadlineTest {
       final boolean reaped = child.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(reaped, "the child is reaped");
     }
+  }
+
+  // Gives the probe's inline mocks the agent this JVM started with, since JEP 451 restricts attaching one.
+  private List<String> findByteBuddyAgents() {
+    final RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
+    final List<String> arguments = runtime.getInputArguments();
+    return arguments
+      .stream()
+      .filter(argument -> argument.startsWith(JAVA_AGENT_OPTION))
+      .filter(argument -> argument.contains(BYTE_BUDDY_AGENT))
+      .toList();
   }
 
   private String readOutput(final Path path) {

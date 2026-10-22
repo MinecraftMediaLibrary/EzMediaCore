@@ -22,20 +22,23 @@ plugins {
     id("mcav.script-testing")
 }
 
+val cefTestGroup: String = "cef"
+val helperCoveragePath: String = "jacoco/helper.exec"
+
 pitest {
-    excludedGroups = setOf("cef")
+    excludedGroups = setOf(cefTestGroup)
 }
 
-val helperCoverage = layout.buildDirectory.file("jacoco/helper.exec")
+val helperCoverage: Provider<RegularFile> = layout.buildDirectory.file(helperCoveragePath)
 
 tasks.test {
-    val coverage = helperCoverage
-    outputs.file(coverage).withPropertyName("helperCoverage")
-    doFirst {
+    val coverage: Provider<RegularFile> = helperCoverage
+    this.outputs.file(coverage).withPropertyName("helperCoverage")
+    this.doFirst {
         coverage.get().asFile.delete()
     }
 }
 
 tasks.jacocoTestReport {
-    executionData(helperCoverage)
+    this.executionData(helperCoverage)
 }

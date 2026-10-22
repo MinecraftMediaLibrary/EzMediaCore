@@ -18,72 +18,111 @@
 
 package me.brandonli.mcav.gradle
 
-data class ConcatenatedLogMessage(val line: Int, val call: String)
-
+/**
+ * Finds the log calls in Java source whose message is built by string concatenation.
+ *
+ * A log call is a `trace`, `debug`, `info`, `warn` or `error` call on a receiver named like a logger, such as `LOGGER`
+ * or `log`. It concatenates when one of its arguments joins a string literal with `+` outside any parentheses.
+ */
 object LogMessages {
 
-    private val CALL = Regex("""\b([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*(trace|debug|info|warn|error)\s*\(""")
+    private const val RECEIVER_GROUP: Int = 1
 
-    private val LOGGER = Regex("""(?:[A-Z][A-Z0-9_]*_)?LOG(?:GER)?|log(?:ger)?|[a-z][A-Za-z0-9]*Logger""")
+    private const val CALL_START: Char = '('
+    private const val ARGUMENT_SEPARATOR: Char = ','
+    private const val CONCATENATION: Char = '+'
+    private const val STRING_QUOTE: Char = '"'
+    private const val NEW_LINE: Char = '\n'
 
-    private val OPENING = setOf('(', '[', '{')
+    private const val FIRST_LINE_NUMBER: Int = 1
 
-    private val CLOSING = setOf(')', ']', '}')
+    private val CALL: Regex = Regex("""\b([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*(trace|debug|info|warn|error)\s*\(""")
 
+    private val LOGGER: Regex = Regex("""(?:[A-Z][A-Z0-9_]*_)?LOG(?:GER)?|log(?:ger)?|[a-z][A-Za-z0-9]*Logger""")
+
+    private val OPENING: Set<Char> = setOf('(', '[', '{')
+
+    private val CLOSING: Set<Char> = setOf(')', ']', '}')
+
+    /**
+     * Returns the log calls in [source] that build their message by concatenation, in source order.
+     *
+     * @param source the Java source
+     * @return the concatenating log calls
+     */
     fun find(source: String): List<ConcatenatedLogMessage> {
-        val code = JavaSource.mask(source)
-        val text = JavaSource.withoutComments(source)
+        val code: String = JavaSource.mask(source)
+        val text: String = JavaSource.withoutComments(source)
         return CALL.findAll(code)
-            .filter { LOGGER.matches(it.groupValues[1]) }
-            .filter { call -> isConcatenated(arguments(text, code, call.range.last + 1)) }
-            .map { call -> ConcatenatedLogMessage(lineOf(source, call.range.first), call.value.substringBefore('(')) }
+            .filter { LOGGER.matches(it.groupValues[RECEIVER_GROUP]) }
+            .filter { call -> this.isConcatenated(text, code, call) }
+            .map { call -> this.messageOf(source, call) }
             .toList()
     }
 
-    private fun isConcatenated(arguments: List<Argument>): Boolean {
-        return arguments.any { it.joinsStrings() }
+    private fun isConcatenated(text: String, code: String, call: MatchResult): Boolean {
+        val argumentsStart: Int = call.range.last + 1
+        val arguments: List<Argument> = this.arguments(text, code, argumentsStart)
+        return arguments.any(Argument::joinsStrings)
     }
 
     private fun arguments(source: String, code: String, start: Int): List<Argument> {
-        val arguments = mutableListOf<Argument>()
-        var depth = 0
-        var argumentStart = start
-        for (index in start until code.length) {
-            val character = code[index]
-            val ends = character in CLOSING && depth == 0
-            when {
-                character in OPENING -> depth++
-                character in CLOSING && depth > 0 -> depth--
-                ends || (character == ',' && depth == 0) -> {
-                    arguments += Argument(source.substring(argumentStart, index), code.substring(argumentStart, index))
-                    argumentStart = index + 1
-                }
-            }
-            if (ends) {
-                break
-            }
-        }
-        val noArguments = arguments.size == 1 && arguments[0].text.isBlank()
+        val ends: List<Int> = this.findArgumentEnds(code, start)
+        val starts: List<Int> = listOf(start) + ends.map { it + 1 }
+        val arguments: List<Argument> =
+            starts.zip(ends) { first, end -> Argument(source.substring(first, end), code.substring(first, end)) }
+        val noArguments: Boolean = arguments.size == 1 && arguments[0].text.isBlank()
         return if (noArguments) emptyList() else arguments
     }
 
-    private fun lineOf(source: String, offset: Int): Int = source.substring(0, offset).count { it == '\n' } + 1
+    private fun findArgumentEnds(code: String, start: Int): List<Int> {
+        val ends: MutableList<Int> = mutableListOf<Int>()
+        var depth: Int = 0
+        for (index in start until code.length) {
+            val character: Char = code[index]
+            val closesCall: Boolean = character in CLOSING && depth == 0
+            val separatesArguments: Boolean = character == ARGUMENT_SEPARATOR && depth == 0
+            when {
+                character in OPENING -> depth++
+                character in CLOSING && depth > 0 -> depth--
+                closesCall || separatesArguments -> ends += index
+            }
+            if (closesCall) {
+                break
+            }
+        }
+
+        return ends
+    }
+
+    private fun messageOf(source: String, call: MatchResult): ConcatenatedLogMessage {
+        val line: Int = this.lineOf(source, call.range.first)
+        val method: String = call.value.substringBefore(CALL_START)
+        return ConcatenatedLogMessage(line, method)
+    }
+
+    private fun lineOf(source: String, offset: Int): Int {
+        val before: String = source.substring(0, offset)
+        val newLines: Int = before.count { it == NEW_LINE }
+        return newLines + FIRST_LINE_NUMBER
+    }
 
     private class Argument(val text: String, private val code: String) {
 
         fun joinsStrings(): Boolean {
-            var depth = 0
-            var plus = false
-            var literal = false
-            code.forEachIndexed { index, character ->
+            var depth: Int = 0
+            var plus: Boolean = false
+            var literal: Boolean = false
+            for ((index, character) in this.code.withIndex()) {
                 when {
                     character in OPENING -> depth++
                     character in CLOSING -> depth--
                     depth > 0 -> Unit
-                    character == '+' -> plus = true
-                    text[index] == '"' -> literal = true
+                    character == CONCATENATION -> plus = true
+                    this.text[index] == STRING_QUOTE -> literal = true
                 }
             }
+
             return plus && literal
         }
     }

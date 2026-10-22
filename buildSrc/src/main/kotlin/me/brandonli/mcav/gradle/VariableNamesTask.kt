@@ -19,30 +19,68 @@
 package me.brandonli.mcav.gradle
 
 import java.io.File
+import java.util.SortedMap
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 
+/**
+ * Fails the build on every Java variable whose name says nothing about what it holds, unless [publishedNames] lists it.
+ */
 abstract class VariableNamesTask : JavaLintTask() {
 
     private companion object {
-        const val UNDESCRIPTIVE = "{}:{}: error: the {} {} says nothing; name what it holds"
+
+        const val UNDESCRIPTIVE: String = "{}:{}: error: the {} {} says nothing; name what it holds."
     }
 
+    /**
+     * The variables that keep their names because public API publishes them, as `<package>.<type>#<name>`; empty unless set.
+     */
     @get:Input
     abstract val publishedNames: SetProperty<String>
 
-    override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit) {
-        val published = publishedNames.get()
-        VariableNames.findInFiles(files).toSortedMap().forEach { (file, names) ->
-            names.filter { it.member !in published }.forEach { found ->
-                reportViolation(file, found.line, listOf(found.kind, found.name))
-            }
+    /**
+     * Finds the undescriptive names in [files] with [VariableNames] and reports each unpublished one to [reportViolation].
+     *
+     * @param files           the sources to check, sorted by path
+     * @param reportViolation receives the file, the line, the kind and the name of each variable
+     */
+    override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit {
+        val published: Set<String> = this.publishedNames.get()
+        val namesByFile: Map<File, List<UndescriptiveName>> = VariableNames.findInFiles(files)
+        val sortedNames: SortedMap<File, List<UndescriptiveName>> = namesByFile.toSortedMap()
+        for ((file, names) in sortedNames) {
+            val unpublished: List<UndescriptiveName> = names.filter { it.member !in published }
+            unpublished.forEach { found -> reportViolation(file, found.line, listOf(found.kind, found.name)) }
         }
     }
 
-    override fun diagnosticMessage(): String = UNDESCRIPTIVE
+    /**
+     * Returns the template that logs one undescriptive name, with its file, line, kind and name.
+     *
+     * @return the template
+     */
+    override fun diagnosticMessage(): String {
+        return UNDESCRIPTIVE
+    }
 
-    override fun failureMessage(count: Int): String = "$count undescriptive variable names"
+    /**
+     * Returns the message of the build failure.
+     *
+     * @param count the number of undescriptive names
+     * @return the message
+     */
+    override fun failureMessage(count: Int): String {
+        return "Found $count undescriptive variable names!"
+    }
 
-    override fun successMessage(fileCount: Int): String = "no undescriptive variable name in $fileCount files\n"
+    /**
+     * Returns the report text of sources without an undescriptive name.
+     *
+     * @param fileCount the number of checked files
+     * @return the report text
+     */
+    override fun successMessage(fileCount: Int): String {
+        return "no undescriptive variable name in $fileCount files\n"
+    }
 }

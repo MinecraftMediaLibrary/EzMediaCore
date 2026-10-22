@@ -18,8 +18,10 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.process.ExecOperations
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -29,66 +31,98 @@ import org.junit.jupiter.api.io.TempDir
 
 class PythonEnvironmentTest {
 
+    private companion object {
+
+        const val UV_EXECUTABLE: String = "uv"
+        const val UV_VERSION_OUTPUT: String = "uv 0.12.23\n"
+
+        const val PYTHON_VERSION: String = "3.13.16"
+
+        const val PACKAGE_INDEX: String = "https://pypi.org/simple"
+
+        const val PYTHON_DIRECTORY: String = "python"
+        const val UV_CACHE_DIRECTORY: String = "uv-cache"
+        const val LOCK_FILE: String = "requirements.lock"
+        const val VIRTUAL_ENVIRONMENT_PYTHON: String = "bin/python"
+        const val VIRTUAL_ENVIRONMENT_CLANG_FORMAT: String = "bin/clang-format"
+
+        const val VIRTUAL_ENVIRONMENT_DIRECTORY: String = "venv"
+    }
+
     @TempDir
     lateinit var directory: Path
 
-    abstract class RecordingEnvironment : PythonEnvironment() {
-        lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations get() = recordedProcesses
-    }
-
     @Test
-    fun installsThePinnedPythonIntoAFreshVirtualEnvironmentAndSyncsItWithTheHashedLock() {
-        val task = environment("numpy==2.5.3 \\\n    --hash=sha256:00\npytest==9.1.1 \\\n    --hash=sha256:11\n")
-        val processes = RecordedProcesses("uv 0.12.23\n")
+    fun shouldInstallThePinnedPythonIntoAFreshVirtualEnvironmentAndSyncItWithTheHashedLock(): Unit {
+        val task: RecordingEnvironment = this.environment("numpy==2.5.3 \\\n    --hash=sha256:00\npytest==9.1.1 \\\n    --hash=sha256:11\n")
+        val processes: RecordedProcesses = RecordedProcesses(UV_VERSION_OUTPUT)
         task.recordedProcesses = processes.operations
         task.install()
-        val uv = directory.resolve("uv").toString()
-        val installation = directory.resolve("python").toFile()
-        val virtualEnvironment = installation.resolve("venv")
+
+        val uv: String = this.directory.resolve(UV_EXECUTABLE).toString()
+        val installation: File = this.directory.resolve(PYTHON_DIRECTORY).toFile()
+        val virtualEnvironment: File = installation.resolve(VIRTUAL_ENVIRONMENT_DIRECTORY)
+        val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(
                 listOf(uv, "--version"),
-                listOf(uv, "python", "install", "3.13.16", "--no-bin", "--no-registry"),
-                listOf(uv, "venv", "--clear", "--no-project", "--no-python-downloads", "--python", "3.13.16", virtualEnvironment.path),
-                listOf(uv, "pip", "sync", "--python", virtualEnvironment.resolve("bin/python").path, "--require-hashes",
-                    "--only-binary", ":all:", "--default-index", "https://pypi.org/simple",
-                    directory.resolve("requirements.lock").toString())
+                listOf(uv, "python", "install", PYTHON_VERSION, "--no-bin", "--no-registry"),
+                listOf(uv, "venv", "--clear", "--no-project", "--no-python-downloads", "--python", PYTHON_VERSION, virtualEnvironment.path),
+                listOf(uv, "pip", "sync", "--python", virtualEnvironment.resolve(VIRTUAL_ENVIRONMENT_PYTHON).path, "--require-hashes",
+                    "--only-binary", ":all:", "--default-index", PACKAGE_INDEX,
+                    this.directory.resolve(LOCK_FILE).toString())
             ),
-            processes.commands
+            commands
         )
-        val uvVariables = uvEnvironment(installation, directory.resolve("uv-cache").toFile())
-        assertEquals(listOf(emptyMap(), uvVariables, uvVariables, uvVariables), processes.environments)
-        assertEquals(virtualEnvironment.resolve("bin/clang-format"), task.executable("clang-format").get().asFile)
+
+        val uvVariables: Map<String, String> = UvEnvironment.variables(installation, this.directory.resolve(UV_CACHE_DIRECTORY).toFile())
+        val environments: List<Map<String, Any?>> = processes.environments
+        assertEquals(listOf(emptyMap(), uvVariables, uvVariables, uvVariables), environments)
+
+        val clangFormat: File = task.executable("clang-format").get().asFile
+        assertEquals(virtualEnvironment.resolve(VIRTUAL_ENVIRONMENT_CLANG_FORMAT), clangFormat)
     }
 
     @Test
-    fun aLockWithoutTheCatalogVersionsNamesTheTaskThatWritesItAndInstallsNothing() {
-        val task = environment("numpy==2.5.2 \\\n    --hash=sha256:00\n")
-        val processes = RecordedProcesses("uv 0.12.23\n")
+    fun shouldNameTheTaskThatWritesALockWithoutTheCatalogVersionsAndInstallNothing(): Unit {
+        val task: RecordingEnvironment = this.environment("numpy==2.5.2 \\\n    --hash=sha256:00\n")
+        val processes: RecordedProcesses = RecordedProcesses(UV_VERSION_OUTPUT)
         task.recordedProcesses = processes.operations
-        val failure = assertThrows(GradleException::class.java) { task.install() }
+
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
+        val message: String? = failure.message
         assertEquals(
-            "${directory.resolve("requirements.lock")} does not pin numpy==2.5.3, pytest==9.1.1 of gradle/libs.versions.toml; " +
-                "run ./gradlew :lockPythonRequirements",
-            failure.message
+            "${this.directory.resolve(LOCK_FILE)} does not pin numpy==2.5.3, pytest==9.1.1 of gradle/libs.versions.toml, " +
+                "so run ./gradlew :lockPythonRequirements to write it!",
+            message
         )
-        assertEquals(emptyList<List<String>>(), processes.commands)
+
+        val commands: List<List<String>> = processes.commands
+        assertEquals(emptyList<List<String>>(), commands)
     }
 
     private fun environment(lock: String): RecordingEnvironment {
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val task = project.tasks.register("installPythonEnvironment", RecordingEnvironment::class.java).get()
-        val requirements = directory.resolve("requirements.lock").toFile()
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
+        val task: RecordingEnvironment = project.tasks.register("installPythonEnvironment", RecordingEnvironment::class.java).get()
+        val requirements: File = this.directory.resolve(LOCK_FILE).toFile()
         requirements.writeText(lock)
-        task.uvExecutable.set(directory.resolve("uv").toFile())
+        task.uvExecutable.set(this.directory.resolve(UV_EXECUTABLE).toFile())
         task.uvVersion.set("0.12.23")
-        task.pythonVersion.set("3.13.16")
+        task.pythonVersion.set(PYTHON_VERSION)
         task.requirements.set(requirements)
         task.versions.set(mapOf("numpy" to "2.5.3", "pytest" to "9.1.1"))
         task.lockTask.set(":lockPythonRequirements")
-        task.installationDirectory.set(directory.resolve("python").toFile())
-        task.cacheDirectory.set(directory.resolve("uv-cache").toFile())
+        task.installationDirectory.set(this.directory.resolve(PYTHON_DIRECTORY).toFile())
+        task.cacheDirectory.set(this.directory.resolve(UV_CACHE_DIRECTORY).toFile())
         return task
+    }
+
+    abstract class RecordingEnvironment : PythonEnvironment() {
+
+        lateinit var recordedProcesses: ExecOperations
+        override val processes: ExecOperations
+            get() {
+                return this.recordedProcesses
+            }
     }
 }

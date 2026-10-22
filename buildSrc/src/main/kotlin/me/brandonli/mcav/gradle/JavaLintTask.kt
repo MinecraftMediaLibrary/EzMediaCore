@@ -29,33 +29,82 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * A lint of Java sources that logs every violation it finds and fails the build when there is one.
+ *
+ * Subclasses find the violations and word the messages. When the sources are clean, the task writes the success message
+ * to [report], so that the lint stays up to date until a source changes.
+ */
 abstract class JavaLintTask : DefaultTask() {
 
+    /**
+     * The Java sources to check.
+     */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sources: ConfigurableFileCollection
 
+    /**
+     * The report file that receives the success message.
+     */
     @get:OutputFile
     abstract val report: RegularFileProperty
 
+    /**
+     * Checks every source, logs each violation and writes the report when there is none.
+     *
+     * @throws GradleException if a source has a violation
+     */
     @TaskAction
-    fun check() {
-        var count = 0
-        findViolations(sources.files.sorted()) { file, line, arguments ->
-            count++
-            logger.error(diagnosticMessage(), *(listOf(file, line) + arguments).toTypedArray())
+    fun check(): Unit {
+        val files: List<File> = this.sources.files.sorted()
+        val violations: MutableList<List<Any>> = mutableListOf<List<Any>>()
+        this.findViolations(files) { file, line, arguments -> violations += listOf(file, line) + arguments }
+        violations.forEach(this::logViolation)
+
+        if (violations.isNotEmpty()) {
+            val message: String = this.failureMessage(violations.size)
+            throw GradleException(message)
         }
-        if (count > 0) {
-            throw GradleException(failureMessage(count))
-        }
-        report.get().asFile.writeText(successMessage(sources.files.size))
+
+        val success: String = this.successMessage(files.size)
+        val report: File = this.report.get().asFile
+        report.writeText(success)
     }
 
-    protected abstract fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit)
+    private fun logViolation(logArguments: List<Any>): Unit {
+        val diagnostic: String = this.diagnosticMessage()
+        this.logger.error(diagnostic, *logArguments.toTypedArray())
+    }
 
+    /**
+     * Finds the violations in [files] and reports each one to [reportViolation].
+     *
+     * @param files           the sources to check, sorted by path
+     * @param reportViolation receives the file, the line and the other arguments of the diagnostic message of a violation
+     */
+    protected abstract fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit
+
+    /**
+     * Returns the SLF4J template that logs one violation, with the file and the line as its first two arguments.
+     *
+     * @return the template
+     */
     protected abstract fun diagnosticMessage(): String
 
+    /**
+     * Returns the message of the build failure.
+     *
+     * @param count the number of violations
+     * @return the message
+     */
     protected abstract fun failureMessage(count: Int): String
 
+    /**
+     * Returns the report text of clean sources.
+     *
+     * @param fileCount the number of checked files
+     * @return the report text
+     */
     protected abstract fun successMessage(fileCount: Int): String
 }

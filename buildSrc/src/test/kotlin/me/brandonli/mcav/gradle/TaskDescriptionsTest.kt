@@ -24,16 +24,35 @@ import org.junit.jupiter.api.Test
 
 class TaskDescriptionsTest {
 
-    @Test
-    fun everyRegisteredTaskStartsWithItsGroupAndAOneLineDescriptionInTheThirdPerson() {
-        val conventions = File("src/main/kotlin").listFiles { file -> file.name.endsWith(".gradle.kts") }!!.toList()
-        val scripts = conventions + File("build.gradle.kts")
-        val registration = Regex(
-            """tasks\.register(<\w+>)?\("\w+"\) \{\n( +)group = "[a-z ]+"\n\2description = "[A-Z][a-z]+s [^"\n]*[^."]"\n"""
+    private companion object {
+
+        const val CONVENTIONS_DIRECTORY: String = "src/main/kotlin"
+        const val SCRIPT_EXTENSION: String = ".gradle.kts"
+        const val BUILD_SCRIPT: String = "build.gradle.kts"
+
+        const val TASK_NAME: String = """("\w+"|[\w.]+(?:\(\))?)"""
+        const val DESCRIPTION: String = """"[A-Z][a-z]+s [^"\n]*[^."]""""
+
+        val TASK_REGISTRATION: Regex = Regex("""tasks\.register\b""")
+        val DESCRIBED_REGISTRATION: Regex = Regex(
+            """tasks\.register(<\w+>)?\($TASK_NAME\) \{\n( +)(this\.|)group = "[a-z ]+"\n\3\4description = $DESCRIPTION\n"""
         )
-        for (script in scripts.sorted()) {
-            val text = script.readText()
-            assertEquals(Regex("""tasks\.register\b""").findAll(text).count(), registration.findAll(text).count(), script.path)
-        }
+    }
+
+    @Test
+    fun shouldStartEveryRegisteredTaskWithItsGroupAndAOneLineDescriptionInTheThirdPerson(): Unit {
+        val conventions: List<File> = File(CONVENTIONS_DIRECTORY).listFiles { file -> file.name.endsWith(SCRIPT_EXTENSION) }!!.toList()
+        val scripts: List<File> = conventions + File(BUILD_SCRIPT)
+        val undescribed: List<String> = scripts.sorted()
+            .filter(this::hasUndescribedTask)
+            .map { it.path }
+        assertEquals(listOf<String>(), undescribed)
+    }
+
+    private fun hasUndescribedTask(script: File): Boolean {
+        val text: String = script.readText()
+        val registrations: Int = TASK_REGISTRATION.findAll(text).count()
+        val described: Int = DESCRIBED_REGISTRATION.findAll(text).count()
+        return registrations != described
     }
 }

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import me.brandonli.mcav.gradle.McavPublishingExtension
+import me.brandonli.mcav.gradle.CatalogUtils
+import me.brandonli.mcav.gradle.MCAVPublishingExtension
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.versionOf
 
 plugins {
     id("mcav.module")
@@ -28,10 +28,12 @@ plugins {
     id("io.papermc.paperweight.userdev")
 }
 
+val paperAlias: String = "paper"
+
 dependencies {
-    paperweight.paperDevBundle(libs.versionOf("paper"))
+    paperweight.paperDevBundle(CatalogUtils.versionOf(libs, paperAlias))
 }
 
-extensions.configure<McavPublishingExtension> {
+extensions.configure<MCAVPublishingExtension> {
     gradleModuleMetadata = false
 }

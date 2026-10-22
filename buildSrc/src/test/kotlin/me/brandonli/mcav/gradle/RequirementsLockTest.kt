@@ -23,7 +23,16 @@ import org.junit.jupiter.api.Test
 
 class RequirementsLockTest {
 
-    private val lock = """
+    private companion object {
+
+        const val JUPYTER_BOOK: String = "jupyter-book"
+        const val JUPYTER_BOOK_VERSION: String = "1.0.4.post1"
+        const val NUMPY: String = "numpy"
+        const val NUMPY_VERSION: String = "2.5.3"
+        const val SPHINX_DESIGN: String = "sphinx-design"
+    }
+
+    private val lock: String = """
         # This file is part of mcav, a media playback library for Java
 
         jupyter-book==1.0.4.post1 \
@@ -35,26 +44,38 @@ class RequirementsLockTest {
     """.trimIndent()
 
     @Test
-    fun aLockWithEveryPinMissesNone() {
-        val versions = mapOf("jupyter-book" to "1.0.4.post1", "numpy" to "2.5.3", "sphinx-design" to "0.7.0")
-        assertEquals(emptyList<String>(), RequirementsLock.missingPins(this.lock, versions))
+    fun shouldMissNoPinOfALockWithEveryPin(): Unit {
+        val versions: Map<String, String> = mapOf(JUPYTER_BOOK to JUPYTER_BOOK_VERSION, NUMPY to NUMPY_VERSION, SPHINX_DESIGN to "0.7.0")
+        val missing: List<String> = RequirementsLock.missingPins(this.lock, versions)
+        assertEquals(emptyList<String>(), missing)
     }
 
     @Test
-    fun namesTheChangedAndTheAbsentPins() {
-        val versions = mapOf("jupyter-book" to "1.0.4.post1", "numpy" to "2.6.0", "matplotlib" to "3.11.2")
-        assertEquals(listOf("numpy==2.6.0", "matplotlib==3.11.2"), RequirementsLock.missingPins(this.lock, versions))
+    fun shouldNameTheChangedAndTheAbsentPins(): Unit {
+        val versions: Map<String, String> = mapOf(JUPYTER_BOOK to JUPYTER_BOOK_VERSION, NUMPY to "2.6.0", "matplotlib" to "3.11.2")
+        val missing: List<String> = RequirementsLock.missingPins(this.lock, versions)
+        assertEquals(listOf("numpy==2.6.0", "matplotlib==3.11.2"), missing)
     }
 
     @Test
-    fun commentsAndHashesAreNotPins() {
-        val lock = "# numpy==2.5.3\n    --hash=sha256:9f1c3f0a6f0e2a5a8b0a3e7c1d2b4f6a8c0e2d4f6a8b0c2e4f6a8b0c2d4e6f8a\n"
-        assertEquals(listOf("numpy==2.5.3"), RequirementsLock.missingPins(lock, mapOf("numpy" to "2.5.3")))
+    fun shouldNotTreatCommentsAndHashesAsPins(): Unit {
+        val lock: String = "# numpy==2.5.3\n    --hash=sha256:9f1c3f0a6f0e2a5a8b0a3e7c1d2b4f6a8c0e2d4f6a8b0c2e4f6a8b0c2d4e6f8a\n"
+        val missing: List<String> = RequirementsLock.missingPins(lock, mapOf(NUMPY to NUMPY_VERSION))
+        assertEquals(listOf("numpy==2.5.3"), missing)
     }
 
     @Test
-    fun aPinMustMatchTheWholeVersion() {
-        val versions = mapOf("jupyter-book" to "1.0.4", "sphinx-design" to "0.7")
-        assertEquals(listOf("jupyter-book==1.0.4", "sphinx-design==0.7"), RequirementsLock.missingPins(this.lock, versions))
+    fun shouldMatchAPinAgainstTheWholeVersion(): Unit {
+        val versions: Map<String, String> = mapOf(JUPYTER_BOOK to "1.0.4", SPHINX_DESIGN to "0.7")
+        val missing: List<String> = RequirementsLock.missingPins(this.lock, versions)
+        assertEquals(listOf("jupyter-book==1.0.4", "sphinx-design==0.7"), missing)
+    }
+
+    @Test
+    fun shouldTurnTheLicenseHeaderIntoALockCommentFollowedByABlankLine(): Unit {
+        val licenseHeader: String = "/*\n * This file is part of mcav.\n *\n * It is free software.  \n */\n"
+
+        val header: String = RequirementsLock.headerOf(licenseHeader)
+        assertEquals("# This file is part of mcav.\n#\n# It is free software.\n\n", header)
     }
 }

@@ -16,107 +16,182 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.ExclusiveResource
-import me.brandonli.mcav.gradle.bundleOf
-import me.brandonli.mcav.gradle.javaExecutable
-import me.brandonli.mcav.gradle.libraryOf
+import me.brandonli.mcav.gradle.FuzzTarget
+import me.brandonli.mcav.gradle.FuzzTargets
+import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.libs
 
 plugins {
     java
 }
 
-dependencies {
-    testImplementation(platform(libs.libraryOf("junit-bom")))
-    testImplementation(libs.bundleOf("testing"))
-    testRuntimeOnly(libs.libraryOf("junit-platform-launcher"))
+val junitBomAlias: String = "junit-bom"
+val testingBundleAlias: String = "testing"
+val junitLauncherAlias: String = "junit-platform-launcher"
+val byteBuddyAgentAlias: String = "byte-buddy-agent"
+val javaAgentConfiguration: String = "javaAgent"
+val javaAgentOption: String = "-javaagent:"
+
+val networkTestsProperty: String = "mcav.networkTests"
+val syncMeasurementProperty: String = "mcav.syncMeasurement"
+val testJavaHomeProperty: String = "mcav.testJavaHome"
+val propertyTriesProperty: String = "property.tries"
+val propertySmokeTriesProperty: String = "property.smokeTries"
+val fuzzSecondsProperty: String = "fuzz.seconds"
+val disabledValue: String = "false"
+val defaultPropertyTries: String = "200"
+val defaultPropertySmokeTries: String = "10"
+
+val quietMachineService: String = "quietMachine"
+val testHeapSize: String = "2g"
+val fuzzHeapSize: String = "1g"
+val processorsPerFork: Int = 2
+
+val jqwikEngine: String = "jqwik"
+val jqwikDatabaseProperty: String = "jqwik.database"
+val jqwikDatabasePath: String = "build/jqwik-database"
+val jqwikFailuresProperty: String = "jqwik.failures.after.default"
+val previousSeed: String = "PREVIOUS_SEED"
+val jqwikTriesProperty: String = "jqwik.tries.default"
+val noDatabase: String = ""
+
+val fuzzTag: String = "fuzz"
+val fuzzTestName: String = "fuzzTest"
+val fuzzInputsPath: String = "src/test/resources"
+val fuzzTestClasses: String = "**/*FuzzTest.class"
+val jazzerPath: String = "jazzer"
+val jazzerBaseDirectoryProperty: String = "jazzer.internal.basedir"
+val jazzerBaseDirectoryPath: String = "build/jazzer"
+val testTemplateTimeoutProperty: String = "junit.jupiter.execution.timeout.testtemplate.method.default"
+val replayTimeout: String = "30s"
+val jazzerFuzzVariable: String = "JAZZER_FUZZ"
+val enabledValue: String = "1"
+val jazzerDurationProperty: String = "jazzer.max_duration"
+val timeoutModeProperty: String = "junit.jupiter.execution.timeout.mode"
+val disabledTimeoutMode: String = "disabled"
+
+// Mockito and Jazzer take their instrumentation from this agent instead of attaching one at run time, which JEP 451 restricts
+val javaAgent: NamedDomainObjectProvider<Configuration> = configurations.register(javaAgentConfiguration) {
+    isCanBeConsumed = false
+    isTransitive = false
 }
 
-val networkTests = providers.gradleProperty("mcav.networkTests").getOrElse("false")
-val syncMeasurement = providers.gradleProperty("mcav.syncMeasurement").getOrElse("false")
-val measuresSync = syncMeasurement.toBoolean()
-val testJavaHome = providers.gradleProperty("mcav.testJavaHome")
-val propertyTries = providers.gradleProperty("property.tries").getOrElse("200")
-val propertySmokeTries = providers.gradleProperty("property.smokeTries").getOrElse("10")
-val fuzzSeconds = providers.gradleProperty("fuzz.seconds").map { it.toInt() }.getOrElse(0)
-val testSourceSet = sourceSets.test.get()
-val quietMachine = gradle.sharedServices.registerIfAbsent("quietMachine", ExclusiveResource::class) {
+dependencies {
+    testImplementation(platform(CatalogUtils.libraryOf(libs, junitBomAlias)))
+    testImplementation(CatalogUtils.bundleOf(libs, testingBundleAlias))
+    testRuntimeOnly(CatalogUtils.libraryOf(libs, junitLauncherAlias))
+
+    javaAgent(CatalogUtils.libraryOf(libs, byteBuddyAgentAlias))
+}
+
+val networkTests: String = providers.gradleProperty(networkTestsProperty).getOrElse(disabledValue)
+val syncMeasurement: String = providers.gradleProperty(syncMeasurementProperty).getOrElse(disabledValue)
+val measuresSync: Boolean = syncMeasurement.toBoolean()
+val testJavaHome: Provider<String> = providers.gradleProperty(testJavaHomeProperty)
+val propertyTries: String = providers.gradleProperty(propertyTriesProperty).getOrElse(defaultPropertyTries)
+val propertySmokeTries: String = providers.gradleProperty(propertySmokeTriesProperty).getOrElse(defaultPropertySmokeTries)
+val fuzzSeconds: Int = providers.gradleProperty(fuzzSecondsProperty).map { it.toInt() }.getOrElse(0)
+val testSourceSet: SourceSet = sourceSets.test.get()
+val quietMachine: Provider<ExclusiveResource> = gradle.sharedServices.registerIfAbsent(quietMachineService, ExclusiveResource::class) {
     maxParallelUsages = 1
 }
 
 tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-    failOnNoDiscoveredTests = false
-    maxHeapSize = "2g"
-    jvmArgs(
+    this.useJUnitPlatform()
+    this.failOnNoDiscoveredTests = false
+    this.maxHeapSize = testHeapSize
+    this.jvmArgs(
         "--enable-native-access=ALL-UNNAMED",
         "-XX:+EnableDynamicAgentLoading",
         "-Xshare:off",
         "--sun-misc-unsafe-memory-access=allow"
     )
-    systemProperty("mcav.networkTests", networkTests)
-    systemProperty("mcav.syncMeasurement", syncMeasurement)
+    this.jvmArgumentProviders.add(CommandLineArgumentProvider {
+        listOf("$javaAgentOption${javaAgent.get().singleFile}")
+    })
+    // as an input the agent is resolved under the project lock, before the provider reads it
+    this.inputs.files(javaAgent)
+        .withPropertyName(javaAgentConfiguration)
+        .withPathSensitivity(PathSensitivity.NONE)
+    this.systemProperty(networkTestsProperty, networkTests)
+    this.systemProperty(syncMeasurementProperty, syncMeasurement)
+
     if (testJavaHome.isPresent) {
-        executable = javaExecutable(testJavaHome.get())
+        this.executable = HostPlatform.current().javaExecutable(testJavaHome.get())
     }
-    systemProperty("jqwik.database", "build/jqwik-database-$name")
-    systemProperty("jqwik.failures.after.default", "PREVIOUS_SEED")
+
+    this.systemProperty(jqwikDatabaseProperty, "$jqwikDatabasePath-$name")
+    this.systemProperty(jqwikFailuresProperty, previousSeed)
+
     if (measuresSync) {
-        usesService(quietMachine)
+        this.usesService(quietMachine)
     }
 }
 
 tasks.test {
-    useJUnitPlatform {
-        excludeTags("fuzz")
+    this.useJUnitPlatform {
+        this.excludeTags(fuzzTag)
     }
-    systemProperty("jqwik.tries.default", propertySmokeTries)
-    maxParallelForks = if (measuresSync) 1 else (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
-    systemProperty("jqwik.database", "")
+    this.systemProperty(jqwikTriesProperty, propertySmokeTries)
+    this.maxParallelForks = if (measuresSync) 1 else (Runtime.getRuntime().availableProcessors() / processorsPerFork).coerceAtLeast(1)
+    this.systemProperty(jqwikDatabaseProperty, noDatabase)
 }
 
-val propertyTest = tasks.register<Test>("propertyTest") {
-    group = "verification"
-    description = "Runs the jqwik property tests of this module"
-    testClassesDirs = testSourceSet.output.classesDirs
-    classpath = testSourceSet.runtimeClasspath
-    useJUnitPlatform {
-        includeEngines("jqwik")
+val propertyTest: TaskProvider<Test> = tasks.register<Test>("propertyTest") {
+    this.group = "verification"
+    this.description = "Runs the jqwik property tests of this module"
+    this.testClassesDirs = testSourceSet.output.classesDirs
+    this.classpath = testSourceSet.runtimeClasspath
+    this.useJUnitPlatform {
+        this.includeEngines(jqwikEngine)
     }
-    systemProperty("jqwik.tries.default", propertyTries)
+    this.systemProperty(jqwikTriesProperty, propertyTries)
 }
 
-val fuzzTest = tasks.register<Test>("fuzzTest") {
-    group = "verification"
-    description = "Replays the committed fuzz inputs of this module, and fuzzes every fuzz test with -Pfuzz.seconds=<n>"
-    testClassesDirs = testSourceSet.output.classesDirs
-    classpath = testSourceSet.runtimeClasspath
-    useJUnitPlatform {
-        includeTags("fuzz")
+val fuzzInputs: Directory = layout.projectDirectory.dir(fuzzInputsPath)
+val fuzzing: Boolean = fuzzSeconds > 0
+val fuzzTargets: List<FuzzTarget> = if (fuzzing) FuzzTargets.find(testSourceSet.java.srcDirs) else emptyList()
+val fuzzTaskNames: Set<String> = fuzzTargets.map { it.taskName() }.toSet() + fuzzTestName
+
+tasks.withType<Test>().matching { it.name in fuzzTaskNames }.configureEach {
+    this.testClassesDirs = testSourceSet.output.classesDirs
+    this.classpath = testSourceSet.runtimeClasspath
+    this.useJUnitPlatform {
+        this.includeTags(fuzzTag)
     }
-    include("**/*FuzzTest.class")
-    inputs.files(layout.projectDirectory.dir("src/test/resources"))
+    this.include(fuzzTestClasses)
+    this.inputs.files(fuzzInputs)
         .withPropertyName("fuzzInputs")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.property("fuzzSeconds", fuzzSeconds)
-    outputs.dir(layout.buildDirectory.dir("jazzer")).withPropertyName("jazzerDirectory")
-    val replaysOnly = fuzzSeconds == 0
-    outputs.cacheIf("only the replay of the committed inputs is deterministic") { replaysOnly }
-    systemProperty("jazzer.internal.basedir", "build/jazzer")
-    systemProperty("junit.jupiter.execution.timeout.testtemplate.method.default", "30s")
-    maxHeapSize = "1g"
-    if (fuzzSeconds > 0) {
-        environment("JAZZER_FUZZ", "1")
-        systemProperty("jazzer.max_duration", "${fuzzSeconds}s")
-        systemProperty("junit.jupiter.execution.timeout.mode", "disabled")
-        forkEvery = 1
-        outputs.upToDateWhen { false }
-        testLogging {
-            events("started", "failed", "skipped")
+    this.outputs.dir(layout.buildDirectory.dir("$jazzerPath/$name")).withPropertyName("jazzerDirectory")
+    this.systemProperty(jazzerBaseDirectoryProperty, "$jazzerBaseDirectoryPath/$name")
+    this.systemProperty(testTemplateTimeoutProperty, replayTimeout)
+    this.maxHeapSize = fuzzHeapSize
+}
+
+val fuzzTasks: List<TaskProvider<Test>> = fuzzTargets.map { target ->
+    tasks.register<Test>(target.taskName()) {
+        this.group = "verification"
+        this.description = "Fuzzes ${target.filterPattern()} for $fuzzSeconds seconds in a JVM of its own"
+        this.filter.includeTestsMatching(target.filterPattern())
+        this.environment(jazzerFuzzVariable, enabledValue)
+        this.systemProperty(jazzerDurationProperty, "${fuzzSeconds}s")
+        this.systemProperty(timeoutModeProperty, disabledTimeoutMode)
+        this.outputs.upToDateWhen { false }
+        this.testLogging {
+            this.events("started", "failed", "skipped")
         }
     }
 }
 
+val fuzzTest: TaskProvider<Test> = tasks.register<Test>(fuzzTestName) {
+    this.group = "verification"
+    this.description = "Replays the committed fuzz inputs of this module, and fuzzes every fuzz test method with -Pfuzz.seconds=<n>"
+    this.dependsOn(fuzzTasks)
+}
+
 tasks.check {
-    dependsOn(propertyTest, fuzzTest)
+    this.dependsOn(propertyTest, fuzzTest)
 }

@@ -16,27 +16,43 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
+import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.TestRuntimeProfile
-import me.brandonli.mcav.gradle.javaExecutable
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.versionOf
 
 plugins {
     java
     id("info.solidsoft.pitest")
 }
 
+val pitestAlias: String = "pitest"
+val pitestJunit5PluginAlias: String = "pitest-junit5-plugin"
+val mutatedClasses: String = "me.brandonli.mcav.*"
+val testJavaHomeProperty: String = "mcav.testJavaHome"
+val javaAgentConfiguration: String = "javaAgent"
+val javaAgentOption: String = "-javaagent:"
+
+val mutationThreads: Int = 4
+val mutationTimeoutMilliseconds: Int = 4000
+
+// forMutation copies no argument providers, so the minions get the agent of mcav.testing here, when it is applied
+val javaAgentArguments: Provider<List<String>> = provider {
+    configurations.matching { it.name == javaAgentConfiguration }.map { "$javaAgentOption${it.singleFile}" }
+}
+
 pitest {
-    pitestVersion = libs.versionOf("pitest")
-    junit5PluginVersion = libs.versionOf("pitest-junit5-plugin")
-    targetClasses = setOf("me.brandonli.mcav.*")
-    threads = 4
-    timeoutConstInMillis = 4000
+    pitestVersion = CatalogUtils.versionOf(libs, pitestAlias)
+    junit5PluginVersion = CatalogUtils.versionOf(libs, pitestJunit5PluginAlias)
+    targetClasses = setOf(mutatedClasses)
+    threads = mutationThreads
+    timeoutConstInMillis = mutationTimeoutMilliseconds
     outputFormats = setOf("HTML", "XML")
     timestampedReports = false
-    jvmArgs = provider { TestRuntimeProfile.forMutation(tasks.test.get()) }
-    val testJavaHome = providers.gradleProperty("mcav.testJavaHome")
+    jvmArgs = provider { TestRuntimeProfile.forMutation(tasks.test.get()) + javaAgentArguments.get() }
+
+    val testJavaHome: Provider<String> = providers.gradleProperty(testJavaHomeProperty)
     if (testJavaHome.isPresent) {
-        jvmPath = file(javaExecutable(testJavaHome.get()))
+        jvmPath = file(HostPlatform.current().javaExecutable(testJavaHome.get()))
     }
 }

@@ -39,75 +39,132 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 
-fun uvEnvironment(installationDirectory: File, cacheDirectory: File): Map<String, String> = mapOf(
-    "UV_NO_CONFIG" to "1",
-    "UV_CACHE_DIR" to cacheDirectory.absolutePath,
-    "UV_PYTHON_CACHE_DIR" to cacheDirectory.resolve("python").absolutePath,
-    "UV_PYTHON_INSTALL_DIR" to installationDirectory.resolve("python").absolutePath,
-    "UV_PYTHON_BIN_DIR" to installationDirectory.resolve("bin").absolutePath,
-    "UV_PYTHON_PREFERENCE" to "only-managed",
-    "UV_LINK_MODE" to "copy"
-)
-
+/**
+ * Installs a Python virtual environment from a requirements lock with uv.
+ *
+ * The task checks that the lock pins every version of the catalog, installs the pinned Python as a uv-managed build and
+ * syncs the virtual environment to the lock, with hashed binary packages only.
+ */
 @DisableCachingByDefault(because = "Python virtual environments contain absolute installation paths")
 abstract class PythonEnvironment : DefaultTask() {
 
+    private companion object {
+
+        const val VIRTUAL_ENVIRONMENT_DIRECTORY: String = "venv"
+        const val PATH_SEPARATOR: String = "/"
+    }
+
+    /**
+     * The uv executable that installs the environment.
+     */
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val uvExecutable: RegularFileProperty
 
+    /**
+     * The uv version that [uvExecutable] must report.
+     */
     @get:Input
     abstract val uvVersion: Property<String>
 
+    /**
+     * The Python version of the environment.
+     */
     @get:Input
     abstract val pythonVersion: Property<String>
 
+    /**
+     * The requirements lock that the environment is synced to.
+     */
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val requirements: RegularFileProperty
 
+    /**
+     * The version of each requirement that the catalog pins, which the lock must pin too.
+     */
     @get:Input
     abstract val versions: MapProperty<String, String>
 
+    /**
+     * The path of the task that writes the lock, for the failure message of a stale lock.
+     */
     @get:Internal
     abstract val lockTask: Property<String>
 
+    /**
+     * The directory that receives Python and the virtual environment.
+     */
     @get:OutputDirectory
     abstract val installationDirectory: DirectoryProperty
 
+    /**
+     * The uv cache directory.
+     */
     @get:LocalState
     abstract val cacheDirectory: DirectoryProperty
 
+    /**
+     * The service that runs uv.
+     */
     @get:Inject
     protected abstract val processes: ExecOperations
 
-    fun executable(name: String): Provider<RegularFile> = installationDirectory.file("venv/" + venvExecutable(name))
+    /**
+     * Returns an executable of the virtual environment.
+     *
+     * @param name the name of the executable, such as `python`
+     * @return the executable, in `venv/Scripts` on Windows and `venv/bin` elsewhere
+     */
+    fun executable(name: String): Provider<RegularFile> {
+        val executablePath: String = HostPlatform.current().virtualEnvironmentExecutable(name)
+        return this.installationDirectory.file("$VIRTUAL_ENVIRONMENT_DIRECTORY$PATH_SEPARATOR$executablePath")
+    }
 
+    /**
+     * Checks the lock and the uv version, installs Python and syncs the virtual environment to the lock.
+     *
+     * @throws GradleException if the lock misses a pinned version, uv reports another version or an installation step fails
+     */
     @TaskAction
-    fun install() {
-        val lock = requirements.get().asFile
-        val missing = RequirementsLock.missingPins(lock.readText(), versions.get())
+    fun install(): Unit {
+        val lock: File = this.requirements.get().asFile
+        val missing: List<String> = RequirementsLock.missingPins(lock.readText(), this.versions.get())
         if (missing.isNotEmpty()) {
-            throw GradleException(
-                "$lock does not pin ${missing.joinToString()} of gradle/libs.versions.toml; run ./gradlew ${lockTask.get()}"
-            )
+            val lockTaskPath: String = this.lockTask.get()
+            val message: String =
+                "$lock does not pin ${missing.joinToString()} of gradle/libs.versions.toml, so run ./gradlew $lockTaskPath to write it!"
+            throw GradleException(message)
         }
-        val uv = uvExecutable.get().asFile
-        ToolVersions.verify(processes, uv, "uv", uvVersion.get())
-        val installation = installationDirectory.get().asFile
-        val environment = uvEnvironment(installation, cacheDirectory.get().asFile)
-        val virtualEnvironment = installation.resolve("venv")
-        val python = pythonVersion.get()
-        listOf(
-            listOf("python", "install", python, "--no-bin", "--no-registry"),
-            listOf("venv", "--clear", "--no-project", "--no-python-downloads", "--python", python, virtualEnvironment),
-            listOf("pip", "sync", "--python", virtualEnvironment.resolve(venvExecutable("python")), "--require-hashes",
-                "--only-binary", ":all:", "--default-index", "https://pypi.org/simple", lock)
-        ).forEach { arguments ->
-            processes.exec {
-                commandLine(listOf(uv) + arguments)
-                environment(environment)
-            }
+
+        val uv: File = this.uvExecutable.get().asFile
+        val version: String = this.uvVersion.get()
+        ToolVersions.verify(this.processes, uv, UvEnvironment.TOOL, version)
+
+        val python: String = this.pythonVersion.get()
+        val virtualEnvironment: File = this.installationDirectory.get().asFile.resolve(VIRTUAL_ENVIRONMENT_DIRECTORY)
+        this.runUv(uv, listOf("python", "install", python, "--no-bin", "--no-registry"))
+        this.runUv(uv, listOf("venv", "--clear", "--no-project", "--no-python-downloads", "--python", python, virtualEnvironment))
+        this.syncPackages(uv, virtualEnvironment, lock)
+    }
+
+    private fun runUv(uv: File, arguments: List<Any>): Unit {
+        val installation: File = this.installationDirectory.get().asFile
+        val cache: File = this.cacheDirectory.get().asFile
+        val environment: Map<String, String> = UvEnvironment.variables(installation, cache)
+        this.processes.exec {
+            this.commandLine(listOf(uv) + arguments)
+            this.environment(environment)
         }
+    }
+
+    private fun syncPackages(uv: File, virtualEnvironment: File, lock: File): Unit {
+        val pythonPath: String = HostPlatform.current().virtualEnvironmentExecutable(PythonTask.PYTHON_EXECUTABLE)
+        val virtualEnvironmentPython: File = virtualEnvironment.resolve(pythonPath)
+        val arguments: List<Any> = listOf(
+            "pip", "sync", "--python", virtualEnvironmentPython, "--require-hashes",
+            "--only-binary", ":all:", "--default-index", UvEnvironment.PACKAGE_INDEX, lock
+        )
+        this.runUv(uv, arguments)
     }
 }

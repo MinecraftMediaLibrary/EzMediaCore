@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -28,15 +29,30 @@ import org.junit.jupiter.api.io.TempDir
 
 class CoverageReportTest {
 
+    private companion object {
+
+        const val SOURCE_FILE: String = "Example.java"
+        const val SOURCE_PATH: String = "sample/Example.java"
+        const val OTHER_SOURCE_PATH: String = "other/Example.java"
+        const val MISSING_SOURCE_PATH: String = "sample/Missing.java"
+
+        const val REPORT_FILE: String = "report.xml"
+        const val MISSING_REPORT_FILE: String = "missing.xml"
+        const val EXCEPTIONS_FILE: String = "exceptions.txt"
+
+        const val SOURCES_DIRECTORY: String = "sources"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
-    fun partialInstructionsAndBranchesRemainGaps() {
-        val source = directory.resolve("sample/Example.java").toFile()
+    fun shouldKeepPartialInstructionsAndBranchesAsGaps(): Unit {
+        val source: File = this.directory.resolve(SOURCE_PATH).toFile()
         source.parentFile.mkdirs()
         source.writeText("uncalled();\nchoose();\nRunnable action = () -> work();\ncovered();\n")
-        val report = directory.resolve("report.xml").toFile()
+
+        val report: File = this.directory.resolve(REPORT_FILE).toFile()
         report.writeText("""
             <report name="fixture"><package name="sample"><sourcefile name="Example.java">
               <line nr="1" mi="3" ci="0" mb="0" cb="0"/>
@@ -46,21 +62,21 @@ class CoverageReportTest {
             </sourcefile></package></report>
         """.trimIndent())
 
-        val gaps = CoverageReport.findGaps(report, directory.toFile(), emptyList())
-
+        val gaps: List<String> = CoverageReport.findGaps(report, this.directory.toFile(), emptyList())
         assertEquals(listOf(
-            "$source:1: warning: line is not covered by any test",
-            "$source:2: warning: 1 of 2 branches are not covered by any test",
-            "$source:3: warning: 2 of 6 instructions on this line are not covered by any test"
+            "$source:1: warning: line is not covered by any test.",
+            "$source:2: warning: 1 of 2 branches are not covered by any test.",
+            "$source:3: warning: 2 of 6 instructions on this line are not covered by any test."
         ), gaps)
     }
 
     @Test
-    fun exceptionExcusesExactlyOneMatchingUncoveredLine() {
-        val source = directory.resolve("sample/Example.java").toFile()
+    fun shouldExcuseExactlyOneMatchingUncoveredLineByAnException(): Unit {
+        val source: File = this.directory.resolve(SOURCE_PATH).toFile()
         source.parentFile.mkdirs()
         source.writeText("serverOnly();\nserverOnly();\ncovered();\n")
-        val report = directory.resolve("report.xml").toFile()
+
+        val report: File = this.directory.resolve(REPORT_FILE).toFile()
         report.writeText("""
             <report name="fixture"><package name="sample"><sourcefile name="Example.java">
               <line nr="1" mi="1" ci="0" mb="0" cb="0"/>
@@ -68,43 +84,109 @@ class CoverageReportTest {
               <line nr="3" mi="0" ci="1" mb="0" cb="0"/>
             </sourcefile></package></report>
         """.trimIndent())
-        val matching = CoverageException("sample/Example.java", "serverOnly();", "server constructor")
-        val stale = CoverageException("sample/Example.java", "covered();", "obsolete exception")
-        val wrongPath = CoverageException("other/Example.java", "serverOnly();", "different source")
 
-        val gaps = CoverageReport.findGaps(report, directory.toFile(), listOf(matching, stale, wrongPath))
+        val matching: CoverageException = CoverageException(SOURCE_PATH, "serverOnly();", "server constructor")
+        val stale: CoverageException = CoverageException(SOURCE_PATH, "covered();", "obsolete exception")
+        val wrongPath: CoverageException = CoverageException(OTHER_SOURCE_PATH, "serverOnly();", "different source")
 
-        assertEquals(listOf("$source:2: warning: line is not covered by any test"), gaps)
-        assertTrue(matching.used)
-        assertFalse(stale.used)
-        assertFalse(wrongPath.used)
+        val gaps: List<String> = CoverageReport.findGaps(report, this.directory.toFile(), listOf(matching, stale, wrongPath))
+        assertEquals(listOf("$source:2: warning: line is not covered by any test."), gaps)
+
+        val matchingUsed: Boolean = matching.used
+        assertTrue(matchingUsed)
+
+        val staleUsed: Boolean = stale.used
+        assertFalse(staleUsed)
+
+        val wrongPathUsed: Boolean = wrongPath.used
+        assertFalse(wrongPathUsed)
     }
 
     @Test
-    fun missingReportFailsOnlyWhenProductionSourcesExist() {
-        val report = directory.resolve("missing.xml").toFile()
-        val sources = directory.resolve("sources").toFile()
-        assertTrue(CoverageReport.findGaps(report, sources, emptyList()).isEmpty())
+    fun shouldReadAReportWithoutLoadingTheDocumentTypeItNames(): Unit {
+        val report: File = this.directory.resolve(REPORT_FILE).toFile()
+        report.writeText("""
+            <!DOCTYPE report PUBLIC "-//JACOCO//DTD Report 1.1//EN" "report.dtd">
+            <report name="fixture"><package name="sample"><sourcefile name="Missing.java">
+              <line nr="1" mi="0" ci="3" mb="0" cb="0"/>
+            </sourcefile></package></report>
+        """.trimIndent())
+
+        val gaps: List<String> = CoverageReport.findGaps(report, this.directory.toFile(), emptyList())
+        assertEquals(emptyList<String>(), gaps)
+    }
+
+    @Test
+    fun shouldFailOnAMissingReportOnlyWhenProductionSourcesExist(): Unit {
+        val report: File = this.directory.resolve(MISSING_REPORT_FILE).toFile()
+        val sources: File = this.directory.resolve(SOURCES_DIRECTORY).toFile()
+        val withoutDirectory: List<String> = CoverageReport.findGaps(report, sources, emptyList())
+        assertEquals(emptyList<String>(), withoutDirectory)
+
         sources.mkdirs()
-        assertTrue(CoverageReport.findGaps(report, sources, emptyList()).isEmpty())
-        sources.resolve("Example.java").writeText("class Example {}\n")
-        assertEquals(listOf("$sources: warning: no test ran, so none of this code is covered"),
-            CoverageReport.findGaps(report, sources, emptyList()))
+
+        val withoutSources: List<String> = CoverageReport.findGaps(report, sources, emptyList())
+        assertEquals(emptyList<String>(), withoutSources)
+
+        sources.resolve(SOURCE_FILE).writeText("class Example {}\n")
+
+        val withSources: List<String> = CoverageReport.findGaps(report, sources, emptyList())
+        assertEquals(listOf("$sources: warning: no test ran, so none of this code is covered."), withSources)
     }
 
     @Test
-    fun exceptionsRequireAReasonAndPreserveSourceSeparators() {
-        val file = directory.resolve("exceptions.txt").toFile()
-        assertTrue(CoverageExceptions.read(file).isEmpty())
+    fun shouldRequireAReasonAndKeepTheSeparatorsOfTheSource(): Unit {
+        val file: File = this.directory.resolve(EXCEPTIONS_FILE).toFile()
+        val withoutFile: List<CoverageException> = CoverageExceptions.read(file)
+        assertEquals(emptyList<CoverageException>(), withoutFile)
+
         file.writeText("# comment\n\nsample/Example.java | left | right | native boundary\n")
-        val entries = CoverageExceptions.read(file)
-        assertEquals(1, entries.size)
-        assertEquals("sample/Example.java", entries[0].path)
-        assertEquals("left | right", entries[0].sourceLine)
-        assertEquals("native boundary", entries[0].reason)
+
+        val entries: List<CoverageException> = CoverageExceptions.read(file)
+        val entryCount: Int = entries.size
+        assertEquals(1, entryCount)
+
+        val path: String = entries[0].path
+        assertEquals(SOURCE_PATH, path)
+
+        val sourceLine: String = entries[0].sourceLine
+        assertEquals("left | right", sourceLine)
+
+        val reason: String = entries[0].reason
+        assertEquals("native boundary", reason)
+
         for (invalid in listOf("missing separators", "path | source", "path | source | ")) {
             file.writeText(invalid)
             assertThrows(IllegalArgumentException::class.java) { CoverageExceptions.read(file) }
         }
+    }
+
+    @Test
+    fun shouldReadAnEmptySourceLineBetweenTheSeparators(): Unit {
+        val file: File = this.directory.resolve(EXCEPTIONS_FILE).toFile()
+        file.writeText("sample/Missing.java |  | generated source\n")
+
+        val entries: List<CoverageException> = CoverageExceptions.read(file)
+        val fields: List<Triple<String, String, String>> = entries.map { Triple(it.path, it.sourceLine, it.reason) }
+        assertEquals(listOf(Triple(MISSING_SOURCE_PATH, "", "generated source")), fields)
+    }
+
+    @Test
+    fun shouldReadAMissingSourceAsBlankLinesAndSkipALineWithoutInstructions(): Unit {
+        val report: File = this.directory.resolve(REPORT_FILE).toFile()
+        report.writeText("""
+            <report name="fixture"><package name="sample"><sourcefile name="Missing.java">
+              <line nr="1" mi="3" ci="0" mb="0" cb="0"/>
+              <line nr="2" mi="0" ci="0" mb="0" cb="0"/>
+            </sourcefile></package></report>
+        """.trimIndent())
+
+        val blankLine: CoverageException = CoverageException(MISSING_SOURCE_PATH, "", "generated source")
+
+        val gaps: List<String> = CoverageReport.findGaps(report, this.directory.toFile(), listOf(blankLine))
+        assertEquals(emptyList<String>(), gaps)
+
+        val used: Boolean = blankLine.used
+        assertTrue(used)
     }
 }

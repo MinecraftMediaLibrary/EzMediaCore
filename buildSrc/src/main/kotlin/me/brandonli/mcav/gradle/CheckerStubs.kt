@@ -21,10 +21,34 @@ package me.brandonli.mcav.gradle
 import java.io.File
 
 internal object CheckerStubs {
+
+    private const val SHARED_STUBS: String = "shared"
+    private const val GUAVA_STUBS: String = "shared-guava"
+    private const val PAPER_STUBS: String = "shared-paper"
+
+    private val GUAVA_PROJECTS: Set<String> = setOf("mcav-common", "mcav-bukkit")
+    private val PAPER_PROJECTS: Set<String> = setOf("mcav-bukkit", "mcav-plugin")
+
     fun forProject(directory: File, projectName: String): List<File> {
-        val folders = mutableListOf(directory.resolve(projectName), directory.resolve("shared"))
-        if (projectName in setOf("mcav-common", "mcav-bukkit")) folders += directory.resolve("shared-guava")
-        if (projectName in setOf("mcav-bukkit", "mcav-plugin")) folders += directory.resolve("shared-paper")
+        val folders: MutableList<File> = mutableListOf(directory.resolve(projectName), directory.resolve(SHARED_STUBS))
+        if (projectName in GUAVA_PROJECTS) {
+            folders += directory.resolve(GUAVA_STUBS)
+        }
+
+        if (projectName in PAPER_PROJECTS) {
+            folders += directory.resolve(PAPER_STUBS)
+        }
+
         return folders.filter { it.isDirectory }
+    }
+
+    fun argumentsFor(directory: File, projectName: String): List<String> {
+        val folders: List<File> = this.forProject(directory, projectName)
+        if (folders.isEmpty()) {
+            return emptyList()
+        }
+
+        val path: String = folders.joinToString(File.pathSeparator)
+        return listOf("-Astubs=$path")
     }
 }

@@ -16,11 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.CheckerStubs
-import me.brandonli.mcav.gradle.javaLanguageVersion
-import me.brandonli.mcav.gradle.libraryOf
+import me.brandonli.mcav.gradle.JavaToolchains
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.versionOf
 import net.ltgt.gradle.errorprone.errorprone
 
 plugins {
@@ -29,9 +28,30 @@ plugins {
     id("net.ltgt.errorprone")
 }
 
-val javaRelease = libs.versionOf("java").toInt()
+val javaAlias: String = "java"
+val errorProneAlias: String = "errorprone-core"
+val checkerFrameworkAlias: String = "checker-framework"
 
-val enforcedChecks = listOf(
+val sourceEncoding: String = "UTF-8"
+val compilerHeapSize: String = "4g"
+val nullnessChecker: String = "org.checkerframework.checker.nullness.NullnessChecker"
+val slowTypecheckingSeconds: Int = 600
+val checkerStubsPath: String = "gradle/checker-framework"
+
+val repositoryUrls: List<String> = listOf(
+    "https://repo.brandonli.me/snapshots",
+    "https://maven.maxhenkel.de/repository/public",
+    "https://repo.papermc.io/repository/maven-public/",
+    "https://hub.spigotmc.org/nexus/content/repositories/snapshots/",
+    "https://repo.codemc.io/repository/maven-releases/"
+)
+val modrinthRepositoryUrl: String = "https://api.modrinth.com/maven"
+val modrinthGroup: String = "maven.modrinth"
+
+val javaRelease: Int = CatalogUtils.versionOf(libs, javaAlias).toInt()
+val checkerStubs: File = rootProject.file(checkerStubsPath)
+
+val enforcedChecks: List<String> = listOf(
     "FieldCanBeFinal",
     "FieldCanBeStatic",
     "FieldCanBeLocal",
@@ -62,57 +82,47 @@ val enforcedChecks = listOf(
 repositories {
     mavenCentral()
     google()
-    maven("https://repo.brandonli.me/snapshots")
-    maven("https://maven.maxhenkel.de/repository/public")
-    maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    maven("https://repo.codemc.io/repository/maven-releases/")
-    maven("https://api.modrinth.com/maven") {
+    repositoryUrls.forEach { maven(it) }
+    maven(modrinthRepositoryUrl) {
         content {
-            includeGroup("maven.modrinth")
+            includeGroup(modrinthGroup)
         }
     }
 }
 
 dependencies {
-    errorprone(libs.libraryOf("errorprone-core"))
+    errorprone(CatalogUtils.libraryOf(libs, errorProneAlias))
 }
 
 java {
-    toolchain.languageVersion = javaLanguageVersion()
+    toolchain.languageVersion = JavaToolchains.languageVersion(project)
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release = javaRelease
-    options.encoding = "UTF-8"
-    options.compilerArgs.addAll(listOf("-parameters", "-Xlint:all", "-Xlint:-processing", "-Werror"))
-    options.isFork = true
-    options.forkOptions.memoryMaximumSize = "4g"
-    options.forkOptions.jvmArgumentProviders.add(CommandLineArgumentProvider {
+    this.options.release = javaRelease
+    this.options.encoding = sourceEncoding
+    this.options.compilerArgs.addAll(listOf("-parameters", "-Xlint:all", "-Xlint:-processing", "-Werror"))
+    this.options.isFork = true
+    this.options.forkOptions.memoryMaximumSize = compilerHeapSize
+    this.options.forkOptions.jvmArgumentProviders.add(CommandLineArgumentProvider {
         listOf("--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED")
     })
-    options.errorprone {
-        disableWarningsInGeneratedCode = true
+    this.options.errorprone {
+        this.disableWarningsInGeneratedCode = true
         error(*enforcedChecks.toTypedArray())
         // the style guide keeps stateless private helpers as instance methods called with this.
-        disable("MethodCanBeStatic")
+        this.disable("MethodCanBeStatic")
     }
 }
 
 checkerFramework {
-    version = libs.versionOf("checker-framework")
-    checkers = listOf("org.checkerframework.checker.nullness.NullnessChecker")
+    version = CatalogUtils.versionOf(libs, checkerFrameworkAlias)
+    checkers = listOf(nullnessChecker)
     excludeTests = true
-    extraJavacArgs = stubsArgument() + "-AslowTypecheckingSeconds=600"
+    extraJavacArgs = CheckerStubs.argumentsFor(checkerStubs, project.name) + "-AslowTypecheckingSeconds=$slowTypecheckingSeconds"
 }
 
 tasks.processResources {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    filteringCharset = "UTF-8"
-}
-
-fun stubsArgument(): List<String> {
-    val stubs = rootProject.file("gradle/checker-framework")
-    val folders = CheckerStubs.forProject(stubs, project.name)
-    return if (folders.isEmpty()) emptyList() else listOf("-Astubs=" + folders.joinToString(File.pathSeparator))
+    this.duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    this.filteringCharset = sourceEncoding
 }

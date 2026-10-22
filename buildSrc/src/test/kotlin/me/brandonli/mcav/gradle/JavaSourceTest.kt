@@ -24,9 +24,9 @@ import org.junit.jupiter.api.Test
 class JavaSourceTest {
 
     @Test
-    fun masksCommentsAndLiteralsAndKeepsEveryOffset() {
-        val quotes = "\"\"\""
-        val source = listOf(
+    fun shouldMaskCommentsAndLiteralsAndKeepEveryOffset(): Unit {
+        val quotes: String = "\"\"\""
+        val source: String = listOf(
             "int a = 1; // note",
             "/* block",
             "   end */ call(\"text, (\", 'c');",
@@ -34,7 +34,7 @@ class JavaSourceTest {
             "  line \\$quotes",
             "  $quotes;",
         ).joinToString("\n")
-        val expected = listOf(
+        val expected: String = listOf(
             "int a = 1;" + " ".repeat(8),
             " ".repeat(8),
             " ".repeat(9) + " call(" + " ".repeat(9) + ", " + " ".repeat(3) + ");",
@@ -42,11 +42,33 @@ class JavaSourceTest {
             " ".repeat(11),
             " ".repeat(5) + ";",
         ).joinToString("\n")
-        assertEquals(expected, JavaSource.mask(source))
+        val masked: String = JavaSource.mask(source)
+        assertEquals(expected, masked)
     }
 
     @Test
-    fun endsALiteralThatLacksItsQuoteAtTheEndOfTheLine() {
-        assertEquals("  \nnext", JavaSource.mask("\"a\nnext"))
+    fun shouldEndALiteralThatLacksItsQuoteAtTheEndOfTheLine(): Unit {
+        val masked: String = JavaSource.mask("\"a\nnext")
+        assertEquals("  \nnext", masked)
+    }
+
+    @Test
+    fun shouldBlankAnEscapeThatEndsTheSource(): Unit {
+        val masked: String = JavaSource.mask("\"a\\")
+        assertEquals("   ", masked)
+    }
+
+    @Test
+    fun shouldBlankCommentsAndKeepLiteralsWhenRemovingComments(): Unit {
+        val source: String = "call(\"a // b\"); // note\n/* c */ 'd';"
+        val expected: String = "call(\"a // b\");" + " ".repeat(8) + "\n" + " ".repeat(8) + "'d';"
+        val withoutComments: String = JavaSource.withoutComments(source)
+        assertEquals(expected, withoutComments)
+    }
+
+    @Test
+    fun shouldKeepAnEscapeThatEndsTheSourceWhenRemovingComments(): Unit {
+        val withoutComments: String = JavaSource.withoutComments("\"a\\")
+        assertEquals("\"a\\", withoutComments)
     }
 }

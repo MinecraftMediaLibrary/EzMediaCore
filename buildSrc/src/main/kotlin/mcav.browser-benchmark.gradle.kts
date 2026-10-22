@@ -16,13 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import me.brandonli.mcav.gradle.javaLauncher
+import me.brandonli.mcav.gradle.JavaToolchains
 
 plugins {
     java
 }
 
-val benchmark = sourceSets.create("benchmark")
+val benchmarkSourceSetName: String = "benchmark"
+val benchmarkMainClass: String = "me.brandonli.mcav.plugin.benchmark.BrowserBenchmark"
+val backendProperty: String = "benchmark.backend"
+val outputProperty: String = "benchmark.output"
+val defaultOutputPath: String = "browser-benchmark.md"
+val benchmarkHeapSize: String = "4g"
+
+val benchmark: SourceSet = sourceSets.create(benchmarkSourceSetName)
 
 configurations.named(benchmark.implementationConfigurationName) {
     extendsFrom(configurations.testImplementation.get())
@@ -37,15 +44,16 @@ dependencies {
 }
 
 tasks.register<JavaExec>("browserBenchmark") {
-    group = "verification"
-    description = "Measures the frame rate and latency of a browser backend: -Pbenchmark.backend=<backend> -Pbenchmark.output=<file>"
-    classpath = benchmark.runtimeClasspath
-    mainClass = "me.brandonli.mcav.plugin.benchmark.BrowserBenchmark"
-    val backend = providers.gradleProperty("benchmark.backend").orElse("")
-    val output = providers.gradleProperty("benchmark.output")
-        .orElse(layout.buildDirectory.file("browser-benchmark.md").map { it.asFile.absolutePath })
-    argumentProviders.add(CommandLineArgumentProvider { listOf(backend.get(), output.get()) })
-    javaLauncher = javaLauncher()
-    maxHeapSize = "4g"
-    outputs.upToDateWhen { false }
+    this.group = "verification"
+    this.description = "Measures the frame rate and latency of a browser backend: -Pbenchmark.backend=<backend> -Pbenchmark.output=<file>"
+    this.classpath = benchmark.runtimeClasspath
+    this.mainClass = benchmarkMainClass
+
+    val backend: Provider<String> = providers.gradleProperty(backendProperty).orElse("")
+    val output: Provider<String> = providers.gradleProperty(outputProperty)
+        .orElse(layout.buildDirectory.file(defaultOutputPath).map { it.asFile.absolutePath })
+    this.argumentProviders.add(CommandLineArgumentProvider { listOf(backend.get(), output.get()) })
+    this.javaLauncher = JavaToolchains.launcher(project)
+    this.maxHeapSize = benchmarkHeapSize
+    this.outputs.upToDateWhen { false }
 }

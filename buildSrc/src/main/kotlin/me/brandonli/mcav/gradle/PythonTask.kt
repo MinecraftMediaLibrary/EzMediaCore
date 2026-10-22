@@ -28,26 +28,64 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskProvider
 
+/**
+ * A task that runs the Python of a [PythonEnvironment].
+ *
+ * [useEnvironment] connects the task to its environment, so that the task runs again when the requirements, the Python
+ * version or the platform change.
+ */
 abstract class PythonTask : DefaultTask() {
 
+    internal companion object {
+
+        const val PYTHON_EXECUTABLE: String = "python"
+
+        const val NO_USER_SITE_VARIABLE: String = "PYTHONNOUSERSITE"
+        const val NO_BYTECODE_VARIABLE: String = "PYTHONDONTWRITEBYTECODE"
+        const val HASH_SEED_VARIABLE: String = "PYTHONHASHSEED"
+        const val MATPLOTLIB_CONFIG_VARIABLE: String = "MPLCONFIGDIR"
+
+        const val ENABLED: String = "1"
+        const val FIXED_HASH_SEED: String = "0"
+
+        const val MATPLOTLIB_CONFIG_DIRECTORY: String = "matplotlib"
+    }
+
+    /**
+     * The requirements lock of the environment.
+     */
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val requirements: RegularFileProperty
 
+    /**
+     * The Python version of the environment.
+     */
     @get:Input
     abstract val pythonVersion: Property<String>
 
+    /**
+     * The uv target of the host, so that outputs built on one platform are not reused on another.
+     */
     @get:Input
     abstract val platform: Property<String>
 
+    /**
+     * The `python` executable of the environment.
+     */
     @get:Internal
     abstract val pythonExecutable: RegularFileProperty
 
-    fun useEnvironment(environment: TaskProvider<PythonEnvironment>) {
-        dependsOn(environment)
-        requirements.set(environment.flatMap { it.requirements })
-        pythonVersion.set(environment.flatMap { it.pythonVersion })
-        platform.set(HostPlatform.current().uvTarget)
-        pythonExecutable.set(environment.flatMap { it.executable("python") })
+    /**
+     * Runs this task with the Python of [environment], after the environment is installed.
+     *
+     * @param environment the task that installs the environment
+     */
+    fun useEnvironment(environment: TaskProvider<PythonEnvironment>): Unit {
+        this.dependsOn(environment)
+        this.requirements.set(environment.flatMap { it.requirements })
+        this.pythonVersion.set(environment.flatMap { it.pythonVersion })
+        this.platform.set(HostPlatform.current().uvTarget)
+        this.pythonExecutable.set(environment.flatMap { it.executable(PYTHON_EXECUTABLE) })
     }
 }

@@ -18,7 +18,9 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -28,18 +30,30 @@ import org.junit.jupiter.api.io.TempDir
 
 class ExplicitLocalePluginTest {
 
+    private companion object {
+
+        const val REPOSITORY_DIRECTORY: String = ".."
+        const val CATALOG_PATH: String = "gradle/libs.versions.toml"
+        const val SOURCE_PATH: String = "src/main/java/fixture/NumericOutput.java"
+
+        const val SETTINGS_SCRIPT: String = "settings.gradle"
+        const val BUILD_SCRIPT: String = "build.gradle"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
-    fun productionNumberFormattingMustChooseALocale() {
-        val project = directory.toFile()
-        project.resolve("settings.gradle").writeText("rootProject.name = 'locale-fixture'\n")
-        project.resolve("build.gradle").writeText("plugins { id 'mcav.java-library' }\n")
-        val catalog = project.resolve("gradle/libs.versions.toml")
+    fun shouldRequireProductionNumberFormattingToChooseALocale(): Unit {
+        val project: File = this.directory.toFile()
+        project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'locale-fixture'\n")
+        project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.java-library' }\n")
+
+        val catalog: File = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
-        Path.of("..", "gradle", "libs.versions.toml").toFile().copyTo(catalog)
-        val source = project.resolve("src/main/java/fixture/NumericOutput.java")
+        Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
+
+        val source: File = project.resolve(SOURCE_PATH)
         source.parentFile.mkdirs()
         source.writeText(
             """
@@ -52,12 +66,14 @@ class ExplicitLocalePluginTest {
             }
             """.trimIndent()
         )
-        val runner = GradleRunner.create()
+
+        val runner: GradleRunner = GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()
             .withArguments("compileJava", "--no-parallel", "--max-workers=1")
-        val rejected = runner.buildAndFail()
-        assertTrue(rejected.output.contains("error: [DefaultLocale]"), rejected.output)
+        val rejected: BuildResult = runner.buildAndFail()
+        val flagged: Boolean = rejected.output.contains("error: [DefaultLocale]")
+        assertTrue(flagged, rejected.output)
 
         source.writeText(
             """
@@ -71,7 +87,9 @@ class ExplicitLocalePluginTest {
             }
             """.trimIndent()
         )
-        val accepted = runner.build()
-        assertEquals(TaskOutcome.SUCCESS, accepted.task(":compileJava")?.outcome, accepted.output)
+
+        val accepted: BuildResult = runner.build()
+        val outcome: TaskOutcome? = accepted.task(":compileJava")?.outcome
+        assertEquals(TaskOutcome.SUCCESS, outcome, accepted.output)
     }
 }

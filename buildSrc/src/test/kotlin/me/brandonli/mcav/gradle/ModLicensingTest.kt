@@ -18,52 +18,85 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipFile
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 class ModLicensingTest {
 
+    private companion object {
+
+        const val REPOSITORY_DIRECTORY: String = ".."
+        const val CATALOG_PATH: String = "gradle/libs.versions.toml"
+        const val NOTICES_FILE: String = "THIRD-PARTY-NOTICES.md"
+
+        const val RESOURCES_META_INF_PATH: String = "src/main/resources/META-INF"
+        const val FABRIC_METADATA_PATH: String = "src/main/resources/fabric.mod.json"
+        const val NEOFORGE_METADATA_PATH: String = "src/main/resources/META-INF/neoforge.mods.toml"
+
+        const val LICENSE_ENTRY: String = "META-INF/LICENSE-MCAV"
+        const val NOTICES_ENTRY: String = "META-INF/THIRD-PARTY-NOTICES.md"
+        const val FABRIC_METADATA_ENTRY: String = "fabric.mod.json"
+        const val NEOFORGE_METADATA_ENTRY: String = "META-INF/neoforge.mods.toml"
+
+        const val SETTINGS_SCRIPT: String = "settings.gradle"
+        const val BUILD_SCRIPT: String = "build.gradle"
+        const val LICENSE_FILE: String = "LICENSE"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
-    fun everyModArchiveCarriesTheExactLicenseAndNoticesWhileKeepingLoaderResourcesSeparate() {
-        val project = directory.toFile()
-        project.resolve("settings.gradle").writeText("rootProject.name = 'mcav-mod'\n")
-        project.resolve("build.gradle").writeText("plugins { id 'mcav.node'; id 'mcav.mod' }\nversion = '1.0.0-SNAPSHOT'\n")
-        val catalog = project.resolve("gradle/libs.versions.toml")
+    fun shouldCarryTheExactLicenseAndNoticesInEveryModArchiveWhileKeepingLoaderResourcesSeparate(): Unit {
+        val project: File = this.directory.toFile()
+        project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'mcav-mod'\n")
+        project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.node'; id 'mcav.mod' }\nversion = '1.0.0-SNAPSHOT'\n")
+
+        val catalog: File = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
-        Path.of("..", "gradle", "libs.versions.toml").toFile().copyTo(catalog)
-        val license = "Fixture license: preserve the whole file.\n"
-        val notices = "Fixture third-party notices: preserve the whole file.\n"
-        project.resolve("LICENSE").writeText(license)
-        project.resolve("THIRD-PARTY-NOTICES.md").writeText(notices)
-        project.resolve("src/main/resources/META-INF").mkdirs()
-        project.resolve("src/main/resources/fabric.mod.json").writeText("{}\n")
-        project.resolve("src/main/resources/META-INF/neoforge.mods.toml").writeText("modId = 'fixture'\n")
+        Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
+
+        val license: String = "Fixture license: preserve the whole file.\n"
+        val notices: String = "Fixture third-party notices: preserve the whole file.\n"
+        project.resolve(LICENSE_FILE).writeText(license)
+        project.resolve(NOTICES_FILE).writeText(notices)
+        project.resolve(RESOURCES_META_INF_PATH).mkdirs()
+        project.resolve(FABRIC_METADATA_PATH).writeText("{}\n")
+        project.resolve(NEOFORGE_METADATA_PATH).writeText("modId = 'fixture'\n")
         GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()
             .withArguments("jar", "fabricJar", "neoforgeJar", "--no-parallel", "--max-workers=1")
             .build()
-        for (classifier in listOf("plain", "fabric", "neoforge")) {
-            ZipFile(directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()).use { archive ->
-                for ((name, expected) in mapOf("LICENSE-MCAV" to license, "THIRD-PARTY-NOTICES.md" to notices)) {
-                    val entry = archive.getEntry("META-INF/$name")
-                    assertNotNull(entry)
-                    assertEquals(expected, archive.getInputStream(entry).reader().readText())
-                }
-                if (classifier == "neoforge") assertNull(archive.getEntry("fabric.mod.json"))
-                else assertNotNull(archive.getEntry("fabric.mod.json"))
-                if (classifier == "fabric") assertNull(archive.getEntry("META-INF/neoforge.mods.toml"))
-                else assertNotNull(archive.getEntry("META-INF/neoforge.mods.toml"))
-            }
-        }
+
+        val archives: Map<String, List<Any?>> = listOf("plain", "fabric", "neoforge").associateWith(this::describeArchive)
+        val expected: Map<String, List<Any?>> = mapOf(
+            "plain" to listOf(license, notices, true, true),
+            "fabric" to listOf(license, notices, true, false),
+            "neoforge" to listOf(license, notices, false, true)
+        )
+        assertEquals(expected, archives)
+    }
+
+    private fun describeArchive(classifier: String): List<Any?> {
+        val file: File = this.directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()
+        return ZipFile(file).use(this::describeEntries)
+    }
+
+    private fun describeEntries(archive: ZipFile): List<Any?> {
+        val license: String? = this.readEntry(archive, LICENSE_ENTRY)
+        val notices: String? = this.readEntry(archive, NOTICES_ENTRY)
+        val fabric: Boolean = archive.getEntry(FABRIC_METADATA_ENTRY) != null
+        val neoforge: Boolean = archive.getEntry(NEOFORGE_METADATA_ENTRY) != null
+        return listOf(license, notices, fabric, neoforge)
+    }
+
+    private fun readEntry(archive: ZipFile, name: String): String? {
+        return archive.getEntry(name)?.let { archive.getInputStream(it).reader().readText() }
     }
 }

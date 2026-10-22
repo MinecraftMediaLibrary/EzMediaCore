@@ -18,28 +18,55 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.HexFormat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 class ToolDigestsTest {
 
+    private companion object {
+
+        const val CONTENTS_FILE: String = "contents"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
-    fun streamsEmptyShortAndMultipleBufferFilesWithoutChangingTheirDigest() {
-        val file = directory.resolve("contents").toFile()
+    fun shouldStreamEmptyShortAndMultipleBufferFilesWithoutChangingTheirDigest(): Unit {
+        val file: File = this.directory.resolve(CONTENTS_FILE).toFile()
         file.writeBytes(byteArrayOf())
-        assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ToolDigests.sha256(file))
+
+        val emptyDigest: String = ToolDigests.sha256(file)
+        assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", emptyDigest)
+
         file.writeText("abc")
-        assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", ToolDigests.sha256(file))
-        val contents = ByteArray(196_625) { index -> (index % 251).toByte() }
+
+        val shortDigest: String = ToolDigests.sha256(file)
+        assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", shortDigest)
+
+        val contents: ByteArray = ByteArray(196_625) { index -> (index % 251).toByte() }
         file.writeBytes(contents)
-        val expected = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(contents))
-        assertEquals(expected, ToolDigests.sha256(file))
+
+        val expected: String = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(contents))
+        val longDigest: String = ToolDigests.sha256(file)
+        assertEquals(expected, longDigest)
+    }
+
+    @Test
+    fun shouldCloseTheFileOnceItIsDigested(): Unit {
+        OpenFiles.assumeListable()
+
+        val file: File = this.directory.resolve(CONTENTS_FILE).toFile()
+        file.writeText("abc")
+        ToolDigests.sha256(file)
+
+        val open: Boolean = OpenFiles.isOpen(file)
+        assertFalse(open)
     }
 }

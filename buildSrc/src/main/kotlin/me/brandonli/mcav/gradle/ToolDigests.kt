@@ -19,20 +19,30 @@
 package me.brandonli.mcav.gradle
 
 import java.io.File
+import java.io.InputStream
 import java.security.MessageDigest
 import java.util.HexFormat
 
 internal object ToolDigests {
+
+    private const val ALGORITHM: String = "SHA-256"
+
+    private const val BUFFER_SIZE: Int = 65_536
+
     fun sha256(file: File): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { input ->
-            val buffer = ByteArray(65_536)
-            var count = input.read(buffer)
-            while (count >= 0) {
-                digest.update(buffer, 0, count)
-                count = input.read(buffer)
-            }
+        val digest: MessageDigest = MessageDigest.getInstance(ALGORITHM)
+        file.inputStream().use { input -> this.updateDigest(digest, input) }
+
+        val hash: ByteArray = digest.digest()
+        return HexFormat.of().formatHex(hash)
+    }
+
+    private fun updateDigest(digest: MessageDigest, input: InputStream): Unit {
+        val buffer: ByteArray = ByteArray(BUFFER_SIZE)
+        var count: Int = input.read(buffer)
+        while (count >= 0) {
+            digest.update(buffer, 0, count)
+            count = input.read(buffer)
         }
-        return HexFormat.of().formatHex(digest.digest())
     }
 }

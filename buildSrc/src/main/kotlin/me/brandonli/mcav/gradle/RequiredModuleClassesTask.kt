@@ -18,6 +18,8 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
+import java.util.SortedSet
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -26,27 +28,55 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * Lists the classes of the MCAV modules that a plugin's own classes use, as a resource of the plugin.
+ *
+ * The resource holds one class name in internal form on each line, sorted. The modules are downloaded apart from the
+ * plugin, so its loader reads the list and refuses to start when a module lacks one of the classes.
+ */
 @CacheableTask
 abstract class RequiredModuleClassesTask : DefaultTask() {
 
+    /**
+     * Holds the path of the list.
+     */
     companion object {
-        const val RESOURCE = "META-INF/mcav/required-classes.txt"
+
+        /**
+         * The path of the list inside the plugin.
+         */
+        const val RESOURCE: String = "META-INF/mcav/required-classes.txt"
+
+        private const val LINE_SEPARATOR: String = "\n"
     }
 
+    /**
+     * The class directories of the plugin.
+     */
     @get:Classpath
     abstract val pluginClasses: ConfigurableFileCollection
 
+    /**
+     * The class directories and jars of the modules that the plugin downloads.
+     */
     @get:Classpath
     abstract val modules: ConfigurableFileCollection
 
+    /**
+     * The resource directory that receives the list at [RESOURCE].
+     */
     @get:OutputDirectory
     abstract val output: DirectoryProperty
 
+    /**
+     * Writes the list of the module classes that the plugin uses.
+     */
     @TaskAction
-    fun list() {
-        val classes = ModuleClasses.required(pluginClasses.files, modules.files)
-        val file = output.get().file(RESOURCE).asFile
+    fun list(): Unit {
+        val classes: SortedSet<String> = ModuleClasses.required(this.pluginClasses.files, this.modules.files)
+        val text: String = classes.joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR)
+        val file: File = this.output.get().file(RESOURCE).asFile
         file.parentFile.mkdirs()
-        file.writeText(classes.joinToString("\n", postfix = "\n"))
+        file.writeText(text)
     }
 }

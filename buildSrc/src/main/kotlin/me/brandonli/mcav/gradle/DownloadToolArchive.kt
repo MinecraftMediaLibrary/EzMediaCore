@@ -18,14 +18,18 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.net.URI
+import java.net.URLConnection
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
@@ -33,74 +37,180 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import org.tukaani.xz.XZInputStream
 
+/**
+ * Downloads a tool archive, checks its pinned SHA-256 and unpacks it into an installation directory.
+ *
+ * The task reads `.zip`, `.tar.gz` and `.tar.xz` archives and makes the tool's executable runnable. It installs nothing
+ * when the digest of the download differs from the pinned one.
+ */
 @DisableCachingByDefault(because = "Downloaded tools are cached in their installation directory")
 abstract class DownloadToolArchive : DefaultTask() {
 
     private companion object {
-        const val DOWNLOADING = "Downloading tool archive {}"
-        const val VERIFIED = "Verified SHA-256 {} for {}"
+
+        const val DOWNLOADING: String = "Downloading tool archive {}."
+        const val VERIFIED: String = "Verified SHA-256 {} of {}."
+
+        const val CONNECT_TIMEOUT_MILLISECONDS: Int = 30_000
+        const val READ_TIMEOUT_MILLISECONDS: Int = 120_000
+
+        const val PATH_SEPARATOR: Char = '/'
+
+        const val ZIP_EXTENSION: String = ".zip"
+        const val GZIP_TAR_EXTENSION: String = ".tar.gz"
+        const val XZ_TAR_EXTENSION: String = ".tar.xz"
+
+        const val UNPACKED_TAR: String = "archive.tar"
+
+        const val EXECUTABLE_PERMISSIONS: String = "rwxr-xr-x"
+
+        val SHA256_DIGEST: Regex = Regex("[0-9a-f]{64}")
     }
 
+    /**
+     * The address of the archive.
+     */
     @get:Input
     abstract val archiveUrl: Property<String>
 
+    /**
+     * The pinned SHA-256 of the archive, as 64 lowercase hexadecimal digits.
+     */
     @get:Input
     abstract val sha256: Property<String>
 
+    /**
+     * The path of the tool's executable inside the archive.
+     */
     @get:Input
     abstract val executablePath: Property<String>
 
+    /**
+     * The directory that the archive is unpacked into.
+     */
     @get:OutputDirectory
     abstract val installationDirectory: DirectoryProperty
 
+    /**
+     * The service that opens the archive.
+     */
     @get:Inject
     protected abstract val archives: ArchiveOperations
 
+    /**
+     * The service that copies the archive's contents into the installation directory.
+     */
     @get:Inject
     protected abstract val files: FileSystemOperations
 
+    /**
+     * Downloads the archive, checks its digest and unpacks it.
+     *
+     * @throws GradleException if the pinned digest is malformed, the download fails, the digest differs, the archive is of
+     * another type or it lacks the executable
+     */
     @TaskAction
-    fun install() {
-        val address = archiveUrl.get()
-        val expected = sha256.get()
-        if (!expected.matches(Regex("[0-9a-f]{64}"))) {
-            throw GradleException("Invalid pinned SHA-256 for $address: expected 64 lowercase hexadecimal digits")
+    fun install(): Unit {
+        val address: String = this.archiveUrl.get()
+        val expected: String = this.sha256.get()
+        if (!expected.matches(SHA256_DIGEST)) {
+            val message: String = "Pinned SHA-256 of $address must be 64 lowercase hexadecimal digits!"
+            throw GradleException(message)
         }
-        val archive = temporaryDir.resolve(URI(address).path.substringAfterLast('/'))
-        logger.lifecycle(DOWNLOADING, address)
+
+        val archive: File = this.download(address)
+        this.verifyChecksum(archive, address, expected)
+
+        val contents: FileTree = this.openArchive(archive, address)
+        this.installContents(contents)
+        this.verifyExecutable(address)
+    }
+
+    private fun download(address: String): File {
+        val uri: URI = URI(address)
+        val fileName: String = uri.path.substringAfterLast(PATH_SEPARATOR)
+        val archive: File = this.temporaryDir.resolve(fileName)
+        this.logger.lifecycle(DOWNLOADING, address)
+
         try {
-            val connection = URI(address).toURL().openConnection()
-            connection.connectTimeout = 30_000
-            connection.readTimeout = 120_000
-            connection.getInputStream().use { input -> archive.outputStream().use { output -> input.copyTo(output) } }
-        } catch (failure: IOException) {
-            throw GradleException("Could not download tool archive from $address: ${failure.message}", failure)
+            this.copyFrom(uri, archive)
+        } catch (exception: IOException) {
+            val message: String = "Tool archive $address could not be downloaded!"
+            throw GradleException(message, exception)
         }
-        val actual = ToolDigests.sha256(archive)
+
+        return archive
+    }
+
+    private fun copyFrom(uri: URI, archive: File): Unit {
+        val connection: URLConnection = this.openConnection(uri)
+        connection.connectTimeout = CONNECT_TIMEOUT_MILLISECONDS
+        connection.readTimeout = READ_TIMEOUT_MILLISECONDS
+        connection.getInputStream().use { input -> this.copy(input, archive) }
+    }
+
+    // hook for the pitest mutants that drop a timeout or the close: tests inspect the connection it returns
+    protected open fun openConnection(uri: URI): URLConnection {
+        return uri.toURL().openConnection()
+    }
+
+    private fun copy(input: InputStream, target: File): Unit {
+        target.outputStream().use { output -> input.copyTo(output) }
+    }
+
+    private fun verifyChecksum(archive: File, address: String, expected: String): Unit {
+        val actual: String = ToolDigests.sha256(archive)
         if (actual != expected) {
             archive.delete()
-            throw GradleException("SHA-256 mismatch for $address: expected $expected, got $actual; archive was not installed")
+
+            val message: String = "Tool archive $address has SHA-256 $actual instead of the pinned $expected, so it was not installed!"
+            throw GradleException(message)
         }
-        logger.lifecycle(VERIFIED, expected, address)
-        val contents = when {
-            archive.name.endsWith(".zip") -> archives.zipTree(archive)
-            archive.name.endsWith(".tar.gz") -> archives.tarTree(archive)
-            archive.name.endsWith(".tar.xz") -> {
-                val unpacked = temporaryDir.resolve("archive.tar")
-                XZInputStream(archive.inputStream()).use { input -> unpacked.outputStream().use { output -> input.copyTo(output) } }
-                archives.tarTree(unpacked)
-            }
-            else -> throw GradleException("Unsupported tool archive format: $address (expected .zip, .tar.gz or .tar.xz)")
+
+        this.logger.lifecycle(VERIFIED, expected, address)
+    }
+
+    private fun openArchive(archive: File, address: String): FileTree {
+        val name: String = archive.name
+        if (name.endsWith(ZIP_EXTENSION)) {
+            return this.archives.zipTree(archive)
         }
-        files.sync {
-            from(contents)
-            into(installationDirectory)
-            filesMatching(executablePath.get()) {
-                permissions { unix("rwxr-xr-x") }
-            }
+
+        if (name.endsWith(GZIP_TAR_EXTENSION)) {
+            return this.archives.tarTree(archive)
         }
-        if (!installationDirectory.file(executablePath).get().asFile.isFile) {
-            throw GradleException("Tool archive $address does not contain ${executablePath.get()}")
+
+        if (name.endsWith(XZ_TAR_EXTENSION)) {
+            return this.unpackXz(archive)
+        }
+
+        val message: String = "Tool archive $address must be a .zip, .tar.gz or .tar.xz file!"
+        throw GradleException(message)
+    }
+
+    private fun unpackXz(archive: File): FileTree {
+        val unpacked: File = this.temporaryDir.resolve(UNPACKED_TAR)
+        XZInputStream(archive.inputStream()).use { input -> this.copy(input, unpacked) }
+
+        return this.archives.tarTree(unpacked)
+    }
+
+    private fun installContents(contents: FileTree): Unit {
+        val installation: DirectoryProperty = this.installationDirectory
+        val executable: String = this.executablePath.get()
+        this.files.sync {
+            this.from(contents)
+            this.into(installation)
+            this.filesMatching(executable) { this.permissions { this.unix(EXECUTABLE_PERMISSIONS) } }
+        }
+    }
+
+    private fun verifyExecutable(address: String): Unit {
+        val executable: String = this.executablePath.get()
+        val installed: File = this.installationDirectory.file(executable).get().asFile
+        if (!installed.isFile) {
+            val message: String = "Tool archive $address must contain $executable to be installed!"
+            throw GradleException(message)
         }
     }
 }

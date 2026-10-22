@@ -16,17 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.versionOf
 
 plugins {
     id("com.github.node-gradle.node")
 }
 
-val pinnedNodeVersion = libs.versionOf("node")
+val nodeAlias: String = "node"
+val nodeToolsPath: String = "tools/node"
+
+val pinnedNodeVersion: String = CatalogUtils.versionOf(libs, nodeAlias)
 
 node {
     download = true
     version = pinnedNodeVersion
-    workDir = layout.buildDirectory.dir("tools/node/$pinnedNodeVersion")
+    workDir = layout.buildDirectory.dir("$nodeToolsPath/$pinnedNodeVersion")
 }

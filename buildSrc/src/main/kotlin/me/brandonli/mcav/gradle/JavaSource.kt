@@ -18,104 +18,156 @@
 
 package me.brandonli.mcav.gradle
 
+/**
+ * Blanks out parts of Java source, so that a lint can match code without false hits in comments or literals.
+ *
+ * Both functions keep every offset and line: each blanked character becomes a space, except a line break, which stays.
+ */
 object JavaSource {
 
-    private const val TEXT_BLOCK_QUOTES = "\"\"\""
+    private const val TEXT_BLOCK_QUOTES: String = "\"\"\""
 
-    fun mask(source: String): String = Masker(source, true).mask()
+    private const val LINE_COMMENT_START: String = "//"
+    private const val BLOCK_COMMENT_START: String = "/*"
+    private const val BLOCK_COMMENT_END: String = "*/"
 
-    fun withoutComments(source: String): String = Masker(source, false).mask()
+    private const val STRING_QUOTE: Char = '"'
+    private const val CHARACTER_QUOTE: Char = '\''
+    private const val ESCAPE: Char = '\\'
+    private const val NEW_LINE: Char = '\n'
+    private const val BLANK: Char = ' '
 
-    private enum class State { CODE, LINE_COMMENT, BLOCK_COMMENT, TEXT_BLOCK, STRING, CHARACTER }
+    private const val ESCAPE_SEQUENCE_LENGTH: Int = 2
 
-    private class Masker(private val source: String, private val maskLiterals: Boolean) {
+    /**
+     * Returns [source] with its comments and its string, text block and character literals blanked out, quotes included.
+     *
+     * @param source the Java source
+     * @return the masked source
+     */
+    fun mask(source: String): String {
+        return Masker(source, Literals.MASKED).mask()
+    }
 
-        private val out = StringBuilder(source.length)
-        private var state = State.CODE
-        private var index = 0
+    /**
+     * Returns [source] with its comments blanked out and its literals kept.
+     *
+     * @param source the Java source
+     * @return the source without comments
+     */
+    fun withoutComments(source: String): String {
+        return Masker(source, Literals.KEPT).mask()
+    }
+
+    private enum class State {
+        CODE,
+        LINE_COMMENT,
+        BLOCK_COMMENT,
+        TEXT_BLOCK,
+        STRING,
+        CHARACTER,
+    }
+
+    private enum class Literals {
+        MASKED,
+        KEPT,
+    }
+
+    private class Masker(private val source: String, private val literals: Literals) {
+
+        private val out: StringBuilder = StringBuilder(this.source.length)
+        private var state: State = State.CODE
+        private var index: Int = 0
 
         fun mask(): String {
-            while (index < source.length) {
-                when (state) {
-                    State.CODE -> code()
-                    State.LINE_COMMENT -> lineComment()
-                    State.BLOCK_COMMENT -> blockComment()
-                    State.TEXT_BLOCK -> textBlock()
-                    State.STRING -> literal('"')
-                    State.CHARACTER -> literal('\'')
+            while (this.index < this.source.length) {
+                when (this.state) {
+                    State.CODE -> this.code()
+                    State.LINE_COMMENT -> this.lineComment()
+                    State.BLOCK_COMMENT -> this.blockComment()
+                    State.TEXT_BLOCK -> this.textBlock()
+                    State.STRING -> this.literal(STRING_QUOTE)
+                    State.CHARACTER -> this.literal(CHARACTER_QUOTE)
                 }
             }
-            return out.toString()
+
+            return this.out.toString()
         }
 
-        private fun code() {
+        private fun code(): Unit {
             when {
-                source.startsWith("//", index) -> enter(State.LINE_COMMENT, 2)
-                source.startsWith("/*", index) -> enter(State.BLOCK_COMMENT, 2)
-                source.startsWith(TEXT_BLOCK_QUOTES, index) -> enter(State.TEXT_BLOCK, TEXT_BLOCK_QUOTES.length)
-                source[index] == '"' -> enter(State.STRING, 1)
-                source[index] == '\'' -> enter(State.CHARACTER, 1)
-                else -> keep()
+                this.source.startsWith(LINE_COMMENT_START, this.index) -> this.enter(State.LINE_COMMENT, LINE_COMMENT_START.length)
+                this.source.startsWith(BLOCK_COMMENT_START, this.index) -> this.enter(State.BLOCK_COMMENT, BLOCK_COMMENT_START.length)
+                this.source.startsWith(TEXT_BLOCK_QUOTES, this.index) -> this.enter(State.TEXT_BLOCK, TEXT_BLOCK_QUOTES.length)
+                this.source[this.index] == STRING_QUOTE -> this.enter(State.STRING, 1)
+                this.source[this.index] == CHARACTER_QUOTE -> this.enter(State.CHARACTER, 1)
+                else -> this.keep()
             }
         }
 
-        private fun lineComment() {
-            if (source[index] == '\n') {
-                state = State.CODE
+        private fun lineComment(): Unit {
+            if (this.source[this.index] == NEW_LINE) {
+                this.state = State.CODE
             }
-            blank(1)
+
+            this.blank(1)
         }
 
-        private fun blockComment() {
-            if (source.startsWith("*/", index)) {
-                enter(State.CODE, 2)
+        private fun blockComment(): Unit {
+            if (this.source.startsWith(BLOCK_COMMENT_END, this.index)) {
+                this.enter(State.CODE, BLOCK_COMMENT_END.length)
             } else {
-                blank(1)
+                this.blank(1)
             }
         }
 
-        private fun textBlock() {
+        private fun textBlock(): Unit {
             when {
-                source[index] == '\\' -> literalCharacters(2)
-                source.startsWith(TEXT_BLOCK_QUOTES, index) -> enter(State.CODE, TEXT_BLOCK_QUOTES.length)
-                else -> literalCharacters(1)
+                this.source[this.index] == ESCAPE -> this.literalCharacters(ESCAPE_SEQUENCE_LENGTH)
+                this.source.startsWith(TEXT_BLOCK_QUOTES, this.index) -> this.enter(State.CODE, TEXT_BLOCK_QUOTES.length)
+                else -> this.literalCharacters(1)
             }
         }
 
-        private fun literal(quote: Char) {
-            when (source[index]) {
-                '\\' -> literalCharacters(2)
-                quote, '\n' -> enter(State.CODE, 1)
-                else -> literalCharacters(1)
+        private fun literal(quote: Char): Unit {
+            when (this.source[this.index]) {
+                ESCAPE -> this.literalCharacters(ESCAPE_SEQUENCE_LENGTH)
+                quote, NEW_LINE -> this.enter(State.CODE, 1)
+                else -> this.literalCharacters(1)
             }
         }
 
-        private fun enter(next: State, length: Int) {
-            val comment = state == State.LINE_COMMENT || state == State.BLOCK_COMMENT ||
+        private fun enter(next: State, length: Int): Unit {
+            val comment: Boolean = this.state == State.BLOCK_COMMENT ||
                 next == State.LINE_COMMENT || next == State.BLOCK_COMMENT
-            state = next
-            if (comment) blank(length) else literalCharacters(length)
-        }
+            this.state = next
 
-        private fun literalCharacters(length: Int) {
-            if (maskLiterals) {
-                blank(length)
+            if (comment) {
+                this.blank(length)
             } else {
-                repeat(minOf(length, source.length - index)) { keep() }
+                this.literalCharacters(length)
             }
         }
 
-        private fun blank(length: Int) {
-            val end = minOf(index + length, source.length)
-            while (index < end) {
-                out.append(if (source[index] == '\n') '\n' else ' ')
-                index++
+        private fun literalCharacters(length: Int): Unit {
+            if (this.literals == Literals.MASKED) {
+                this.blank(length)
+            } else {
+                repeat(minOf(length, this.source.length - this.index)) { this.keep() }
             }
         }
 
-        private fun keep() {
-            out.append(source[index])
-            index++
+        private fun blank(length: Int): Unit {
+            val end: Int = minOf(this.index + length, this.source.length)
+            while (this.index < end) {
+                this.out.append(if (this.source[this.index] == NEW_LINE) NEW_LINE else BLANK)
+                this.index++
+            }
+        }
+
+        private fun keep(): Unit {
+            this.out.append(this.source[this.index])
+            this.index++
         }
     }
 }

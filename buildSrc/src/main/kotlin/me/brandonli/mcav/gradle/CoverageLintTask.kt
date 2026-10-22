@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
@@ -30,50 +31,81 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * Fails the build on every line of a module that its tests do not fully cover, unless a coverage exception excuses it.
+ *
+ * The task reads the JaCoCo XML report and the module's coverage exceptions file. It also fails on stale exceptions that
+ * excuse no uncovered line, and skips itself with a warning when the tests ran with a filter.
+ */
 abstract class CoverageLintTask : DefaultTask() {
 
     private companion object {
-        const val FILTERED = "coverageLint of {} skipped: the tests ran with a filter, so the report covers only part of the code"
-        const val GAP = "{}"
-        const val STALE_EXCEPTION = "{}: warning: '{} | {}' matches no uncovered line, remove it"
+
+        const val FILTERED: String =
+            "Skipped coverageLint of {}, since the tests ran with a filter and the report covers only part of the code."
+        const val GAP: String = "{}"
+        const val STALE_EXCEPTION: String = "{}: warning: '{} | {}' matches no uncovered line, so remove it."
     }
 
+    /**
+     * The JaCoCo XML report of the module's tests.
+     */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val report: ConfigurableFileCollection
 
+    /**
+     * The directory of the module's main sources.
+     */
     @get:Internal
     abstract val sourceDirectory: DirectoryProperty
 
+    /**
+     * The module's coverage exceptions file.
+     */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val exceptionsFile: ConfigurableFileCollection
 
+    /**
+     * Whether the tests ran with a filter, so that the report covers only part of the code.
+     */
     @get:Input
     abstract val testsFiltered: Property<Boolean>
 
+    /**
+     * The path of the project, for the warning that a filtered run is skipped.
+     */
     @get:Internal
     abstract val projectPath: Property<String>
 
+    /**
+     * Logs every uncovered line and every stale exception, and fails if it finds one.
+     *
+     * @throws GradleException          if a line is not fully covered or an exception is stale
+     * @throws IllegalArgumentException if an entry of the exceptions file is malformed
+     */
     @TaskAction
-    fun lint() {
-        if (testsFiltered.get()) {
-            logger.warn(FILTERED, projectPath.get())
+    fun lint(): Unit {
+        if (this.testsFiltered.get()) {
+            this.logger.warn(FILTERED, this.projectPath.get())
             return
         }
-        val exceptionFile = exceptionsFile.singleFile
-        val exceptions = CoverageExceptions.read(exceptionFile)
-        val sources = sourceDirectory.get().asFile
-        val gaps = CoverageReport.findGaps(report.singleFile, sources, exceptions)
-        gaps.forEach { gap -> logger.error(GAP, gap) }
-        val staleExceptions = exceptions.filterNot { it.used }
-        staleExceptions.forEach { exception ->
-            logger.error(STALE_EXCEPTION, exceptionFile, exception.path, exception.sourceLine)
-        }
+
+        val exceptionFile: File = this.exceptionsFile.singleFile
+        val exceptions: List<CoverageException> = CoverageExceptions.read(exceptionFile)
+        val reportFile: File = this.report.singleFile
+        val sources: File = this.sourceDirectory.get().asFile
+        val gaps: List<String> = CoverageReport.findGaps(reportFile, sources, exceptions)
+        gaps.forEach { gap -> this.logger.error(GAP, gap) }
+
+        val staleExceptions: List<CoverageException> = exceptions.filterNot { it.used }
+        staleExceptions.forEach { exception -> this.logger.error(STALE_EXCEPTION, exceptionFile, exception.path, exception.sourceLine) }
+
         if (gaps.isNotEmpty() || staleExceptions.isNotEmpty()) {
-            throw GradleException(
-                "${gaps.size} lines are not fully covered by tests and ${staleExceptions.size} coverage exceptions are stale"
-            )
+            val message: String =
+                "${gaps.size} lines are not fully covered by tests and ${staleExceptions.size} coverage exceptions are stale!"
+            throw GradleException(message)
         }
     }
 }

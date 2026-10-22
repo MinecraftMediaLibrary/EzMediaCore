@@ -20,24 +20,57 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 
+/**
+ * Fails the build on every Java log call that builds its message by string concatenation instead of SLF4J placeholders.
+ */
 abstract class LogMessagesTask : JavaLintTask() {
 
     private companion object {
-        const val CONCATENATED_MESSAGE =
-            "{}:{}: error: the message of {} joins strings with +; use SLF4J placeholders for the arguments instead"
+
+        const val CONCATENATED_MESSAGE: String =
+            "{}:{}: error: the message of {} joins strings with +; use SLF4J placeholders for the arguments instead."
     }
 
-    override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit) {
-        files.forEach { file ->
-            LogMessages.find(file.readText()).forEach { found ->
-                reportViolation(file, found.line, listOf(found.call))
-            }
+    /**
+     * Finds the concatenating log calls in [files] with [LogMessages] and reports each one to [reportViolation].
+     *
+     * @param files           the sources to check, sorted by path
+     * @param reportViolation receives the file, the line and the logger method of each call
+     */
+    override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit {
+        for (file in files) {
+            val source: String = file.readText()
+            val messages: List<ConcatenatedLogMessage> = LogMessages.find(source)
+            messages.forEach { found -> reportViolation(file, found.line, listOf(found.call)) }
         }
     }
 
-    override fun diagnosticMessage(): String = CONCATENATED_MESSAGE
+    /**
+     * Returns the template that logs one concatenating call, with its file, line and logger method.
+     *
+     * @return the template
+     */
+    override fun diagnosticMessage(): String {
+        return CONCATENATED_MESSAGE
+    }
 
-    override fun failureMessage(count: Int): String = "$count log calls with a concatenated message"
+    /**
+     * Returns the message of the build failure.
+     *
+     * @param count the number of concatenating calls
+     * @return the message
+     */
+    override fun failureMessage(count: Int): String {
+        return "Found $count log calls with a concatenated message!"
+    }
 
-    override fun successMessage(fileCount: Int): String = "no log call with a concatenated message in $fileCount files\n"
+    /**
+     * Returns the report text of sources without a concatenating call.
+     *
+     * @param fileCount the number of checked files
+     * @return the report text
+     */
+    override fun successMessage(fileCount: Int): String {
+        return "no log call with a concatenated message in $fileCount files\n"
+    }
 }

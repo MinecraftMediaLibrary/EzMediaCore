@@ -18,7 +18,9 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -27,30 +29,49 @@ import org.junit.jupiter.api.io.TempDir
 
 class CoverageLintPluginTest {
 
+    private companion object {
+
+        const val SOURCE_PATH: String = "src/main/java/Example.java"
+
+        const val SETTINGS_SCRIPT: String = "settings.gradle"
+        const val BUILD_SCRIPT: String = "build.gradle"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
-    fun filteringOneModuleDoesNotDisableAnotherModulesCoverage() {
-        val project = directory.toFile()
-        project.resolve("settings.gradle").writeText("rootProject.name = 'coverage-fixture'\ninclude 'first', 'second'\n")
+    fun shouldKeepTheCoverageOfAnotherModuleWhenOneModuleIsFiltered(): Unit {
+        val project: File = this.directory.toFile()
+        project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'coverage-fixture'\ninclude 'first', 'second'\n")
+
         for (name in listOf("first", "second")) {
-            val module = project.resolve(name)
+            val module: File = project.resolve(name)
             module.mkdirs()
-            module.resolve("build.gradle").writeText("plugins { id 'mcav.coverage' }\n")
-            val source = module.resolve("src/main/java/Example.java")
+            module.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.coverage' }\n")
+
+            val source: File = module.resolve(SOURCE_PATH)
             source.parentFile.mkdirs()
             source.writeText("public class Example { public int value() { return 42; } }\n")
         }
-        val result = GradleRunner.create()
+
+        val result: BuildResult = GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()
             .withArguments(":first:test", "--tests", "ExampleTest", ":first:coverageLint", ":second:coverageLint", "--stacktrace")
             .buildAndFail()
 
-        assertTrue(result.output.contains("coverageLint of :first skipped"), result.output)
-        assertFalse(result.output.contains("coverageLint of :second skipped"), result.output)
-        assertTrue(result.output.contains("no test ran, so none of this code is covered"), result.output)
-        assertTrue(result.output.contains(":second:coverageLint FAILED"), result.output)
+        val output: String = result.output
+        val firstSkipped: Boolean = output.contains("Skipped coverageLint of :first,")
+        assertTrue(firstSkipped, output)
+
+        val secondSkipped: Boolean = output.contains("Skipped coverageLint of :second,")
+        assertFalse(secondSkipped, output)
+
+        val uncovered: Boolean = output.contains("no test ran, so none of this code is covered.")
+        assertTrue(uncovered, output)
+
+        val secondFailed: Boolean = output.contains(":second:coverageLint FAILED")
+        assertTrue(secondFailed, output)
     }
 }
