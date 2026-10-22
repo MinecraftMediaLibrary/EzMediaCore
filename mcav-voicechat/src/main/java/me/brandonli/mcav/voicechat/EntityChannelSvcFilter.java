@@ -52,9 +52,9 @@ public final class EntityChannelSvcFilter implements SvcFilter {
    * The number of mono samples in one 20 millisecond frame at 48 kHz.
    */
   private static final int FRAME_SAMPLES = 960;
+  private static final short[] SILENCE = new short[FRAME_SAMPLES];
 
   private static final int MAXIMUM_QUEUED_FRAMES = 25;
-  private static final short[] SILENCE = new short[FRAME_SAMPLES];
 
   private final float distance;
   private final Object[] entities;

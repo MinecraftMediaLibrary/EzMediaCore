@@ -35,6 +35,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class SvcModule implements MCAVModule {
 
+  private static final String MODULE_NAME = "svc";
+
   private static volatile @Nullable VoicechatServerApi voiceChatApi;
 
   /**
@@ -102,6 +104,6 @@ public final class SvcModule implements MCAVModule {
    */
   @Override
   public String getModuleName() {
-    return "svc";
+    return MODULE_NAME;
   }
 }

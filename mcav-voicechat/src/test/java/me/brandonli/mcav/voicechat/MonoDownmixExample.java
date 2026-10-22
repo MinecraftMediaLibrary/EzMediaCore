@@ -39,6 +39,12 @@ import me.brandonli.mcav.utils.audio.MonoDownmixer;
  */
 public final class MonoDownmixExample {
 
+  private static final float SAMPLE_RATE = 48_000;
+  private static final int BITS_PER_SAMPLE = 16;
+  private static final int CHANNELS = 1;
+  private static final boolean SIGNED = true;
+  private static final boolean BIG_ENDIAN = false;
+
   private MonoDownmixExample() {
     final String message = "Example class cannot be instantiated!";
     throw new UnsupportedOperationException(message);
@@ -68,7 +74,7 @@ public final class MonoDownmixExample {
   }
 
   private static SourceDataLine openMonoLine() throws LineUnavailableException {
-    final AudioFormat format = new AudioFormat(48_000, 16, 1, true, false);
+    final AudioFormat format = new AudioFormat(SAMPLE_RATE, BITS_PER_SAMPLE, CHANNELS, SIGNED, BIG_ENDIAN);
     final SourceDataLine line = AudioSystem.getSourceDataLine(format);
     line.open(format);
     line.start();
@@ -89,7 +95,7 @@ public final class MonoDownmixExample {
 
   private static boolean playMono(final SourceDataLine line, final ByteBuffer samples) {
     final short[] mono = MonoDownmixer.downmix(samples);
-    final ByteBuffer bytes = ByteBuffer.allocate(mono.length * 2);
+    final ByteBuffer bytes = ByteBuffer.allocate(mono.length * Short.BYTES);
     bytes.order(ByteOrder.LITTLE_ENDIAN);
     for (final short sample : mono) {
       bytes.putShort(sample);
