@@ -846,6 +846,31 @@ final class Mcv2ResultTest {
   }
 
   @Test
+  void shouldTakeAFrameThatBringsTheCreditToExactlyOne() {
+    // 2^-25 frames a nanosecond, so 2^24 nanoseconds add exactly half a frame
+    final double framesPerSecond = TimeUnit.SECONDS.toNanos(1) / (double) (1L << 25);
+    final Mcv2Result result = this.result(
+      Mcv2Configuration.builder()
+        .viewers(List.of(WITH_PACK))
+        .origin(new Location(mock(World.class), 0, 64, 0))
+        .facing(BlockFace.SOUTH)
+        .map(WALL_MAP)
+        .columns(1)
+        .rows(1)
+        .video(64, 32)
+        .pageMap(PAGE_MAP)
+        .maximumFrameRate(framesPerSecond)
+        .build(),
+      null
+    );
+    // the credit starts at one and a half frames, so the first frame leaves half of one
+    result.takeFrame(0);
+
+    final boolean taken = result.takeFrame(1L << 24);
+    assertTrue(taken);
+  }
+
+  @Test
   void shouldConvertBgrToRgbFromThePositionOfTheBuffer() {
     final ByteBuffer bgr = ByteBuffer.wrap(new byte[] { 9, 0x33, 0x22, 0x11, (byte) 0xCC, (byte) 0xBB, (byte) 0xAA, 7 });
     bgr.position(1);
@@ -1518,6 +1543,89 @@ final class Mcv2ResultTest {
 
     result.drain();
     result.release();
+  }
+
+  @Test
+  void shouldEndADrainWhenTheScreenIsReleased() throws InterruptedException {
+    final Mcv2Configuration fast = this.packScreen(Settings.FAST);
+    final List<Mcv2> made = new CopyOnWriteArrayList<>();
+    final CountDownLatch gate = new CountDownLatch(1);
+    final Mcv2Result result = new Mcv2Result(
+      fast,
+      new Mcv2Channel(fast, this.viewers, this.screen),
+      this.algorithm,
+      System::nanoTime,
+      Runnable::run,
+      this.mockEncoders(made, FinishOutcome.ENCODES, gate)
+    );
+    final Thread drainer = this.startDrainerWhileTheSenderHoldsAFrame(result, made);
+
+    result.release();
+    drainer.join(TimeUnit.SECONDS.toMillis(10));
+    final boolean drainerWaits = drainer.isAlive();
+    assertFalse(drainerWaits, "a release ends a drain");
+
+    gate.countDown();
+  }
+
+  @Test
+  void shouldEndADrainWhenTheScreenStopsOnAFailedSearch() throws InterruptedException {
+    final Mcv2Configuration fast = this.packScreen(Settings.FAST);
+    final List<Mcv2> made = new CopyOnWriteArrayList<>();
+    final CountDownLatch gate = new CountDownLatch(1);
+    final Mcv2Result result = new Mcv2Result(
+      fast,
+      new Mcv2Channel(fast, this.viewers, this.screen),
+      this.algorithm,
+      System::nanoTime,
+      Runnable::run,
+      this.mockEncoders(made, FinishOutcome.ENCODES, gate)
+    );
+    final Thread drainer = this.startDrainerWhileTheSenderHoldsAFrame(result, made);
+    final Mcv2 encoder = made.getFirst();
+    when(encoder.begin(any(), anyInt(), anyInt(), anyLong())).thenThrow(new IllegalStateException("The search failed!"));
+
+    final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
+    result.applyFilter(frame, this.metadata);
+    drainer.join(TimeUnit.SECONDS.toMillis(10));
+    final boolean drainerWaits = drainer.isAlive();
+    assertFalse(drainerWaits, "a screen that stops ends a drain");
+
+    gate.countDown();
+    result.release();
+  }
+
+  // the sender holds the first frame until the gate opens, so the drainer waits for it
+  private Thread startDrainerWhileTheSenderHoldsAFrame(final Mcv2Result result, final List<Mcv2> made) throws InterruptedException {
+    result.start();
+    final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
+    result.applyFilter(frame, this.metadata);
+    this.server.runTasks();
+    result.applyFilter(frame, this.metadata);
+    this.awaitEncoders(made, 1);
+    verify(made.getFirst(), timeout(TimeUnit.SECONDS.toMillis(10))).finish(any());
+
+    final Thread drainer = new Thread(() -> this.drainQuietly(result));
+    drainer.setDaemon(true);
+    drainer.start();
+    final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+    while (drainer.getState() != Thread.State.WAITING && System.nanoTime() < deadline) {
+      Thread.sleep(10);
+    }
+
+    final Thread.State state = drainer.getState();
+    assertEquals(Thread.State.WAITING, state, "the drainer waits for the held frame");
+
+    return drainer;
+  }
+
+  private void drainQuietly(final Mcv2Result result) {
+    try {
+      result.drain();
+    } catch (final InterruptedException exception) {
+      final Thread current = Thread.currentThread();
+      current.interrupt();
+    }
   }
 
   @Test
