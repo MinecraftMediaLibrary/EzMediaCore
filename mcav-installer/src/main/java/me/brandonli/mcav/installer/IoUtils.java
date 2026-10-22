@@ -19,26 +19,19 @@ package me.brandonli.mcav.installer;
 
 import java.nio.file.Path;
 
-/**
- * File helpers of the installer, which cannot depend on the library it installs.
- */
-final class IOUtils {
+final class IoUtils {
 
-  private IOUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+  private IoUtils() {
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Gets the file name of a path.
-   *
-   * @param file the path
-   * @return the last element of the path
-   */
   static String getFileName(final Path file) {
     final Path name = file.getFileName();
     if (name == null) {
-      throw new InstallationException("Path " + file + " has no file name");
+      final String message = "Path %s has no file name!".formatted(file);
+      throw new InstallationException(message);
     }
+
     return name.toString();
   }
 }

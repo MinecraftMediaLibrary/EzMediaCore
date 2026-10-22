@@ -30,29 +30,37 @@ import org.slf4j.LoggerFactory;
  * <p>This keeps plugin jars small: the plugin ships only the installer and downloads the library on its first
  * start. Shading the library into the plugin remains the simpler choice where jar size does not matter.
  *
- * <p>Loading is synchronous and can perform network and file I/O. Serialize installations that share a
- * destination folder, including calls through different installer instances: copies use shared temporary
- * paths. Custom {@link JarLoader} callbacks run on the calling thread after downloading and copying finish.
- * The caller retains ownership of the class loader and its lifetime. There is no uninstall operation or
- * rollback of jars already added if a loader fails part way. An installer itself has no resources to close.
+ * <p>Loading is synchronous and can perform network and file I/O. Custom {@link JarLoader} callbacks run on the
+ * calling thread after downloading and copying finish. The caller retains ownership of the class loader and its
+ * lifetime. There is no uninstall operation or rollback of jars already added if a loader fails part way. An
+ * installer itself has no resources to close.
  *
- * <pre><code>
- *   final Path dataPath = dataFolder.toPath();
- *   final Path folder = dataPath.resolve("libs");
- *   final MCAVInstaller installer = MCAVInstaller.injector(folder, this);
- *   installer.loadMCAVDependencies(Artifact.COMMON);
- *   installer.loadMCAVDependencies(Artifact.BUKKIT);
- * </code></pre>
+ * <p>Instances are immutable, but installations are not thread-safe: serialize installations that share a
+ * destination folder, including calls through different installer instances, because copies use shared temporary
+ * paths.
+ *
+ * <p>A plugin loads MCAV into its own class loader:
+ *
+ * {@snippet :
+ * final String libraryFolderName = "libs";
+ * final File dataFolder = this.getDataFolder();
+ * final Path dataPath = dataFolder.toPath();
+ * final Path folder = dataPath.resolve(libraryFolderName);
+ * final MCAVInstaller installer = MCAVInstaller.injector(folder, this);
+ * installer.loadMCAVDependencies(Artifact.COMMON);
+ * installer.loadMCAVDependencies(Artifact.BUKKIT);
+ * }
+ *
+ * @since 1.0.0
  */
 public final class MCAVInstaller {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MCAVInstaller.class);
 
-  private static final String DOWNLOADING = "Downloading {}:{}:{} and its dependencies...";
+  private static final String FOLDER_NULL_MESSAGE = "Folder must not be null!";
+  private static final String ARTIFACT_NULL_MESSAGE = "Artifact must not be null!";
+  private static final String LOADER_NULL_MESSAGE = "Loader must not be null!";
 
-  private static final String LOADED = "Loaded {} jars for {} in {} ms";
-
-  private final Logger logger;
   private final Path folder;
   private final ClassLoader classLoader;
   private final Function<Path, InstallationManager> managerFactory;
@@ -61,47 +69,10 @@ public final class MCAVInstaller {
     this(folder, classLoader, InstallationManager::new);
   }
 
-  /**
-   * Creates an installer with another way to create the {@link InstallationManager}, for example one that
-   * downloads from a repository on the file system.
-   *
-   * @param folder         the folder the jars are copied into
-   * @param classLoader    the class loader the jars are added to
-   * @param managerFactory creates a manager for the folder
-   */
   MCAVInstaller(final Path folder, final ClassLoader classLoader, final Function<Path, InstallationManager> managerFactory) {
-    this(folder, classLoader, managerFactory, LOGGER);
-  }
-
-  /** Creates an installer with a diagnostic sink, allowing hosts and tests to capture installation timing. */
-  MCAVInstaller(
-    final Path folder,
-    final ClassLoader classLoader,
-    final Function<Path, InstallationManager> managerFactory,
-    final Logger logger
-  ) {
     this.folder = folder;
     this.classLoader = classLoader;
     this.managerFactory = managerFactory;
-    this.logger = logger;
-  }
-
-  /**
-   * Gets the folder the jars are copied into.
-   *
-   * @return the folder
-   */
-  Path getFolder() {
-    return this.folder;
-  }
-
-  /**
-   * Gets the class loader the jars are added to.
-   *
-   * @return the class loader
-   */
-  ClassLoader getClassLoader() {
-    return this.classLoader;
   }
 
   /**
@@ -111,10 +82,12 @@ public final class MCAVInstaller {
    * @param classLoader the non-null caller-owned class loader the jars are added to
    * @return the installer
    * @throws NullPointerException if the folder or the class loader is null
+   * @since 1.0.0
    */
   public static MCAVInstaller injector(final Path folder, final ClassLoader classLoader) {
-    Objects.requireNonNull(folder, "Folder must not be null");
-    Objects.requireNonNull(classLoader, "Class loader must not be null");
+    Objects.requireNonNull(folder, FOLDER_NULL_MESSAGE);
+    Objects.requireNonNull(classLoader, "Class loader must not be null!");
+
     return new MCAVInstaller(folder, classLoader);
   }
 
@@ -126,15 +99,19 @@ public final class MCAVInstaller {
    * @return the installer
    * @throws NullPointerException if the folder or the owner is null
    * @throws JarInjectorException if the class of the owner was loaded by the bootstrap class loader
+   * @since 1.0.0
    */
   public static MCAVInstaller injector(final Path folder, final Object owner) {
-    Objects.requireNonNull(folder, "Folder must not be null");
-    Objects.requireNonNull(owner, "Owner must not be null");
+    Objects.requireNonNull(folder, FOLDER_NULL_MESSAGE);
+    Objects.requireNonNull(owner, "Owner must not be null!");
+
     final Class<?> type = owner.getClass();
     final ClassLoader classLoader = type.getClassLoader();
     if (classLoader == null) {
-      throw new JarInjectorException("Classes of the bootstrap class loader cannot receive jars");
+      final String message = "Classes of the bootstrap class loader cannot receive jars!";
+      throw new JarInjectorException(message);
     }
+
     return injector(folder, classLoader);
   }
 
@@ -146,9 +123,11 @@ public final class MCAVInstaller {
    * @throws NullPointerException  if the artifact is null
    * @throws InstallationException if the module cannot be resolved, verified or copied
    * @throws JarInjectorException  if the jars cannot be added to the class loader
+   * @since 1.0.0
    */
   public void loadMCAVDependencies(final Artifact artifact) {
-    Objects.requireNonNull(artifact, "Artifact must not be null");
+    Objects.requireNonNull(artifact, ARTIFACT_NULL_MESSAGE);
+
     this.loadMCAVDependencies(artifact, JarLoader.DEFAULT_URL_LOADER);
   }
 
@@ -161,10 +140,12 @@ public final class MCAVInstaller {
    * @throws NullPointerException  if the artifact or the loader is null
    * @throws InstallationException if the module cannot be resolved, verified or copied
    * @throws JarInjectorException  if the chosen loader reports that jars cannot be injected
+   * @since 1.0.0
    */
   public void loadMCAVDependencies(final Artifact artifact, final JarLoader loader) {
-    Objects.requireNonNull(artifact, "Artifact must not be null");
-    Objects.requireNonNull(loader, "Loader must not be null");
+    Objects.requireNonNull(artifact, ARTIFACT_NULL_MESSAGE);
+    Objects.requireNonNull(loader, LOADER_NULL_MESSAGE);
+
     final String artifactId = artifact.getArtifactId();
     this.loadDependencies(Artifact.GROUP_ID, artifactId, Artifact.DEFAULT_VERSION, loader);
   }
@@ -185,25 +166,39 @@ public final class MCAVInstaller {
    * @throws InstallationException if the artifact id is invalid, resolution or verification fails, or a
    *                               dependency cannot be copied, including interruption while waiting for copies
    * @throws JarInjectorException  if the chosen loader reports that jars cannot be injected
+   * @since 1.0.0
    */
   public List<Path> loadDependencies(final String groupId, final String artifactId, final String version, final JarLoader loader) {
-    Objects.requireNonNull(groupId, "Group id must not be null");
-    Objects.requireNonNull(artifactId, "Artifact id must not be null");
-    Objects.requireNonNull(version, "Version must not be null");
-    Objects.requireNonNull(loader, "Loader must not be null");
+    Objects.requireNonNull(groupId, "Group id must not be null!");
+    Objects.requireNonNull(artifactId, "Artifact id must not be null!");
+    Objects.requireNonNull(version, "Version must not be null!");
+    Objects.requireNonNull(loader, LOADER_NULL_MESSAGE);
 
     final long start = System.currentTimeMillis();
-    this.logger.info(DOWNLOADING, groupId, artifactId, version);
-    final List<Path> jars;
-    try (final InstallationManager manager = this.managerFactory.apply(this.folder)) {
-      jars = manager.downloadDependencies(groupId, artifactId, version);
-    }
+    LOGGER.info("Downloading {}:{}:{} and its dependencies.", groupId, artifactId, version);
+
+    final List<Path> jars = this.download(groupId, artifactId, version);
     loader.loadJars(jars, this.classLoader);
 
     final long end = System.currentTimeMillis();
     final long elapsed = end - start;
     final int count = jars.size();
-    this.logger.info(LOADED, count, artifactId, elapsed);
+    LOGGER.info("Loaded {} jars for {} in {} ms.", count, artifactId, elapsed);
+
     return jars;
+  }
+
+  private List<Path> download(final String groupId, final String artifactId, final String version) {
+    try (final InstallationManager manager = this.managerFactory.apply(this.folder)) {
+      return manager.downloadDependencies(groupId, artifactId, version);
+    }
+  }
+
+  Path getFolder() {
+    return this.folder;
+  }
+
+  ClassLoader getClassLoader() {
+    return this.classLoader;
   }
 }

@@ -18,22 +18,36 @@
 package me.brandonli.mcav.installer;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Thrown when jars cannot be added to a class loader, usually because the class loader is not a
  * {@link java.net.URLClassLoader} or the runtime forbids the access the injection needs.
+ *
+ * @since 1.0.0
  */
 public class JarInjectorException extends UnsupportedOperationException {
 
   @Serial
   private static final long serialVersionUID = 861375458420366052L;
 
-  JarInjectorException(final @Nullable String message) {
+  /**
+   * Creates an exception with a message.
+   *
+   * @param message the detail message, which says why the jars cannot be added
+   * @since 1.0.0
+   */
+  public JarInjectorException(final String message) {
     super(message);
   }
 
-  JarInjectorException(final @Nullable String message, final @Nullable Throwable cause) {
+  /**
+   * Creates an exception with a message and the exception that caused it.
+   *
+   * @param message the detail message, which says why the jars cannot be added
+   * @param cause   the failure that caused this exception, such as a denied reflective access
+   * @since 1.0.0
+   */
+  public JarInjectorException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

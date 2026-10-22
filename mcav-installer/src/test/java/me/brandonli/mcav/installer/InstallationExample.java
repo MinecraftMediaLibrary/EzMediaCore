@@ -22,21 +22,14 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 
-/**
- * Downloads the core module into {@code dependencies} and loads it into a fresh class loader.
- */
 public final class InstallationExample {
+
+  private static final String DEPENDENCY_FOLDER = "dependencies";
 
   private InstallationExample() {}
 
-  /**
-   * Runs the example.
-   *
-   * @throws ClassNotFoundException if the core module did not end up in the class loader
-   * @throws IOException            if the class loader cannot be closed
-   */
   static void main() throws ClassNotFoundException, IOException {
-    final Path folder = Path.of("dependencies");
+    final Path folder = Path.of(DEPENDENCY_FOLDER);
     final ClassLoader parent = InstallationExample.class.getClassLoader();
     final URL[] noUrls = new URL[0];
     try (final URLClassLoader loader = new URLClassLoader(noUrls, parent)) {

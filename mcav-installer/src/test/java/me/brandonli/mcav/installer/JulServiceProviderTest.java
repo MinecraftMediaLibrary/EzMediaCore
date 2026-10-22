@@ -28,21 +28,17 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import me.brandonli.mcav.installer.testing.RecordingHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Marker;
 import org.slf4j.helpers.NOPMDCAdapter;
+import org.slf4j.spi.MDCAdapter;
 
-/**
- * Tests {@link JulServiceProvider}: the installer's messages reach {@code java.util.logging}, from its classes and from
- * the jar the build makes, whose bundled SLF4J would drop them otherwise.
- */
 final class JulServiceProviderTest {
 
   private static final String NAME = "me.brandonli.mcav.installer.JulServiceProviderTest";
@@ -52,43 +48,33 @@ final class JulServiceProviderTest {
   private static final String WARN = "warn";
   private static final String ERROR = "error {}";
 
-  private final List<LogRecord> records = new CopyOnWriteArrayList<>();
-
-  private final Handler recorder = new Handler() {
-    @Override
-    public void publish(final LogRecord logRecord) {
-      JulServiceProviderTest.this.records.add(logRecord);
-    }
-
-    @Override
-    public void flush() {}
-
-    @Override
-    public void close() {}
-  };
-
-  private final Logger jul = Logger.getLogger(NAME);
+  private RecordingHandler recorder;
+  private List<LogRecord> records;
+  private Logger recordedLogger;
 
   @BeforeEach
   void listen() {
-    this.jul.setLevel(Level.ALL);
-    this.jul.setUseParentHandlers(false);
-    this.jul.addHandler(this.recorder);
+    this.recorder = new RecordingHandler();
+    this.records = this.recorder.getRecords();
+    this.recordedLogger = Logger.getLogger(NAME);
+    this.recordedLogger.setLevel(Level.ALL);
+    this.recordedLogger.setUseParentHandlers(false);
+    this.recordedLogger.addHandler(this.recorder);
   }
 
   @AfterEach
   void stopListening() {
-    this.jul.removeHandler(this.recorder);
-    this.jul.setUseParentHandlers(true);
-    this.jul.setLevel(null);
+    this.recordedLogger.removeHandler(this.recorder);
+    this.recordedLogger.setUseParentHandlers(true);
+    this.recordedLogger.setLevel(null);
   }
 
   @Test
-  void writesEveryLevelToJavaUtilLoggingWithItsArgumentsFormatted() {
+  void shouldWriteEveryLevelToJavaUtilLoggingWithItsArgumentsFormatted() {
     final JulServiceProvider provider = new JulServiceProvider();
     provider.initialize();
     final org.slf4j.Logger logger = provider.getLoggerFactory().getLogger(NAME); // fqn: SLF4J's logger beside java.util.logging's
-    final IllegalStateException failure = new IllegalStateException("broken");
+    final IllegalStateException failure = new IllegalStateException("Broken!");
     logger.trace(TRACE, 1);
     logger.debug(DEBUG, 2);
     logger.info(INFO, 3, 4);
@@ -97,40 +83,74 @@ final class JulServiceProviderTest {
 
     final List<Level> levels = this.records.stream().map(LogRecord::getLevel).toList();
     assertEquals(List.of(Level.FINEST, Level.FINE, Level.INFO, Level.WARNING, Level.SEVERE), levels);
+
     final List<String> messages = this.records.stream().map(LogRecord::getMessage).toList();
     assertEquals(List.of("trace 1", "debug 2", "info 3 4", "warn", "error 5"), messages);
-    assertSame(failure, this.records.getLast().getThrown());
-    assertEquals(NAME, this.records.getFirst().getLoggerName());
+
+    final LogRecord last = this.records.getLast();
+    final Throwable thrown = last.getThrown();
+    assertSame(failure, thrown);
+
+    final LogRecord first = this.records.getFirst();
+    final String loggerName = first.getLoggerName();
+    assertEquals(NAME, loggerName);
   }
 
   @Test
-  void isEnabledWhereJavaUtilLoggingIsAndKeepsNoContext() {
+  void shouldBeEnabledWhereJavaUtilLoggingIsAndKeepNoContext() {
     final JulServiceProvider provider = new JulServiceProvider();
     final org.slf4j.Logger logger = provider.getLoggerFactory().getLogger(NAME); // fqn: SLF4J's logger beside java.util.logging's
     final Marker marker = provider.getMarkerFactory().getMarker("installer");
-    this.jul.setLevel(Level.INFO);
-    assertFalse(logger.isTraceEnabled(marker));
-    assertFalse(logger.isDebugEnabled());
-    assertTrue(logger.isInfoEnabled());
-    assertTrue(logger.isWarnEnabled());
-    assertTrue(logger.isErrorEnabled());
-    this.jul.setLevel(Level.SEVERE);
-    assertFalse(logger.isWarnEnabled());
-    assertTrue(logger.isErrorEnabled(marker));
-    this.jul.setLevel(Level.ALL);
-    assertTrue(logger.isTraceEnabled());
-    assertTrue(logger.isDebugEnabled(marker));
+    this.recordedLogger.setLevel(Level.INFO);
+    final boolean traceAtInfo = logger.isTraceEnabled(marker);
+    assertFalse(traceAtInfo);
 
-    assertEquals("installer", marker.getName());
-    assertInstanceOf(NOPMDCAdapter.class, provider.getMDCAdapter());
-    assertEquals(JulServiceProvider.API_VERSION, provider.getRequestedApiVersion());
-    assertEquals(JulLogger.class.getName(), new JulLogger(NAME).getFullyQualifiedCallerName());
+    final boolean debugAtInfo = logger.isDebugEnabled();
+    assertFalse(debugAtInfo);
+
+    final boolean infoAtInfo = logger.isInfoEnabled();
+    assertTrue(infoAtInfo);
+
+    final boolean warnAtInfo = logger.isWarnEnabled();
+    assertTrue(warnAtInfo);
+
+    final boolean errorAtInfo = logger.isErrorEnabled();
+    assertTrue(errorAtInfo);
+
+    this.recordedLogger.setLevel(Level.SEVERE);
+    final boolean warnAtSevere = logger.isWarnEnabled();
+    assertFalse(warnAtSevere);
+
+    final boolean errorAtSevere = logger.isErrorEnabled(marker);
+    assertTrue(errorAtSevere);
+
+    this.recordedLogger.setLevel(Level.ALL);
+    final boolean traceAtAll = logger.isTraceEnabled();
+    assertTrue(traceAtAll);
+
+    final boolean debugAtAll = logger.isDebugEnabled(marker);
+    assertTrue(debugAtAll);
+
+    final String markerName = marker.getName();
+    assertEquals("installer", markerName);
+
+    final MDCAdapter context = provider.getMDCAdapter();
+    assertInstanceOf(NOPMDCAdapter.class, context);
+
+    final String apiVersion = provider.getRequestedApiVersion();
+    assertEquals(JulServiceProvider.API_VERSION, apiVersion);
+
+    final JulLogger julLogger = new JulLogger(NAME);
+    final String callerName = julLogger.getFullyQualifiedCallerName();
+    final String expectedCallerName = JulLogger.class.getName();
+    assertEquals(expectedCallerName, callerName);
   }
 
   @Test
-  void theJarOfTheInstallerHandsItsMessagesToJavaUtilLogging() throws Exception {
+  void shouldHandTheMessagesOfTheInstallerJarToJavaUtilLogging() throws Exception {
     final String path = System.getProperty("mcav.installer.jar");
     assertNotNull(path, "the build passes the jar it built");
+
     final URL[] jar = { Path.of(path).toUri().toURL() };
     try (final URLClassLoader loader = new URLClassLoader(jar, ClassLoader.getPlatformClassLoader())) {
       final Class<?> factory = loader.loadClass("me.brandonli.mcav.libs.org.slf4j.LoggerFactory");
@@ -138,6 +158,7 @@ final class JulServiceProviderTest {
       final Object logger = factory.getMethod("getLogger", String.class).invoke(null, NAME);
       loggerType.getMethod("info", String.class, Object.class).invoke(logger, "from the jar {}", 6);
     }
+
     final List<String> messages = this.records.stream().map(LogRecord::getMessage).toList();
     assertEquals(List.of("from the jar 6"), messages);
   }

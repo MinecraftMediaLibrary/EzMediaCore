@@ -24,144 +24,76 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import me.brandonli.mcav.installer.testing.LocalMavenRepository;
+import me.brandonli.mcav.installer.testing.ResourceUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link UnsafeInjector} and its {@link UnsafeInjector.UnsafeAccess}.
- */
 final class UnsafeInjectorTest {
+
+  private static final String TEXT_FIELD = "text";
+  private static final String URLS_FIELD = "urls";
+  private static final String ABSENT_FIELD = "absent";
+
+  private static final String LIBRARY_JAR = "library.jar";
+  private static final String LIBRARY_CONTENT = "library";
 
   private static final String RESOURCE = "library.txt";
 
   @TempDir
   private Path directory;
 
-  /**
-   * An Unsafe look-alike whose instance is missing.
-   */
-  static final class UnsafeWithoutInstance {
-
-    private static final Object theUnsafe = null;
-
-    private UnsafeWithoutInstance() {}
-  }
-
-  /**
-   * An Unsafe look-alike without the needed methods.
-   */
-  static final class UnsafeWithoutMethods {
-
-    private static final Object theUnsafe = new Object();
-
-    private UnsafeWithoutMethods() {}
-  }
-
-  /**
-   * An Unsafe look-alike whose reads fail: the field {@code text} with an error of the virtual machine, the field
-   * {@code urls} with a {@link LinkageError}, and every other field is read as the owner itself.
-   */
-  static final class UnsafeWithFailingReads {
-
-    private static final UnsafeWithFailingReads theUnsafe = new UnsafeWithFailingReads();
-    private static final long READABLE_OFFSET = 0L;
-    private static final long FATAL_OFFSET = 1L;
-    private static final long LINKAGE_OFFSET = 2L;
-
-    private UnsafeWithFailingReads() {}
-
-    long objectFieldOffset(final Field field) {
-      final String name = field.getName();
-      return switch (name) {
-        case "text" -> FATAL_OFFSET;
-        case "urls" -> LINKAGE_OFFSET;
-        default -> READABLE_OFFSET;
-      };
-    }
-
-    Object getObject(final Object owner, final long offset) {
-      Objects.requireNonNull(owner, "Unsafe always reads the field of an owner");
-      if (offset == FATAL_OFFSET) {
-        throw new InternalError("out of native memory");
-      }
-      if (offset == LINKAGE_OFFSET) {
-        throw new LinkageError("unsafe is gone");
-      }
-      return owner;
-    }
-  }
-
-  /**
-   * Holds the fields read in the tests.
-   */
-  static final class Holder {
-
-    private static final Object SHARED = "shared";
-
-    private final Object text = "text";
-    private final Object absent = null;
-    private final List<URL> urls = new ArrayList<>();
-  }
-
-  private static UnsafeInjector.UnsafeAccess unsafe() {
-    final UnsafeInjector.UnsafeAccess unsafe = UnsafeInjector.UNSAFE;
-    assertNotNull(unsafe, "sun.misc.Unsafe is available on the test JVM");
-    return unsafe;
-  }
-
-  private URL writeJar() throws IOException {
-    final Path jar = this.directory.resolve("library.jar");
-    LocalMavenRepository.writeJar(jar, RESOURCE, "library");
-    final URI uri = jar.toUri();
-    return uri.toURL();
-  }
-
-  private static String readResource(final URLClassLoader loader) throws IOException {
-    try (final InputStream stream = loader.getResourceAsStream(RESOURCE)) {
-      assertNotNull(stream, "missing resource " + RESOURCE);
-      final byte[] bytes = stream.readAllBytes();
-      return new String(bytes, StandardCharsets.UTF_8);
-    }
-  }
-
   @Test
-  void addsJarsThroughTheClassPathOfTheLoader() throws IOException {
+  void shouldAddJarsThroughTheClassPathOfTheLoader() throws IOException {
     final URL jar = this.writeJar();
-    final UnsafeInjector.UnsafeAccess unsafe = unsafe();
+    final UnsafeInjector.UnsafeAccess unsafe = this.unsafe();
     try (final URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
       final UnsafeInjector injector = new UnsafeInjector(loader, unsafe);
-      injector.addURL(jar);
-      injector.addURL(jar);
+      injector.addUrl(jar);
+      injector.addUrl(jar);
 
       final URL[] urls = loader.getURLs();
       final URL[] expected = { jar };
       assertArrayEquals(expected, urls, "a jar is only added once");
-      final String content = readResource(loader);
-      assertEquals("library", content);
+
+      final String content = ResourceUtils.readResource(loader, RESOURCE);
+      assertEquals(LIBRARY_CONTENT, content);
+
       final URLClassLoader target = injector.getClassLoader();
       assertSame(loader, target);
     }
   }
 
+  private URL writeJar() throws IOException {
+    final Path jar = this.directory.resolve(LIBRARY_JAR);
+    LocalMavenRepository.writeJar(jar, RESOURCE, LIBRARY_CONTENT);
+    final URI uri = jar.toUri();
+    return uri.toURL();
+  }
+
+  private UnsafeInjector.UnsafeAccess unsafe() {
+    final UnsafeInjector.UnsafeAccess unsafe = UnsafeInjector.UNSAFE;
+    assertNotNull(unsafe, "sun.misc.Unsafe is available on the test JVM");
+
+    return unsafe;
+  }
+
   @Test
-  void findsTheUnsafeOfTheRuntimeOnly() {
+  void shouldFindTheUnsafeOfTheRuntimeOnly() {
     assertNull(UnsafeWithoutInstance.theUnsafe, "the look-alike declares theUnsafe but has no instance");
     assertNotNull(UnsafeWithoutMethods.theUnsafe, "the look-alike has an instance but no Unsafe methods");
+
     final String withoutInstanceName = UnsafeWithoutInstance.class.getName();
     final String withoutMethodsName = UnsafeWithoutMethods.class.getName();
 
@@ -176,60 +108,65 @@ final class UnsafeInjectorTest {
   }
 
   @Test
-  void readsInstanceFieldsRegardlessOfAccess() {
-    final UnsafeInjector.UnsafeAccess unsafe = unsafe();
+  void shouldReadInstanceFieldsRegardlessOfAccess() {
+    final UnsafeInjector.UnsafeAccess unsafe = this.unsafe();
     final Holder holder = new Holder();
-    final Object text = unsafe.readField(Holder.class, holder, "text");
+    final Object text = unsafe.readField(Holder.class, holder, TEXT_FIELD);
     assertSame(holder.text, text);
   }
 
   @Test
-  void reportsFieldsThatAreMissingNullOrStatic() {
-    final UnsafeInjector.UnsafeAccess unsafe = unsafe();
+  void shouldReportFieldsThatAreMissingNullOrStatic() {
+    final UnsafeInjector.UnsafeAccess unsafe = this.unsafe();
     final Holder holder = new Holder();
     final String typeName = Holder.class.getName();
     assertNull(holder.absent, "the field exists but holds null");
     assertNotNull(Holder.SHARED, "the static field holds a value that must still not be read");
 
     final JarInjectorException missing = assertThrows(JarInjectorException.class, () -> unsafe.readField(Holder.class, holder, "missing"));
-    final JarInjectorException absent = assertThrows(JarInjectorException.class, () -> unsafe.readField(Holder.class, holder, "absent"));
+    final JarInjectorException absent = assertThrows(JarInjectorException.class, () ->
+      unsafe.readField(Holder.class, holder, ABSENT_FIELD)
+    );
     final JarInjectorException shared = assertThrows(JarInjectorException.class, () -> unsafe.readField(Holder.class, holder, "SHARED"));
     final String missingMessage = missing.getMessage();
     final Throwable missingCause = missing.getCause();
     final String absentMessage = absent.getMessage();
     final String sharedMessage = shared.getMessage();
     final Throwable sharedCause = shared.getCause();
-    final boolean sharedReadFailed = sharedMessage.startsWith("Failed to read SHARED: ");
 
-    assertEquals("This Java version has no field missing in " + typeName, missingMessage);
+    final String expectedMissing = "Field missing is missing from %s in this Java version!".formatted(typeName);
+    assertEquals(expectedMissing, missingMessage);
     assertInstanceOf(NoSuchFieldException.class, missingCause);
-    assertEquals("The field absent of " + typeName + " is null", absentMessage);
-    assertTrue(sharedReadFailed, sharedMessage);
+
+    final String expectedAbsent = "Field absent of %s is null!".formatted(typeName);
+    assertEquals(expectedAbsent, absentMessage);
+    assertEquals("Field SHARED could not be read!", sharedMessage);
     assertNotNull(sharedCause);
   }
 
   @Test
-  void readsOnlyCollectionFieldsAsCollections() {
-    final UnsafeInjector.UnsafeAccess unsafe = unsafe();
+  void shouldReadOnlyCollectionFieldsAsCollections() {
+    final UnsafeInjector.UnsafeAccess unsafe = this.unsafe();
     final Holder holder = new Holder();
-    final Collection<?> urls = UnsafeInjector.readCollection(unsafe, Holder.class, holder, "urls");
+    final Collection<?> urls = UnsafeInjector.readCollection(unsafe, Holder.class, holder, URLS_FIELD);
     assertSame(holder.urls, urls);
 
     final JarInjectorException exception = assertThrows(JarInjectorException.class, () ->
-      UnsafeInjector.readCollection(unsafe, Holder.class, holder, "text")
+      UnsafeInjector.readCollection(unsafe, Holder.class, holder, TEXT_FIELD)
     );
     final String message = exception.getMessage();
     final String typeName = Holder.class.getName();
-    assertEquals("The field text of " + typeName + " is not a collection", message);
+    final String expected = "Field text of %s is not a collection!".formatted(typeName);
+    assertEquals(expected, message);
   }
 
   @Test
-  void hasALookAlikeWhoseReadsFail() throws NoSuchFieldException {
+  void shouldHaveALookAlikeWhoseReadsFail() throws NoSuchFieldException {
     final UnsafeWithFailingReads lookAlike = UnsafeWithFailingReads.theUnsafe;
     final Holder holder = new Holder();
-    final Field textField = Holder.class.getDeclaredField("text");
-    final Field urlsField = Holder.class.getDeclaredField("urls");
-    final Field absentField = Holder.class.getDeclaredField("absent");
+    final Field textField = Holder.class.getDeclaredField(TEXT_FIELD);
+    final Field urlsField = Holder.class.getDeclaredField(URLS_FIELD);
+    final Field absentField = Holder.class.getDeclaredField(ABSENT_FIELD);
     final long textOffset = lookAlike.objectFieldOffset(textField);
     final long urlsOffset = lookAlike.objectFieldOffset(urlsField);
     final long absentOffset = lookAlike.objectFieldOffset(absentField);
@@ -242,20 +179,85 @@ final class UnsafeInjectorTest {
   }
 
   @Test
-  void passesErrorsOfTheVirtualMachineOnAndWrapsEveryOtherReadFailure() {
+  void shouldPassErrorsOfTheVirtualMachineOnAndWrapEveryOtherReadFailure() {
     final String className = UnsafeWithFailingReads.class.getName();
     final UnsafeInjector.UnsafeAccess failing = UnsafeInjector.UnsafeAccess.find(className);
     assertNotNull(failing, "the look-alike has an instance and both Unsafe methods");
+
     final Holder holder = new Holder();
 
-    final InternalError fatal = assertThrows(InternalError.class, () -> failing.readField(Holder.class, holder, "text"));
-    final JarInjectorException linkage = assertThrows(JarInjectorException.class, () -> failing.readField(Holder.class, holder, "urls"));
+    final InternalError fatal = assertThrows(InternalError.class, () -> failing.readField(Holder.class, holder, TEXT_FIELD));
+    final JarInjectorException linkage = assertThrows(JarInjectorException.class, () ->
+      failing.readField(Holder.class, holder, URLS_FIELD)
+    );
     final String fatalMessage = fatal.getMessage();
     final String linkageMessage = linkage.getMessage();
     final Throwable linkageCause = linkage.getCause();
 
-    assertEquals("out of native memory", fatalMessage, "an error of the virtual machine is never wrapped");
-    assertEquals("Failed to read urls: unsafe is gone", linkageMessage);
+    assertEquals("Out of native memory!", fatalMessage, "an error of the virtual machine is never wrapped");
+    assertEquals("Field urls could not be read!", linkageMessage);
     assertInstanceOf(LinkageError.class, linkageCause);
+  }
+
+  static final class UnsafeWithoutInstance {
+
+    private static final Object theUnsafe = null;
+
+    private UnsafeWithoutInstance() {}
+  }
+
+  static final class UnsafeWithoutMethods {
+
+    private static final Object theUnsafe = new Object();
+
+    private UnsafeWithoutMethods() {}
+  }
+
+  static final class UnsafeWithFailingReads {
+
+    private static final UnsafeWithFailingReads theUnsafe = new UnsafeWithFailingReads();
+    private static final long READABLE_OFFSET = 0L;
+    private static final long FATAL_OFFSET = 1L;
+    private static final long LINKAGE_OFFSET = 2L;
+
+    private UnsafeWithFailingReads() {}
+
+    long objectFieldOffset(final Field field) {
+      final String name = field.getName();
+      return switch (name) {
+        case TEXT_FIELD -> FATAL_OFFSET;
+        case URLS_FIELD -> LINKAGE_OFFSET;
+        default -> READABLE_OFFSET;
+      };
+    }
+
+    Object getObject(final Object owner, final long offset) {
+      Objects.requireNonNull(owner, "Unsafe always reads the field of an owner!");
+
+      if (offset == FATAL_OFFSET) {
+        throw new InternalError("Out of native memory!");
+      }
+
+      if (offset == LINKAGE_OFFSET) {
+        throw new LinkageError("Unsafe is gone!");
+      }
+
+      return owner;
+    }
+  }
+
+  static final class Holder {
+
+    private static final Object SHARED = "shared";
+
+    private final Object text;
+    private final Object absent;
+    private final List<URL> urls;
+
+    Holder() {
+      this.text = "text";
+      this.absent = null;
+      this.urls = new ArrayList<>();
+    }
   }
 }

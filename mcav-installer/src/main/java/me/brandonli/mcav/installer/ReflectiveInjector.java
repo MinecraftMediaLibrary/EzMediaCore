@@ -24,28 +24,17 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Calls {@code URLClassLoader.addURL} through a private method handle. Works when {@code java.net} is open to the
- * installer, which is the case for most server launchers.
- */
-final class ReflectiveInjector extends URLClassLoaderInjector {
+final class ReflectiveInjector extends UrlClassLoaderInjector {
 
-  /**
-   * The {@code addURL} method of {@link URLClassLoader}, or null if {@code java.net} is not opened to this module.
-   */
+  private static final String ADD_URL_METHOD = "addURL";
+
   static final @Nullable MethodHandle ADD_URL = findAddUrl();
 
-  private final MethodHandle addUrl;
+  private final MethodHandle addUrlHandle;
 
-  /**
-   * Creates an injector.
-   *
-   * @param classLoader the class loader to add jars to
-   * @param addUrl      a handle that takes the class loader and the URL, normally {@link #ADD_URL}
-   */
-  ReflectiveInjector(final URLClassLoader classLoader, final MethodHandle addUrl) {
+  ReflectiveInjector(final URLClassLoader classLoader, final MethodHandle addUrlHandle) {
     super(classLoader);
-    this.addUrl = addUrl;
+    this.addUrlHandle = addUrlHandle;
   }
 
   private static @Nullable MethodHandle findAddUrl() {
@@ -53,32 +42,26 @@ final class ReflectiveInjector extends URLClassLoaderInjector {
     return findAddUrl(lookup);
   }
 
-  /**
-   * Finds the {@code addURL} method of {@link URLClassLoader}. Visible for testing.
-   *
-   * @param lookup the lookup that needs private access to {@link URLClassLoader}
-   * @return the handle, or null if the lookup has no access
-   */
   static @Nullable MethodHandle findAddUrl(final MethodHandles.Lookup lookup) {
     try {
       final MethodHandles.Lookup privateLookup = MethodHandles.privateLookupIn(URLClassLoader.class, lookup);
       final MethodType type = MethodType.methodType(void.class, URL.class);
-      return privateLookup.findVirtual(URLClassLoader.class, "addURL", type);
+      return privateLookup.findVirtual(URLClassLoader.class, ADD_URL_METHOD, type);
     } catch (final IllegalAccessException | NoSuchMethodException | RuntimeException exception) {
       return null;
     }
   }
 
   @Override
-  void addURL(final URL url) {
+  void addUrl(final URL url) {
     final URLClassLoader loader = this.getClassLoader();
     try {
-      this.addUrl.invoke(loader, url);
+      this.addUrlHandle.invoke(loader, url);
     } catch (final RuntimeException | Error exception) {
       throw exception;
-    } catch (final Throwable throwable) {
-      final String message = throwable.getMessage();
-      throw new JarInjectorException("Failed to add " + url + ": " + message, throwable);
+    } catch (final Throwable exception) {
+      final String message = "Jar %s could not be added to the class loader!".formatted(url);
+      throw new JarInjectorException(message, exception);
     }
   }
 }

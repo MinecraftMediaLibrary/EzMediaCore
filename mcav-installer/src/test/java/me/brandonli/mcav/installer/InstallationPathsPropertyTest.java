@@ -41,17 +41,20 @@ import net.jqwik.api.lifecycle.AfterProperty;
 import net.jqwik.api.lifecycle.BeforeProperty;
 import org.eclipse.aether.repository.RemoteRepository;
 
-/**
- * Properties of the paths the installer writes to, for every artifact id and every coordinate a POM could hold, however
- * hostile. Pass 1 found that an artifact id of {@code ..} escaped the installation folder and that the test of the
- * escape anchored on an already escaped path; pass 2 added the check. These drive the real
- * {@link InstallationManager#downloadDependencies(String, String, String)} against an empty repository on the file
- * system, so the directories it really creates are what is checked, and nothing is downloaded.
- */
 final class InstallationPathsPropertyTest {
 
+  private static final String TEMPORARY_PREFIX = "mcav-installer-paths";
+
+  private static final String INSTALLED_FOLDER = "installed";
+  private static final String REMOTE_FOLDER = "remote";
+  private static final String LOCAL_FOLDER = "local";
+  private static final String ARTIFACT_FOLDER = "artifact";
+
+  private static final String TREE_ARCHIVE = "complete-tree.zip";
+  private static final String TREE_LOCAL_FOLDER = "complete-local";
+
   private static final String SEED = "20260925";
-  private static final String REFUSED = "Artifact id must contain only";
+  private static final String REFUSED = " must contain only letters, digits, dots, underscores or hyphens!";
 
   private Path root;
   private Path folder;
@@ -61,10 +64,10 @@ final class InstallationPathsPropertyTest {
 
   @BeforeProperty
   void createManager() throws IOException {
-    this.root = Files.createTempDirectory("mcav-installer-paths");
-    this.folder = this.root.resolve("installed");
-    final Path emptyRepository = this.root.resolve("remote");
-    this.localRepository = this.root.resolve("local");
+    this.root = Files.createTempDirectory(TEMPORARY_PREFIX);
+    this.folder = this.root.resolve(INSTALLED_FOLDER);
+    final Path emptyRepository = this.root.resolve(REMOTE_FOLDER);
+    this.localRepository = this.root.resolve(LOCAL_FOLDER);
     Files.createDirectories(this.folder);
     Files.createDirectories(emptyRepository);
     final URI remoteUri = emptyRepository.toUri();
@@ -72,18 +75,14 @@ final class InstallationPathsPropertyTest {
     final RemoteRepository remote = InstallationManager.createRepository("empty", remoteUrl);
     final List<RemoteRepository> repositories = List.of(remote);
     this.manager = new InstallationManager(this.folder, repositories, this.localRepository);
-    this.completeTree = new InstallationTreeAssertions(
-      this.root.resolve("complete-tree.zip"),
-      repositories,
-      this.root.resolve("complete-local")
-    );
+    this.completeTree = new InstallationTreeAssertions(this.root.resolve(TREE_ARCHIVE), repositories, this.root.resolve(TREE_LOCAL_FOLDER));
   }
 
   @AfterProperty
   void deleteFolders() throws IOException {
     this.manager.close();
     this.completeTree.close();
-    deleteTree(this.root);
+    this.deleteTree(this.root);
   }
 
   @Provide
@@ -112,19 +111,20 @@ final class InstallationPathsPropertyTest {
   }
 
   @Property(seed = SEED, tries = 80)
-  void noArtifactIdCreatesAnythingOutsideTheInstallationFolder(@ForAll("hostileIds") final String artifactId) throws IOException {
+  void shouldCreateNothingOutsideTheInstallationFolderForAnyArtifactId(@ForAll("hostileIds") final String artifactId) throws IOException {
     this.completeTree.assertArtifactFolder(artifactId);
     final Path installed = this.folder.toAbsolutePath();
     final Path cache = this.localRepository.toAbsolutePath();
-    final List<Path> before = listTree(this.root);
+    final List<Path> before = this.listTree(this.root);
     boolean refused = false;
     try {
       this.manager.downloadDependencies("me.test", artifactId, "1.0");
-    } catch (final InstallationException failure) {
-      final String message = failure.getMessage();
-      refused = message.startsWith(REFUSED);
+    } catch (final InstallationException exception) {
+      final String message = exception.getMessage();
+      refused = message.endsWith(REFUSED);
     }
-    final List<Path> after = listTree(this.root);
+
+    final List<Path> after = this.listTree(this.root);
     final List<Path> created = new ArrayList<>(after);
     created.removeAll(before);
 
@@ -132,9 +132,11 @@ final class InstallationPathsPropertyTest {
       assertEquals(List.of(), created, () -> "a refused id created " + created);
       return;
     }
-    final List<String> children = listNames(this.folder);
+
+    final List<String> children = this.listNames(this.folder);
     final boolean ownFolder = children.contains(artifactId);
     assertTrue(ownFolder, () -> "the id '" + artifactId + "' has no folder of its own in " + installed + ": " + children);
+
     for (final Path path : created) {
       final boolean inLocalRepository = path.startsWith(cache);
       if (inLocalRepository) {
@@ -155,24 +157,20 @@ final class InstallationPathsPropertyTest {
     return Arbitraries.oneOf(shortCoordinates, classics);
   }
 
-  /**
-   * A malicious POM can name any group, artifact and file. Wherever the jar would be copied, it must be strictly below
-   * the folder of the installed artifact, not outside of it and not the folder itself, and it must be a file of its own
-   * name rather than a folder the name climbs to.
-   */
   @Property(seed = SEED)
-  void everyJarDestinationLiesStrictlyInsideTheArtifactFolder(
+  void shouldPlaceEveryJarDestinationStrictlyInsideTheArtifactFolder(
     @ForAll("coordinates") final String groupId,
     @ForAll("coordinates") final String artifactId,
     @ForAll("coordinates") final String fileName
   ) {
-    final Path target = this.folder.resolve("artifact");
+    final Path target = this.folder.resolve(ARTIFACT_FOLDER);
     final Path destination;
     try {
       destination = InstallationManager.destinationOf(target, groupId, artifactId, fileName);
-    } catch (final IOException | InvalidPathException refused) {
+    } catch (final IOException | InvalidPathException exception) {
       return;
     }
+
     final Path normalizedTarget = target.normalize();
     final Path normalizedDestination = destination.normalize();
     final boolean inside = normalizedDestination.startsWith(normalizedTarget);
@@ -186,7 +184,7 @@ final class InstallationPathsPropertyTest {
     );
   }
 
-  private static List<String> listNames(final Path directory) throws IOException {
+  private List<String> listNames(final Path directory) throws IOException {
     try (final Stream<Path> children = Files.list(directory)) {
       final Stream<Path> names = children.map(Path::getFileName);
       final Stream<String> strings = names.map(Path::toString);
@@ -194,32 +192,36 @@ final class InstallationPathsPropertyTest {
     }
   }
 
-  private static List<Path> listTree(final Path directory) throws IOException {
+  private List<Path> listTree(final Path directory) throws IOException {
     try (final Stream<Path> paths = Files.walk(directory)) {
       final Stream<Path> absolute = paths.map(Path::toAbsolutePath);
       return absolute.toList();
     }
   }
 
-  private static void deleteTree(final Path directory) throws IOException {
-    Files.walkFileTree(
-      directory,
-      new SimpleFileVisitor<>() {
-        @Override
-        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attributes) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+  private void deleteTree(final Path directory) throws IOException {
+    final TreeDeleter deleter = new TreeDeleter();
+    Files.walkFileTree(directory, deleter);
+  }
 
-        @Override
-        public FileVisitResult postVisitDirectory(final Path visited, final IOException failure) throws IOException {
-          if (failure != null) {
-            throw failure;
-          }
-          Files.delete(visited);
-          return FileVisitResult.CONTINUE;
-        }
+  private static final class TreeDeleter extends SimpleFileVisitor<Path> {
+
+    @Override
+    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attributes) throws IOException {
+      Files.delete(file);
+
+      return FileVisitResult.CONTINUE;
+    }
+
+    @Override
+    public FileVisitResult postVisitDirectory(final Path visited, final IOException failure) throws IOException {
+      if (failure != null) {
+        throw failure;
       }
-    );
+
+      Files.delete(visited);
+
+      return FileVisitResult.CONTINUE;
+    }
   }
 }

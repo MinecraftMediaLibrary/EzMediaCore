@@ -21,15 +21,20 @@ import java.nio.file.Path;
 import java.util.Collection;
 
 /**
- * Adds downloaded jars to a caller-owned class loader so their classes can be loaded. An installer calls the
- * loader synchronously after copying all resolved files. Implementations define their own synchronization and
- * partial-failure behavior; a failure does not undo earlier additions.
+ * Adds downloaded jars to a caller-owned class loader so their classes can be loaded.
+ *
+ * <p>An installer calls the loader synchronously after copying all resolved files. Implementations define their
+ * own thread safety and partial-failure behavior; a failure does not undo earlier additions.
+ *
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface JarLoader {
   /**
    * The loader that appends jars to a {@link java.net.URLClassLoader}, including the plugin class loaders of
    * Bukkit and Paper and the Knot class loader of Fabric.
+   *
+   * @since 1.0.0
    */
   JarLoader DEFAULT_URL_LOADER = LoaderUtils::loadJarPaths;
 
@@ -39,6 +44,7 @@ public interface JarLoader {
    * @param jars   the non-null collection of non-null jar paths; installers pass an unmodifiable list
    * @param loader the non-null class loader, which remains owned by the caller
    * @throws JarInjectorException if the jars cannot be added
+   * @since 1.0.0
    */
   void loadJars(final Collection<Path> jars, final ClassLoader loader);
 }

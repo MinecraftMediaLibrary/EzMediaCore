@@ -25,31 +25,31 @@ import me.brandonli.mcav.installer.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link IOUtils}.
- */
-final class IOUtilsTest {
+final class IoUtilsTest {
+
+  private static final String JAR_NAME = "library-1.0.jar";
 
   @TempDir
   private Path directory;
 
   @Test
-  void getsTheFileNameOfAPath() {
-    final Path file = this.directory.resolve("library-1.0.jar");
-    final String name = IOUtils.getFileName(file);
-    assertEquals("library-1.0.jar", name);
+  void shouldGetTheFileNameOfAPath() {
+    final Path file = this.directory.resolve(JAR_NAME);
+    final String name = IoUtils.getFileName(file);
+    assertEquals(JAR_NAME, name);
   }
 
   @Test
-  void rejectsPathsWithoutAFileName() {
+  void shouldRejectPathsWithoutAFileName() {
     final Path root = this.directory.getRoot();
-    final InstallationException error = assertThrows(InstallationException.class, () -> IOUtils.getFileName(root));
+    final InstallationException error = assertThrows(InstallationException.class, () -> IoUtils.getFileName(root));
     final String message = error.getMessage();
-    assertEquals("Path " + root + " has no file name", message);
+    final String expected = "Path %s has no file name!".formatted(root);
+    assertEquals(expected, message);
   }
 
   @Test
-  void cannotBeInstantiated() {
-    UtilityClassAssertions.assertNotInstantiable(IOUtils.class);
+  void shouldNotBeInstantiable() {
+    UtilityClassAssertions.assertNotInstantiable(IoUtils.class);
   }
 }

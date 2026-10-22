@@ -30,63 +30,44 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
-/**
- * A Maven repository on the file system with hand-written POMs and small jars, so the resolver can be tested
- * without the internet. Every jar contains the resource returned by {@link #resourceName(String)}, whose content
- * is the coordinates of the artifact. Every file gets a SHA-1 checksum file next to it, as real repositories
- * publish them, because the installer rejects files with missing or wrong checksums.
- */
 public final class LocalMavenRepository {
+
+  private static final String RESOURCE_FOLDER = "mcav-test/";
+  private static final String RESOURCE_EXTENSION = ".txt";
+
+  private static final String VERSION_SEPARATOR = "-";
+  private static final String POM_EXTENSION = ".pom";
+  private static final String JAR_EXTENSION = ".jar";
+  private static final String CHECKSUM_EXTENSION = ".sha1";
+
+  private static final String COORDINATE_SEPARATOR = ":";
+
+  private static final String CHECKSUM_ALGORITHM = "SHA-1";
 
   private final Path root;
 
-  /**
-   * Creates a repository in a directory.
-   *
-   * @param root the directory, created when the first artifact is published
-   */
   public LocalMavenRepository(final Path root) {
     this.root = root;
   }
 
-  /**
-   * Gets the URL of the repository for the resolver.
-   *
-   * @return the {@code file:} URL of the directory
-   */
   public String getUrl() {
     final Path absolute = this.root.toAbsolutePath();
     final URI uri = absolute.toUri();
     return uri.toString();
   }
 
-  /**
-   * Gets the name of the resource every jar of an artifact contains.
-   *
-   * @param artifactId the artifact id
-   * @return the resource name
-   */
   public static String resourceName(final String artifactId) {
-    return "mcav-test/" + artifactId + ".txt";
+    return RESOURCE_FOLDER + artifactId + RESOURCE_EXTENSION;
   }
 
-  /**
-   * Creates the XML of a dependency.
-   *
-   * @param groupId    the group id
-   * @param artifactId the artifact id
-   * @param version    the version
-   * @param scope      the Maven scope
-   * @param optional   whether the dependency is optional
-   * @return the XML element
-   */
   public static String dependency(
     final String groupId,
     final String artifactId,
     final String version,
     final String scope,
-    final boolean optional
+    final Optionality optionality
   ) {
+    final boolean optional = optionality == Optionality.OPTIONAL;
     return (
       "<dependency><groupId>" +
       groupId +
@@ -102,15 +83,6 @@ public final class LocalMavenRepository {
     );
   }
 
-  /**
-   * Creates the XML of a compile dependency on a jar with a classifier, such as a native jar of a library.
-   *
-   * @param groupId    the group id
-   * @param artifactId the artifact id
-   * @param version    the version
-   * @param classifier the classifier, such as {@code linux-x86_64}
-   * @return the XML element
-   */
   public static String classifiedDependency(final String groupId, final String artifactId, final String version, final String classifier) {
     return (
       "<dependency><groupId>" +
@@ -125,14 +97,6 @@ public final class LocalMavenRepository {
     );
   }
 
-  /**
-   * Gets the directory of one version of an artifact.
-   *
-   * @param groupId    the group id
-   * @param artifactId the artifact id
-   * @param version    the version
-   * @return the directory in the Maven layout
-   */
   public Path directoryOf(final String groupId, final String artifactId, final String version) {
     final String groupPath = groupId.replace('.', '/');
     final Path groupDirectory = this.root.resolve(groupPath);
@@ -140,35 +104,26 @@ public final class LocalMavenRepository {
     return artifactDirectory.resolve(version);
   }
 
-  /**
-   * Publishes an artifact with a POM and a jar.
-   *
-   * @param groupId      the group id
-   * @param artifactId   the artifact id
-   * @param version      the version
-   * @param dependencies the dependency elements of the POM
-   * @return the published jar
-   * @throws IOException if the files cannot be written
-   */
   public Path publish(final String groupId, final String artifactId, final String version, final List<String> dependencies)
     throws IOException {
     final Path directory = this.directoryOf(groupId, artifactId, version);
     Files.createDirectories(directory);
-    final String baseName = artifactId + "-" + version;
-    final Path pom = directory.resolve(baseName + ".pom");
-    final String content = pomOf(groupId, artifactId, version, dependencies);
+    final String baseName = artifactId + VERSION_SEPARATOR + version;
+    final Path pom = directory.resolve(baseName + POM_EXTENSION);
+    final String content = this.pomOf(groupId, artifactId, version, dependencies);
     Files.writeString(pom, content, StandardCharsets.UTF_8);
     writeChecksum(pom);
 
-    final Path jar = directory.resolve(baseName + ".jar");
-    final String coordinates = groupId + ":" + artifactId + ":" + version;
+    final Path jar = directory.resolve(baseName + JAR_EXTENSION);
+    final String coordinates = groupId + COORDINATE_SEPARATOR + artifactId + COORDINATE_SEPARATOR + version;
     final String resource = resourceName(artifactId);
     writeJar(jar, resource, coordinates);
     writeChecksum(jar);
+
     return jar;
   }
 
-  private static String pomOf(final String groupId, final String artifactId, final String version, final List<String> dependencies) {
+  private String pomOf(final String groupId, final String artifactId, final String version, final List<String> dependencies) {
     final String joined = String.join("", dependencies);
     return (
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -186,54 +141,34 @@ public final class LocalMavenRepository {
     );
   }
 
-  /**
-   * Publishes a jar with a classifier next to an artifact published with {@link #publish}. Its resource contains
-   * the coordinates followed by a colon and the classifier.
-   *
-   * @param groupId    the group id
-   * @param artifactId the artifact id
-   * @param version    the version
-   * @param classifier the classifier, such as {@code linux-x86_64}
-   * @return the published jar
-   * @throws IOException if the files cannot be written
-   */
   public Path publishClassified(final String groupId, final String artifactId, final String version, final String classifier)
     throws IOException {
     final Path directory = this.directoryOf(groupId, artifactId, version);
     Files.createDirectories(directory);
-    final Path jar = directory.resolve(artifactId + "-" + version + "-" + classifier + ".jar");
-    final String coordinates = groupId + ":" + artifactId + ":" + version + ":" + classifier;
+    final Path jar = directory.resolve(artifactId + VERSION_SEPARATOR + version + VERSION_SEPARATOR + classifier + JAR_EXTENSION);
+    final String coordinates =
+      groupId + COORDINATE_SEPARATOR + artifactId + COORDINATE_SEPARATOR + version + COORDINATE_SEPARATOR + classifier;
     final String resource = resourceName(artifactId);
     writeJar(jar, resource, coordinates);
     writeChecksum(jar);
+
     return jar;
   }
 
-  /**
-   * Gets the SHA-1 checksum file of a published file.
-   *
-   * @param file the published file
-   * @return the checksum file next to it
-   */
   public static Path checksumFileOf(final Path file) {
     final Path name = file.getFileName();
-    return file.resolveSibling(name + ".sha1");
+    return file.resolveSibling(name + CHECKSUM_EXTENSION);
   }
 
-  /**
-   * Writes the SHA-1 checksum file of a file, as Maven repositories publish it.
-   *
-   * @param file the file
-   * @throws IOException if the file cannot be read or the checksum cannot be written
-   */
   public static void writeChecksum(final Path file) throws IOException {
     final byte[] content = Files.readAllBytes(file);
     final MessageDigest digest;
     try {
-      digest = MessageDigest.getInstance("SHA-1");
+      digest = MessageDigest.getInstance(CHECKSUM_ALGORITHM);
     } catch (final NoSuchAlgorithmException exception) {
       throw new IOException(exception);
     }
+
     final byte[] hash = digest.digest(content);
     final HexFormat hex = HexFormat.of();
     final String text = hex.formatHex(hash);
@@ -241,14 +176,6 @@ public final class LocalMavenRepository {
     Files.writeString(checksum, text, StandardCharsets.US_ASCII);
   }
 
-  /**
-   * Writes a jar with one text resource.
-   *
-   * @param jar      the jar file
-   * @param resource the name of the resource
-   * @param text     the content of the resource
-   * @throws IOException if the jar cannot be written
-   */
   public static void writeJar(final Path jar, final String resource, final String text) throws IOException {
     try (final OutputStream output = Files.newOutputStream(jar); final JarOutputStream jarOutput = new JarOutputStream(output)) {
       final JarEntry entry = new JarEntry(resource);

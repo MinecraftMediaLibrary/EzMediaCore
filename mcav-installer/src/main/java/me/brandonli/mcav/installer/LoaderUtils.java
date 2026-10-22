@@ -28,30 +28,21 @@ import java.nio.file.Path;
 import java.util.Collection;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Appends jars to class loaders.
- */
 final class LoaderUtils {
 
   private static final String KNOT_CLASS_LOADER = "net.fabricmc.loader.impl.launch.knot.KnotClassLoader";
   private static final String KNOT_URL_LOADER_FIELD = "urlLoader";
 
   private LoaderUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Appends jars to a class loader.
-   *
-   * @param jars   the jar files
-   * @param loader the class loader
-   */
   static void loadJarPaths(final Collection<Path> jars, final ClassLoader loader) {
     final URLClassLoader target = resolveUrlClassLoader(loader);
-    final URLClassLoaderInjector injector = URLClassLoaderInjector.create(target);
+    final UrlClassLoaderInjector injector = UrlClassLoaderInjector.create(target);
     for (final Path jar : jars) {
       final URL url = toUrl(jar);
-      injector.addURL(url);
+      injector.addUrl(url);
     }
   }
 
@@ -62,8 +53,8 @@ final class LoaderUtils {
     try {
       return uri.toURL();
     } catch (final MalformedURLException exception) {
-      final String message = exception.getMessage();
-      throw new JarInjectorException("Invalid jar path " + jar + ": " + message, exception);
+      final String message = "Jar path %s is not a valid URL!".formatted(jar);
+      throw new JarInjectorException(message, exception);
     }
   }
 
@@ -71,15 +62,17 @@ final class LoaderUtils {
     if (loader instanceof final URLClassLoader urlLoader) {
       return urlLoader;
     }
+
     final URLClassLoader knot = findKnotUrlLoader(loader);
     if (knot != null) {
       return knot;
     }
+
     final Class<? extends ClassLoader> type = loader.getClass();
     final String name = type.getName();
-    throw new JarInjectorException(
-      "Cannot add jars to a " + name + "; put the dependencies on the class path or load them from a URLClassLoader"
-    );
+    final String message =
+      "Jars cannot be added to a %s; put the dependencies on the class path or load them from a URLClassLoader!".formatted(name);
+    throw new JarInjectorException(message);
   }
 
   // Fabric wraps the class path in a URLClassLoader field of its Knot class loader
@@ -92,6 +85,7 @@ final class LoaderUtils {
       }
       type = type.getSuperclass();
     }
+
     return null;
   }
 
@@ -103,12 +97,14 @@ final class LoaderUtils {
       final VarHandle handle = privateLookup.findVarHandle(knotType, KNOT_URL_LOADER_FIELD, urlLoaderType);
       final Object value = handle.get(loader);
       if (!(value instanceof final URLClassLoader urlLoader)) {
-        throw new JarInjectorException("The Fabric class loader has no URL class loader");
+        final String message = "The Fabric class loader has no URL class loader!";
+        throw new JarInjectorException(message);
       }
+
       return urlLoader;
     } catch (final IllegalAccessException | NoSuchFieldException exception) {
-      final String message = exception.getMessage();
-      throw new JarInjectorException("Cannot access the Fabric class loader: " + message, exception);
+      final String message = "The Fabric class loader cannot be accessed!";
+      throw new JarInjectorException(message, exception);
     }
   }
 

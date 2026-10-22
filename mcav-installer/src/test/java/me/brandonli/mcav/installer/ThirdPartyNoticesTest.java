@@ -34,82 +34,113 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the notices of the built installer jar, which bundles the Maven resolver: Apache-2.0 asks that a redistribution
- * keeps the NOTICE file of every component, and the jar names everything it bundles with its licence.
- */
 final class ThirdPartyNoticesTest {
 
-  private static ZipFile builtJar() throws IOException {
-    final String path = System.getProperty("mcav.installer.jar");
+  private static final String INSTALLER_JAR_PROPERTY = "mcav.installer.jar";
+
+  private static final String NOTICE_FILE = "META-INF/NOTICE";
+  private static final String THIRD_PARTY_NOTICES_FILE = "META-INF/THIRD-PARTY-NOTICES.md";
+  private static final String ASM_LICENSE_FILE = "META-INF/LICENSE-ASM";
+  private static final String POM_PROPERTIES_SUFFIX = "/pom.properties";
+
+  private static final String GSON_CLASS = "com/google/gson/Gson.class";
+  private static final String ASM_CLASS_READER_CLASS = "org/objectweb/asm/ClassReader.class";
+  private static final String RELOCATED_PREFIX = "me/brandonli/mcav/libs/";
+
+  @Test
+  void shouldKeepTheNoticesOfTheBundledApacheComponents() throws IOException {
+    try (final ZipFile jar = this.builtJar()) {
+      final String notice = this.read(jar, NOTICE_FILE);
+      for (final String component : List.of("Apache HttpCore", "Apache Commons Codec", "Maven Artifact Resolver API", "Maven Model")) {
+        final boolean kept = notice.contains(component);
+        assertTrue(kept, component + " in " + notice);
+      }
+    }
+  }
+
+  private ZipFile builtJar() throws IOException {
+    final String path = System.getProperty(INSTALLER_JAR_PROPERTY);
     assertNotNull(path, "the build passes the jar it built");
+
     return new ZipFile(path);
   }
 
-  private static String read(final ZipFile jar, final String name) throws IOException {
+  private String read(final ZipFile jar, final String name) throws IOException {
     final ZipEntry entry = jar.getEntry(name);
     assertNotNull(entry, name + " is in the jar");
+
     try (final InputStream input = jar.getInputStream(entry)) {
       return new String(input.readAllBytes(), StandardCharsets.UTF_8);
     }
   }
 
   @Test
-  void keepsTheNoticesOfTheBundledApacheComponents() throws IOException {
-    try (final ZipFile jar = builtJar()) {
-      final String notice = read(jar, "META-INF/NOTICE");
-      for (final String component : List.of("Apache HttpCore", "Apache Commons Codec", "Maven Artifact Resolver API", "Maven Model")) {
-        assertTrue(notice.contains(component), component + " in " + notice);
-      }
-    }
-  }
-
-  @Test
-  void namesEveryBundledComponentInItsThirdPartyNotices() throws IOException {
-    try (final ZipFile jar = builtJar()) {
-      final String notices = read(jar, "META-INF/THIRD-PARTY-NOTICES.md");
-      final List<String> unnamed = new ArrayList<>();
+  void shouldNameEveryBundledComponentInItsThirdPartyNotices() throws IOException {
+    try (final ZipFile jar = this.builtJar()) {
+      final String notices = this.read(jar, THIRD_PARTY_NOTICES_FILE);
       final List<String> bundled = jar
         .stream()
         .map(ZipEntry::getName)
-        .filter(name -> name.endsWith("/pom.properties"))
+        .filter(name -> name.endsWith(POM_PROPERTIES_SUFFIX))
         .toList();
-      for (final String name : bundled) {
-        final Properties component = new Properties();
-        try (final InputStream input = jar.getInputStream(jar.getEntry(name))) {
-          component.load(input);
-        }
-        final String coordinates = component.getProperty("groupId") + ":" + component.getProperty("artifactId");
-        if (!notices.contains("| " + coordinates + " |")) {
-          unnamed.add(coordinates);
-        }
-      }
-      assertTrue(bundled.size() > 20, "the jar bundles the resolver: " + bundled);
+      final int bundledCount = bundled.size();
+      assertTrue(bundledCount > 20, "the jar bundles the resolver: " + bundled);
+
+      final List<String> unnamed = this.findUnnamedComponents(jar, bundled, notices);
       assertEquals(List.of(), unnamed, "bundled, but not in THIRD-PARTY-NOTICES.md");
     }
   }
 
+  private List<String> findUnnamedComponents(final ZipFile jar, final List<String> bundled, final String notices) throws IOException {
+    final List<String> unnamed = new ArrayList<>();
+    for (final String name : bundled) {
+      final String coordinates = this.coordinatesOf(jar, name);
+      final String row = "| " + coordinates + " |";
+      if (!notices.contains(row)) {
+        unnamed.add(coordinates);
+      }
+    }
+
+    return unnamed;
+  }
+
+  private String coordinatesOf(final ZipFile jar, final String name) throws IOException {
+    final ZipEntry entry = jar.getEntry(name);
+    final Properties component = new Properties();
+    try (final InputStream input = jar.getInputStream(entry)) {
+      component.load(input);
+    }
+
+    final String groupId = component.getProperty("groupId");
+    final String artifactId = component.getProperty("artifactId");
+    return groupId + ":" + artifactId;
+  }
+
   @Test
-  void isolatesBundledLibrariesFromTheHostClassPath() throws IOException {
-    try (final ZipFile jar = builtJar()) {
-      final List<String> classes = List.of("com/google/gson/Gson.class", "org/objectweb/asm/ClassReader.class");
+  void shouldIsolateBundledLibrariesFromTheHostClassPath() throws IOException {
+    try (final ZipFile jar = this.builtJar()) {
+      final List<String> classes = List.of(GSON_CLASS, ASM_CLASS_READER_CLASS);
       final List<String> unrelocated = classes
         .stream()
         .filter(name -> jar.getEntry(name) != null)
         .toList();
       assertEquals(List.of(), unrelocated, "bundled libraries must not use host namespaces");
+
       for (final String name : classes) {
-        assertNotNull(jar.getEntry("me/brandonli/mcav/libs/" + name), "the private copy is still bundled: " + name);
+        final ZipEntry privateCopy = jar.getEntry(RELOCATED_PREFIX + name);
+        assertNotNull(privateCopy, "the private copy is still bundled: " + name);
       }
     }
   }
 
   @Test
-  void keepsTheBundledAsmCopyrightAndLicense() throws IOException, NoSuchAlgorithmException {
-    try (final ZipFile jar = builtJar()) {
-      final String notices = read(jar, "META-INF/THIRD-PARTY-NOTICES.md");
-      assertTrue(notices.contains("| org.ow2.asm:asm | BSD-3-Clause |"), "the bundled ASM component must be named in the notices");
-      final String license = read(jar, "META-INF/LICENSE-ASM");
+  void shouldKeepTheBundledAsmCopyrightAndLicense() throws IOException, NoSuchAlgorithmException {
+    try (final ZipFile jar = this.builtJar()) {
+      final String notices = this.read(jar, THIRD_PARTY_NOTICES_FILE);
+      final boolean asmNamed = notices.contains("| org.ow2.asm:asm | BSD-3-Clause |");
+      assertTrue(asmNamed, "the bundled ASM component must be named in the notices");
+
+      final String license = this.read(jar, ASM_LICENSE_FILE);
       final byte[] bytes = license.getBytes(StandardCharsets.UTF_8);
       final byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
       final String actual = HexFormat.of().formatHex(digest);
