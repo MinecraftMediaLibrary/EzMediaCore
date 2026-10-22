@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import net.dv8tion.jda.api.JDABuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -30,24 +31,29 @@ import org.mockito.Mockito;
  */
 final class JdaModuleTest {
 
+  private JdaModule module;
+
+  @BeforeEach
+  void setUp() {
+    this.module = new JdaModule();
+  }
+
   @Test
   void shouldBeNamedJda() {
-    final JdaModule module = new JdaModule();
-    final String name = module.getModuleName();
+    final String name = this.module.getModuleName();
     assertEquals("jda", name);
   }
 
   @Test
   void shouldStartAndStopWithoutHoldingResources() {
-    final JdaModule module = new JdaModule();
     try (final MockedStatic<JDABuilder> builders = Mockito.mockStatic(JDABuilder.class)) {
-      assertDoesNotThrow(module::start);
+      assertDoesNotThrow(this.module::start);
       builders.verifyNoInteractions();
-      assertDoesNotThrow(module::stop);
+      assertDoesNotThrow(this.module::stop);
       builders.verifyNoInteractions();
-      assertDoesNotThrow(module::start);
+      assertDoesNotThrow(this.module::start);
       builders.verifyNoInteractions();
-      assertDoesNotThrow(module::stop);
+      assertDoesNotThrow(this.module::stop);
       builders.verifyNoInteractions();
     }
   }

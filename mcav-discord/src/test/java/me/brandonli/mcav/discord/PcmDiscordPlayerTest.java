@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.Gson;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -35,13 +36,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.IntUnaryOperator;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
+import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.managers.Presence;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
@@ -56,6 +60,7 @@ final class PcmDiscordPlayerTest {
   private static final int FRAME_BYTES = 3840;
   private static final int FRAME_MILLISECONDS = 20;
   private static final int MAXIMUM_FRAMES = 150;
+  private static final int SAMPLES_PER_FRAME = FRAME_BYTES / Short.BYTES;
 
   private static final int PRODUCERS = 4;
   private static final int FRAMES_PER_PRODUCER = 25;
@@ -65,28 +70,122 @@ final class PcmDiscordPlayerTest {
   private static final String UNKNOWN_TITLE = "Unknown title";
   private static final String ELLIPSIS = "…";
 
-  private final JDA jda = Mockito.mock(JDA.class);
-  private final Presence presence = Mockito.mock(Presence.class);
-  private final OriginalAudioMetadata metadata = Mockito.mock(OriginalAudioMetadata.class);
+  private static final OriginalAudioMetadata METADATA = OriginalAudioMetadata.of(
+    "pcm_s16le",
+    OriginalAudioMetadata.UNKNOWN,
+    AudioFilter.SAMPLE_RATE,
+    AudioFilter.CHANNELS,
+    OriginalAudioMetadata.UNKNOWN
+  );
 
-  private PcmDiscordPlayer createPlayer() {
+  private JDA jda;
+  private Presence presence;
+  private PcmDiscordPlayer player;
+
+  @BeforeEach
+  void setUp() {
+    this.jda = Mockito.mock(JDA.class);
+    this.presence = Mockito.mock(Presence.class);
     Mockito.when(this.jda.getPresence()).thenReturn(this.presence);
-    return new PcmDiscordPlayer(this.jda);
+    this.player = new PcmDiscordPlayer(this.jda);
   }
 
-  private static ByteBuffer filledBuffer(final int size, final byte value) {
-    final byte[] bytes = new byte[size];
-    Arrays.fill(bytes, value);
-    final ByteBuffer buffer = ByteBuffer.wrap(bytes);
-    buffer.order(ByteOrder.BIG_ENDIAN);
-    return buffer;
+  @Test
+  void shouldHoldTwentyMillisecondsOfStereoSixteenBitAudioInAFrame() {
+    final int frameBytes = PcmDiscordPlayer.FRAME_BYTES;
+    assertEquals(FRAME_BYTES, frameBytes);
   }
 
-  private static byte[] contentOf(final ByteBuffer frame) {
-    final int remaining = frame.remaining();
-    final byte[] bytes = new byte[remaining];
-    frame.get(bytes);
-    return bytes;
+  @Test
+  void shouldCreateTheDefaultPlayerAndRejectNull() {
+    final DiscordPlayer created = DiscordPlayer.voice(this.jda);
+    assertInstanceOf(PcmDiscordPlayer.class, created);
+    assertThrows(NullPointerException.class, () -> DiscordPlayer.voice(null));
+  }
+
+  @Test
+  void shouldStartEmptyAndSendPcmRatherThanOpus() {
+    final boolean canProvide = this.player.canProvide();
+    final ByteBuffer frame = this.player.provide20MsAudio();
+    final long queued = this.player.getQueuedMilliseconds();
+    final boolean opus = this.player.isOpus();
+    assertFalse(canProvide);
+    assertNull(frame);
+    assertEquals(0L, queued);
+    assertFalse(opus);
+  }
+
+  @Test
+  void shouldConvertLittleEndianSamplesToBigEndianFrames() {
+    final IntUnaryOperator sampleAt = IntUnaryOperator.identity();
+    final ByteBuffer samples = this.createLittleEndianSamples(sampleAt);
+
+    final boolean changed = this.player.applyFilter(samples, METADATA);
+    final int inputPosition = samples.position();
+    assertFalse(changed, "the filter only reads the sample, so it reports no change");
+    assertEquals(0, inputPosition);
+
+    final ByteBuffer frame = this.player.provide20MsAudio();
+    assertNotNull(frame);
+
+    final int frameSize = frame.remaining();
+    assertEquals(FRAME_BYTES, frameSize);
+    this.assertBigEndianSamples(frame, sampleAt);
+  }
+
+  private ByteBuffer createLittleEndianSamples(final IntUnaryOperator sampleAt) {
+    final ByteBuffer samples = ByteBuffer.allocate(FRAME_BYTES);
+    samples.order(ByteOrder.LITTLE_ENDIAN);
+    for (int index = 0; index < SAMPLES_PER_FRAME; index++) {
+      final int sample = sampleAt.applyAsInt(index);
+      samples.putShort((short) sample);
+    }
+
+    return samples.flip();
+  }
+
+  private void assertBigEndianSamples(final ByteBuffer frame, final IntUnaryOperator sampleAt) {
+    assertNotNull(frame);
+    frame.order(ByteOrder.BIG_ENDIAN);
+    for (int index = 0; index < SAMPLES_PER_FRAME; index++) {
+      final short expected = (short) sampleAt.applyAsInt(index);
+      final short sample = frame.getShort();
+      assertEquals(expected, sample);
+    }
+  }
+
+  @Test
+  void shouldTreatSamplesAsLittleEndianWhateverOrderTheBufferReports() {
+    final IntUnaryOperator sampleAt = index -> index * 3 - 1000;
+    final ByteBuffer samples = this.createLittleEndianSamples(sampleAt);
+    samples.order(ByteOrder.BIG_ENDIAN);
+
+    this.player.applyFilter(samples, METADATA);
+    final ByteOrder orderAfter = samples.order();
+    final int positionAfter = samples.position();
+    assertEquals(ByteOrder.BIG_ENDIAN, orderAfter, "the order of the shared buffer is not changed");
+    assertEquals(0, positionAfter);
+
+    final ByteBuffer frame = this.player.provide20MsAudio();
+    this.assertBigEndianSamples(frame, sampleAt);
+  }
+
+  @Test
+  void shouldStripSurroundingWhitespaceFromTheTitle() {
+    this.player.setPlaying("  \t Song \n");
+
+    final String name = this.shownActivityName();
+    assertEquals("Song", name);
+  }
+
+  private String shownActivityName() {
+    final VerificationMode atLeastOnce = Mockito.atLeastOnce();
+    final List<Activity> activities = this.shownActivities(atLeastOnce);
+    final Activity activity = activities.getLast();
+    final Activity.ActivityType type = activity.getType();
+    assertEquals(Activity.ActivityType.PLAYING, type);
+
+    return activity.getName();
   }
 
   /**
@@ -103,21 +202,133 @@ final class PcmDiscordPlayerTest {
     return captor.getAllValues();
   }
 
-  private String shownActivityName() {
-    final VerificationMode atLeastOnce = Mockito.atLeastOnce();
-    final List<Activity> activities = this.shownActivities(atLeastOnce);
-    final Activity activity = activities.getLast();
-    final Activity.ActivityType type = activity.getType();
-    assertEquals(Activity.ActivityType.PLAYING, type);
-    return activity.getName();
+  @Test
+  void shouldShowUnknownTitleForBlankTitles() {
+    final List<String> blanks = List.of("", "   ", "\n\t");
+    for (final String blank : blanks) {
+      this.player.setPlaying(blank);
+      final String name = this.shownActivityName();
+      assertEquals(UNKNOWN_TITLE, name);
+    }
+  }
+
+  @Test
+  void shouldRemoveTheControlCharactersThatDiscordTrimsFromTheTitle() {
+    final List<String> invisibles = List.of("\u0000", "\u0001 \u0001");
+    for (final String invisible : invisibles) {
+      this.player.setPlaying(invisible);
+      final String name = this.shownActivityName();
+      assertEquals(UNKNOWN_TITLE, name);
+    }
+
+    final String title = "a".repeat(200);
+    this.player.setPlaying("\u0000" + title);
+
+    final String name = this.shownActivityName();
+    final String kept = title.substring(0, MAXIMUM_NAME_LENGTH - ELLIPSIS.length());
+    assertEquals(kept + ELLIPSIS, name);
+  }
+
+  @Test
+  void shouldKeepTitlesOfExactlyTheMaximumLength() {
+    final String title = "a".repeat(MAXIMUM_NAME_LENGTH);
+    this.player.setPlaying("  " + title + "  ");
+
+    final String name = this.shownActivityName();
+    assertEquals(title, name);
+
+    final int maximumLength = Activity.MAX_ACTIVITY_NAME_LENGTH;
+    assertEquals(MAXIMUM_NAME_LENGTH, maximumLength);
+  }
+
+  @Test
+  void shouldCutTitlesLongerThanTheMaximumLengthAndEndThemWithAnEllipsis() {
+    final StringBuilder builder = new StringBuilder();
+    for (int index = 0; index < 300; index++) {
+      final char letter = (char) ('a' + (index % 26));
+      builder.append(letter);
+    }
+
+    final String title = builder.toString();
+    final String kept = title.substring(0, MAXIMUM_NAME_LENGTH - ELLIPSIS.length());
+    final String expected = kept + ELLIPSIS;
+    this.player.setPlaying(title);
+
+    final String name = this.shownActivityName();
+    final int length = name.length();
+    assertEquals(expected, name);
+    assertEquals(MAXIMUM_NAME_LENGTH, length);
+
+    final UrlParseDump dump = UrlParseDump.of(title);
+    this.player.setCurrentMedia(dump);
+
+    final String dumpName = this.shownActivityName();
+    assertEquals(expected, dumpName);
+  }
+
+  @Test
+  void shouldCutLongTitlesWithoutSplittingAnEmoji() {
+    final String emoji = "😀";
+    final String tail = "b".repeat(10);
+    final String splitPrefix = "a".repeat(126);
+    this.player.setPlaying(splitPrefix + emoji + tail);
+
+    final String withoutEmoji = this.shownActivityName();
+    assertEquals(splitPrefix + ELLIPSIS, withoutEmoji, "half an emoji is dropped instead of shown as a broken character");
+
+    final String fittingPrefix = "a".repeat(125);
+    this.player.setPlaying(fittingPrefix + emoji + tail);
+
+    final String withEmoji = this.shownActivityName();
+    final int length = withEmoji.length();
+    assertEquals(fittingPrefix + emoji + ELLIPSIS, withEmoji, "an emoji that fits is kept whole");
+    assertEquals(MAXIMUM_NAME_LENGTH, length);
+  }
+
+  @Test
+  void shouldCollectPartialInputUntilAFrameIsComplete() {
+    final ByteBuffer first = this.createFilledBuffer(1000, (byte) 1);
+    this.player.applyFilter(first, METADATA);
+
+    final boolean providesAfterFirst = this.player.canProvide();
+    final long queuedAfterFirst = this.player.getQueuedMilliseconds();
+    assertFalse(providesAfterFirst);
+    assertEquals(0L, queuedAfterFirst);
+
+    final ByteBuffer second = this.createFilledBuffer(FRAME_BYTES - 1000 + 100, (byte) 2);
+    this.player.applyFilter(second, METADATA);
+
+    final boolean providesAfterSecond = this.player.canProvide();
+    final long queuedAfterSecond = this.player.getQueuedMilliseconds();
+    assertTrue(providesAfterSecond);
+    assertEquals(20L, queuedAfterSecond);
+
+    final ByteBuffer firstFrame = this.player.provide20MsAudio();
+    this.assertFrameHolds(firstFrame, (byte) 1, 1000, (byte) 2);
+
+    final ByteBuffer third = this.createFilledBuffer(FRAME_BYTES - 100, (byte) 3);
+    this.player.applyFilter(third, METADATA);
+
+    final ByteBuffer secondFrame = this.player.provide20MsAudio();
+    final boolean providesAfterThird = this.player.canProvide();
+    this.assertFrameHolds(secondFrame, (byte) 2, 100, (byte) 3);
+    assertFalse(providesAfterThird);
+  }
+
+  private ByteBuffer createFilledBuffer(final int size, final byte value) {
+    final byte[] bytes = new byte[size];
+    Arrays.fill(bytes, value);
+    final ByteBuffer buffer = ByteBuffer.wrap(bytes);
+    return buffer.order(ByteOrder.BIG_ENDIAN);
   }
 
   /**
    * Asserts that a frame holds one value up to a split index and another value from there on.
    */
-  private static void assertFrameHolds(final ByteBuffer frame, final byte before, final int split, final byte after) {
+  private void assertFrameHolds(final ByteBuffer frame, final byte before, final int split, final byte after) {
     assertNotNull(frame);
-    final byte[] bytes = contentOf(frame);
+
+    final byte[] bytes = this.readContent(frame);
     final byte first = bytes[0];
     final byte lastBeforeSplit = bytes[split - 1];
     final byte firstAfterSplit = bytes[split];
@@ -128,253 +339,75 @@ final class PcmDiscordPlayerTest {
     assertEquals(after, last);
   }
 
-  @Test
-  void shouldHoldTwentyMillisecondsOfStereoSixteenBitAudioInAFrame() {
-    final int frameBytes = PcmDiscordPlayer.FRAME_BYTES;
-    assertEquals(FRAME_BYTES, frameBytes);
-  }
-
-  @Test
-  void shouldCreateTheDefaultPlayerAndRejectNull() {
-    final DiscordPlayer player = DiscordPlayer.voice(this.jda);
-    assertInstanceOf(PcmDiscordPlayer.class, player);
-    assertThrows(NullPointerException.class, () -> DiscordPlayer.voice(null));
-  }
-
-  @Test
-  void shouldStartEmptyAndSendPcmRatherThanOpus() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final boolean canProvide = player.canProvide();
-    final ByteBuffer frame = player.provide20MsAudio();
-    final long queued = player.getQueuedMilliseconds();
-    final boolean opus = player.isOpus();
-    assertFalse(canProvide);
-    assertNull(frame);
-    assertEquals(0L, queued);
-    assertFalse(opus);
-  }
-
-  @Test
-  void shouldConvertLittleEndianSamplesToBigEndianFrames() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final ByteBuffer samples = ByteBuffer.allocate(FRAME_BYTES);
-    samples.order(ByteOrder.LITTLE_ENDIAN);
-    final int sampleCount = FRAME_BYTES / Short.BYTES;
-    for (int index = 0; index < sampleCount; index++) {
-      samples.putShort((short) index);
-    }
-    samples.flip();
-
-    final boolean changed = player.applyFilter(samples, this.metadata);
-    final int inputPosition = samples.position();
-    final ByteBuffer frame = player.provide20MsAudio();
-    assertFalse(changed, "the filter only reads the sample, so it reports no change");
-    assertEquals(0, inputPosition);
-    assertNotNull(frame);
-    final int frameSize = frame.remaining();
-    assertEquals(FRAME_BYTES, frameSize);
-    frame.order(ByteOrder.BIG_ENDIAN);
-    for (int index = 0; index < sampleCount; index++) {
-      final short sample = frame.getShort();
-      assertEquals((short) index, sample);
-    }
-  }
-
-  @Test
-  void shouldTreatSamplesAsLittleEndianWhateverOrderTheBufferReports() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final ByteBuffer samples = ByteBuffer.allocate(FRAME_BYTES);
-    samples.order(ByteOrder.LITTLE_ENDIAN);
-    final int sampleCount = FRAME_BYTES / Short.BYTES;
-    for (int index = 0; index < sampleCount; index++) {
-      samples.putShort((short) (index * 3 - 1000));
-    }
-    samples.flip();
-    samples.order(ByteOrder.BIG_ENDIAN);
-
-    player.applyFilter(samples, this.metadata);
-    final ByteOrder orderAfter = samples.order();
-    final int positionAfter = samples.position();
-    final ByteBuffer frame = player.provide20MsAudio();
-    assertEquals(ByteOrder.BIG_ENDIAN, orderAfter, "the order of the shared buffer is not changed");
-    assertEquals(0, positionAfter);
-    assertNotNull(frame);
-    frame.order(ByteOrder.BIG_ENDIAN);
-    for (int index = 0; index < sampleCount; index++) {
-      final short sample = frame.getShort();
-      assertEquals((short) (index * 3 - 1000), sample);
-    }
-  }
-
-  @Test
-  void shouldStripSurroundingWhitespaceFromTheTitle() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    player.setPlaying("  \t Song \n");
-    final String name = this.shownActivityName();
-    assertEquals("Song", name);
-  }
-
-  @Test
-  void shouldShowUnknownTitleForBlankTitles() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final List<String> blanks = List.of("", "   ", "\n\t");
-    for (final String blank : blanks) {
-      player.setPlaying(blank);
-      final String name = this.shownActivityName();
-      assertEquals(UNKNOWN_TITLE, name);
-    }
-  }
-
-  @Test
-  void shouldRemoveTheControlCharactersThatDiscordTrimsFromTheTitle() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final List<String> invisibles = List.of("\u0000", "\u0001\u2003\u0001");
-    for (final String invisible : invisibles) {
-      player.setPlaying(invisible);
-      final String name = this.shownActivityName();
-      assertEquals(UNKNOWN_TITLE, name);
-    }
-
-    final String title = "a".repeat(200);
-    player.setPlaying("\u0000" + title);
-    final String name = this.shownActivityName();
-    final String kept = title.substring(0, MAXIMUM_NAME_LENGTH - ELLIPSIS.length());
-    assertEquals(kept + ELLIPSIS, name);
-  }
-
-  @Test
-  void shouldKeepTitlesOfExactlyTheMaximumLength() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final String title = "a".repeat(MAXIMUM_NAME_LENGTH);
-    player.setPlaying("  " + title + "  ");
-    final String name = this.shownActivityName();
-    final int maximumLength = Activity.MAX_ACTIVITY_NAME_LENGTH;
-    assertEquals(title, name);
-    assertEquals(MAXIMUM_NAME_LENGTH, maximumLength);
-  }
-
-  @Test
-  void shouldCutTitlesLongerThanTheMaximumLengthAndEndThemWithAnEllipsis() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final StringBuilder builder = new StringBuilder();
-    for (int index = 0; index < 300; index++) {
-      builder.append((char) ('a' + (index % 26)));
-    }
-    final String title = builder.toString();
-    final String kept = title.substring(0, 127);
-    final String expected = kept + ELLIPSIS;
-
-    player.setPlaying(title);
-    final String name = this.shownActivityName();
-    final int length = name.length();
-    assertEquals(expected, name);
-    assertEquals(MAXIMUM_NAME_LENGTH, length);
-
-    final UrlParseDump dump = UrlParseDump.of(title);
-    player.setCurrentMedia(dump);
-    final String dumpName = this.shownActivityName();
-    assertEquals(expected, dumpName);
-  }
-
-  @Test
-  void shouldCutLongTitlesWithoutSplittingAnEmoji() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final String emoji = "😀";
-    final String tail = "b".repeat(10);
-    final String splitPrefix = "a".repeat(126);
-    player.setPlaying(splitPrefix + emoji + tail);
-    final String withoutEmoji = this.shownActivityName();
-    assertEquals(splitPrefix + ELLIPSIS, withoutEmoji, "half an emoji is dropped instead of shown as a broken character");
-
-    final String fittingPrefix = "a".repeat(125);
-    player.setPlaying(fittingPrefix + emoji + tail);
-    final String withEmoji = this.shownActivityName();
-    final int length = withEmoji.length();
-    assertEquals(fittingPrefix + emoji + ELLIPSIS, withEmoji, "an emoji that fits is kept whole");
-    assertEquals(MAXIMUM_NAME_LENGTH, length);
-  }
-
-  @Test
-  void shouldCollectPartialInputUntilAFrameIsComplete() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final ByteBuffer first = filledBuffer(1000, (byte) 1);
-    player.applyFilter(first, this.metadata);
-    final boolean providesAfterFirst = player.canProvide();
-    final long queuedAfterFirst = player.getQueuedMilliseconds();
-    final ByteBuffer second = filledBuffer(FRAME_BYTES - 1000 + 100, (byte) 2);
-    player.applyFilter(second, this.metadata);
-    final boolean providesAfterSecond = player.canProvide();
-    final long queuedAfterSecond = player.getQueuedMilliseconds();
-    assertFalse(providesAfterFirst);
-    assertEquals(0L, queuedAfterFirst);
-    assertTrue(providesAfterSecond);
-    assertEquals(20L, queuedAfterSecond);
-
-    final ByteBuffer firstFrame = player.provide20MsAudio();
-    assertFrameHolds(firstFrame, (byte) 1, 1000, (byte) 2);
-    final ByteBuffer third = filledBuffer(FRAME_BYTES - 100, (byte) 3);
-    player.applyFilter(third, this.metadata);
-    final ByteBuffer secondFrame = player.provide20MsAudio();
-    assertFrameHolds(secondFrame, (byte) 2, 100, (byte) 3);
-    final boolean drained = player.canProvide();
-    assertFalse(drained);
+  private byte[] readContent(final ByteBuffer frame) {
+    final int remaining = frame.remaining();
+    final byte[] bytes = new byte[remaining];
+    frame.get(bytes);
+    return bytes;
   }
 
   @Test
   void shouldSplitLargeInputIntoSeveralFrames() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final ByteBuffer samples = filledBuffer(FRAME_BYTES * 3 + 10, (byte) 7);
-    player.applyFilter(samples, this.metadata);
-    final long queued = player.getQueuedMilliseconds();
+    final ByteBuffer samples = this.createFilledBuffer(FRAME_BYTES * 3 + 10, (byte) 7);
+    this.player.applyFilter(samples, METADATA);
+
+    final long queued = this.player.getQueuedMilliseconds();
     assertEquals(60L, queued);
+
     for (int index = 0; index < 3; index++) {
-      final ByteBuffer frame = player.provide20MsAudio();
+      final ByteBuffer frame = this.player.provide20MsAudio();
       assertNotNull(frame);
       final int size = frame.remaining();
       assertEquals(FRAME_BYTES, size);
     }
-    final ByteBuffer none = player.provide20MsAudio();
+
+    final ByteBuffer none = this.player.provide20MsAudio();
     assertNull(none);
   }
 
   @Test
   void shouldDropTheOldestFramesWhenThreeSecondsAreQueued() {
-    final PcmDiscordPlayer player = this.createPlayer();
     for (int index = 0; index < MAXIMUM_FRAMES + 2; index++) {
-      final ByteBuffer frame = filledBuffer(FRAME_BYTES, (byte) index);
-      player.applyFilter(frame, this.metadata);
+      final ByteBuffer frame = this.createFilledBuffer(FRAME_BYTES, (byte) index);
+      this.player.applyFilter(frame, METADATA);
     }
-    final long queued = player.getQueuedMilliseconds();
+
+    final long queued = this.player.getQueuedMilliseconds();
     assertEquals(3000L, queued);
 
-    final ByteBuffer oldest = player.provide20MsAudio();
+    final ByteBuffer oldest = this.player.provide20MsAudio();
     assertNotNull(oldest);
+
     final byte first = oldest.get(0);
+    final long afterPoll = this.player.getQueuedMilliseconds();
     assertEquals((byte) 2, first);
-    final long afterPoll = player.getQueuedMilliseconds();
     assertEquals(2980L, afterPoll);
   }
 
   @Test
   void shouldDropQueuedFramesAndThePartialFrameOnFlush() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final ByteBuffer frames = filledBuffer(FRAME_BYTES * 2 + 500, (byte) 5);
-    player.applyFilter(frames, this.metadata);
-    player.flush();
-    final boolean canProvide = player.canProvide();
-    final long queued = player.getQueuedMilliseconds();
+    final ByteBuffer frames = this.createFilledBuffer(FRAME_BYTES * 2 + 500, (byte) 5);
+    this.player.applyFilter(frames, METADATA);
+    this.player.flush();
+
+    final boolean canProvide = this.player.canProvide();
+    final long queued = this.player.getQueuedMilliseconds();
     assertFalse(canProvide);
     assertEquals(0L, queued);
 
-    final ByteBuffer next = filledBuffer(FRAME_BYTES - 500, (byte) 9);
-    player.applyFilter(next, this.metadata);
-    final boolean partialWasKept = player.canProvide();
+    final ByteBuffer next = this.createFilledBuffer(FRAME_BYTES - 500, (byte) 9);
+    this.player.applyFilter(next, METADATA);
+
+    final boolean partialWasKept = this.player.canProvide();
     assertFalse(partialWasKept);
-    final ByteBuffer rest = filledBuffer(500, (byte) 9);
-    player.applyFilter(rest, this.metadata);
-    final ByteBuffer frame = player.provide20MsAudio();
+
+    final ByteBuffer rest = this.createFilledBuffer(500, (byte) 9);
+    this.player.applyFilter(rest, METADATA);
+
+    final ByteBuffer frame = this.player.provide20MsAudio();
     assertNotNull(frame);
-    final byte[] bytes = contentOf(frame);
+
+    final byte[] bytes = this.readContent(frame);
     for (final byte value : bytes) {
       assertEquals((byte) 9, value);
     }
@@ -382,43 +415,51 @@ final class PcmDiscordPlayerTest {
 
   @Test
   void shouldAcceptEmptyInput() {
-    final PcmDiscordPlayer player = this.createPlayer();
     final ByteBuffer empty = ByteBuffer.allocate(0);
-    final boolean changed = player.applyFilter(empty, this.metadata);
-    final boolean canProvide = player.canProvide();
+
+    final boolean changed = this.player.applyFilter(empty, METADATA);
+    final boolean canProvide = this.player.canProvide();
     assertFalse(changed, "the filter only reads the sample, so it reports no change");
     assertFalse(canProvide);
   }
 
   @Test
   void shouldRejectNullSamplesAndMetadata() {
-    final PcmDiscordPlayer player = this.createPlayer();
     final ByteBuffer samples = ByteBuffer.allocate(FRAME_BYTES);
-    assertThrows(NullPointerException.class, () -> player.applyFilter(null, this.metadata));
-    assertThrows(NullPointerException.class, () -> player.applyFilter(samples, null));
-    final boolean canProvide = player.canProvide();
+    assertThrows(NullPointerException.class, () -> this.player.applyFilter(null, METADATA));
+    assertThrows(NullPointerException.class, () -> this.player.applyFilter(samples, null));
+
+    final boolean canProvide = this.player.canProvide();
     assertFalse(canProvide, "rejected samples are not queued");
+  }
+
+  @Test
+  void shouldQueueEveryFrameFromConcurrentProducers() throws Exception {
+    this.produceConcurrently();
+
+    final long queued = this.player.getQueuedMilliseconds();
+    final long expected = (long) PRODUCERS * FRAMES_PER_PRODUCER * FRAME_MILLISECONDS;
+    assertEquals(expected, queued);
+
+    final int[] counts = this.countFramesPerProducer();
+    for (final int count : counts) {
+      assertEquals(FRAMES_PER_PRODUCER, count);
+    }
   }
 
   /**
    * Lets several threads apply frames at the same time, each frame filled with the index of its thread.
    */
-  private void produceConcurrently(final PcmDiscordPlayer player) throws Exception {
+  private void produceConcurrently() throws Exception {
     final CountDownLatch start = new CountDownLatch(1);
     try (final ExecutorService executor = Executors.newFixedThreadPool(PRODUCERS)) {
       final List<Future<?>> futures = new ArrayList<>();
       for (int producer = 0; producer < PRODUCERS; producer++) {
         final byte marker = (byte) producer;
-        final Future<?> future = executor.submit(() -> {
-          start.await();
-          for (int index = 0; index < FRAMES_PER_PRODUCER; index++) {
-            final ByteBuffer frame = filledBuffer(FRAME_BYTES, marker);
-            player.applyFilter(frame, this.metadata);
-          }
-          return null;
-        });
+        final Future<?> future = executor.submit(() -> this.produceFrames(start, marker));
         futures.add(future);
       }
+
       start.countDown();
       for (final Future<?> future : futures) {
         future.get(PRODUCER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -426,38 +467,36 @@ final class PcmDiscordPlayerTest {
     }
   }
 
-  private static int[] countFramesPerProducer(final PcmDiscordPlayer player) {
+  private Void produceFrames(final CountDownLatch start, final byte marker) throws InterruptedException {
+    start.await();
+    for (int index = 0; index < FRAMES_PER_PRODUCER; index++) {
+      final ByteBuffer frame = this.createFilledBuffer(FRAME_BYTES, marker);
+      this.player.applyFilter(frame, METADATA);
+    }
+
+    return null;
+  }
+
+  private int[] countFramesPerProducer() {
     final int[] counts = new int[PRODUCERS];
-    ByteBuffer frame = player.provide20MsAudio();
+    ByteBuffer frame = this.player.provide20MsAudio();
     while (frame != null) {
-      final byte[] bytes = contentOf(frame);
+      final byte[] bytes = this.readContent(frame);
       final byte marker = bytes[0];
       for (final byte value : bytes) {
         assertEquals(marker, value, "frames of different producers must not interleave");
       }
       counts[marker]++;
-      frame = player.provide20MsAudio();
+      frame = this.player.provide20MsAudio();
     }
+
     return counts;
   }
 
   @Test
-  void shouldQueueEveryFrameFromConcurrentProducers() throws Exception {
-    final PcmDiscordPlayer player = this.createPlayer();
-    this.produceConcurrently(player);
-    final long queued = player.getQueuedMilliseconds();
-    assertEquals((long) PRODUCERS * FRAMES_PER_PRODUCER * FRAME_MILLISECONDS, queued);
-
-    final int[] counts = countFramesPerProducer(player);
-    for (final int count : counts) {
-      assertEquals(FRAMES_PER_PRODUCER, count);
-    }
-  }
-
-  @Test
   void shouldShowTheTitleAsTheActivityOfTheBot() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    player.setPlaying("Never Gonna Give You Up");
+    this.player.setPlaying("Never Gonna Give You Up");
+
     final ArgumentCaptor<Activity> captor = ArgumentCaptor.forClass(Activity.class);
     final InOrder order = Mockito.inOrder(this.presence);
     final Presence statusVerified = order.verify(this.presence);
@@ -471,14 +510,15 @@ final class PcmDiscordPlayerTest {
     final Activity.ActivityType type = activity.getType();
     assertEquals("Never Gonna Give You Up", name);
     assertEquals(Activity.ActivityType.PLAYING, type);
-    assertThrows(NullPointerException.class, () -> player.setPlaying(null));
+
+    assertThrows(NullPointerException.class, () -> this.player.setPlaying(null));
   }
 
   @Test
   void shouldShowTheTitleOfTheDump() {
-    final PcmDiscordPlayer player = this.createPlayer();
     final UrlParseDump dump = UrlParseDump.of("Some Video");
-    player.setCurrentMedia(dump);
+    this.player.setCurrentMedia(dump);
+
     final VerificationMode once = Mockito.times(1);
     final List<Activity> activities = this.shownActivities(once);
     final Activity activity = activities.getFirst();
@@ -488,17 +528,19 @@ final class PcmDiscordPlayerTest {
 
   @Test
   void shouldShowUnknownTitleForMissingOrBlankTitlesOfTheDump() {
-    final PcmDiscordPlayer player = this.createPlayer();
-    final UrlParseDump missing = GsonProvider.getSimple().fromJson("{}", UrlParseDump.class);
+    final Gson gson = GsonProvider.getSimple();
+    final UrlParseDump missing = gson.fromJson("{}", UrlParseDump.class);
     final UrlParseDump blank = UrlParseDump.of("   ");
-    player.setCurrentMedia(missing);
-    player.setCurrentMedia(blank);
+    this.player.setCurrentMedia(missing);
+    this.player.setCurrentMedia(blank);
+
     final VerificationMode twice = Mockito.times(2);
     final List<Activity> activities = this.shownActivities(twice);
     for (final Activity activity : activities) {
       final String name = activity.getName();
       assertEquals(UNKNOWN_TITLE, name);
     }
-    assertThrows(NullPointerException.class, () -> player.setCurrentMedia(null));
+
+    assertThrows(NullPointerException.class, () -> this.player.setCurrentMedia(null));
   }
 }

@@ -22,8 +22,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 import java.nio.file.Path;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -41,41 +44,55 @@ final class PublishedDependenciesTest {
 
   @Test
   void shouldPublishTheDependencyVersionsUsedByTheLibrary() throws Exception {
-    final Document document = publishedPom();
-    assertPublishedVersion(document, JsonFactory.class, JACKSON_CORE_GROUP, "jackson-core");
-    assertPublishedVersion(document, ObjectMapper.class, JACKSON_CORE_GROUP, "jackson-databind");
+    final Document document = this.readPublishedPom();
+    this.assertPublishedVersion(document, JsonFactory.class, JACKSON_CORE_GROUP, "jackson-core");
+    this.assertPublishedVersion(document, ObjectMapper.class, JACKSON_CORE_GROUP, "jackson-databind");
   }
 
-  @Test
-  void shouldImportTheJacksonBillOfMaterials() throws Exception {
-    final Document document = publishedPom();
-    final String type = value(document, JACKSON_BILL_OF_MATERIALS_PATH + TYPE_PATH);
-    final String scope = value(document, JACKSON_BILL_OF_MATERIALS_PATH + SCOPE_PATH);
-    final String version = value(document, JACKSON_BILL_OF_MATERIALS_PATH + VERSION_PATH);
-    assertEquals("pom", type);
-    assertEquals("import", scope);
-    assertEquals(ObjectMapper.class.getPackage().getImplementationVersion(), version);
-  }
-
-  private static Document publishedPom() throws Exception {
+  private Document readPublishedPom() throws Exception {
     final String path = System.getProperty("mcav.published.pom");
     assertNotNull(path, "the build supplies the generated publication POM");
-    return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(Path.of(path).toFile());
+
+    final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    final DocumentBuilder builder = factory.newDocumentBuilder();
+    final Path pom = Path.of(path);
+    final File file = pom.toFile();
+    return builder.parse(file);
   }
 
-  private static void assertPublishedVersion(final Document document, final Class<?> type, final String group, final String artifact)
+  private void assertPublishedVersion(final Document document, final Class<?> type, final String group, final String artifact)
     throws Exception {
-    final String version = type.getPackage().getImplementationVersion();
+    final String version = this.findImplementationVersion(type);
     assertNotNull(version, "the resolved library declares its implementation version");
+
     final String dependency = "/project/dependencies/dependency[groupId='%s' and artifactId='%s']".formatted(group, artifact);
-    final String publishedVersion = value(document, dependency + VERSION_PATH);
-    final String scope = value(document, dependency + SCOPE_PATH);
+    final String publishedVersion = this.evaluate(document, dependency + VERSION_PATH);
+    final String scope = this.evaluate(document, dependency + SCOPE_PATH);
     final String message = "The resolved version of %s is what Maven consumers need".formatted(artifact);
     assertEquals(version, publishedVersion, message);
     assertEquals("runtime", scope);
   }
 
-  private static String value(final Document document, final String expression) throws Exception {
-    return XPathFactory.newInstance().newXPath().evaluate(expression, document);
+  private String findImplementationVersion(final Class<?> type) {
+    final Package typePackage = type.getPackage();
+    return typePackage.getImplementationVersion();
+  }
+
+  private String evaluate(final Document document, final String expression) throws Exception {
+    final XPathFactory factory = XPathFactory.newInstance();
+    final XPath xpath = factory.newXPath();
+    return xpath.evaluate(expression, document);
+  }
+
+  @Test
+  void shouldImportTheJacksonBillOfMaterials() throws Exception {
+    final Document document = this.readPublishedPom();
+    final String type = this.evaluate(document, JACKSON_BILL_OF_MATERIALS_PATH + TYPE_PATH);
+    final String scope = this.evaluate(document, JACKSON_BILL_OF_MATERIALS_PATH + SCOPE_PATH);
+    final String version = this.evaluate(document, JACKSON_BILL_OF_MATERIALS_PATH + VERSION_PATH);
+    final String jacksonVersion = this.findImplementationVersion(ObjectMapper.class);
+    assertEquals("pom", type);
+    assertEquals("import", scope);
+    assertEquals(jacksonVersion, version);
   }
 }

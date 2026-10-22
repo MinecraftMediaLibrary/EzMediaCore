@@ -72,7 +72,6 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
    * @param jda the logged-in bot whose presence shows the current title
    */
   PcmDiscordPlayer(final JDA jda) {
-    Preconditions.checkNotNull(jda, "JDA must not be null!");
     this.jda = jda;
     this.frames = new ArrayDeque<>(MAXIMUM_QUEUED_FRAMES);
     this.partial = ByteBuffer.allocate(FRAME_BYTES);
@@ -102,6 +101,7 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
         this.fillPartialFrame(bigEndian);
       }
     }
+
     return false;
   }
 
@@ -177,20 +177,6 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
   }
 
   /**
-   * Returns the duration of the complete frames waiting to be sent; samples that do not fill a frame yet are not
-   * counted.
-   *
-   * @return the queued duration in milliseconds, from 0 to 3000 in multiples of 20
-   */
-  @Override
-  public long getQueuedMilliseconds() {
-    synchronized (this.frames) {
-      final int count = this.frames.size();
-      return (long) count * FRAME_MILLISECONDS;
-    }
-  }
-
-  /**
    * Sets the presence of the bot to "Playing" the title yt-dlp reported, adjusted as {@link #setPlaying(String)}
    * describes.
    *
@@ -200,6 +186,7 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
   @Override
   public void setCurrentMedia(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null!");
+
     final Optional<String> titleValue = dump.getTitle();
     final @Nullable String title = titleValue.orElse(null);
     this.showPlaying(title);
@@ -215,11 +202,12 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
   @Override
   public void setPlaying(final String title) {
     Preconditions.checkNotNull(title, "Title must not be null!");
+
     this.showPlaying(title);
   }
 
   private void showPlaying(final @Nullable String title) {
-    final String name = activityName(title);
+    final String name = this.toActivityName(title);
     final Presence presence = this.jda.getPresence();
     final Activity activity = Activity.playing(name);
     presence.setStatus(OnlineStatus.ONLINE);
@@ -235,27 +223,46 @@ public final class PcmDiscordPlayer implements DiscordPlayer {
    * @param title the title, or null if unknown
    * @return the activity name, at most {@link Activity#MAX_ACTIVITY_NAME_LENGTH} characters long
    */
-  private static String activityName(final @Nullable String title) {
+  private String toActivityName(final @Nullable String title) {
     if (title == null) {
       return UNKNOWN_TITLE;
     }
+
     final String stripped = title.strip();
     // JDA trims the control characters that strip keeps
     final String trimmed = stripped.trim();
     if (trimmed.isBlank()) {
       return UNKNOWN_TITLE;
     }
+
     final int length = trimmed.length();
     if (length <= Activity.MAX_ACTIVITY_NAME_LENGTH) {
       return trimmed;
     }
 
-    int end = Activity.MAX_ACTIVITY_NAME_LENGTH - ELLIPSIS.length();
-    final char last = trimmed.charAt(end - 1);
-    if (Character.isHighSurrogate(last)) {
-      end--;
-    }
+    final int end = this.findCutIndex(trimmed);
     final String kept = trimmed.substring(0, end);
     return kept + ELLIPSIS;
+  }
+
+  private int findCutIndex(final String title) {
+    final int end = Activity.MAX_ACTIVITY_NAME_LENGTH - ELLIPSIS.length();
+    final char last = title.charAt(end - 1);
+    final boolean splitsCharacter = Character.isHighSurrogate(last);
+    return splitsCharacter ? end - 1 : end;
+  }
+
+  /**
+   * Returns the duration of the complete frames waiting to be sent; samples that do not fill a frame yet are not
+   * counted.
+   *
+   * @return the queued duration in milliseconds, from 0 to 3000 in multiples of 20
+   */
+  @Override
+  public long getQueuedMilliseconds() {
+    synchronized (this.frames) {
+      final int count = this.frames.size();
+      return (long) count * FRAME_MILLISECONDS;
+    }
   }
 }

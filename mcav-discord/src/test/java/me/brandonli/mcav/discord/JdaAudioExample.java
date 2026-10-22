@@ -68,14 +68,19 @@ public final class JdaAudioExample {
 
     final VideoPlayerMultiplexer multiplexer = play(player, file);
     player.setPlaying(file);
-    final Thread shutdownHook = new Thread(() -> {
-      multiplexer.release();
-      audioManager.closeAudioConnection();
-      jda.shutdown();
-      api.release();
-    });
+    final Thread shutdownHook = new Thread(() -> release(multiplexer, audioManager, jda, api));
     final Runtime runtime = Runtime.getRuntime();
     runtime.addShutdownHook(shutdownHook);
+  }
+
+  private static String getEnvironmentVariable(final String variable) {
+    final String value = System.getenv(variable);
+    if (value == null || value.isBlank()) {
+      final String message = "Environment variable %s must be set!".formatted(variable);
+      throw new IllegalStateException(message);
+    }
+
+    return value;
   }
 
   private static JDA login(final String token) throws InterruptedException {
@@ -92,6 +97,7 @@ public final class JdaAudioExample {
       final String message = "Guild %s does not have the bot as a member!".formatted(guildId);
       throw new IllegalStateException(message);
     }
+
     return guild;
   }
 
@@ -101,6 +107,7 @@ public final class JdaAudioExample {
       final String message = "Voice channel %s does not exist!".formatted(channelId);
       throw new IllegalStateException(message);
     }
+
     return channel;
   }
 
@@ -112,15 +119,14 @@ public final class JdaAudioExample {
     final Path path = Path.of(file);
     final Source source = FileSource.path(path);
     multiplexer.start(source);
+
     return multiplexer;
   }
 
-  private static String getEnvironmentVariable(final String variable) {
-    final String value = System.getenv(variable);
-    if (value == null || value.isBlank()) {
-      final String message = "Environment variable %s must be set!".formatted(variable);
-      throw new IllegalStateException(message);
-    }
-    return value;
+  private static void release(final VideoPlayerMultiplexer multiplexer, final AudioManager audioManager, final JDA jda, final MCAVApi api) {
+    multiplexer.release();
+    audioManager.closeAudioConnection();
+    jda.shutdown();
+    api.release();
   }
 }
