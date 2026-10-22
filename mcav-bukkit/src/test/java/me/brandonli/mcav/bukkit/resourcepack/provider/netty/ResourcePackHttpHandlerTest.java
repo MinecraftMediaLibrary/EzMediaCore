@@ -219,6 +219,16 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
+  void shouldServeAGetRequestAsSoonAsItsTargetEnds() {
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
+
+    this.writeText(channel, "GET / ");
+    final String responseHeaders = this.readOutboundText(channel);
+
+    assertEquals(OK_HEADERS, responseHeaders);
+  }
+
+  @Test
   void shouldWaitUntilEnoughBytesArrivedToDecide() {
     final EmbeddedChannel channel = this.createChannel(this.packPath);
     final ByteBuf firstPart = this.ascii(PARTIAL_METHOD);
