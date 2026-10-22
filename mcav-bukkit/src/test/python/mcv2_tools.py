@@ -2628,7 +2628,7 @@ class ShaderTimingRounds:
         times[TOTAL_TIMING_NAME] = sum(times[name] for name in self.names)
         self.chain.show(page_list)
         shown_again, again = self.chain.timed_frame(1)
-        again["total"] = sum(again[name] for name in self.names)
+        again[TOTAL_TIMING_NAME] = sum(again[name] for name in self.names)
         picture = self.chain.target(PREVIOUS_TARGET).read()
         if not decoded or shown_again:
             self.failures += 1
