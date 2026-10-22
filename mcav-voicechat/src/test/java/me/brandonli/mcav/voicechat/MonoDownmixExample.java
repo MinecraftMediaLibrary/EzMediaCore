@@ -33,22 +33,20 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.utils.audio.MonoDownmixer;
 
-/**
- * Plays a file through the speakers in mono, exactly as Simple Voice Chat receives it, to check the downmix
- * without a Minecraft server. Pass the path of a media file as the first argument.
- */
+// plays a media file through the speakers in mono, as Simple Voice Chat receives it, without a Minecraft server
 public final class MonoDownmixExample {
 
+  private static final float SAMPLE_RATE = 48_000;
+  private static final int BITS_PER_SAMPLE = 16;
+  private static final int CHANNELS = 1;
+  private static final boolean SIGNED = true;
+  private static final boolean BIG_ENDIAN = false;
+
   private MonoDownmixExample() {
-    throw new UnsupportedOperationException("Example class cannot be instantiated");
+    final String message = "Example class cannot be instantiated!";
+    throw new UnsupportedOperationException(message);
   }
 
-  /**
-   * Plays the file given as the first argument until Enter is pressed.
-   *
-   * @param args the command line arguments, of which the first is the path of the media file
-   * @throws LineUnavailableException if the speakers cannot be opened
-   */
   static void main(final String[] args) throws LineUnavailableException {
     if (args.length == 0) {
       System.err.println("Usage: MonoDownmixExample <file>");
@@ -67,10 +65,11 @@ public final class MonoDownmixExample {
   }
 
   private static SourceDataLine openMonoLine() throws LineUnavailableException {
-    final AudioFormat format = new AudioFormat(48_000, 16, 1, true, false);
+    final AudioFormat format = new AudioFormat(SAMPLE_RATE, BITS_PER_SAMPLE, CHANNELS, SIGNED, BIG_ENDIAN);
     final SourceDataLine line = AudioSystem.getSourceDataLine(format);
     line.open(format);
     line.start();
+
     return line;
   }
 
@@ -83,18 +82,21 @@ public final class MonoDownmixExample {
     final Path path = Path.of(file);
     final FileSource source = FileSource.path(path);
     player.start(source);
+
     return player;
   }
 
   private static boolean playMono(final SourceDataLine line, final ByteBuffer samples) {
     final short[] mono = MonoDownmixer.downmix(samples);
-    final ByteBuffer bytes = ByteBuffer.allocate(mono.length * 2);
+    final ByteBuffer bytes = ByteBuffer.allocate(mono.length * Short.BYTES);
     bytes.order(ByteOrder.LITTLE_ENDIAN);
     for (final short sample : mono) {
       bytes.putShort(sample);
     }
+
     final byte[] array = bytes.array();
     line.write(array, 0, array.length);
+
     return false;
   }
 }

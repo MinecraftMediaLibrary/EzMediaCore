@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import me.brandonli.mcav.MCAVApi;
 import me.brandonli.mcav.plugin.MCAVSandbox;
-import me.brandonli.mcav.voicechat.SVCModule;
+import me.brandonli.mcav.voicechat.SvcModule;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,9 +46,9 @@ final class MCAVVoiceChatPluginTest {
   void handsTheVoiceChatServerToTheLibrary() {
     final MCAVSandbox sandbox = mock(MCAVSandbox.class);
     final MCAVApi library = mock(MCAVApi.class);
-    final SVCModule module = mock(SVCModule.class);
+    final SvcModule module = mock(SvcModule.class);
     when(sandbox.getMCAV()).thenReturn(library);
-    when(library.getModule(SVCModule.class)).thenReturn(module);
+    when(library.getModule(SvcModule.class)).thenReturn(module);
     final VoicechatServerApi api = mock(VoicechatServerApi.class);
     final MCAVVoiceChatPlugin plugin = new MCAVVoiceChatPlugin(sandbox);
     plugin.initialize(api);

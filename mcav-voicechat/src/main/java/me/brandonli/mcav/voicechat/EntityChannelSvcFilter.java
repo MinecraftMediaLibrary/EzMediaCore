@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import me.brandonli.mcav.utils.ThrowableUtils;
 import me.brandonli.mcav.utils.audio.MonoDownmixer;
@@ -38,23 +37,25 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link SVCFilter}.
+ * The default {@link SvcFilter}.
  *
  * <p>Samples are mixed to mono and cut into 20 millisecond frames of {@value #FRAME_SAMPLES} samples. Every
  * speaker has its own queue, so each of them plays every frame; a speaker that falls behind drops its oldest
  * frames. Voice chat pulls frames on its own thread, and a speaker without a frame plays silence instead of
  * stopping. When {@link #start()} fails part way, every speaker it created is stopped again, so the filter stays
  * stopped and can simply be started again.
+ *
+ * <p>This class is thread-safe: its public methods are synchronized, and each speaker guards its own queue for the
+ * voice chat thread.
+ *
+ * @since 1.0.0
  */
-public final class SVCFilterImpl implements SVCFilter {
+public final class EntityChannelSvcFilter implements SvcFilter {
 
-  /**
-   * The number of mono samples in one 20 millisecond frame at 48 kHz.
-   */
   private static final int FRAME_SAMPLES = 960;
-
-  private static final int MAX_QUEUED_FRAMES = 25;
   private static final short[] SILENCE = new short[FRAME_SAMPLES];
+
+  private static final int MAXIMUM_QUEUED_FRAMES = 25;
 
   private final float distance;
   private final Object[] entities;
@@ -64,15 +65,9 @@ public final class SVCFilterImpl implements SVCFilter {
   private int partialLength;
   private boolean running;
 
-  /**
-   * Constructs a stopped filter. {@link SVCFilter#withDistance(float, Object...)} validates the arguments.
-   *
-   * @param distance the distance in blocks the audio can be heard from
-   * @param entities the platform entities the audio comes from; the array is copied
-   * @throws IllegalStateException if the voice chat API was not injected into {@link SVCModule}
-   */
-  SVCFilterImpl(final float distance, final Object[] entities) {
-    SVCModule.requireVoiceChatApi();
+  EntityChannelSvcFilter(final float distance, final Object[] entities) {
+    SvcModule.requireVoiceChatApi();
+
     this.distance = distance;
     this.entities = entities.clone();
     this.speakers = new ArrayList<>();
@@ -84,8 +79,9 @@ public final class SVCFilterImpl implements SVCFilter {
    * nothing. When voice chat fails to create one of the speakers, the speakers created so far are stopped again and
    * the failure is rethrown, so the filter stays stopped.
    *
-   * @throws IllegalStateException if the voice chat API was removed from {@link SVCModule} after creation
-   * @throws PlayerException       if voice chat refuses to create an audio channel for an entity
+   * @throws IllegalStateException if the voice chat API was removed from {@link SvcModule} after creation
+   * @throws SvcException          if voice chat refuses to create an audio channel for an entity
+   * @since 1.0.0
    */
   @Override
   public synchronized void start() {
@@ -93,7 +89,7 @@ public final class SVCFilterImpl implements SVCFilter {
       return;
     }
 
-    final VoicechatServerApi api = SVCModule.requireVoiceChatApi();
+    final VoicechatServerApi api = SvcModule.requireVoiceChatApi();
     try {
       this.createSpeakers(api);
     } catch (final RuntimeException | Error exception) {
@@ -119,8 +115,10 @@ public final class SVCFilterImpl implements SVCFilter {
     final UUID channelId = UUID.randomUUID();
     final EntityAudioChannel channel = api.createEntityAudioChannel(channelId, entity);
     if (channel == null) {
-      throw new PlayerException("Simple Voice Chat refused to create an audio channel for " + platformEntity);
+      final String message = "Entity %s was refused an audio channel by Simple Voice Chat!".formatted(platformEntity);
+      throw new SvcException(message);
     }
+
     channel.setDistance(this.distance);
 
     final OpusEncoder encoder = api.createEncoder();
@@ -135,6 +133,7 @@ public final class SVCFilterImpl implements SVCFilter {
       speaker.stop(exception);
       throw exception;
     }
+
     return speaker;
   }
 
@@ -144,16 +143,20 @@ public final class SVCFilterImpl implements SVCFilter {
    * failures and rethrows the first with later failures suppressed. Fatal VM failures propagate immediately.
    *
    * @throws RuntimeException if a voice chat player or encoder fails during cleanup
-   * @throws Error if a voice chat player or encoder reports an error during cleanup
+   * @throws Error            if a voice chat player or encoder reports an error during cleanup
+   * @since 1.0.0
    */
   @Override
   public synchronized void release() {
     this.running = false;
     this.partialLength = 0;
-    final Throwable failure = this.stopSpeakers(null);
+
+    final @Nullable Throwable failure = this.stopSpeakers(null);
+
     if (failure instanceof final RuntimeException exception) {
       throw exception;
     }
+
     if (failure instanceof final Error error) {
       throw error;
     }
@@ -162,36 +165,13 @@ public final class SVCFilterImpl implements SVCFilter {
   private @Nullable Throwable stopSpeakers(final @Nullable Throwable initialFailure) {
     final List<Speaker> stopped = new ArrayList<>(this.speakers);
     this.speakers.clear();
+
     Throwable failure = initialFailure;
     for (final Speaker speaker : stopped) {
       failure = speaker.stop(failure);
     }
-    return failure;
-  }
 
-  /**
-   * Attempts an independent cleanup, preserving the first recoverable failure and suppressing later ones.
-   *
-   * @param previous the earlier failure, if any
-   * @param cleanup the cleanup to attempt
-   * @return the first failure, or null if every cleanup has succeeded
-   */
-  private static @Nullable Throwable cleanup(final @Nullable Throwable previous, final Runnable cleanup) {
-    try {
-      cleanup.run();
-      return previous;
-    } catch (final RuntimeException | Error exception) {
-      ThrowableUtils.throwIfFatal(exception);
-      if (previous == null) {
-        return exception;
-      }
-      final Equivalence<Object> identity = Equivalence.identity();
-      final boolean same = identity.equivalent(previous, exception);
-      if (!same) {
-        previous.addSuppressed(exception);
-      }
-      return previous;
-    }
+    return failure;
   }
 
   /**
@@ -202,11 +182,13 @@ public final class SVCFilterImpl implements SVCFilter {
    * @param metadata the metadata of the original stream
    * @return always false, because the samples are only downmixed into a copy and never changed
    * @throws NullPointerException if the samples or the metadata are null
+   * @since 1.0.0
    */
   @Override
   public synchronized boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
     if (!this.running) {
       return false;
     }
@@ -216,16 +198,10 @@ public final class SVCFilterImpl implements SVCFilter {
     while (offset < mono.length) {
       offset = this.collect(mono, offset);
     }
+
     return false;
   }
 
-  /**
-   * Copies as many samples as still fit into the partial frame, and hands the frame to every speaker once it is full.
-   *
-   * @param mono   the mono samples
-   * @param offset the index of the first sample that was not collected yet
-   * @return the index of the first sample that is still left after this call
-   */
   private int collect(final short[] mono, final int offset) {
     final int space = FRAME_SAMPLES - this.partialLength;
     final int available = mono.length - offset;
@@ -234,34 +210,33 @@ public final class SVCFilterImpl implements SVCFilter {
     this.partialLength += count;
 
     if (this.partialLength == FRAME_SAMPLES) {
-      final short[] frame = this.partial.clone();
-      for (final Speaker speaker : this.speakers) {
-        speaker.enqueue(frame);
-      }
-      this.partialLength = 0;
+      this.enqueuePartialFrame();
     }
+
     return offset + count;
   }
 
-  /**
-   * Gets the number of 20 millisecond frames the slowest speaker still has to play.
-   *
-   * @return the largest complete-frame queue length, from 0 to 25, or 0 while stopped; partially collected
-   *         audio is not counted
-   */
-  @Override
-  public synchronized int getQueuedFrames() {
-    int most = 0;
+  private void enqueuePartialFrame() {
+    final short[] frame = this.partial.clone();
     for (final Speaker speaker : this.speakers) {
-      final int queued = speaker.getQueuedFrames();
-      most = Math.max(most, queued);
+      speaker.enqueue(frame);
     }
-    return most;
+
+    this.partialLength = 0;
   }
 
   /**
-   * One entity that plays the audio, with its own frame queue.
+   * Returns the number of 20 millisecond frames the slowest speaker still has to play.
+   *
+   * @return the largest complete-frame queue length, from 0 to 25, or 0 while stopped; partially collected
+   *         audio is not counted
+   * @since 1.0.0
    */
+  @Override
+  public synchronized int getQueuedFrames() {
+    return this.speakers.stream().mapToInt(Speaker::getQueuedFrames).max().orElse(0);
+  }
+
   private static final class Speaker {
 
     private final OpusEncoder encoder;
@@ -271,18 +246,15 @@ public final class SVCFilterImpl implements SVCFilter {
 
     Speaker(final OpusEncoder encoder) {
       this.encoder = encoder;
-      this.frames = new ArrayDeque<>(MAX_QUEUED_FRAMES);
-    }
-
-    private void setPlayer(final AudioPlayer player) {
-      this.player = player;
+      this.frames = new ArrayDeque<>(MAXIMUM_QUEUED_FRAMES);
     }
 
     private void enqueue(final short[] frame) {
       synchronized (this.frames) {
-        if (this.frames.size() >= MAX_QUEUED_FRAMES) {
+        if (this.frames.size() >= MAXIMUM_QUEUED_FRAMES) {
           this.frames.pollFirst();
         }
+
         this.frames.addLast(frame);
       }
     }
@@ -294,8 +266,51 @@ public final class SVCFilterImpl implements SVCFilter {
         if (frame == null) {
           return SILENCE;
         }
+
         return frame;
       }
+    }
+
+    private @Nullable Throwable stop(final @Nullable Throwable initialFailure) {
+      synchronized (this.frames) {
+        this.frames.clear();
+      }
+
+      final @Nullable Throwable failure = this.stopPlayer(initialFailure);
+      return this.cleanup(failure, this.encoder::close);
+    }
+
+    private @Nullable Throwable stopPlayer(final @Nullable Throwable initialFailure) {
+      final AudioPlayer current = this.player;
+      if (current == null) {
+        return initialFailure;
+      }
+
+      return this.cleanup(initialFailure, current::stopPlaying);
+    }
+
+    private @Nullable Throwable cleanup(final @Nullable Throwable previous, final Runnable cleanup) {
+      try {
+        cleanup.run();
+        return previous;
+      } catch (final RuntimeException | Error exception) {
+        ThrowableUtils.throwIfFatal(exception);
+        return this.keepFirstFailure(previous, exception);
+      }
+    }
+
+    private Throwable keepFirstFailure(final @Nullable Throwable previous, final Throwable failure) {
+      if (previous == null) {
+        return failure;
+      }
+
+      final Equivalence<Object> identity = Equivalence.identity();
+      final boolean same = identity.equivalent(previous, failure);
+      if (!same) {
+        previous.addSuppressed(failure);
+      }
+
+      return previous;
     }
 
     private int getQueuedFrames() {
@@ -304,16 +319,8 @@ public final class SVCFilterImpl implements SVCFilter {
       }
     }
 
-    @Nullable Throwable stop(final @Nullable Throwable initialFailure) {
-      synchronized (this.frames) {
-        this.frames.clear();
-      }
-      Throwable failure = initialFailure;
-      final AudioPlayer current = this.player;
-      if (current != null) {
-        failure = cleanup(failure, current::stopPlaying);
-      }
-      return cleanup(failure, this.encoder::close);
+    private void setPlayer(final AudioPlayer player) {
+      this.player = player;
     }
   }
 }

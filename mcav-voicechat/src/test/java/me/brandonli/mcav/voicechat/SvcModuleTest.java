@@ -18,21 +18,24 @@
 package me.brandonli.mcav.voicechat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link SVCModule}.
- */
-final class SVCModuleTest {
+final class SvcModuleTest {
 
-  private final SVCModule module = new SVCModule();
+  private SvcModule module;
+
+  @BeforeEach
+  void setUp() {
+    this.module = new SvcModule();
+  }
 
   @AfterEach
   void clearTheInjectedApi() {
@@ -40,51 +43,57 @@ final class SVCModuleTest {
   }
 
   @Test
-  void isNamedSvc() {
+  void shouldBeNamedSvc() {
     final String name = this.module.getModuleName();
     assertEquals("svc", name);
   }
 
   @Test
-  void hasNoApiUntilOneIsInjected() {
+  void shouldHaveNoApiUntilOneIsInjected() {
     this.module.start();
-    final VoicechatServerApi api = SVCModule.getVoiceChatApi();
-    assertNull(api);
-    final IllegalStateException exception = assertThrows(IllegalStateException.class, SVCModule::requireVoiceChatApi);
+    final Optional<VoicechatServerApi> api = SvcModule.getVoiceChatApi();
+    assertEquals(Optional.empty(), api);
+
+    final IllegalStateException exception = assertThrows(IllegalStateException.class, SvcModule::requireVoiceChatApi);
     final String message = exception.getMessage();
-    assertEquals("The Simple Voice Chat API was not injected; call SVCModule#inject from your voice chat plugin", message);
+    assertEquals("The Simple Voice Chat API was not injected; call SvcModule#inject from your voice chat plugin!", message);
   }
 
   @Test
-  void keepsTheInjectedApiUntilStopped() {
+  void shouldKeepTheInjectedApiUntilStopped() {
     final VoicechatServerApi api = Mockito.mock(VoicechatServerApi.class);
     this.module.inject(api);
-    final VoicechatServerApi injected = SVCModule.getVoiceChatApi();
-    final VoicechatServerApi required = SVCModule.requireVoiceChatApi();
-    assertSame(api, injected);
+    final Optional<VoicechatServerApi> injected = SvcModule.getVoiceChatApi();
+    final VoicechatServerApi required = SvcModule.requireVoiceChatApi();
+    final Optional<VoicechatServerApi> expected = Optional.of(api);
+    assertEquals(expected, injected);
     assertSame(api, required);
+
     this.module.stop();
-    final VoicechatServerApi afterStop = SVCModule.getVoiceChatApi();
-    assertNull(afterStop);
-    assertThrows(IllegalStateException.class, SVCModule::requireVoiceChatApi);
+    final Optional<VoicechatServerApi> afterStop = SvcModule.getVoiceChatApi();
+    assertEquals(Optional.empty(), afterStop);
+    assertThrows(IllegalStateException.class, SvcModule::requireVoiceChatApi);
   }
 
   @Test
-  void replacesAPreviouslyInjectedApi() {
+  void shouldReplaceAPreviouslyInjectedApi() {
     final VoicechatServerApi first = Mockito.mock(VoicechatServerApi.class);
     final VoicechatServerApi second = Mockito.mock(VoicechatServerApi.class);
     this.module.inject(first);
     this.module.inject(second);
-    final VoicechatServerApi injected = SVCModule.getVoiceChatApi();
-    assertSame(second, injected);
+    final Optional<VoicechatServerApi> injected = SvcModule.getVoiceChatApi();
+    final Optional<VoicechatServerApi> expected = Optional.of(second);
+    assertEquals(expected, injected);
   }
 
   @Test
-  void rejectsANullApiAndKeepsThePreviousOne() {
+  void shouldRejectANullApiAndKeepThePreviousOne() {
     final VoicechatServerApi api = Mockito.mock(VoicechatServerApi.class);
     this.module.inject(api);
     assertThrows(NullPointerException.class, () -> this.module.inject(null));
-    final VoicechatServerApi injected = SVCModule.getVoiceChatApi();
-    assertSame(api, injected);
+
+    final Optional<VoicechatServerApi> injected = SvcModule.getVoiceChatApi();
+    final Optional<VoicechatServerApi> expected = Optional.of(api);
+    assertEquals(expected, injected);
   }
 }

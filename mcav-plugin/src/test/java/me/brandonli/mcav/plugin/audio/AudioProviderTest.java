@@ -56,7 +56,7 @@ import me.brandonli.mcav.plugin.data.PluginDataConfigurationMapper;
 import me.brandonli.mcav.plugin.testing.StandardErrorCapture;
 import me.brandonli.mcav.plugin.testing.TestServer;
 import me.brandonli.mcav.plugin.utils.AudioArgument;
-import me.brandonli.mcav.voicechat.SVCFilter;
+import me.brandonli.mcav.voicechat.SvcFilter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -92,7 +92,7 @@ final class AudioProviderTest {
   private MockedStatic<JDABuilder> builders;
   private MockedStatic<DiscordPlayer> discordPlayers;
   private MockedStatic<HttpResult> httpResults;
-  private MockedStatic<SVCFilter> svcFilters;
+  private MockedStatic<SvcFilter> svcFilters;
 
   private JDABuilder builder;
   private JDA jda;
@@ -101,7 +101,7 @@ final class AudioProviderTest {
   private AudioManager audioManager;
   private DiscordPlayer discord;
   private HttpResult httpServer;
-  private SVCFilter voiceChatFilter;
+  private SvcFilter voiceChatFilter;
 
   @BeforeEach
   void createProvider() {
@@ -127,7 +127,7 @@ final class AudioProviderTest {
     this.audioManager = mock(AudioManager.class);
     this.discord = mock(DiscordPlayer.class);
     this.httpServer = mock(HttpResult.class);
-    this.voiceChatFilter = mock(SVCFilter.class);
+    this.voiceChatFilter = mock(SvcFilter.class);
     when(this.builder.build()).thenReturn(this.jda);
     when(this.jda.getGuildById("100")).thenReturn(this.guild);
     when(this.guild.getVoiceChannelById("200")).thenReturn(this.channel);
@@ -143,8 +143,8 @@ final class AudioProviderTest {
     this.discordPlayers.when(() -> DiscordPlayer.voice(this.jda)).thenReturn(this.discord);
     this.httpResults = Mockito.mockStatic(HttpResult.class);
     this.httpResults.when(() -> HttpResult.http("mc.example.com", 3000)).thenReturn(this.httpServer);
-    this.svcFilters = Mockito.mockStatic(SVCFilter.class);
-    this.svcFilters.when(() -> SVCFilter.svc(this.players)).thenReturn(this.voiceChatFilter);
+    this.svcFilters = Mockito.mockStatic(SvcFilter.class);
+    this.svcFilters.when(() -> SvcFilter.svc(this.players)).thenReturn(this.voiceChatFilter);
   }
 
   @AfterEach
@@ -412,8 +412,8 @@ final class AudioProviderTest {
   void replacingTheSameSourcesSpeakersReleasesThePreviousFilter() {
     final Object source = new Object();
     final Object[] replacementPlayers = { "Alex" };
-    final SVCFilter replacementSpeakers = mock(SVCFilter.class);
-    this.svcFilters.when(() -> SVCFilter.svc(replacementPlayers)).thenReturn(replacementSpeakers);
+    final SvcFilter replacementSpeakers = mock(SvcFilter.class);
+    this.svcFilters.when(() -> SvcFilter.svc(replacementPlayers)).thenReturn(replacementSpeakers);
     final AudioFilter previous = this.provider.constructFilter(AudioArgument.SIMPLE_VOICE_CHAT, this.dump, this.players, source);
     final AudioFilter replacement = this.provider.constructFilter(AudioArgument.SIMPLE_VOICE_CHAT, this.dump, replacementPlayers, source);
     final InOrder ownership = inOrder(this.voiceChatFilter, replacementSpeakers);
@@ -432,10 +432,10 @@ final class AudioProviderTest {
 
   @Test
   void theOutputsPlayOneSourceAtATime() {
-    final SVCFilter videoSpeakers = this.voiceChatFilter;
-    final SVCFilter machineSpeakers = mock(SVCFilter.class);
-    final SVCFilter replacementSpeakers = mock(SVCFilter.class);
-    this.svcFilters.when(() -> SVCFilter.svc(this.players)).thenReturn(videoSpeakers, machineSpeakers, replacementSpeakers);
+    final SvcFilter videoSpeakers = this.voiceChatFilter;
+    final SvcFilter machineSpeakers = mock(SvcFilter.class);
+    final SvcFilter replacementSpeakers = mock(SvcFilter.class);
+    this.svcFilters.when(() -> SvcFilter.svc(this.players)).thenReturn(videoSpeakers, machineSpeakers, replacementSpeakers);
     final Object machine = new Object();
     final AudioFilter video = this.provider.constructFilter(AudioArgument.SIMPLE_VOICE_CHAT, this.dump, this.players);
     final AudioFilter sound = this.provider.constructFilter(AudioArgument.SIMPLE_VOICE_CHAT, this.dump, this.players, machine);
@@ -492,10 +492,10 @@ final class AudioProviderTest {
 
   @Test
   void theVideoGetsSpeakersAgainWhenTheMachineIsReleased() {
-    final SVCFilter videoSpeakers = this.voiceChatFilter;
-    final SVCFilter machineSpeakers = mock(SVCFilter.class);
-    final SVCFilter videoSpeakersAgain = mock(SVCFilter.class);
-    this.svcFilters.when(() -> SVCFilter.svc(this.players)).thenReturn(videoSpeakers, machineSpeakers, videoSpeakersAgain);
+    final SvcFilter videoSpeakers = this.voiceChatFilter;
+    final SvcFilter machineSpeakers = mock(SvcFilter.class);
+    final SvcFilter videoSpeakersAgain = mock(SvcFilter.class);
+    this.svcFilters.when(() -> SvcFilter.svc(this.players)).thenReturn(videoSpeakers, machineSpeakers, videoSpeakersAgain);
     final Object machine = new Object();
     final AudioFilter video = this.provider.constructFilter(AudioArgument.SIMPLE_VOICE_CHAT, this.dump, this.players);
     this.provider.constructFilter(AudioArgument.SIMPLE_VOICE_CHAT, this.dump, this.players, machine);
@@ -580,15 +580,15 @@ final class AudioProviderTest {
 
   @Test
   void aSourceReleasedAfterTheShutdownStartsNoOutputAgain() {
-    final SVCFilter lateSpeakers = mock(SVCFilter.class);
-    this.svcFilters.when(() -> SVCFilter.svc(this.players)).thenReturn(this.voiceChatFilter, this.voiceChatFilter, lateSpeakers);
+    final SvcFilter lateSpeakers = mock(SvcFilter.class);
+    this.svcFilters.when(() -> SvcFilter.svc(this.players)).thenReturn(this.voiceChatFilter, this.voiceChatFilter, lateSpeakers);
     final Object machine = new Object();
     this.provider.constructFilter(AudioArgument.SIMPLE_VOICE_CHAT, this.dump, this.players);
     this.provider.constructFilter(AudioArgument.SIMPLE_VOICE_CHAT, this.dump, this.players, machine);
     this.provider.shutdown();
     this.provider.releaseAudioFilter(machine);
     verify(lateSpeakers, never()).start();
-    this.svcFilters.verify(() -> SVCFilter.svc(this.players), times(2));
+    this.svcFilters.verify(() -> SvcFilter.svc(this.players), times(2));
   }
 
   @Test

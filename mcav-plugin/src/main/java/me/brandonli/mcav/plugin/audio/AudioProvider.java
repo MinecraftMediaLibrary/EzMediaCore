@@ -35,7 +35,7 @@ import me.brandonli.mcav.plugin.MCAVSandbox;
 import me.brandonli.mcav.plugin.data.PluginDataConfigurationMapper;
 import me.brandonli.mcav.plugin.utils.AudioArgument;
 import me.brandonli.mcav.plugin.utils.TaskUtils;
-import me.brandonli.mcav.voicechat.SVCFilter;
+import me.brandonli.mcav.voicechat.SvcFilter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -88,7 +88,7 @@ public final class AudioProvider {
   private volatile @Nullable JDA jda;
   private volatile @Nullable DiscordConnection discord;
   private volatile @Nullable HttpResult httpServer;
-  private volatile @Nullable SVCFilter voiceChatFilter;
+  private volatile @Nullable SvcFilter voiceChatFilter;
   private boolean stopped;
   private final Object outputLock;
   private final Deque<Claim> claims;
@@ -350,7 +350,7 @@ public final class AudioProvider {
     synchronized (this.outputLock) {
       // the speakers of the previous source stop only once the new source has its output, so a takeover that fails,
       // such as one through a bot that is not ready, leaves the previous source playing
-      final SVCFilter previousSpeakers = this.voiceChatFilter;
+      final SvcFilter previousSpeakers = this.voiceChatFilter;
       final Claim claim = new Claim(source, argument, dump, players);
       claim.output = this.connect(claim);
       this.claims.removeIf(held -> IDENTITY.equivalent(held.source, source));
@@ -364,7 +364,7 @@ public final class AudioProvider {
   }
 
   @SuppressWarnings("ReferenceEquality")
-  private void retireSpeakers(final SVCFilter speakers) {
+  private void retireSpeakers(final SvcFilter speakers) {
     if (this.voiceChatFilter == speakers) {
       this.voiceChatFilter = null;
     }
@@ -381,7 +381,7 @@ public final class AudioProvider {
   }
 
   private AudioFilter constructSVCFilter(final Object[] players) {
-    final SVCFilter filter = SVCFilter.svc(players);
+    final SvcFilter filter = SvcFilter.svc(players);
     filter.start();
     this.voiceChatFilter = filter;
     return filter;
@@ -466,7 +466,7 @@ public final class AudioProvider {
   }
 
   private void releaseSpeakers() {
-    final SVCFilter speakers = this.voiceChatFilter;
+    final SvcFilter speakers = this.voiceChatFilter;
     if (speakers != null) {
       speakers.release();
       this.voiceChatFilter = null;
