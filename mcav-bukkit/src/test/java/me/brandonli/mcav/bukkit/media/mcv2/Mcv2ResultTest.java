@@ -652,9 +652,10 @@ final class Mcv2ResultTest {
     final Mcv2Screen smallScreen = mock(Mcv2Screen.class);
     when(smallScreen.anchors()).thenReturn(List.of());
     final List<Mcv2Configuration> resized = new ArrayList<>();
-    result.setSmallerSizes(List.of(new int[] { 32, 16 }), configuration -> {
+    // the same height, so only the width tells the sizes apart
+    result.setSmallerSizes(List.of(new int[] { 16, 32 }), configuration -> {
       resized.add(configuration);
-      return new Mcv2Channel(configuration, this.viewers, configuration.getVideoWidth() == 32 ? smallScreen : this.screen);
+      return new Mcv2Channel(configuration, this.viewers, configuration.getVideoWidth() == 16 ? smallScreen : this.screen);
     });
     result.pace();
     final AtomicLong fullNanoseconds = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
@@ -674,8 +675,8 @@ final class Mcv2ResultTest {
     fullNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(100));
     this.play(result, clock, encoder, frame, 120);
 
-    // no frame rate of 64x32 fits 100 ms with room; 32x16 at 30 fps does
-    final Mcv2Pacer.Rung expectedSmallRung = Mcv2Pacer.Rung.of(32, 16, 2);
+    // no frame rate of 64x32 fits 100 ms with room; 16x32 at 30 fps does
+    final Mcv2Pacer.Rung expectedSmallRung = Mcv2Pacer.Rung.of(16, 32, 2);
     final Mcv2Pacer.Rung smallRung = result.getRung().orElseThrow();
     assertEquals(expectedSmallRung, smallRung);
 
@@ -687,17 +688,17 @@ final class Mcv2ResultTest {
     assertEquals(1, resizeCount);
 
     final int resizedWidth = resized.getFirst().getVideoWidth();
-    assertEquals(32, resizedWidth);
+    assertEquals(16, resizedWidth);
 
-    final int videoHeight = result.getConfiguration().getVideoHeight();
-    assertEquals(16, videoHeight);
+    final int smallWidth = result.getConfiguration().getVideoWidth();
+    assertEquals(16, smallWidth);
 
     result.applyFilter(Images.solid(64, 32, FRAME_COLOR), this.metadata);
     this.server.runTasks();
     widths.clear();
     this.play(result, clock, encoder, Images.solid(64, 32, FRAME_COLOR), 60);
 
-    final boolean encodedSmall = !widths.isEmpty() && widths.stream().allMatch(width -> width == 32);
+    final boolean encodedSmall = !widths.isEmpty() && widths.stream().allMatch(width -> width == 16);
     assertTrue(encodedSmall, widths.toString());
 
     // the load drops: back to the size it was asked for, once the top rung may be tried again
@@ -1543,6 +1544,54 @@ final class Mcv2ResultTest {
 
     result.drain();
     result.release();
+  }
+
+  @Test
+  void shouldLetTheSenderFinishItsFrameBeforeSwitchingTheEncoder() throws InterruptedException {
+    final Mcv2Configuration live = this.packScreen(Settings.DEFAULT);
+    final List<Mcv2> made = new CopyOnWriteArrayList<>();
+    final CountDownLatch gate = new CountDownLatch(1);
+    final AtomicReference<Thread> screenThread = new AtomicReference<>();
+    final Mcv2Result result = new Mcv2Result(
+      live,
+      new Mcv2Channel(live, this.viewers, this.screen),
+      this.algorithm,
+      System::nanoTime,
+      Runnable::run,
+      // it keeps reporting FAST, so every DEFAULT frame switches it
+      _ -> this.switchingEncoder(made, gate, screenThread)
+    );
+    result.start();
+    final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
+    result.applyFilter(frame, this.metadata);
+    this.server.runTasks();
+    result.applyFilter(frame, this.metadata);
+    this.awaitEncoders(made, 1);
+    final Mcv2 encoder = made.getFirst();
+    verify(encoder, timeout(TimeUnit.SECONDS.toMillis(10))).finish(any());
+
+    result.applyFilter(frame, this.metadata);
+    verify(encoder, timeout(TimeUnit.SECONDS.toMillis(10)).times(2)).getSettings();
+    this.awaitWaiting(screenThread.get());
+    verify(encoder).switchTo(Settings.DEFAULT);
+
+    gate.countDown();
+    verify(encoder, timeout(TimeUnit.SECONDS.toMillis(10)).times(2)).switchTo(Settings.DEFAULT);
+
+    result.release();
+  }
+
+  private Mcv2 switchingEncoder(final List<Mcv2> made, final CountDownLatch gate, final AtomicReference<Thread> screenThread) {
+    final Mcv2 encoder = this.mockEncoder(Settings.FAST, made, FinishOutcome.ENCODES, gate);
+    doAnswer(_ -> this.recordThread(screenThread))
+      .when(encoder)
+      .switchTo(any());
+    return encoder;
+  }
+
+  private @Nullable Object recordThread(final AtomicReference<Thread> thread) {
+    thread.set(Thread.currentThread());
+    return null;
   }
 
   @Test
