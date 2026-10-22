@@ -182,7 +182,12 @@ final class Mcv2PackServerTest {
   }
 
   private Mcv2Configuration screen(final int width, final Collection<UUID> viewers) {
-    return Mcv2ConfigurationTest.complete().viewers(viewers).video(width, SCREEN_HEIGHT).pageSlots(2).build();
+    final Mcv2ConfigurationBuilder builder = this.screenBuilder(width, viewers);
+    return builder.build();
+  }
+
+  private Mcv2ConfigurationBuilder screenBuilder(final int width, final Collection<UUID> viewers) {
+    return Mcv2ConfigurationTest.complete().viewers(viewers).video(width, SCREEN_HEIGHT).pageSlots(2);
   }
 
   private void settle() {
@@ -605,7 +610,8 @@ final class Mcv2PackServerTest {
   void shouldGiveAPackWhoseScreensAllClosedTheOutlineColourOfTheNextScreen() {
     this.packs.open(this.screen(SCREEN_WIDTH, Set.of())).close();
     this.settle();
-    final Mcv2Configuration gold = Mcv2ConfigurationTest.complete().outlineColor(NamedTextColor.GOLD).build();
+    final Mcv2ConfigurationBuilder goldBuilder = this.screenBuilder(SCREEN_WIDTH, Set.of());
+    final Mcv2Configuration gold = goldBuilder.outlineColor(NamedTextColor.GOLD).build();
     final Mcv2PackServer.Lease lease = this.packs.open(gold);
     this.settle();
     final long streamId = lease.getConfiguration().getStreamId();
